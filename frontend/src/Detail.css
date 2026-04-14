@@ -1,0 +1,35 @@
+.detail-button {
+    position: relative;
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    background-color: #003a6a;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+  }
+  
+  .detail-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translate(-50%, -50%) rotate(45deg);
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+  
+  .detail-button:hover::before {
+    width: 0;
+    height: 0;
+  }
+  
+  .detail-button:hover {
+    background-color: #005bb5;
+  }

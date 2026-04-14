@@ -1,0 +1,87 @@
+[
+  {
+    "key": "logo",
+    "content": "https://scontent.fdad3-5.fna.fbcdn.net/v/t39.30808-6/461277529_1966725663767339_830923589032776278_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeFkCsiioztDL2XhSoUCCXV-LyeSfkQGQe8vJ5J-RAZB72--1C5wRh6gKacrngD3JFkvfUlgV1M2PtMwVHGLX2Gi&_nc_ohc=S3xicuS5qYAQ7kNvgF4Rg-E&_nc_oc=Adi4z238A0iEPusncedGh9OfDUdmhM9GLOA_qjJWU1SUAU2s-ViMGk9jiNJq_MDwVp8bVNChFqQhmovFdKKaMmNB&_nc_zt=23&_nc_ht=scontent.fdad3-5.fna&_nc_gid=AxN45Q6gfJ0XdZ4FydrQAKc&oh=00_AYAmgziPoL5MaWGAIizeRNudCIXgWgGrpfmfIslKZCqarQ&oe=67B925C3",
+    "type": "image"
+  },
+  {
+    "key": "logo_big",
+    "content": "https://denisechandler.com/wp-content/themes/denise_chandler_2024/images/small_business.png",
+    "type": "image"
+  },
+  {
+    "key": "textDecription",
+    "content": "I love creating websites for small businesses. Particularly for crafters, photographers, bakers, stay at home moms with their side hustles. Anything cute and fun. But, I understand that spending thousands on a custom website is unlikely to fit in the budget. I can offer deep discounts for those who are willing to give up the reins on the design decisions. You give me your content (photos, text, etc.) and I will build you a beautiful, custom website. Something that will make you stand out from the crowd. Get in touch to find out more.",
+    "type": "image"
+  },
+  {
+    "key": "textTitle",
+    "content": "look no farther!",
+    "type": "image"
+  },
+  {
+    "key": "linkfb",
+    "content": "https://www.facebook.com/phongdayhocchothue.hoahoctro.danang/",
+    "type": "text"
+  },
+  {
+    "key": "linkMess",
+    "content": "https://www.facebook.com/messages/t/392234097613470",
+    "type": "text"
+  },
+  {
+    "key": "linkYoutube",
+    "content": "https://www.youtube.com/channel/UCOPijTagF3kOO9G7tXctp0w",
+    "type": "image"
+  },
+  {
+    "key": "imgContact",
+    "content": "https://denisechandler.com/wp-content/themes/denise_chandler_2024/images/contact.jpg",
+    "type": "image"
+  },
+  {
+    "key": "nurseryImg",
+    "content": "https://pbs.twimg.com/media/F1AsDDdXsAsBZns?format=jpg&name=large",
+    "type": "image"
+  },
+  {
+    "key": "nurseryTitle",
+    "content": "Welcome to the Duchy of Cornwall Nursery, a place for one and all Welcome to the Duchy of Cornwall Nursery, a place for one and all ",
+    "type": "image"
+  },
+  {
+    "key": "nameBrand",
+    "content": "CHO THUÊ PHÒNG DẠY HỌC ĐÀ NẴNG HHT ",
+    "type": "image"
+  },
+  {
+    "key": "address",
+    "content": "15 Đào Duy Anh - Đà Nẵng",
+    "type": "image"
+  },
+  {
+    "key": "phone",
+    "content": "84913921920",
+    "type": "image"
+  },
+  {
+    "key": "email",
+    "content": "trungtamhoahoctro@gmail.com",
+    "type": "image"
+  },
+  {
+    "key": "zalo",
+    "content": "https://zalo.me/0337165122",
+    "type": "image"
+  },
+  {
+    "key": "googleMap",
+    "content": "https://maps.app.goo.gl/ws25eN2Tpeh9AwtS7",
+    "type": "image"
+  },
+  {
+    "key": "email",
+    "content": "trungtamhoahoctro@gmail.com",
+    "type": "image"
+  }
+]

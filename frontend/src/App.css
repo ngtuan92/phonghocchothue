@@ -1,0 +1,249 @@
+#root {
+  width: 100%;
+  /* min-width: 575px; */
+  height: 100%;
+}
+
+.dancing {
+  font-family: "Dancing Script", cursive;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.raleway {
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.bg-nursery {
+  background-image: url("https://pbs.twimg.com/media/F1AsDDdXsAsBZns?format=jpg&name=large");
+}
+
+.swiper-button-next-custom,
+.swiper-button-prev-custom {
+  width: 35px;
+  height: 35px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.swiper-button-next-custom {
+  right: 62px;
+}
+
+.swiper-button-prev-custom {
+  left: 62px;
+}
+
+.swiper-button-next-custom::after,
+.swiper-button-prev-custom::after {
+  font-size: 16px;
+  color: white;
+  font-weight: bold;
+}
+
+/* Màn hình điện thoại (<= 768px) */
+@media (max-width: 768px) {
+
+  .swiper-button-next-custom,
+  .swiper-button-prev-custom {
+    width: 25px;
+    height: 25px;
+  }
+
+  .swiper-button-next-custom {
+    right: 25px;
+  }
+
+  .swiper-button-prev-custom {
+    left: 25px;
+  }
+}
+
+.bg-img {
+  background-image: url("https://c7.alamy.com/comp/2E8W6XR/vector-green-rows-of-fun-daisy-flowers-repeat-pattern-with-canvas-background-suitable-for-textile-gift-wrap-and-wallpaper-2E8W6XR.jpg");
+  width: 100%;
+}
+
+.boder-green-gray {
+  border: 1px solid #799f85;
+}
+
+.bg-nav {
+  background-color: #e57f7f;
+}
+
+.bg-green-gray {
+  background-color: #799f85;
+}
+
+.br-60 {
+  border-radius: 36px;
+}
+
+.pacifico-regular {
+  font-family: "Pacifico", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.amatic-sc-regular {
+  font-family: "Amatic SC", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.custom-quill .ql-editor img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+}
+
+.content-img p img {
+  width: 100%;
+}
+
+.poppins-bold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.amatic-sc-bold {
+  font-family: "Amatic SC", serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.color-red {
+  color: #ff0000;
+}
+
+.color-brown {
+  color: #543c38;
+}
+
+.color-pink {
+  color: #e57f7f;
+}
+
+.color-brown {
+  color: #563c39;
+}
+
+.App {
+  margin: auto;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.hide-scrollbar {
+  overflow: auto;
+  /* Cho phép cuộn */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer và Edge cũ */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari và Opera */
+}
+
+.color-header-table p {
+  color: #1a94ff;
+}
+
+.object-position-custom {
+  object-position: top left;
+}
+
+@font-face {
+  font-family: "MyCustomFont";
+  src: url("/assets/font/mtd-fleurie.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bước 2: Áp dụng cho class */
+.my-class-font {
+  font-family: "MyCustomFont", sans-serif;
+}
+
+@font-face {
+  font-family: "FontViet";
+  src: url("/assets/font/iciel-altus.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bước 2: Áp dụng cho class */
+.title-product-detail {
+  font-family: "FontViet", sans-serif;
+}
+
+
+@font-face {
+  font-family: "FontVietSVN";
+  src: url("/assets/font/bcexpresoBase-regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bước 2: Áp dụng cho class */
+.title-footer-custom {
+  font-family: "FontVietSVN", sans-serif;
+}
+
+.cke_notifications_area {
+  display: none;
+}
