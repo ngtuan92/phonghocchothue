@@ -83,7 +83,7 @@ class HomeController {
         const token = jwt.sign(
           { id: user.dataValues.id, email: user.dataValues.email },
           JWT_SECRET,
-          { expiresIn: "1h" }
+          { expiresIn: "7d" }
         );
         res.json({
           success: true,
@@ -147,40 +147,40 @@ class HomeController {
       );
     }
   }
-  
-  async contact(req, res, next) {
-  
-      const EMAIL = process.env.EMAIL_SENDMAIL;
-      const { email, phone, name, subject} = req.body;
-      try {
 
-        await mail.sendMail({
-          from: `"Website đặt phòng" <${EMAIL}>`,
-          to: EMAIL,
-          subject: "Liên hệ nhà trò",
-          html: `
+  async contact(req, res, next) {
+
+    const EMAIL = process.env.EMAIL_SENDMAIL;
+    const { email, phone, name, subject } = req.body;
+    try {
+
+      await mail.sendMail({
+        from: `"Website đặt phòng" <${EMAIL}>`,
+        to: EMAIL,
+        subject: "Liên hệ nhà trò",
+        html: `
           <p>Họ và Tên: ${name}</p>
           <p>Số điện thoại: ${phone}</p>
           <p>Email: ${email}</p>
           <p>Nội dung: ${subject}</p>
         `,
-        });
-  
-        return res.json({
-          success: true,
-          message: "Liên hệ thành công!",
-        });
-  
-      } catch (error) {
-        res.json(
-          {
-            success: false,
-            message: "Liên hệ thất bại!",
-          },
-          404
-        );
-      }
+      });
+
+      return res.json({
+        success: true,
+        message: "Liên hệ thành công!",
+      });
+
+    } catch (error) {
+      res.json(
+        {
+          success: false,
+          message: "Liên hệ thất bại!",
+        },
+        404
+      );
     }
+  }
 }
 
 module.exports = new HomeController();

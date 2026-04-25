@@ -12,6 +12,29 @@ import {
 } from "@material-tailwind/react";
 
 import ColorPicker from "../color-picker";
+import dynamic from "next/dynamic";
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
+
+const QUILL_MODULES = {
+    toolbar: [
+        [{ header: [1, 2, 3, 4, false] }],
+        [{ font: [] }],
+        [{ size: ["small", false, "large", "huge"] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ color: [] }, { background: [] }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ align: [] }],
+        ["clean"],
+    ],
+};
+
+const QUILL_FORMATS = [
+    "header", "font", "size",
+    "bold", "italic", "underline", "strike",
+    "color", "background",
+    "list", "bullet", "align",
+];
 
 // eslint-disable-next-line no-undef
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -190,6 +213,24 @@ function FormOtherComponent({ open, id, handleOpen, onSave, dataEdit }) {
                                 </button>
                             </div>
                         )}
+                    </div>
+                );
+            case "richtext":
+                return (
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Nội dung văn bản nghệ thuật (Hỗ trợ H1, H2, Font, Bold...)
+                        </label>
+                        <div className="bg-white">
+                            <ReactQuill
+                                theme="snow"
+                                value={configContent}
+                                onChange={setConfigContent}
+                                modules={QUILL_MODULES}
+                                formats={QUILL_FORMATS}
+                                placeholder="Nhập nội dung và định dạng tại đây..."
+                            />
+                        </div>
                     </div>
                 );
             case "text":

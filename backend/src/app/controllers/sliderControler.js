@@ -16,11 +16,11 @@ class SliderController {
             })
             const slider = mutipleConvertToObject(sliderData);
 
-            res.json({
+            res.status(200).json({
                 success: true,
                 message: 'Lấy data thành công!',
                 data: slider
-            }, 200)
+            })
         } catch (error) {
             res.json({
                 success: false,
@@ -48,10 +48,10 @@ class SliderController {
                 data: data
             })
         }).catch(function (err) {
-            res.json({
+            res.status(404).json({
                 success: false,
                 message: 'Thêm slider thất bại!'
-            }, 404)
+            })
         });
     }
 
@@ -63,11 +63,11 @@ class SliderController {
             where: { id: id }
         }).then(slider => {
 
-            res.json({
+            res.status(200).json({
                 success: true,
                 message: 'Lấy data thành công!',
                 data: slider.dataValues
-            }, 200)
+            })
         }).catch(() => {
             res.json({
                 success: false,

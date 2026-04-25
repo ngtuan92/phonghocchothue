@@ -1,4 +1,5 @@
 const RedirectModel = require("../models/redirectModel");
+const { getOrSetCache, redis } = require('../../util/cacheUtil');
 
 // Lấy redirect cho middleware frontend: GET /api/redirect?path=/phong/san-pham-1
 const getRedirect = async (req, res) => {
@@ -11,22 +12,23 @@ const getRedirect = async (req, res) => {
       });
     }
 
-    const redirect = await RedirectModel.findOne({
-      where: { fromPath, status: true },
-    });
+    const cacheKey = `redirect:${fromPath}`;
+    const cached = await getOrSetCache(cacheKey, async () => {
+      const redirect = await RedirectModel.findOne({
+        where: { fromPath, status: true },
+      });
+      return redirect ? { from: redirect.fromPath, to: redirect.toPath } : null;
+    }, 86400);
 
-    if (!redirect) {
+    if (!cached) {
       return res.status(404).json({
         message: "No redirect configured for this path",
       });
     }
 
-    return res.json({
-      from: redirect.fromPath,
-      to: redirect.toPath,
-    });
+    const parsedResult = typeof cached === 'string' ? JSON.parse(cached) : cached;
+    return res.json(parsedResult);
   } catch (error) {
-    console.error("getRedirect error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -69,6 +71,7 @@ const createRedirect = async (req, res) => {
       note,
     });
 
+    await redis.del(`redirect:${fromPath}`);
     return res.status(201).json(redirect);
   } catch (error) {
     console.error("createRedirect error:", error);
@@ -106,6 +109,7 @@ const updateRedirect = async (req, res) => {
 
     await redirect.save();
 
+    await redis.del(`redirect:${redirect.fromPath}`);
     return res.json(redirect);
   } catch (error) {
     console.error("updateRedirect error:", error);
@@ -125,6 +129,7 @@ const deleteRedirect = async (req, res) => {
 
     await redirect.destroy();
 
+    await redis.del(`redirect:${redirect.fromPath}`);
     return res.json({ message: "Deleted successfully" });
   } catch (error) {
     console.error("deleteRedirect error:", error);

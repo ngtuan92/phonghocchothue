@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "nodemon index.js",
     "watch": "node-sass -w src/resources/scss/ -o src/public/web/css/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,13 +23,14 @@
     "express-fileupload": "^1.5.1",
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
     "mysql2": "^3.12.0",
-    "node-sass": "^9.0.0",
     "nodemailer": "^6.9.16",
     "nodemon": "^3.1.9",
+    "sass": "^1.99.0",
     "sequelize": "^6.37.5",
     "validator": "^13.12.0"
   },

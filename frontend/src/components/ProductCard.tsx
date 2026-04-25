@@ -12,6 +12,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+import useConfigContentByKey from "@/hooks/useConfigContentByKey";
+import RichTextRenderer from "./RichTextRenderer";
 
 interface Product {
   id?: string | number;
@@ -31,7 +33,6 @@ const ProductCard = ({ product }: { product?: Product }) => {
     router.push(getProductUrl(product));
   };
 
-  // Nếu có prop product, render một card đơn lẻ
   if (product) {
     return (
       <button
@@ -49,7 +50,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex flex-col items-start px-4 py-2 text-white transform translate-y-100 group-hover:translate-y-0 transition-transform duration-500">
-          <h2 className="text-lg font-bold">{product.name}</h2>
+          <h3 className="text-lg font-bold">{product.name}</h3>
           <ul className="list-disc ml-5 text-base mt-2 space-y-1">
             {product.equipment && <li>{product.equipment}</li>}
             {product.contains && <li>{product.contains}</li>}
@@ -68,9 +69,15 @@ const ProductCard = ({ product }: { product?: Product }) => {
     );
   }
 
-  // Nếu không có prop product, render Swiper với tất cả products
+  const roomHeading = useConfigContentByKey("room-heading");
+
   return (
-    <div className="w-full mx-auto px-[40px] sm:px-20 relative my-6 sm:my-36 ">
+    <div className="w-full mx-auto px-6 sm:px-[60px] lg:px-[90px] relative my-12 sm:my-36">
+      <RichTextRenderer 
+        html={roomHeading} 
+        className="text-center mb-8"
+        fallback={<h2 className="text-3xl font-bold mb-8 text-[#563c39]">Không gian phù hợp cho từng quy mô lớp học</h2>}
+      />
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={9}
@@ -87,11 +94,10 @@ const ProductCard = ({ product }: { product?: Product }) => {
         }}
         breakpoints={{
           320: { slidesPerView: 1, spaceBetween: 10 },
-          480: { slidesPerView: 1, spaceBetween: 10 },
-          640: { slidesPerView: 1, spaceBetween: 10 },
-          768: { slidesPerView: 3, spaceBetween: 10 },
+          480: { slidesPerView: 1.2, spaceBetween: 10 },
+          640: { slidesPerView: 1.5, spaceBetween: 15 },
+          768: { slidesPerView: 2, spaceBetween: 20 },
           1024: { slidesPerView: 4, spaceBetween: 25 },
-          1240: { slidesPerView: 4, spaceBetween: 25 },
         }}
         className="w-full h-auto"
       >
@@ -108,7 +114,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex flex-col items-start px-4 py-2 text-white transform translate-y-100 group-hover:translate-y-0 transition-transform duration-500">
-                <h2 className="text-lg font-bold">{product.name}</h2>
+                <h3 className="text-lg font-bold">{product.name}</h3>
                 <ul className="list-disc ml-5 text-base mt-2 space-y-1">
                   {product.equipment && <li>{product.equipment}</li>}
                   {product.contains && <li>{product.contains}</li>}

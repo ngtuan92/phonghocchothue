@@ -14,7 +14,7 @@ const Contact = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
-  
+
   const createContact = useCreateContact();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -51,7 +51,7 @@ const Contact = () => {
     : "";
 
   return (
-    <div className="mt-6 sm:mt-36 mb-6 sm:mb-12 w-full p-6 px-[40px] sm:p-20 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 justify-center justify-items-center">
+    <div className="mt-6 sm:mt-12 mb-6 sm:mb-12 w-full p-6 px-[40px] sm:p-20 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 justify-center justify-items-center">
       {imgUrl && (
         <Image
           className="p-0 sm:p-6 w-full flex justify-center items-center"

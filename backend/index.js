@@ -13,36 +13,31 @@ const session = require('express-session')
 const flash = require('connect-flash');
 const cors = require('cors');
 
-app.use(cookieParser())
-app.use(fileUpload({
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
-}));
-app.use(cors());
-
-app.use(cors({
+const corsOptions = {
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers']
+};
+
+app.use(cors(corsOptions));
+app.use(cookieParser());
+app.use(fileUpload({
+  limits: { fileSize: 10 * 1024 * 1024 }
 }));
 
-app.use(session({
+const sessionMiddleware = session({
   secret: 'secret',
-  cookie: { maxAge: 60000},
+  cookie: { maxAge: 60000 },
   resave: false,
   saveUninitialized: false
-}));
-app.use(flash());
+});
 
-//connect mysql
+app.use('/api/admin', sessionMiddleware, flash());
+app.use('/api/login', sessionMiddleware);
+
 db.sequelize;
-//install folder public images
 app.use(express.static(path.join(__dirname, 'public')));
-// HTTP logger
-app.use(morgan('combined'));
-// Template
 
-
-//middewere
 app.use(express.urlencoded({
   extended: true,
   limit: '50mb'
@@ -50,10 +45,12 @@ app.use(express.urlencoded({
 app.use(express.json({
   limit: '50mb'
 }));
-// routing
 
 route(app);
 
-app.listen(port, () => {
-  // console.log(`App listening on http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  const redis = require('./src/config/redis');
+  redis.flushall().then(() => console.log('Cache cleared on startup'));
+}
+
+app.listen(port, () => {});

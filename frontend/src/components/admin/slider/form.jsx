@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { FaExclamationTriangle } from "react-icons/fa";
 import {
     Card,
     CardBody,
@@ -144,7 +145,7 @@ function FormSliderComponent({ open, id, handleOpen, onSave, dataEdit }) {
                         />
                         {errors.sliderName && (
                             <Typography variant="small" color="red" className="mt-1 flex items-center gap-1">
-                                <span>⚠️</span> {errors.sliderName}
+                                <FaExclamationTriangle className="inline-block mr-1 text-orange-500" /> {errors.sliderName}
                             </Typography>
                         )}
                     </div>
@@ -170,7 +171,7 @@ function FormSliderComponent({ open, id, handleOpen, onSave, dataEdit }) {
                             </div>
                             {errors.image && (
                                 <Typography variant="small" color="red" className="flex items-center gap-1">
-                                    <span>⚠️</span> {errors.image}
+                                    <FaExclamationTriangle className="inline-block mr-1 text-orange-500" /> {errors.image}
                                 </Typography>
                             )}
                             {singleImage && (

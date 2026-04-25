@@ -21,6 +21,24 @@ const columnHelper = createColumnHelper();
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
+const MAP_KEY_NAME = {
+  'home-h1': 'SEO H1 (Ẩn)',
+  'describe-heading': 'Tiêu đề chính (Phòng học cho thuê)',
+  'seo-h1-main': 'Dòng text SEO dưới tiêu đề',
+  'room-heading': 'Tiêu đề Danh sách phòng',
+  'amenities-content': 'Nội dung Tiện ích',
+  'gallery-heading': 'Tiêu đề Bộ sưu tập',
+  'blog-heading': 'Tiêu đề Tin tức',
+  'faq-heading': 'Tiêu đề FAQ',
+  'textDecription': 'Đoạn mô tả phụ (Đừng tìm đâu xa)',
+  'bgTitle': 'Ảnh trang trí nghệ thuật (Dây leo/Chim)',
+  'color-bg': 'Màu nền trang chủ',
+  'background': 'Hình nền toàn trang',
+  'icon-goc': 'Biểu tượng chú chim thông báo',
+  'textNotication': 'Nội dung thông báo góc',
+  'linkNotication': 'Link thông báo',
+};
+
 export default function Other() {
   const [sorting, setSorting] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -93,7 +111,7 @@ export default function Other() {
       ),
       cell: (info) => (
         <p className="text-sm font-bold text-black">
-          {info.getValue()}
+          {MAP_KEY_NAME[info.getValue()] || "Cấu hình hệ thống"}
         </p>
       ),
     }),
@@ -118,6 +136,11 @@ export default function Other() {
           <p className="text-sm font-bold text-black max-w-screen-sm truncate overflow-hidden text-ellipsis whitespace-nowrap hover:whitespace-normal">
             {musicName}
           </p>
+        ) : info.row.original.type === "richtext" ? (
+           <div 
+             className="text-xs text-black max-w-[300px] truncate max-h-[60px] overflow-hidden bg-gray-50 p-1 rounded"
+             dangerouslySetInnerHTML={{ __html: value }}
+           />
         ) : (
           <img
             className="w-[100px] h-[60px]"

@@ -16,6 +16,7 @@ import dynamic from "next/dynamic";
 import PropTypes from "prop-types";
 
 import { Editor } from '@tinymce/tinymce-react';
+import { FaExclamationTriangle } from "react-icons/fa";
 
 // Component TinyMCE với file upload
 function TinyMCEComponent({ value, onChange }) {
@@ -65,6 +66,7 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [roomName, setRoomName] = useState("");
+  const [roomNameRich, setRoomNameRich] = useState("");
   const [roomSlug, setRoomSlug] = useState("");
   const [roomContent, setRoomContent] = useState("");
   const [roomDescription, setRoomDescription] = useState("");
@@ -93,6 +95,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
     if (open) {
       if (dataEdit) {
         setRoomName(dataEdit.name || "");
+        setRoomNameRich(dataEdit.name_rich || (dataEdit.name ? `<h2>${dataEdit.name}</h2>` : ""));
         setRoomContent(dataEdit.content || "");
         setRoomSlug(dataEdit.slug || "");
         setRoomDescription(dataEdit.description || "");
@@ -127,6 +130,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         }
       } else {
         setRoomName("");
+        setRoomNameRich("");
         setRoomContent("");
         setRoomSlug("");
         setRoomDescription("");
@@ -243,6 +247,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
     if (validateInputs()) {
       const data = {
         name: roomName,
+        name_rich: roomNameRich,
         image: singleImage,
         imageDetail: multipleImages,
         content: roomContent,
@@ -340,9 +345,26 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 />
                 {errors.roomName && (
                   <Typography variant="small" color="red" className="mt-1 flex items-center gap-1">
-                    <span>⚠️</span> {errors.roomName}
+                    <FaExclamationTriangle className="inline-block mr-1 text-orange-500" /> {errors.roomName}
                   </Typography>
                 )}
+              </div>
+
+              {/* Tên phòng nghệ thuật */}
+              <div className="md:col-span-2">
+                <label htmlFor="room-name-rich" className="block text-sm font-medium text-gray-700 mb-2">
+                  🎨 Tên phòng (Nghệ thuật - H1, H2, Font...)
+                </label>
+                <div id="room-name-rich">
+                  <TinyMCEComponent
+                    key={`tinymce-name-${id || 'new'}-${open}`}
+                    value={roomNameRich}
+                    onChange={setRoomNameRich}
+                  />
+                </div>
+                <Typography variant="small" className="text-gray-500 mt-1 italic">
+                  * Nếu để trống, hệ thống sẽ sử dụng Tên phòng (phổ thông) ở trên.
+                </Typography>
               </div>
 
               {/* Slug */}
@@ -361,7 +383,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 />
                 {errors.roomSlug && (
                   <Typography variant="small" color="red" className="mt-1 flex items-center gap-1">
-                    <span>⚠️</span> {errors.roomSlug}
+                    <FaExclamationTriangle className="inline-block mr-1 text-orange-500" /> {errors.roomSlug}
                   </Typography>
                 )}
               </div>
@@ -444,7 +466,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 </div>
                 {errors.image && (
                   <Typography variant="small" color="red" className="flex items-center gap-1">
-                    <span>⚠️</span> {errors.image}
+                    <FaExclamationTriangle className="inline-block mr-1 text-orange-500" /> {errors.image}
                   </Typography>
                 )}
                 {singleImage && (
@@ -733,6 +755,7 @@ DialogComponent.propTypes = {
   onSave: PropTypes.func.isRequired,
   dataEdit: PropTypes.shape({
     name: PropTypes.string,
+    name_rich: PropTypes.string,
     content: PropTypes.string,
     description: PropTypes.string,
     equipment: PropTypes.string,

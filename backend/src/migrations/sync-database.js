@@ -21,6 +21,8 @@ require("../app/models/sliderModel");
 require("../app/models/userModel");
 require("../app/models/visitsModel");
 require("../app/models/redirectModel");
+require("../app/models/blogModel");
+require("../app/models/productDetailModel");
 
 // eslint-disable-next-line prefer-const
 (async () => {

@@ -3,55 +3,36 @@ const { mutipleConvertToObject } = require("../../util/convert");
 const productImageModel = require("../models/productImageModel");
 const { Op } = require("sequelize");
 const { createUniqueSlug } = require("../../util/slug");
+const { getOrSetCache, redis } = require("../../util/cacheUtil");
 
 const { uploadFile } = require("../../util/upload-file");
 class ProductController {
   async index(req, res) {
     try {
-      const productData = await productModel.findAll({
-        attributes: [
-          "id",
-          "name",
-          "slug",
-          "content",
-          "image",
-          "status",
-          "equipment",
-          "contains",
-          "description",
-          "price",
-          "unit",
-          "capacity",
-          "isSpecial",
-          "seoTitle",
-          "seoDescription",
-          "seoKeywords",
-          "seoImage",
-        ],
-        include: [
-          {
-            model: productImageModel,
-            as: "images",
-          },
-        ],
-      });
-      const products = mutipleConvertToObject(productData);
+      const { limit } = req.query;
+      const cacheKey = limit ? `products:limit:${limit}` : "products:all";
 
-      res.json(
-        {
+      const productsJson = await getOrSetCache(cacheKey, async () => {
+        const productData = await productModel.findAll({
+          attributes: [
+            "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
+            "contains", "description", "price", "unit", "capacity", "isSpecial",
+            "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+          ],
+          include: [{ model: productImageModel, as: "images" }],
+          limit: limit ? parseInt(limit) : undefined,
+          order: [['id', 'DESC']]
+        });
+        return {
           success: true,
-          data: products,
-        },
-        200
-      );
+          data: mutipleConvertToObject(productData)
+        };
+      });
+
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).send(productsJson);
     } catch (error) {
-      res.json(
-        {
-          success: false,
-          message: "Lấy data thất bại!",
-        },
-        404
-      );
+      res.status(404).json({ success: false, message: "Lấy data thất bại!" });
     }
   }
 
@@ -61,6 +42,7 @@ class ProductController {
         attributes: [
           "id",
           "name",
+          "name_rich",
           "slug",
           "content",
           "image",
@@ -108,86 +90,49 @@ class ProductController {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      
-      // Kiểm tra xem id là số (ID) hay string (slug)
-      const isNumeric = /^\d+$/.test(id);
-      
-      // Tạo điều kiện where: tìm theo slug nếu không phải số, hoặc theo id nếu là số
-      const whereCondition = isNumeric 
-        ? { id: parseInt(id) }
-        : { slug: id };
+      const cacheKey = `product:detail:${id}`;
 
-      const product = await productModel.findOne({
-        attributes: [
-          "id",
-          "name",
-          "slug",
-          "content",
-          "image",
-          "status",
-          "equipment",
-          "contains",
-          "description",
-          "price",
-          "unit",
-          "capacity",
-          "isSpecial",
-          "seoTitle",
-          "seoDescription",
-          "seoKeywords",
-          "seoImage",
-        ],
-        include: [
-          {
-            model: productImageModel,
-            as: "images",
-          },
-        ],
-        where: whereCondition,
+      const resultJson = await getOrSetCache(cacheKey, async () => {
+        const isNumeric = /^\d+$/.test(id);
+        const whereCondition = isNumeric ? { id: parseInt(id) } : { slug: id };
+
+        const product = await productModel.findOne({
+          attributes: [
+            "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
+            "contains", "description", "price", "unit", "capacity", "isSpecial",
+            "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+          ],
+          include: [{ model: productImageModel, as: "images" }],
+          where: whereCondition,
+        });
+
+        if (!product) return null;
+
+        const otherProducts = await productModel.findAll({
+          attributes: [
+            "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
+            "contains", "description", "price", "unit", "capacity", "isSpecial",
+            "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+          ],
+          where: { id: { [Op.ne]: product.id } },
+          order: [["id", "DESC"]],
+          limit: 4,
+        });
+
+        return {
+          success: true,
+          data: product.dataValues,
+          related: mutipleConvertToObject(otherProducts)
+        };
       });
 
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: "Không tìm thấy sản phẩm!",
-        });
+      if (!resultJson) {
+        return res.status(404).json({ success: false, message: "Không tìm thấy sản phẩm!" });
       }
 
-      const productId = product.id;
-
-      const otherProducts = await productModel.findAll({
-        attributes: [
-          "id",
-          "name",
-          "slug",
-          "content",
-          "image",
-          "status",
-          "equipment",
-          "contains",
-          "description",
-          "price",
-          "unit",
-          "capacity",
-          "isSpecial",
-          "seoTitle",
-          "seoDescription",
-          "seoKeywords",
-          "seoImage",
-        ],
-        where: {
-          id: { [Op.ne]: productId },
-        },
-        order: [["createdAt", "DESC"]],
-        limit: 4,
-      });
-
-      res.status(200).json({
-        success: true,
-        data: product.dataValues,
-      });
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).send(resultJson);
     } catch (error) {
-      console.error(error);
       res.status(500).json({
         success: false,
         message: "Lấy dữ liệu thất bại!",
@@ -196,29 +141,31 @@ class ProductController {
   }
 
   async update(req, res) {
+    const { id } = req.params;
     try {
-      const { id } = req.params;
-      const { name, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
-      const { image, imageDetail, seoImage } = req.files || {};
+      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
+      
+      const files = req.files || {};
+      const { image, imageDetail, seoImage } = files;
 
       const image_detail = imageDetail
 
       const product = await productModel.findByPk(id);
-            if (!product) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Sản phẩm không tồn tại!'
-                });
-            }
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: 'Sản phẩm không tồn tại!'
+        });
+      }
 
       let imagePatch = product.image;
       if (image) {
-          imagePatch = await uploadFile(image, 'products', image.name);
+        imagePatch = await uploadFile(image, 'products', image.name);
       }
 
       let seoImagePatch = product.seoImage;
       if (seoImage) {
-          seoImagePatch = await uploadFile(seoImage, 'products', seoImage.name);
+        seoImagePatch = await uploadFile(seoImage, 'products', seoImage.name);
       }
 
       // Tạo slug nếu không có hoặc name thay đổi
@@ -232,44 +179,58 @@ class ProductController {
         });
       }
 
-      await product.update({
-        name: name,
+      // Chỉ cập nhật những trường được gửi lên (tránh ghi đè undefined)
+      const updateFields = {
+        name,
+        name_rich,
         slug: productSlug || product.slug,
-        content: content,
-        description: description,
-        equipment: equipment,
-        price: price,
+        content,
+        description,
+        equipment,
+        price,
         unit: unit || product.unit,
-        contains: contains,
-        isSpecial: isSpecial,
-        status: status,
+        contains,
+        isSpecial,
+        status,
         image: imagePatch,
-        capacity: 0,
-        seoTitle: seoTitle,
-        seoDescription: seoDescription,
-        seoKeywords: seoKeywords,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
         seoImage: seoImagePatch,
+      };
+
+      Object.keys(updateFields).forEach(key => {
+        if (updateFields[key] === undefined) {
+          delete updateFields[key];
+        }
       });
+
+      await product.update(updateFields);
 
       if (image_detail) {
         await productImageModel.destroy({
           where: { product_id: id },
         });
 
-
         const details = Array.isArray(image_detail) ? image_detail : [image_detail];
 
         for (const item of details) {
-
           const imagePatchDetail = await uploadFile(item, 'products-detail', item.name);
-
           await productImageModel.create({
             product_id: id,
             image_detail: imagePatchDetail,
           });
         }
-
       }
+
+      // XÓA CACHE
+      await redis.del("products:all");
+      await redis.del(`product:detail:${id}`);
+      if (product.slug) await redis.del(`product:detail:${product.slug}`);
+      if (productSlug) await redis.del(`product:detail:${productSlug}`);
+      
+      const keys = await redis.keys("products:limit:*");
+      if (keys.length > 0) await redis.del(keys);
 
       return res.json({
         success: true,
@@ -277,18 +238,16 @@ class ProductController {
         data: product,
       });
     } catch (err) {
-
       return res.status(400).json({
         success: false,
         message: 'Cập nhật sản phẩm thất bại!',
       });
-
     }
   }
 
   async save(req, res) {
     try {
-      const { name, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
+      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
       const { image, imageDetail, seoImage } = req.files || {};
 
       const image_detail = imageDetail
@@ -314,6 +273,7 @@ class ProductController {
 
       const product = await productModel.create({
         name: name,
+        name_rich: name_rich,
         slug: productSlug,
         content: content,
         description: description,
@@ -351,6 +311,8 @@ class ProductController {
         
       }
 
+      await redis.del("products:all");
+
       return res.json({
         success: true,
         message: "Tạo sản phẩm thành công!",
@@ -375,6 +337,9 @@ class ProductController {
       await productModel.destroy({
         where: { id: id },
       });
+
+      await redis.del("products:all");
+      await redis.del(`product:detail:${id}`);
 
       return res.json({
         success: true,

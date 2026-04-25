@@ -1,0 +1,14 @@
+services:
+  redis:
+    image: redis:7.2.4-alpine3.19
+    container_name: redis_phonghocchothue
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server
+    networks:
+      - phonghocchothue-network
+
+networks:
+  phonghocchothue-network:
+    driver: bridge

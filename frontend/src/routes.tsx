@@ -4,8 +4,10 @@ import React from "react";
 import Dashboard from "./views/admin/Dashboard";
 import Product from "./views/admin/Product";
 import Config from "./views/admin/Config";
+import CMS from "./views/admin/CMS";
 import Order from "./views/admin/Order";
 import Redirect from "./views/admin/Redirect";
+import Blog from "./views/admin/Blog";
 
 // Icon Imports
 import {
@@ -14,6 +16,7 @@ import {
   MdSettings,
   MdHome,
   MdSwapHoriz,
+  MdArticle,
 } from "react-icons/md";
 
 interface Route {
@@ -42,6 +45,14 @@ const routes: Route[] = [
     secondary: true,
   },
   {
+    name: "Blog",
+    layout: "/admin",
+    path: "blog",
+    icon: <MdArticle className="h-6 w-6" />,
+    component: <Blog />,
+    secondary: true,
+  },
+  {
     name: "Đơn đặt",
     layout: "/admin",
     path: "order",
@@ -55,6 +66,14 @@ const routes: Route[] = [
     path: "config",
     icon: <MdSettings className="h-6 w-6" />,
     component: <Config />,
+    secondary: true,
+  },
+  {
+    name: "Quản lý Giao diện",
+    layout: "/admin",
+    path: "cms",
+    icon: <MdSettings className="h-6 w-6" />,
+    component: <CMS />,
     secondary: true,
   },
   {

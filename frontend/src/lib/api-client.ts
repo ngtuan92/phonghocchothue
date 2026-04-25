@@ -49,9 +49,13 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Xử lý unauthorized
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Xử lý unauthorized / invalid token
       removeClientCookie("token");
+      removeClientCookie("user");
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/admin/login")) {
+        window.location.href = "/admin/login";
+      }
     }
     return Promise.reject(error);
   }

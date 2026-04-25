@@ -5,6 +5,7 @@ const orderRouter = require('./order');
 const sliderRouter = require('./slider');
 const uploadRouter = require('./upload');
 const redirectRouter = require('./redirect');
+const blogRouter = require('./blog');
 
 function route(app) {
 
@@ -21,6 +22,8 @@ function route(app) {
     app.use('/api/upload', uploadRouter);
 
     app.use('/api/redirect', redirectRouter);
+
+    app.use('/api/blog', blogRouter);
 
 }
 

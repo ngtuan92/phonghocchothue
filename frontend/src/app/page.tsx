@@ -5,10 +5,14 @@ import { useEffect, useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Describe from "@/components/Describe";
-import Backdrop from "@/components/Backdrop";
 import Contact from "@/components/Contact";
 import NurseryHeader from "@/components/NurseryHeader";
 import ProductCard from "@/components/ProductCard";
+import Amenities from "@/components/Amenities";
+import Gallery from "@/components/Gallery";
+import Blog from "@/components/Blog";
+import FAQ from "@/components/FAQ";
+import RichTextRenderer from "@/components/RichTextRenderer";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -41,6 +45,7 @@ export default function Home() {
     useConfigContentByKey("seo-image-home") || background.backgroundImage;
   const notificationText = useConfigContentByKey("textNotication");
   const notificationLink = useConfigContentByKey("linkNotication");
+  const logo = useConfigContentByKey("logo");
 
   const buildAbsoluteUrl = (value: string | undefined) => {
     if (!value || typeof value !== "string") return undefined;
@@ -106,12 +111,10 @@ export default function Home() {
         </div>
       )}
 
-      {/* Notification ở góc trái dưới */}
       {showNotification && notificationText && (
         <div
           className="fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] p-3 sm:p-6 sm:px-3 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 w-[210px] sm:w-[230px] md:w-[230px] lg:w-[230px] xl:w-[230px] max-sm:w-[170px]"
         >
-          {/* Hình ảnh con chim */}
           {background.imgBird && (
             <Image
               src={`${URL_API}${background.imgBird.replaceAll("\\", "/")}`}
@@ -125,7 +128,6 @@ export default function Home() {
             />
           )}
 
-          {/* Nút đóng ❌ */}
           <div className="bg-[#799f85] absolute -top-2 -right-2 rounded-xl p-1 flex justify-center items-center cursor-pointer">
             <FontAwesomeIcon
               icon={faTimes}
@@ -134,12 +136,10 @@ export default function Home() {
             />
           </div>
 
-          {/* Nội dung thông báo */}
           <p className="text-[#563c39] mt-0 text-[10px] sm:text-xs raleway !font-[400] leading-[14px]">
             {notificationText}
           </p>
 
-          {/* Nút Subscribe */}
           {notificationLink && (
             <a
               href={notificationLink}
@@ -151,18 +151,33 @@ export default function Home() {
         </div>
       )}
 
-      <div className="absolute inset-0 flex items-center justify-center p-[30px] sm:p-[70px] 1400px:p-[70px] 1700px:p-[85px]">
+      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[70px] xl:p-[80px]">
         <div
-          className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar"
+          className="w-full min-h-screen sm:min-h-0 sm:h-full rounded-[10px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar"
           style={pageStyle}
         >
           <Header />
-          <Backdrop />
+          <RichTextRenderer
+            html={useConfigContentByKey("home-h1")}
+            className="sr-only"
+          />
           <div id="about">
             <Describe />
           </div>
           <div id="room">
             <ProductCard />
+          </div>
+          <div id="amenities">
+            <Amenities />
+          </div>
+          <div id="gallery">
+            <Gallery />
+          </div>
+          <div id="blog">
+            <Blog />
+          </div>
+          <div id="faq">
+            <FAQ />
           </div>
           <div id="contact">
             <Contact />

@@ -35,6 +35,7 @@ interface BookingFormData {
 interface ProductData {
   product: {
     name: string;
+    name_rich?: string;
     images: any[];
     image: string;
     contains: number;
@@ -141,6 +142,7 @@ export default function DetailPage() {
     return {
       product: {
         name: product.name || "",
+        name_rich: product.name_rich || "",
         images: product.images || [],
         image: product.image || "",
         contains: product.contains || 0,
@@ -212,6 +214,12 @@ export default function DetailPage() {
 
     return processed;
   }, [productData, buildAbsoluteUrl]);
+
+  const processedName = useMemo(() => {
+    const name = productData.product.name_rich || productData.product.name;
+    if (!name || typeof name !== "string") return "";
+    return name;
+  }, [productData]);
 
 
 
@@ -567,9 +575,17 @@ export default function DetailPage() {
               />
             </div>
             <div className="flex-1 p-4 rounded-lg text-left">
-              <h1 className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold mb-4 cursor-pointer title-product-detail">
-                {get(productData, "product.name")}
-              </h1>
+              <div className="title-product-detail mb-4">
+                {productData.product.name_rich ? (
+                  <div className="ckeditor-content">
+                    {parse(processedName)}
+                  </div>
+                ) : (
+                  <h1 className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
+                    {productData.product.name}
+                  </h1>
+                )}
+              </div>
               <h3 className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-2">
                 Mô tả :
               </h3>

@@ -239,6 +239,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "iCiel Amber";
+  src: url("/assets/font/iciel-amber.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Bước 2: Áp dụng cho class */
 .title-footer-custom {
   font-family: "FontVietSVN", sans-serif;
@@ -246,4 +254,337 @@
 
 .cke_notifications_area {
   display: none;
+}
+
+.font-montserrat {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.font-wide {
+  font-family: 'Syncopate', sans-serif !important;
+}
+
+.font-cursive {
+  font-family: 'Pinyon Script', 'Great Vibes', cursive;
+}
+
+.title-bg-text {
+  font-family: 'Bebas Neue', sans-serif !important;
+  letter-spacing: -0.02em;
+  opacity: 0.12;
+  color: #d4908a;
+  text-transform: uppercase;
+  z-index: 0;
+  line-height: 1;
+  font-weight: 400;
+  text-align: center;
+  width: 100%;
+}
+
+.title-main-text {
+  color: #563c39;
+  z-index: 10;
+  text-shadow: 0 4px 12px rgba(86, 60, 57, 0.08);
+  line-height: 1.4;
+}
+
+.title-sub-text {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.5em;
+  font-weight: 300;
+  color: #563c39;
+}
+
+.title-quote-text {
+  font-family: 'Dancing Script', cursive;
+  color: #563c39;
+  opacity: 0.8;
+}
+
+.rich-text-renderer,
+.rich-text-renderer * {
+  width: auto !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: normal !important;
+  white-space: normal !important;
+}
+
+.rich-text-renderer {
+  width: 100%;
+  overflow: visible;
+}
+
+.rich-text-renderer img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.rich-text-renderer h1 {
+  font-size: 2.5rem;
+  color: #563c39;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.rich-text-renderer h2 {
+  font-size: 2rem;
+  color: #563c39;
+  line-height: 1.2;
+  margin-bottom: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .rich-text-renderer h1 {
+    font-size: 2rem;
+  }
+
+  .rich-text-renderer h2 {
+    font-size: 1.75rem;
+  }
+}
+
+.rich-text-renderer p {
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+  color: #323232;
+  margin-bottom: 1rem;
+  font-weight: 400;
+}
+
+.ql-font-inter {
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: 0.03em;
+}
+
+.ql-font-roboto {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.ql-font-playfair-display {
+  font-family: 'Playfair Display', serif !important;
+}
+
+.ql-font-montserrat {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.ql-font-poppins {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.ql-font-raleway {
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.ql-font-dancing-script {
+  font-family: 'Dancing Script', cursive !important;
+}
+
+.ql-font-pacifico {
+  font-family: 'Pacifico', cursive !important;
+}
+
+.ql-font-amatic-sc {
+  font-family: 'Amatic SC', cursive !important;
+}
+
+.ql-font-bebas-neue {
+  font-family: 'Bebas Neue', sans-serif !important;
+}
+
+.ql-font-syncopate {
+  font-family: 'Syncopate', sans-serif !important;
+}
+
+.ql-font-great-vibes {
+  font-family: 'Great Vibes', cursive !important;
+}
+
+.ql-font-pinyon-script {
+  font-family: 'Pinyon Script', cursive !important;
+}
+
+.ql-font-alex-brush {
+  font-family: 'Alex Brush', cursive !important;
+}
+
+.ql-font-parisienne {
+  font-family: 'Parisienne', cursive !important;
+}
+
+.ql-font-tangerine {
+  font-family: 'Tangerine', cursive !important;
+}
+
+.ql-font-satisfy {
+  font-family: 'Satisfy', cursive !important;
+}
+
+.ql-font-caveat {
+  font-family: 'Caveat', cursive !important;
+}
+
+.ql-font-oswald {
+  font-family: 'Oswald', sans-serif !important;
+}
+
+.ql-font-lato {
+  font-family: 'Lato', sans-serif !important;
+}
+
+.ql-font-nunito {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+.ql-font-quicksand {
+  font-family: 'Quicksand', sans-serif !important;
+}
+
+.ql-font-arial {
+  font-family: Arial, sans-serif !important;
+}
+
+.ql-font-times-new-roman {
+  font-family: 'Times New Roman', serif !important;
+}
+
+.ql-font-serif {
+  font-family: serif !important;
+}
+
+.ql-font-monospace {
+  font-family: monospace !important;
+}
+
+.ql-font-iciel-amber {
+  font-family: 'iCiel Amber', sans-serif !important;
+}
+
+/* Hiển thị tên font trong danh sách chọn của trình soạn thảo */
+.ql-picker.ql-font .ql-picker-label[data-value="iciel-amber"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="iciel-amber"]::before {
+  content: "iCiel Amber" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="dancing-script"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="dancing-script"]::before {
+  content: "Dancing Script" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="pacifico"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="pacifico"]::before {
+  content: "Pacifico" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="bebas-neue"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="bebas-neue"]::before {
+  content: "Bebas Neue" !important;
+}
+
+.ql-align-center {
+  text-align: center !important;
+}
+
+.ql-align-right {
+  text-align: right !important;
+}
+
+.ql-align-justify {
+  text-align: justify !important;
+}
+
+.rich-text-renderer { 
+  font-size: 1.25rem; 
+  line-height: 1.6;
+}
+
+.rich-text-renderer h1 { font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 400; }
+.rich-text-renderer h2 { font-size: 2rem; margin-bottom: 1.2rem; font-weight: 400; }
+.rich-text-renderer h3 { font-size: 1.75rem; margin-bottom: 1rem; font-weight: 400; }
+
+.ql-size-small { font-size: 0.75em !important; }
+.ql-size-large { font-size: 1.5em !important; }
+.ql-size-huge { font-size: 2.5em !important; }
+
+.title-main-text {
+  z-index: 10;
+  text-shadow: 0 4px 12px rgba(86, 60, 57, 0.08);
+}
+
+.title-sub-text h1,
+.title-sub-text h2,
+.title-sub-text h3 {
+  margin: 0;
+  display: block;
+}
+
+.title-sub-text p {
+  margin: 0;
+  display: inline-block;
+}
+
+.title-main-text {
+  z-index: 10;
+  text-shadow: 0 4px 12px rgba(86, 60, 57, 0.08);
+}
+
+.title-main-text h1,
+.title-main-text h2,
+.title-main-text h3,
+.title-main-text p {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+  margin: 0; /* Reset margin để không lệch bố cục */
+}
+
+@media (min-width: 640px) {
+  .title-main-text h1,
+  .title-main-text h2,
+  .title-main-text p {
+    white-space: nowrap !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .title-main-text h1,
+  .title-main-text h2,
+  .title-main-text p {
+    white-space: nowrap !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title-main-text h1,
+  .title-main-text h2,
+  .title-main-text p {
+    white-space: nowrap !important;
+  }
+}
+
+.rich-text-renderer strong {
+  font-weight: 700;
+  color: #563c39;
+}
+
+/* Slideshow Indicators */
+.each-slideshow-indicator:before {
+  background: #563c39 !important;
+  opacity: 0.2;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50%;
+}
+
+.each-slideshow-indicator.active:before {
+  background: #799f85 !important;
+  opacity: 1;
+}
+
+@media (max-width: 1023px) {
+  .gallery-swiper .swiper-pagination {
+    display: none !important;
+  }
 }

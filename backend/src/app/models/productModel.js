@@ -4,6 +4,7 @@ const {DataTypes} = require("sequelize");
 const ProductModel = db.sequelize.define("products", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, maxLength: 255 },
+    name_rich: { type: DataTypes.TEXT },
     slug: { type: DataTypes.STRING, maxLength: 255, unique: true, allowNull: true },
     content: { type: DataTypes.TEXT },
     image: { type: DataTypes.STRING, maxLength: 255 },
