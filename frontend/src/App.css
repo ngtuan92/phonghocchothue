@@ -495,18 +495,40 @@
   text-align: justify !important;
 }
 
-.rich-text-renderer { 
-  font-size: 1.25rem; 
+.rich-text-renderer {
+  font-size: 1.25rem;
   line-height: 1.6;
 }
 
-.rich-text-renderer h1 { font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 400; }
-.rich-text-renderer h2 { font-size: 2rem; margin-bottom: 1.2rem; font-weight: 400; }
-.rich-text-renderer h3 { font-size: 1.75rem; margin-bottom: 1rem; font-weight: 400; }
+.rich-text-renderer h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
 
-.ql-size-small { font-size: 0.75em !important; }
-.ql-size-large { font-size: 1.5em !important; }
-.ql-size-huge { font-size: 2.5em !important; }
+.rich-text-renderer h2 {
+  font-size: 2rem;
+  margin-bottom: 1.2rem;
+  font-weight: 400;
+}
+
+.rich-text-renderer h3 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  font-weight: 400;
+}
+
+.ql-size-small {
+  font-size: 0.75em !important;
+}
+
+.ql-size-large {
+  font-size: 2.25em !important;
+}
+
+.ql-size-huge {
+  font-size: 3em !important;
+}
 
 .title-main-text {
   z-index: 10;
@@ -537,10 +559,12 @@
   white-space: normal;
   word-break: break-word;
   line-height: 1.2;
-  margin: 0; /* Reset margin để không lệch bố cục */
+  margin: 0;
+  /* Reset margin để không lệch bố cục */
 }
 
 @media (min-width: 640px) {
+
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text p {
@@ -549,6 +573,7 @@
 }
 
 @media (min-width: 768px) {
+
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text p {
@@ -557,6 +582,7 @@
 }
 
 @media (min-width: 1024px) {
+
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text p {

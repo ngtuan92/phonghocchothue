@@ -23,8 +23,8 @@ import Loading from "../../components/admin/loading";
 import ColorPicker from "../../components/admin/color-picker";
 
 const FONTS = [
-  "roboto", "playfair-display", "montserrat", "poppins", 
-  "raleway", "dancing-script", "pacifico", "amatic-sc", "bebas-neue", 
+  "roboto", "playfair-display", "montserrat", "poppins",
+  "raleway", "dancing-script", "pacifico", "amatic-sc", "bebas-neue",
   "syncopate", "great-vibes", "pinyon-script", "alex-brush", "parisienne",
   "tangerine", "satisfy", "caveat", "oswald", "lato", "nunito", "quicksand",
   "arial", "times-new-roman", "serif", "monospace", "inter", "iciel-amber"
@@ -139,6 +139,10 @@ export default function CMS() {
     .ql-font-serif { font-family: serif !important; }
     .ql-font-monospace { font-family: monospace !important; }
     .ql-font-iciel-amber { font-family: 'iCiel Amber', sans-serif !important; }
+    
+    .ql-size-small { font-size: 0.85rem !important; }
+    .ql-size-large { font-size: 2rem !important; }
+    .ql-size-huge { font-size: 5rem !important; }
 
     .ql-editor {
       font-family: 'Inter', sans-serif;
@@ -219,7 +223,7 @@ export default function CMS() {
           wrapper.style.backgroundColor = '#fff';
           wrapper.style.zIndex = '10';
           wrapper.style.borderBottom = '1px solid #f1f1f1';
-          
+
           const input = wrapper.querySelector('input');
           input.onclick = (e) => e.stopPropagation();
           input.onkeydown = (e) => {
@@ -245,7 +249,7 @@ export default function CMS() {
         }
       });
     };
-    
+
     const timeoutId = setInterval(initSearch, 1000);
     return () => clearInterval(timeoutId);
   }, []);
@@ -339,7 +343,7 @@ export default function CMS() {
       name_rich: product.name_rich || "",
       name: product.name,
     };
-    
+
     try {
       await fetchData(`${URL_API}api/product/update/${product.id}`, "PUT", data);
       showToastSuccess(`Đã lưu tiêu đề cho "${product.name}"`);
@@ -365,7 +369,7 @@ export default function CMS() {
   const renderEditor = (config, onContentChange) => {
     const keyLower = config.key.toLowerCase();
     const isRichText = config.type === "richtext" || keyLower.includes("decription") || keyLower.includes("description") || keyLower.includes("content");
-    
+
     if (isRichText) {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
@@ -375,7 +379,7 @@ export default function CMS() {
             ref={(el) => {
               if (el && el.getEditor) {
                 const quill = el.getEditor();
-                
+
                 const Quill = quill.constructor;
                 const Font = Quill.import("formats/font");
                 const FontClass = Quill.import("attributors/class/font");
@@ -385,7 +389,7 @@ export default function CMS() {
                 Quill.register(FontClass, true);
 
                 const toolbar = quill.getModule('toolbar');
-                
+
                 const clipboard = quill.getModule('clipboard');
                 if (clipboard && !clipboard.__patched) {
                   clipboard.addMatcher('SPAN', (node, delta) => {
@@ -403,14 +407,14 @@ export default function CMS() {
 
                 if (toolbar && !toolbar.__patched) {
                   const originalUpdate = toolbar.update.bind(toolbar);
-                  toolbar.update = function(range) {
+                  toolbar.update = function (range) {
                     if (range == null && quill.getLength() > 0) {
                       range = { index: 0, length: 0 };
                     }
                     originalUpdate(range);
                   };
                   toolbar.__patched = true;
-                  
+
                   quill.on('text-change', () => {
                     if (!quill.hasFocus()) {
                       setTimeout(() => toolbar.update(null), 10);
