@@ -500,11 +500,8 @@ export default function CMS() {
   return (
     <div className="h-full w-full p-2 md:p-4">
       <style jsx global>{FONT_STYLES}</style>
-      <div className="mb-4 flex justify-end h-10">
-        {/* Removed Add New Content Button */}
-      </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div className="bg-white rounded-2xl p-1 shadow-sm border border-gray-50 sticky top-[72px] z-30">
           <ul className="flex flex-row gap-1 overflow-x-auto scrollbar-hide p-1">
             {SECTIONS.map(({ id, label, icon: Icon }) => {
