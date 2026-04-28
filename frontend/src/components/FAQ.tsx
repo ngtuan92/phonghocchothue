@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import RichTextRenderer from "./RichTextRenderer";
 
@@ -10,6 +10,7 @@ interface FAQItem {
 const FAQ = () => {
   const faqDataString = useConfigContentByKey("faq_list");
   const faqHeading = useConfigContentByKey("faq-heading");
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
   
   const faqData: FAQItem[] = useMemo(() => {
     try {
@@ -25,6 +26,11 @@ const FAQ = () => {
       return [];
     }
   }, [faqDataString]);
+
+  const handleToggle = (index: number) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
   if (!faqData || faqData.length === 0) {
     return null;
@@ -51,8 +57,12 @@ const FAQ = () => {
               itemScope
               itemProp="mainEntity"
               itemType="https://schema.org/Question"
+              open={openIndex === index}
             >
-              <summary className="list-none cursor-pointer flex justify-between items-center font-semibold text-lg text-[#563c39] hover:text-[#e57f7f] transition-colors duration-300 py-2">
+              <summary 
+                className="list-none cursor-pointer flex justify-between items-center font-semibold text-lg text-[#563c39] hover:text-[#e57f7f] transition-colors duration-300 py-2"
+                onClick={handleToggle(index)}
+              >
                 <h3 itemProp="name" className="pr-4 leading-relaxed font-bold raleway">
                   {item.question}
                 </h3>

@@ -34,7 +34,7 @@ const Gallery: React.FC = () => {
         />
       </div>
 
-      <div className="w-full h-[300px] sm:h-[600px] relative group/gallery">
+      <div className="w-full h-[300px] sm:h-[500px] md:h-[600px] relative group/gallery px-4 sm:px-8 md:px-12">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           spaceBetween={0}
@@ -45,7 +45,7 @@ const Gallery: React.FC = () => {
           }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           loop={true}
-          className="w-full h-full gallery-swiper"
+          className="w-full h-full gallery-swiper rounded-2xl overflow-hidden"
         >
           {sliderData.map((item: any, index: number) => (
             <SwiperSlide key={index}>
