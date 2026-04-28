@@ -500,14 +500,8 @@ export default function CMS() {
   return (
     <div className="h-full w-full p-2 md:p-4">
       <style jsx global>{FONT_STYLES}</style>
-      <div className="mb-4 flex justify-end">
-        <button
-          onClick={() => setOpenAdd(true)}
-          className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl bg-white border border-gray-100 text-navy-700 shadow-sm hover:bg-gray-50 transition-all duration-200 active:scale-95"
-        >
-          <MdAdd className="h-5 w-5 text-primary" />
-          Thêm nội dung mới
-        </button>
+      <div className="mb-4 flex justify-end h-10">
+        {/* Removed Add New Content Button */}
       </div>
 
       <div className="flex flex-col gap-6">
@@ -542,13 +536,7 @@ export default function CMS() {
           ) : (sectionConfigs.length === 0 && activeSection !== "product_detail") ? (
             <div className="flex flex-col items-center justify-center h-80 bg-white rounded-2xl border-2 border-dashed border-gray-200">
               <MdSettings className="h-16 w-16 text-gray-100 mb-4" />
-              <p className="text-gray-400 font-bold">Mục này chưa có nội dung</p>
-              <button
-                onClick={() => { setNewConfig({ ...EMPTY_NEW_CONFIG, section: activeSection }); setOpenAdd(true); }}
-                className="mt-4 text-primary text-sm font-bold hover:underline"
-              >
-                Tạo nội dung đầu tiên ngay
-              </button>
+              <p className="text-gray-400 font-bold">Mục này chưa có nội dung cấu hình</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -606,13 +594,7 @@ export default function CMS() {
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => deleteConfig(config.key)}
-                        className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                        title="Xóa"
-                      >
-                        <MdDelete className="h-5 w-5" />
-                      </button>
+                      {/* Removed Delete Button */}
                     </div>
 
                     <div className="p-6">
@@ -640,108 +622,7 @@ export default function CMS() {
         </div>
       </div>
 
-      {openAdd && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <button
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setOpenAdd(false)}
-            aria-label="Đóng"
-          />
-          <div className="relative bg-white rounded-2xl w-full max-w-xl shadow-2xl z-10 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div>
-                <Typography variant="h5" className="text-navy-700 font-bold">Thêm nội dung mới</Typography>
-                <Typography variant="small" className="text-gray-400 font-normal">Tạo một mục cấu hình mới cho website</Typography>
-              </div>
-              <button
-                onClick={() => setOpenAdd(false)}
-                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all"
-              >
-                <MdClose className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="px-6 py-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mã định danh nội bộ</label>
-                  <Input
-                    placeholder="Nhập mã định danh (vd: tieu-de-moi)"
-                    value={newConfig.key}
-                    onChange={(e) => setNewConfig({ ...newConfig, key: e.target.value })}
-                    className="!border-gray-200 focus:!border-primary"
-                    labelProps={{ className: "hidden" }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Loại nội dung</label>
-                  <select
-                    value={newConfig.type}
-                    onChange={(e) => setNewConfig({ ...newConfig, type: e.target.value })}
-                    className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-primary outline-none text-sm text-navy-700 bg-white"
-                  >
-                    {TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Thuộc menu</label>
-                  <select
-                    value={newConfig.section}
-                    onChange={(e) => setNewConfig({ ...newConfig, section: e.target.value })}
-                    className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-primary outline-none text-sm text-navy-700 bg-white"
-                  >
-                    {SECTIONS.map((s) => (
-                      <option key={s.id} value={s.id}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nội dung ban đầu</label>
-                {newConfig.type === "richtext" ? (
-                  <div className="border border-gray-200 rounded-lg overflow-visible">
-                    <ReactQuill
-                      theme="snow"
-                      value={newConfig.content}
-                      onChange={(val) => setNewConfig({ ...newConfig, content: val })}
-                      modules={QUILL_MODULES}
-                      formats={QUILL_FORMATS}
-                    />
-                  </div>
-                ) : (
-                  <Textarea
-                    placeholder="Nhập nội dung..."
-                    value={newConfig.content}
-                    onChange={(e) => setNewConfig({ ...newConfig, content: e.target.value })}
-                    rows={4}
-                    className="!border-gray-200 focus:!border-primary"
-                    labelProps={{ className: "hidden" }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
-              <button
-                onClick={() => setOpenAdd(false)}
-                className="px-5 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                onClick={createConfig}
-                className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl bg-primary text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
-              >
-                <MdAdd className="h-5 w-5" />
-                Tạo nội dung
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Removed Add Modal */}
     </div>
   );
 }
