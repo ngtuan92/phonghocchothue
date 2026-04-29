@@ -144,7 +144,7 @@ class ProductController {
     const { id } = req.params;
     try {
       const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
-      
+
       const files = req.files || {};
       const { image, imageDetail, seoImage } = files;
 
@@ -228,7 +228,7 @@ class ProductController {
       await redis.del(`product:detail:${id}`);
       if (product.slug) await redis.del(`product:detail:${product.slug}`);
       if (productSlug) await redis.del(`product:detail:${productSlug}`);
-      
+
       const keys = await redis.keys("products:limit:*");
       if (keys.length > 0) await redis.del(keys);
 
@@ -292,7 +292,7 @@ class ProductController {
       });
 
       if (image_detail) {
-        
+
         const details = Array.isArray(image_detail)
           ? image_detail
           : [image_detail];
@@ -308,7 +308,7 @@ class ProductController {
             image_detail: imagePatchDetail,
           });
         }
-        
+
       }
 
       await redis.del("products:all");

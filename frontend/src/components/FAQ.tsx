@@ -63,9 +63,9 @@ const FAQ = () => {
                 className="list-none cursor-pointer flex justify-between items-center font-semibold text-lg text-[#563c39] hover:text-[#e57f7f] transition-colors duration-300 py-2"
                 onClick={handleToggle(index)}
               >
-                <h3 itemProp="name" className="pr-4 leading-relaxed font-bold raleway">
-                  {item.question}
-                </h3>
+                <div itemProp="name" className="pr-4 leading-relaxed font-bold raleway w-full">
+                  <RichTextRenderer html={item.question} />
+                </div>
                 <span className="transition-transform duration-300 group-open:rotate-180 flex-shrink-0 text-[#799f85] font-bold text-xl">
                   ▼
                 </span>
@@ -78,7 +78,7 @@ const FAQ = () => {
                 itemType="https://schema.org/Answer"
               >
                 <div itemProp="text" className="raleway">
-                  <p className="whitespace-pre-wrap">{item.answer}</p>
+                  <RichTextRenderer html={item.answer} />
                 </div>
               </div>
             </details>

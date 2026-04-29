@@ -16,7 +16,7 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 const Gallery: React.FC = () => {
   const galleryHeading = useConfigContentByKey("gallery-heading");
-  const { data: sliderData = [] } = useSliders();
+  const { data: sliderData = [] } = useSliders("gallery");
 
   if (sliderData.length === 0) return null;
 

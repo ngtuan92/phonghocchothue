@@ -157,10 +157,6 @@ export default function Home() {
           style={pageStyle}
         >
           <Header />
-          <RichTextRenderer
-            html={useConfigContentByKey("home-h1")}
-            className="sr-only"
-          />
           <div id="about">
             <Describe />
           </div>

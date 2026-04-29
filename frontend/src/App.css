@@ -614,3 +614,36 @@
     display: none !important;
   }
 }
+
+/* Amenities full-width auto-scroll slider */
+.amenities-swiper {
+  width: 100%;
+  overflow: visible !important;
+}
+
+.amenities-swiper .swiper-wrapper {
+  transition-timing-function: linear !important;
+}
+
+.amenities-swiper .swiper-slide {
+  width: 320px !important;
+  height: 220px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .amenities-swiper .swiper-slide {
+    width: 240px !important;
+    height: 160px;
+  }
+}
+
+.amenities-bullet {
+  background: #563c39 !important;
+  opacity: 0.2 !important;
+}
+
+.amenities-bullet-active {
+  background: #799f85 !important;
+  opacity: 1 !important;
+}

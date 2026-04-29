@@ -149,11 +149,10 @@ export default function Blog() {
         });
       }
       
-      const totalItems = data.pagination?.totalItems || 0;
-      const currentCount = page === 1 ? data.data.length : blogs.length + data.data.length;
-      setHasMore(data.data.length === limit && currentCount < totalItems);
+      const totalPages = data.pagination?.totalPages || 0;
+      setHasMore(page < totalPages);
     }
-  }, [data, page, limit]);
+  }, [data, page]);
 
   const handleTabChange = (tab: FilterTab) => {
     setActiveTab(tab);
@@ -222,7 +221,7 @@ export default function Blog() {
             disabled={isFetching}
             className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isFetching ? "Đang tải..." : "Xem thêm bài viết"}
+            {isFetching ? "Đang tải..." : "Xem thêm"}
             {!isFetching && <FaArrowRight size={12} />}
           </button>
         </div>

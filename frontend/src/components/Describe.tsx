@@ -14,7 +14,7 @@ interface SliderItem {
 }
 
 const Describe = () => {
-    const { data: sliderData = [] } = useSliders();
+    const { data: sliderData = [] } = useSliders("gallery");
     const description = useConfigContentByKey("textDecription");
     const describeHeading = useConfigContentByKey("describe-heading");
     const h1Text = useConfigContentByKey("seo-h1-main");

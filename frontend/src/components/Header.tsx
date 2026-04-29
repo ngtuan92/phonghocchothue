@@ -128,17 +128,11 @@ const Header = ({ icon }: HeaderProps) => {
     };
   }, []);
 
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    const globalWindow = globalThis as Window & typeof globalThis;
-    const width =
-      typeof globalWindow.innerWidth === "number"
-        ? globalWindow.innerWidth
-        : globalWindow.document?.documentElement?.clientWidth;
-
-    if (typeof width !== "number") return;
-    setScrollAmount(width <= 768 ? 2 : 3);
+    setIsMounted(true);
   }, []);
-
 
   return (
     <header
@@ -225,15 +219,17 @@ const Header = ({ icon }: HeaderProps) => {
           </button>
         </div>
         <div className="hidden">
-          <ReactAudioPlayer
-            ref={audioRef}
-            src={`${URL_API}${
-              typeof homeMusic === "string" ? homeMusic.replaceAll("\\", "/") : ""
-            }`}
-            autoPlay={false}
-            controls
-            loop={false}
-          />
+          {isMounted && (
+            <ReactAudioPlayer
+              ref={audioRef}
+              src={`${URL_API}${
+                typeof homeMusic === "string" ? homeMusic.replaceAll("\\", "/") : ""
+              }`}
+              autoPlay={false}
+              controls
+              loop={false}
+            />
+          )}
         </div>
       </div>
       <div className="flex items-center">

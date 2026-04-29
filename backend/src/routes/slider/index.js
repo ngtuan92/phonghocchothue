@@ -13,6 +13,7 @@ router.put('/update/:id', authenticateToken, sliderControler.update);
 router.delete('/delete/:id', authenticateToken, sliderControler.delete);
 
 router.post('/insert', authenticateToken, sliderControler.save);
+router.post('/reorder', authenticateToken, sliderControler.reorder);
 
 router.get('/', sliderControler.index);
 

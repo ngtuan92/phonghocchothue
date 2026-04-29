@@ -62,7 +62,11 @@ export default function Other() {
   const handleCallApiGetConfig = async () => {
     try {
       const res = await fetchData(`${URL_API}api/config`, "GET");
-      setData(res.data);
+      // Lọc bỏ home-h1 và faq_list
+      const filteredData = (res.data || []).filter(
+        (item) => item.key !== "home-h1" && item.key !== "faq_list"
+      );
+      setData(filteredData);
     } catch (error) {
       if (error.response.data.message === "Invalid token") {
         handleInvalidToken(router);

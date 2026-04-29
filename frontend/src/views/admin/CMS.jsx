@@ -13,6 +13,7 @@ import {
   MdRssFeed,
   MdQuestionAnswer,
   MdSettings,
+  MdEdit,
 } from "react-icons/md";
 import dynamic from "next/dynamic";
 import { Input, Textarea, Typography } from "@material-tailwind/react";
@@ -64,6 +65,7 @@ const SECTIONS = [
   { id: "services", label: "Dịch vụ & Tiện ích", icon: MdDesignServices },
   { id: "gallery", label: "Không gian", icon: MdPhotoLibrary },
   { id: "blog", label: "Blog & Tin tức", icon: MdRssFeed },
+  { id: "faq", label: "FAQ", icon: MdQuestionAnswer },
   { id: "product_detail", label: "Chi tiết phòng", icon: MdArticle },
   { id: "general", label: "Cấu hình chung", icon: MdSettings },
 ];
@@ -72,7 +74,7 @@ const SECTION_KEY_MAP = {
   about: ["describe-heading", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
   services: ["room-heading", "amenities-content", "amenities-description"],
   gallery: ["gallery-heading"],
-  blog: ["blog-heading"],
+  faq: ["faq-heading", "faq_list"],
 };
 
 const KEY_LABEL_MAP = {
@@ -85,7 +87,8 @@ const KEY_LABEL_MAP = {
   "amenities-description": "Đoạn văn mô tả tiện ích chi tiết",
   "gallery-heading": "Tiêu đề bộ sưu tập ảnh",
   "blog-heading": "Tiêu đề chuyên mục tin tức",
-  "faq-heading": "Tiêu đề chuyên mục FAQ",
+  "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
+  "faq_list": "Danh sách câu hỏi thường gặp (FAQ)",
   bgTitle: "Ảnh trang trí nghệ thuật",
 };
 
@@ -107,6 +110,8 @@ export default function CMS() {
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
   const [savingKey, setSavingKey] = useState(null);
   const [products, setProducts] = useState([]);
+  const [sliders, setSliders] = useState([]); // Gallery sliders
+  const [amenitySliders, setAmenitySliders] = useState([]); // Services sliders
   const [savingProductId, setSavingProductId] = useState(null);
 
   const FONT_STYLES = `
@@ -207,6 +212,12 @@ export default function CMS() {
     if (activeSection === "product_detail") {
       loadProducts();
     }
+    if (activeSection === "gallery") {
+      loadSliders("gallery");
+    }
+    if (activeSection === "services") {
+      loadSliders("services");
+    }
   }, [activeSection]);
 
   useEffect(() => {
@@ -280,6 +291,112 @@ export default function CMS() {
       showToastError("Không thể tải danh sách phòng");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSliders = async (type = "gallery") => {
+    setIsLoading(true);
+    try {
+      const res = await fetchData(`${URL_API}api/slider?type=${type}&t=${Date.now()}`, "GET");
+      console.log(`[loadSliders] type=${type} res=`, res);
+      if (type === "gallery") setSliders(res.data || []);
+      else setAmenitySliders(res.data || []);
+    } catch (error) {
+      console.error(`[loadSliders] Lỗi khi tải ${type}:`, error);
+      showToastError(`Không thể tải ảnh ${type === "gallery" ? "Không gian" : "Tiện ích"}: ${error?.message || "Lỗi không xác định"}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUploadSliders = async (e, type = "gallery") => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setIsLoading(true);
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("name", file.name);
+        formData.append("type", type);
+        await fetchData(`${URL_API}api/slider/insert`, "POST", formData, {
+          "Content-Type": "multipart/form-data",
+        });
+      }
+      showToastSuccess(`Đã tải lên ${files.length} ảnh thành công`);
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Tải ảnh lên thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSlider = async (id, type = "gallery") => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
+    setIsLoading(true);
+    try {
+      await fetchData(`${URL_API}api/slider/delete/${id}`, "DELETE");
+      showToastSuccess("Xóa ảnh thành công");
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Xóa ảnh thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateSlider = async (id, file, type = "gallery") => {
+    if (!file) return;
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      await fetchData(`${URL_API}api/slider/update/${id}`, "PUT", formData, {
+        "Content-Type": "multipart/form-data",
+      });
+      showToastSuccess("Cập nhật ảnh thành công");
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Cập nhật ảnh thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onDragStart = (e, index, type) => {
+    e.dataTransfer.setData("draggedIndex", index);
+    e.dataTransfer.setData("draggedType", type);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const onDrop = async (e, droppedIndex, type) => {
+    const draggedIndex = parseInt(e.dataTransfer.getData("draggedIndex"));
+    const draggedType = e.dataTransfer.getData("draggedType");
+    if (draggedIndex === droppedIndex || draggedType !== type) return;
+
+    const currentSliders = type === "gallery" ? [...sliders] : [...amenitySliders];
+    const [draggedItem] = currentSliders.splice(draggedIndex, 1);
+    currentSliders.splice(droppedIndex, 0, draggedItem);
+    
+    if (type === "gallery") setSliders(currentSliders);
+    else setAmenitySliders(currentSliders);
+
+    // Persist new order to backend
+    try {
+      const orders = currentSliders.map((item, index) => ({
+        id: item.id,
+        position: index + 1
+      }));
+      await fetchData(`${URL_API}api/slider/reorder`, "POST", { orders });
+      showToastSuccess("Đã lưu thứ tự mới");
+    } catch (error) {
+      showToastError("Lưu thứ tự thất bại");
+      loadSliders(type); // Rollback
     }
   };
 
@@ -357,18 +474,120 @@ export default function CMS() {
 
   const getSectionConfigs = () => {
     const sectionKeys = SECTION_KEY_MAP[activeSection];
-    return configs.filter((c) => {
+    const filtered = configs.filter((c) => {
       if (c.section && c.section !== "general" && c.section !== "default") {
         return c.section === activeSection;
       }
       if (sectionKeys) return sectionKeys.includes(c.key);
       return activeSection === "general";
     });
+
+    if (sectionKeys) {
+      return filtered.sort((a, b) => {
+        const idxA = sectionKeys.indexOf(a.key);
+        const idxB = sectionKeys.indexOf(b.key);
+        if (idxA === -1 && idxB === -1) return 0;
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
+      });
+    }
+    return filtered;
   };
 
   const renderEditor = (config, onContentChange) => {
     const keyLower = config.key.toLowerCase();
     const isRichText = config.type === "richtext" || keyLower.includes("decription") || keyLower.includes("description") || keyLower.includes("content");
+
+    if (config.key === "faq_list") {
+      let faqData = [];
+      try {
+        faqData = typeof config.content === 'string' ? JSON.parse(config.content || "[]") : (config.content || []);
+      } catch (e) {
+        faqData = [];
+      }
+
+      const updateFAQ = (index, field, value) => {
+        const newData = [...faqData];
+        newData[index][field] = value;
+        onSaveInternal(JSON.stringify(newData));
+      };
+
+      const addFAQ = () => {
+        const newData = [...faqData, { question: "", answer: "" }];
+        onSaveInternal(JSON.stringify(newData));
+      };
+
+      const deleteFAQ = (index) => {
+        if (!window.confirm("Xóa câu hỏi này?")) return;
+        const newData = faqData.filter((_, i) => i !== index);
+        onSaveInternal(JSON.stringify(newData));
+      };
+
+      const onSaveInternal = (val) => {
+        setConfigs((prev) => prev.map((c) => (c.key === config.key ? { ...c, content: val } : c)));
+      };
+
+      return (
+        <div className="space-y-6">
+          {faqData.map((item, index) => (
+            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4">
+              <button
+                onClick={() => deleteFAQ(index)}
+                className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                title="Xóa câu hỏi"
+              >
+                <MdDelete size={20} />
+              </button>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
+                  <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                    <style>{`
+                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; }
+                      .faq-quill .ql-container.ql-snow { border: none !important; }
+                    `}</style>
+                    <ReactQuill
+                      theme="snow"
+                      className="faq-quill"
+                      value={item.question || ""}
+                      onChange={(val) => updateFAQ(index, "question", val)}
+                      modules={QUILL_MODULES}
+                      formats={QUILL_FORMATS}
+                      placeholder="Nhập nội dung câu hỏi..."
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu trả lời {index + 1}</label>
+                  <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                    <ReactQuill
+                      theme="snow"
+                      className="faq-quill"
+                      value={item.answer || ""}
+                      onChange={(val) => updateFAQ(index, "answer", val)}
+                      modules={QUILL_MODULES}
+                      formats={QUILL_FORMATS}
+                      placeholder="Nhập nội dung câu trả lời..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          <button
+            onClick={addFAQ}
+            className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold hover:border-primary hover:text-primary hover:bg-green-50/50 transition-all group"
+          >
+            <MdAdd className="h-6 w-6 transform group-hover:scale-110 transition-transform" />
+            <span>Thêm câu hỏi mới</span>
+          </button>
+        </div>
+      );
+    }
 
     if (isRichText) {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
@@ -530,7 +749,7 @@ export default function CMS() {
             <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-sm border border-gray-50">
               <Loading />
             </div>
-          ) : (sectionConfigs.length === 0 && activeSection !== "product_detail") ? (
+          ) : (sectionConfigs.length === 0 && activeSection !== "product_detail" && activeSection !== "gallery" && activeSection !== "services") ? (
             <div className="flex flex-col items-center justify-center h-80 bg-white rounded-2xl border-2 border-dashed border-gray-200">
               <MdSettings className="h-16 w-16 text-gray-100 mb-4" />
               <p className="text-gray-400 font-bold">Mục này chưa có nội dung cấu hình</p>
@@ -591,7 +810,6 @@ export default function CMS() {
                           </p>
                         </div>
                       </div>
-                      {/* Removed Delete Button */}
                     </div>
 
                     <div className="p-6">
@@ -614,12 +832,156 @@ export default function CMS() {
                   </div>
                 ))
               )}
+
+              {activeSection === "gallery" && (
+                <div className="mt-10 pt-10 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-sm font-bold text-navy-700">Bộ sưu tập hình ảnh không gian phòng học</h3>
+                      <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Slider hiển thị tại trang chủ</p>
+                    </div>
+                    <label className="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                      <MdPhotoLibrary size={20} />
+                      <span>Thêm ảnh mới</span>
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => handleUploadSliders(e, "gallery")}
+                        accept="image/*"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {sliders.map((slider, index) => (
+                      <div
+                        key={slider.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, index, "gallery")}
+                        onDragOver={onDragOver}
+                        onDrop={(e) => onDrop(e, index, "gallery")}
+                        className="group relative aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 bg-gray-50 shadow-sm cursor-move hover:border-primary/30 transition-all duration-300"
+                      >
+                        <img
+                          src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                          alt={slider.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        
+                        {/* Overlay Actions */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                          <label className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all transform hover:scale-110 cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                            <MdEdit size={20} />
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "gallery")}
+                              accept="image/*"
+                            />
+                          </label>
+                          <button
+                            onClick={() => handleDeleteSlider(slider.id, "gallery")}
+                            className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all transform hover:scale-110 shadow-lg"
+                            title="Xóa ảnh"
+                          >
+                            <MdDelete size={20} />
+                          </button>
+                        </div>
+                        <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-lg text-gray-600 shadow-sm">
+                          #{index + 1}
+                        </div>
+                      </div>
+                    ))}
+                    {sliders.length === 0 && (
+                      <div className="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                        <MdPhotoLibrary size={32} className="text-gray-300 mb-2" />
+                        <p className="text-gray-500 text-xs font-bold">Chưa có hình ảnh nào trong bộ sưu tập không gian</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeSection === "services" && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-md transition-shadow duration-300 mt-6">
+                  <div className="px-6 py-4 bg-gray-50/10 border-b border-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-1 h-8 bg-primary rounded-full" />
+                        <div>
+                          <h3 className="text-sm font-bold text-navy-700">Bộ sưu tập ảnh Tiện ích & Dịch vụ</h3>
+                          <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Hiển thị slider tại mục tiện ích</p>
+                        </div>
+                      </div>
+                      <label className="cursor-pointer bg-primary text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                        <MdPhotoLibrary size={16} />
+                        <span>Thêm ảnh mới</span>
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleUploadSliders(e, "services")}
+                          accept="image/*"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {amenitySliders.map((slider, index) => (
+                        <div
+                          key={slider.id}
+                          draggable
+                          onDragStart={(e) => onDragStart(e, index, "services")}
+                          onDragOver={onDragOver}
+                          onDrop={(e) => onDrop(e, index, "services")}
+                          className="group relative aspect-video rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 cursor-move hover:border-primary/30 transition-all duration-300"
+                        >
+                          <img
+                            src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                            alt={slider.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                          
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <label className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                              <MdEdit size={16} />
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "services")}
+                                accept="image/*"
+                              />
+                            </label>
+                            <button
+                              onClick={() => handleDeleteSlider(slider.id, "services")}
+                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all shadow-lg"
+                              title="Xóa ảnh"
+                            >
+                              <MdDelete size={16} />
+                            </button>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-gray-600">
+                            #{index + 1}
+                          </div>
+                        </div>
+                      ))}
+                      {amenitySliders.length === 0 && (
+                        <div className="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                          <MdPhotoLibrary size={32} className="text-gray-300 mb-2" />
+                          <p className="text-gray-500 text-xs font-bold">Chưa có hình ảnh nào trong bộ sưu tập tiện ích</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
-
-      {/* Removed Add Modal */}
     </div>
   );
 }
