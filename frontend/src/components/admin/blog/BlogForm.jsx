@@ -63,6 +63,18 @@ export default function BlogForm({ data, onSave, onCancel }) {
     }
   }, [formData.thumbnail]);
 
+  const [categories, setCategories] = useState([]);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+
+  useEffect(() => {
+    fetch(`${URL_API}api/blog/categories`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) setCategories(res.data);
+      })
+      .catch(err => console.error("Lỗi tải danh mục:", err));
+  }, []);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -111,14 +123,63 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     Chuyên mục
                   </Typography>
                 </div>
-                <select
-                  className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm appearance-none"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                >
-                  <option value="kien-thuc">Kiến thức</option>
-                  <option value="kinh-nghiem">Kinh nghiệm</option>
-                </select>
+                
+                {!isAddingNew ? (
+                  <div className="flex gap-2">
+                    <select
+                      className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm appearance-none"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    >
+                      {/* Luôn đảm bảo có kien-thuc và kinh-nghiem mặc định */}
+                      <option value="kien-thuc">Kiến thức</option>
+                      <option value="kinh-nghiem">Kinh nghiệm</option>
+                      
+                      {/* Hiển thị các danh mục động từ API */}
+                      {categories
+                        .filter(cat => cat !== 'kien-thuc' && cat !== 'kinh-nghiem')
+                        .map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))
+                      }
+                      
+                      {/* Nếu category hiện tại của bài viết chưa có trong danh sách trên, hãy thêm nó vào để không bị mất hiển thị */}
+                      {formData.category && 
+                       formData.category !== 'kien-thuc' && 
+                       formData.category !== 'kinh-nghiem' && 
+                       !categories.includes(formData.category) && (
+                        <option value={formData.category}>{formData.category}</option>
+                      )}
+                    </select>
+                    <Button 
+                      size="sm"
+                      variant="outlined" 
+                      className="rounded-xl border-gray-300 text-gray-700 font-bold px-4"
+                      onClick={() => setIsAddingNew(true)}
+                    >
+                      + Mới
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Nhập chuyên mục mới..."
+                      className="!border-gray-300 focus:!border-primary !bg-white"
+                      labelProps={{ className: "hidden" }}
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      autoFocus
+                    />
+                    <Button 
+                      size="sm"
+                      variant="text" 
+                      className="rounded-xl text-red-500 font-bold px-4"
+                      onClick={() => setIsAddingNew(false)}
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-3">

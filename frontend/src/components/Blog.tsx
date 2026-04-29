@@ -11,25 +11,27 @@ import RichTextRenderer from "./RichTextRenderer";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-type FilterTab = "all" | BlogCategory;
+type FilterTab = "all" | string;
 
-const TABS: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "Tất cả" },
-  { key: "kien-thuc", label: "Kiến thức" },
-  { key: "kinh-nghiem", label: "Kinh nghiệm" },
-];
+const getCategoryConfig = (category: string) => {
+  const configs: Record<string, { label: string; icon: React.ReactNode; bg: string }> = {
+    "kien-thuc": {
+      label: "Kiến thức",
+      icon: <FaBookOpen size={10} />,
+      bg: "bg-[#799f85]",
+    },
+    "kinh-nghiem": {
+      label: "Kinh nghiệm",
+      icon: <FaSeedling size={10} />,
+      bg: "bg-[#799f85]",
+    },
+  };
 
-const CATEGORY_CONFIG: Record<BlogCategory, { label: string; icon: React.ReactNode; bg: string }> = {
-  "kien-thuc": {
-    label: "Kiến thức",
-    icon: <FaBookOpen size={10} />,
+  return configs[category] || {
+    label: category.charAt(0).toUpperCase() + category.slice(1), // Viết hoa chữ cái đầu
+    icon: <FaSeedling size={10} />, // Icon mặc định
     bg: "bg-[#799f85]",
-  },
-  "kinh-nghiem": {
-    label: "Kinh nghiệm",
-    icon: <FaSeedling size={10} />,
-    bg: "bg-[#e57f7f]",
-  },
+  };
 };
 
 function formatDate(dateStr: string) {
@@ -54,7 +56,8 @@ function BlogCardSkeleton() {
 }
 
 function BlogCard({ blog }: { blog: Blog }) {
-  const cat = CATEGORY_CONFIG[blog.category];
+  const cat = getCategoryConfig(blog.category);
+
   const thumbnailSrc =
     blog.thumbnail
       ? blog.thumbnail.startsWith("http")
@@ -125,6 +128,11 @@ function BlogCard({ blog }: { blog: Blog }) {
 export default function Blog() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [categories, setCategories] = useState<{key: string, label: string}[]>([
+    { key: "all", label: "Tất cả" },
+    { key: "kien-thuc", label: "Kiến thức" },
+    { key: "kinh-nghiem", label: "Kinh nghiệm" },
+  ]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const limit = 3;
@@ -137,6 +145,29 @@ export default function Blog() {
     limit: limit,
     status: 1
   });
+
+  useEffect(() => {
+    fetch(`${URL_API}api/blog/categories?status=1`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success && res.data.length > 0) {
+          const defaultTabs = [
+            { key: "all", label: "Tất cả" },
+            { key: "kien-thuc", label: "Kiến thức" },
+            { key: "kinh-nghiem", label: "Kinh nghiệm" },
+          ];
+          const dynamicTabs = res.data
+            .filter((cat: string) => cat !== "kien-thuc" && cat !== "kinh-nghiem")
+            .map((cat: string) => ({
+              key: cat,
+              label: cat.charAt(0).toUpperCase() + cat.slice(1)
+            }));
+          
+          setCategories([...defaultTabs, ...dynamicTabs]);
+        }
+      })
+      .catch(err => console.error("Lỗi tải danh mục:", err));
+  }, []);
 
   useEffect(() => {
     if (data?.data) {
@@ -184,7 +215,7 @@ export default function Blog() {
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 mb-8 flex-wrap">
-        {TABS.map((tab) => (
+        {categories.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleTabChange(tab.key)}
