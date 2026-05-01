@@ -23,15 +23,8 @@ import fetchData from "../../axios";
 import Loading from "../../components/admin/loading";
 import ColorPicker from "../../components/admin/color-picker";
 
-const FONTS = [
-  "roboto", "playfair-display", "montserrat", "poppins",
-  "raleway", "dancing-script", "pacifico", "amatic-sc", "bebas-neue",
-  "syncopate", "great-vibes", "pinyon-script", "alex-brush", "parisienne",
-  "tangerine", "satisfy", "caveat", "oswald", "lato", "nunito", "quicksand",
-  "arial", "times-new-roman", "serif", "monospace", "inter", "iciel-amber"
-];
 
-const ReactQuill = dynamic(
+const QuillWrapper = dynamic(
   () => import("./QuillWrapper"),
   { ssr: false }
 );
@@ -40,25 +33,6 @@ import "react-quill-new/dist/quill.snow.css";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [false, ...FONTS] }],
-    [{ size: ["small", false, "large", "huge"] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ color: [] }, { background: [] }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }],
-    ["clean"],
-  ],
-};
-
-const QUILL_FORMATS = [
-  "header", "font", "size",
-  "bold", "italic", "underline", "strike",
-  "color", "background",
-  "list", "align",
-];
 
 const SECTIONS = [
   { id: "about", label: "Giới thiệu", icon: MdArticle },
@@ -71,7 +45,7 @@ const SECTIONS = [
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
+  about: ["describe-heading", "describe-bg-text", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
   services: ["room-heading", "amenities-content", "amenities-description"],
   gallery: ["gallery-heading"],
   faq: ["faq-heading", "faq_list"],
@@ -79,6 +53,7 @@ const SECTION_KEY_MAP = {
 
 const KEY_LABEL_MAP = {
   "describe-heading": "Tiêu đề nghệ thuật chính (H1)",
+  "describe-bg-text": "Chữ nền nghệ thuật (Ví dụ: HOAHOCTRO)",
   "seo-h1-main": "Phòng Học Cho Thuê / Tiêu đề SEO (H1)",
   "describe-h2": "Tiêu đề phụ dưới ảnh Đừng tìm đâu xa (H2)",
   textDecription: "Nội dung bài viết Giới thiệu",
@@ -148,6 +123,8 @@ export default function CMS() {
     .ql-size-small { font-size: 0.85rem !important; }
     .ql-size-large { font-size: 2rem !important; }
     .ql-size-huge { font-size: 5rem !important; }
+    .ql-size-super-huge { font-size: 15vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
+
 
     .ql-editor {
       font-family: 'Inter', sans-serif;
@@ -172,6 +149,9 @@ export default function CMS() {
     }
     .ql-snow .ql-picker.ql-header {
       width: 100px !important;
+    }
+    .ql-snow .ql-picker.ql-size {
+      width: 130px !important;
     }
     .ql-snow .ql-picker.ql-font .ql-picker-label::before,
     .ql-snow .ql-picker.ql-font .ql-picker-item::before { content: 'Mặc định'; }
@@ -201,6 +181,37 @@ export default function CMS() {
     .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times-new-roman"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before { content: 'Times New Roman'; font-family: 'Times New Roman', serif; }
     .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before { content: 'Serif'; font-family: serif; }
     .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before { content: 'Monospace'; font-family: monospace; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="iciel-amber"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="iciel-amber"]::before { content: 'iCiel Amber'; font-family: 'iCiel Amber', sans-serif; }
+    
+    .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Normal'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before { content: 'Small'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before { content: 'Large'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before { content: 'Huge'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="super-huge"]::before { 
+      content: 'Super Huge'; 
+      font-weight: bold;
+      font-size: 3rem !important; 
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-label::before {
+      font-size: 13px !important;
+      font-weight: normal !important;
+      text-transform: none !important;
+      line-height: 24px !important;
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="super-huge"]::before {
+      content: 'Super Huge' !important;
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-options .ql-picker-item {
+      padding: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      height: auto !important;
+      min-height: 35px;
+    }
   `;
 
   useEffect(() => {
@@ -268,7 +279,7 @@ export default function CMS() {
   const loadConfigs = async () => {
     setIsLoading(true);
     try {
-      const res = await fetchData(`${URL_API}api/config?noCache=true`, "GET");
+      const res = await fetchData(`${URL_API}api/config?noCache=true&t=${Date.now()}`, "GET");
       setConfigs(res.data || []);
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") handleInvalidToken(router);
@@ -382,7 +393,7 @@ export default function CMS() {
     const currentSliders = type === "gallery" ? [...sliders] : [...amenitySliders];
     const [draggedItem] = currentSliders.splice(draggedIndex, 1);
     currentSliders.splice(droppedIndex, 0, draggedItem);
-    
+
     if (type === "gallery") setSliders(currentSliders);
     else setAmenitySliders(currentSliders);
 
@@ -539,7 +550,7 @@ export default function CMS() {
               >
                 <MdDelete size={20} />
               </button>
-              
+
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
@@ -548,28 +559,24 @@ export default function CMS() {
                       .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; }
                       .faq-quill .ql-container.ql-snow { border: none !important; }
                     `}</style>
-                    <ReactQuill
+                    <QuillWrapper
                       theme="snow"
                       className="faq-quill"
                       value={item.question || ""}
                       onChange={(val) => updateFAQ(index, "question", val)}
-                      modules={QUILL_MODULES}
-                      formats={QUILL_FORMATS}
                       placeholder="Nhập nội dung câu hỏi..."
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu trả lời {index + 1}</label>
                   <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
-                    <ReactQuill
+                    <QuillWrapper
                       theme="snow"
                       className="faq-quill"
                       value={item.answer || ""}
                       onChange={(val) => updateFAQ(index, "answer", val)}
-                      modules={QUILL_MODULES}
-                      formats={QUILL_FORMATS}
                       placeholder="Nhập nội dung câu trả lời..."
                     />
                   </div>
@@ -577,7 +584,7 @@ export default function CMS() {
               </div>
             </div>
           ))}
-          
+
           <button
             onClick={addFAQ}
             className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold hover:border-primary hover:text-primary hover:bg-green-50/50 transition-all group"
@@ -594,59 +601,34 @@ export default function CMS() {
       const minHeight = isParagraph ? "300px" : "120px";
       return (
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
-          <ReactQuill
+          <QuillWrapper
             ref={(el) => {
               if (el && el.getEditor) {
                 const quill = el.getEditor();
+                if (quill) {
+                  const toolbar = quill.getModule('toolbar');
+                  if (toolbar && !toolbar.__patched) {
+                    const originalUpdate = toolbar.update.bind(toolbar);
+                    toolbar.update = function (range) {
+                      if (range == null && quill.getLength() > 0) {
+                        range = { index: 0, length: 0 };
+                      }
+                      originalUpdate(range);
+                    };
+                    toolbar.__patched = true;
 
-                const Quill = quill.constructor;
-                const Font = Quill.import("formats/font");
-                const FontClass = Quill.import("attributors/class/font");
-                Font.whitelist = [false, ...FONTS];
-                FontClass.whitelist = [false, ...FONTS];
-                Quill.register(Font, true);
-                Quill.register(FontClass, true);
-
-                const toolbar = quill.getModule('toolbar');
-
-                const clipboard = quill.getModule('clipboard');
-                if (clipboard && !clipboard.__patched) {
-                  clipboard.addMatcher('SPAN', (node, delta) => {
-                    const classes = node.getAttribute('class') || '';
-                    const fontMatch = classes.match(/ql-font-([\w-]+)/);
-                    if (fontMatch) {
-                      const fontName = fontMatch[1];
-                      const Delta = Quill.import('delta');
-                      return delta.compose(new Delta().retain(delta.length(), { font: fontName }));
-                    }
-                    return delta;
-                  });
-                  clipboard.__patched = true;
-                }
-
-                if (toolbar && !toolbar.__patched) {
-                  const originalUpdate = toolbar.update.bind(toolbar);
-                  toolbar.update = function (range) {
-                    if (range == null && quill.getLength() > 0) {
-                      range = { index: 0, length: 0 };
-                    }
-                    originalUpdate(range);
-                  };
-                  toolbar.__patched = true;
-
-                  quill.on('text-change', () => {
-                    if (!quill.hasFocus()) {
-                      setTimeout(() => toolbar.update(null), 10);
-                    }
-                  });
+                    quill.on('text-change', () => {
+                      if (!quill.hasFocus()) {
+                        setTimeout(() => toolbar.update(null), 10);
+                      }
+                    });
+                  }
                 }
               }
             }}
             theme="snow"
             value={config.content || ""}
-            onChange={onContentChange}
-            modules={QUILL_MODULES}
-            formats={QUILL_FORMATS}
+            onChange={(val) => updateField(config.key, val)}
             className={`quill-editor-${config.key}`}
           />
           <style jsx global>{`
@@ -868,7 +850,7 @@ export default function CMS() {
                           alt={slider.name}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        
+
                         {/* Overlay Actions */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                           <label className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all transform hover:scale-110 cursor-pointer shadow-lg" title="Thay đổi ảnh">
@@ -944,7 +926,7 @@ export default function CMS() {
                             alt={slider.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />
-                          
+
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <label className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all cursor-pointer shadow-lg" title="Thay đổi ảnh">
                               <MdEdit size={16} />

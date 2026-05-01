@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
+
 #root {
   width: 100%;
   /* min-width: 575px; */
@@ -212,7 +214,6 @@
   font-display: swap;
 }
 
-/* Bước 2: Áp dụng cho class */
 .my-class-font {
   font-family: "MyCustomFont", sans-serif;
 }
@@ -225,7 +226,6 @@
   font-display: swap;
 }
 
-/* Bước 2: Áp dụng cho class */
 .title-product-detail {
   font-family: "FontViet", sans-serif;
 }
@@ -247,7 +247,6 @@
   font-display: swap;
 }
 
-/* Bước 2: Áp dụng cho class */
 .title-footer-custom {
   font-family: "FontVietSVN", sans-serif;
 }
@@ -279,6 +278,26 @@
   font-weight: 400;
   text-align: center;
   width: 100%;
+}
+
+.title-bg-text .rich-text-renderer {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.title-bg-text .rich-text-renderer p {
+  margin: 0 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+  font-family: inherit !important;
+}
+
+.title-bg-text .rich-text-renderer * {
+  max-width: none !important;
 }
 
 .title-main-text {
@@ -324,15 +343,15 @@
 .rich-text-renderer h1 {
   font-size: 2.5rem;
   color: #563c39;
-  line-height: 1.2;
-  margin-bottom: 1rem;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
 }
 
 .rich-text-renderer h2 {
   font-size: 2rem;
   color: #563c39;
-  line-height: 1.2;
-  margin-bottom: 0.8rem;
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
 }
 
 @media (max-width: 640px) {
@@ -462,7 +481,6 @@
   font-family: 'iCiel Amber', sans-serif !important;
 }
 
-/* Hiển thị tên font trong danh sách chọn của trình soạn thảo */
 .ql-picker.ql-font .ql-picker-label[data-value="iciel-amber"]::before,
 .ql-picker.ql-font .ql-picker-item[data-value="iciel-amber"]::before {
   content: "iCiel Amber" !important;
@@ -481,6 +499,66 @@
 .ql-picker.ql-font .ql-picker-label[data-value="bebas-neue"]::before,
 .ql-picker.ql-font .ql-picker-item[data-value="bebas-neue"]::before {
   content: "Bebas Neue" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="pinyon-script"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="pinyon-script"]::before {
+  content: "Pinyon Script" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="great-vibes"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="great-vibes"]::before {
+  content: "Great Vibes" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="dancing-script"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="dancing-script"]::before {
+  content: "Dancing Script" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="playfair-display"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="playfair-display"]::before {
+  content: "Playfair Display" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="pacifico"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="pacifico"]::before {
+  content: "Pacifico" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="alex-brush"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="alex-brush"]::before {
+  content: "Alex Brush" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="parisienne"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="parisienne"]::before {
+  content: "Parisienne" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="tangerine"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="tangerine"]::before {
+  content: "Tangerine" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="satisfy"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="satisfy"]::before {
+  content: "Satisfy" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="caveat"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="caveat"]::before {
+  content: "Caveat" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="amatic-sc"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="amatic-sc"]::before {
+  content: "Amatic SC" !important;
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="syncopate"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="syncopate"]::before {
+  content: "Syncopate" !important;
 }
 
 .ql-align-center {
@@ -502,20 +580,131 @@
 
 .rich-text-renderer h1 {
   font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
   font-weight: 400;
+  line-height: 1.1;
 }
 
 .rich-text-renderer h2 {
   font-size: 2rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.6rem;
   font-weight: 400;
+  line-height: 1.1;
 }
 
 .rich-text-renderer h3 {
   font-size: 1.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   font-weight: 400;
+  line-height: 1.1;
+}
+
+.ql-font-inter {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.ql-font-roboto {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.ql-font-playfair-display {
+  font-family: 'Playfair Display', serif !important;
+}
+
+.ql-font-montserrat {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.ql-font-poppins {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.ql-font-raleway {
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.ql-font-dancing-script {
+  font-family: 'Dancing Script', cursive !important;
+}
+
+.ql-font-pacifico {
+  font-family: 'Pacifico', cursive !important;
+}
+
+.ql-font-amatic-sc {
+  font-family: 'Amatic SC', cursive !important;
+}
+
+.ql-font-bebas-neue {
+  font-family: 'Bebas Neue', sans-serif !important;
+}
+
+.ql-font-syncopate {
+  font-family: 'Syncopate', sans-serif !important;
+}
+
+.ql-font-great-vibes {
+  font-family: 'Great Vibes', cursive !important;
+}
+
+.ql-font-pinyon-script {
+  font-family: 'Pinyon Script', cursive !important;
+}
+
+.ql-font-alex-brush {
+  font-family: 'Alex Brush', cursive !important;
+}
+
+.ql-font-parisienne {
+  font-family: 'Parisienne', cursive !important;
+}
+
+.ql-font-tangerine {
+  font-family: 'Tangerine', cursive !important;
+}
+
+.ql-font-satisfy {
+  font-family: 'Satisfy', cursive !important;
+}
+
+.ql-font-caveat {
+  font-family: 'Caveat', cursive !important;
+}
+
+.ql-font-oswald {
+  font-family: 'Oswald', sans-serif !important;
+}
+
+.ql-font-lato {
+  font-family: 'Lato', sans-serif !important;
+}
+
+.ql-font-nunito {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+.ql-font-quicksand {
+  font-family: 'Quicksand', sans-serif !important;
+}
+
+.ql-font-arial {
+  font-family: Arial, sans-serif !important;
+}
+
+.ql-font-times-new-roman {
+  font-family: 'Times New Roman', serif !important;
+}
+
+.ql-font-serif {
+  font-family: serif !important;
+}
+
+.ql-font-monospace {
+  font-family: monospace !important;
+}
+
+.ql-font-iciel-amber {
+  font-family: 'iCiel Amber', sans-serif !important;
 }
 
 .ql-size-small {
@@ -528,6 +717,27 @@
 
 .ql-size-huge {
   font-size: 3em !important;
+}
+
+.ql-editor h1 .ql-size-huge,
+.ql-editor h2 .ql-size-huge,
+.ql-editor p .ql-size-huge {
+  font-size: 3em !important;
+}
+
+.ql-size-super-huge {
+  font-size: 20vw !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  display: block !important;
+  text-align: center !important;
+}
+
+.ql-editor h1 .ql-size-super-huge,
+.ql-editor h2 .ql-size-super-huge,
+.ql-editor p .ql-size-super-huge {
+  font-size: 20vw !important;
 }
 
 .title-main-text {
@@ -560,7 +770,46 @@
   word-break: break-word;
   line-height: 1.2;
   margin: 0;
-  /* Reset margin để không lệch bố cục */
+}
+
+.title-main-text h1,
+.title-main-text h2,
+.title-main-text h3,
+.title-main-text p {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+  margin: 0 !important;
+}
+
+/* Khoảng cách Tiêu đề Hero (Dòng 1) - Nội dung Hero (Các dòng sau) */
+.title-main-text *:first-child {
+  margin-bottom: 2.5rem !important;
+}
+
+/* Trong nội dung chung: Tiêu đề - Nội dung cách nhau 1 khoảng */
+.rich-text-renderer h1, 
+.rich-text-renderer h2, 
+.rich-text-renderer h3,
+.rich-text-renderer h4,
+.rich-text-renderer h5,
+.rich-text-renderer h6 {
+  margin-bottom: 2rem !important;
+}
+
+/* Tiêu đề - Tiêu đề giữ nguyên (hủy bỏ margin-bottom khi tiêu đề đi liền nhau) */
+.rich-text-renderer h1 + h1,
+.rich-text-renderer h1 + h2,
+.rich-text-renderer h2 + h1,
+.rich-text-renderer h2 + h2,
+.rich-text-renderer h2 + h3,
+.rich-text-renderer h3 + h2,
+.rich-text-renderer h3 + h3 {
+  margin-top: -1.5rem !important; /* Kéo chúng lại gần nhau để triệt tiêu margin-bottom 2rem */
+}
+
+.rich-text-renderer *:last-child {
+  margin-bottom: 0 !important;
 }
 
 @media (min-width: 640px) {

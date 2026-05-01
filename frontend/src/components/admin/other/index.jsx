@@ -37,6 +37,7 @@ const MAP_KEY_NAME = {
   'icon-goc': 'Biểu tượng chú chim thông báo',
   'textNotication': 'Nội dung thông báo góc',
   'linkNotication': 'Link thông báo',
+  'describe-bg-text': 'Chữ nền HOAHOCTRO (Dưới tiêu đề chính)',
 };
 
 export default function Other() {

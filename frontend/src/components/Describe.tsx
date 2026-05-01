@@ -21,6 +21,7 @@ const Describe = () => {
     const describeH2 = useConfigContentByKey("describe-h2");
     const bgTitle = useConfigContentByKey("bgTitle");
     const logo = useConfigContentByKey("logo");
+    const watermarkText = useConfigContentByKey("describe-bg-text");
 
     const buildUrl = (path: string | undefined) => {
         if (!path) return "";
@@ -41,9 +42,10 @@ const Describe = () => {
         <div className="mb-12 sm:mb-20 px-4 sm:px-10 lg:px-[90px]">
             <div className="relative w-full h-[calc(100vh-130px)] min-h-[450px] max-h-[850px] flex flex-col justify-between items-center py-4 lg:py-6 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
-                    <span className="title-bg-text text-[24vw] lg:text-[20vw] tracking-[-0.02em] leading-none text-[#f8ebdb] font-black uppercase opacity-60">
-                        HOAHOCTRO
-                    </span>
+                    <RichTextRenderer
+                        html={watermarkText || "HOAHOCTRO"}
+                        className="title-bg-text text-[24vw] lg:text-[20vw] tracking-[-0.02em] leading-none text-[#f8ebdb] font-black uppercase opacity-60 flex items-center justify-center"
+                    />
                 </div>
 
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex justify-center px-4 z-10">

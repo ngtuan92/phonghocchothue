@@ -3,42 +3,13 @@ import dynamic from "next/dynamic";
 import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility } from "react-icons/md";
 
-const ReactQuill = dynamic(
+const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
   { ssr: false }
 );
 
 import "react-quill-new/dist/quill.snow.css";
 
-const FONTS = [
-  "roboto", "playfair-display", "montserrat", "poppins", 
-  "raleway", "dancing-script", "pacifico", "amatic-sc", "bebas-neue", 
-  "syncopate", "great-vibes", "pinyon-script", "alex-brush", "parisienne",
-  "tangerine", "satisfy", "caveat", "oswald", "lato", "nunito", "quicksand",
-  "arial", "times-new-roman", "serif", "monospace", "inter"
-];
-
-const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [false, ...FONTS] }],
-    [{ size: ["small", false, "large", "huge"] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ color: [] }, { background: [] }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
-  ],
-};
-
-const QUILL_FORMATS = [
-  "header", "font", "size",
-  "bold", "italic", "underline", "strike",
-  "color", "background",
-  "list", "align",
-  "link", "image",
-];
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -131,19 +102,14 @@ export default function BlogForm({ data, onSave, onCancel }) {
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     >
-                      {/* Luôn đảm bảo có kien-thuc và kinh-nghiem mặc định */}
                       <option value="kien-thuc">Kiến thức</option>
                       <option value="kinh-nghiem">Kinh nghiệm</option>
-                      
-                      {/* Hiển thị các danh mục động từ API */}
                       {categories
                         .filter(cat => cat !== 'kien-thuc' && cat !== 'kinh-nghiem')
                         .map(cat => (
                           <option key={cat} value={cat}>{cat}</option>
                         ))
                       }
-                      
-                      {/* Nếu category hiện tại của bài viết chưa có trong danh sách trên, hãy thêm nó vào để không bị mất hiển thị */}
                       {formData.category && 
                        formData.category !== 'kien-thuc' && 
                        formData.category !== 'kinh-nghiem' && 
@@ -279,12 +245,10 @@ export default function BlogForm({ data, onSave, onCancel }) {
           Nội dung bài viết chi tiết
         </Typography>
         <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5">
-          <ReactQuill
+          <QuillWrapper
             theme="snow"
             value={formData.content}
             onChange={(val) => setFormData({ ...formData, content: val })}
-            modules={QUILL_MODULES}
-            formats={QUILL_FORMATS}
             className="min-h-[500px]"
           />
         </div>
