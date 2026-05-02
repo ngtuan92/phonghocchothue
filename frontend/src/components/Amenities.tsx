@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade, Navigation, Pagination } from "swiper/modules";
+import { Autoplay, EffectFade, Navigation } from "swiper/modules";
 import Image from "next/image";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import RichTextRenderer from "./RichTextRenderer";
@@ -11,7 +11,6 @@ import { useSliders } from "@/hooks/api/useSlider";
 import "swiper/css";
 import "swiper/css/effect-fade";
 import "swiper/css/navigation";
-import "swiper/css/pagination";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -27,7 +26,6 @@ const Amenities: React.FC = () => {
       <div className="container mx-auto px-6 sm:px-[60px] lg:px-[90px]">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
           
-          {/* Left Column: Text Content */}
           <div className="w-full lg:w-1/2 order-2 lg:order-1">
             <div className="space-y-6">
               <RichTextRenderer
@@ -48,46 +46,37 @@ const Amenities: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Image Slider */}
-          <div className="w-full lg:w-1/2 order-1 lg:order-2 aspect-video lg:aspect-[4/3] xl:aspect-video relative">
+          <div className="w-full lg:w-1/2 order-1 lg:order-2 relative">
             {sliderData.length > 0 ? (
               <Swiper
-                modules={[Autoplay, EffectFade, Navigation, Pagination]}
+                modules={[Autoplay, EffectFade, Navigation]}
                 effect="fade"
                 fadeEffect={{ crossFade: true }}
                 slidesPerView={1}
                 loop={true}
+                autoHeight={true}
                 autoplay={{
                   delay: 4000,
                   disableOnInteraction: false,
                 }}
-                pagination={{
-                  clickable: true,
-                  bulletActiveClass: "amenities-bullet-active",
-                  bulletClass: "swiper-pagination-bullet amenities-bullet",
-                }}
-                className="w-full h-full rounded-[40px] shadow-2xl shadow-black/10"
+                className="w-full rounded-[40px] shadow-2xl shadow-black/10 overflow-hidden bg-gray-50"
               >
                 {sliderData.map((item: any, index: number) => (
-                  <SwiperSlide key={index}>
-                    <div className="relative w-full h-full group">
-                      <Image
+                  <SwiperSlide key={index} className="h-auto">
+                    <div className="relative w-full h-full group flex items-center justify-center">
+                      <img
                         src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
                         alt={`Tiện ích ${index + 1}`}
-                        fill
-                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        quality={90}
-                        priority={index === 0}
+                        className="w-full h-auto object-contain transition-transform duration-1000 group-hover:scale-105 rounded-[40px] block"
+                        loading={index === 0 ? "eager" : "lazy"}
                       />
-                      {/* Subtle overlay for depth */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-black/5 pointer-events-none rounded-[40px]" />
                     </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
             ) : (
-              <div className="w-full h-full bg-gray-50 rounded-[40px] flex items-center justify-center border-2 border-dashed border-gray-200">
+              <div className="w-full aspect-video bg-gray-50 rounded-[40px] flex items-center justify-center border-2 border-dashed border-gray-200">
                  <p className="text-gray-400 font-medium italic">Tiện ích đang được cập nhật...</p>
               </div>
             )}

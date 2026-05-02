@@ -249,8 +249,8 @@ const Header = ({ icon }: HeaderProps) => {
               transformOrigin: "top right",
             }}
           >
-            <div className="h-12"></div>
-            <ul className="ml-16 mt-0 sm:mt-8 text-center text-sm sm:text-xl font-medium">
+            <div className="h-8"></div>
+            <ul className="ml-16 mt-0 sm:mt-4 text-center text-sm sm:text-xl font-medium">
               <li className="mb-4">
                 <a href="/" className="hover:underline decoration-wavy p-4">
                   Trang chủ
@@ -272,6 +272,24 @@ const Header = ({ icon }: HeaderProps) => {
                   onClick={(e) => handleSmoothScroll(e, "#room")}
                 >
                   Dịch vụ
+                </a>
+              </li>
+              <li className="mb-4">
+                <a
+                  href="#blog"
+                  className="hover:underline decoration-wavy p-4"
+                  onClick={(e) => handleSmoothScroll(e, "#blog")}
+                >
+                  Blog
+                </a>
+              </li>
+              <li className="mb-4">
+                <a
+                  href="#faq"
+                  className="hover:underline decoration-wavy p-4"
+                  onClick={(e) => handleSmoothScroll(e, "#faq")}
+                >
+                  FAQ
                 </a>
               </li>
               <li className="mb-4">

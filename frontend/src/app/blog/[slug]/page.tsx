@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useMemo, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { FaCalendarAlt, FaUserEdit, FaChevronRight, FaHome } from "react-icons/fa";
@@ -16,13 +17,26 @@ import Loading from "@/components/admin/loading";
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 export default function BlogDetail() {
+  const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
   const { data: blog, isLoading } = useBlog(slug);
 
   const colorBg = useConfigContentByKey("color-bg");
   const background = useConfigContentByKey("background");
+  const imgIcon = useConfigContentByKey("logo-page-detail");
   const pageStyle = colorBg ? { backgroundColor: colorBg } : {};
+
+  const goToHome = useCallback(() => {
+    router.push("/");
+  }, [router]);
+
+  const iconHeader = useMemo(() => {
+    if (typeof imgIcon === "string" && imgIcon.trim() !== "") {
+      return `${URL_API}${imgIcon.replaceAll("\\", "/")}`;
+    }
+    return null;
+  }, [imgIcon]);
 
   const seoTitle = blog ? `${blog.title} | Blog` : "Blog";
   const seoDescription = blog?.excerpt || "Kiến thức và kinh nghiệm thuê phòng dạy học tại Đà Nẵng.";
@@ -85,6 +99,31 @@ export default function BlogDetail() {
         >
           <Header />
 
+          <div
+            className={`flex flex-col justify-center items-center px-2 mt-8 sm:mt-4 z-2 sm:h-auto relative`}
+          >
+            {iconHeader && (
+              <Image
+                onClick={goToHome}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    goToHome();
+                  }
+                }}
+                tabIndex={0}
+                src={iconHeader}
+                alt="logo"
+                width={110}
+                height={120}
+                className="w-[77px] h-[86px] sm:w-[110px] sm:h-[120px] cursor-pointer"
+                sizes="(max-width: 640px) 77px, 110px"
+                quality={85}
+                priority
+              />
+            )}
+          </div>
+
           <main className="max-w-4xl mx-auto px-6 sm:px-10 py-10">
             <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-10 overflow-x-auto whitespace-nowrap pb-2 border-b border-gray-50">
               <Link href="/" className="flex items-center gap-1 hover:text-[#e57f7f] transition-colors">
@@ -124,9 +163,7 @@ export default function BlogDetail() {
                   <span>{new Date(blog.publishedAt).toLocaleDateString("vi-VN", {
                     day: '2-digit',
                     month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    year: 'numeric'
                   })}</span>
                 </div>
               </div>
