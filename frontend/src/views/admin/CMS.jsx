@@ -224,7 +224,7 @@ export default function CMS() {
       loadProducts();
     }
     if (activeSection === "gallery") {
-      loadSliders("gallery");
+      loadSliders("spaces");
     }
     if (activeSection === "services") {
       loadSliders("services");
@@ -310,17 +310,17 @@ export default function CMS() {
     try {
       const res = await fetchData(`${URL_API}api/slider?type=${type}&t=${Date.now()}`, "GET");
       console.log(`[loadSliders] type=${type} res=`, res);
-      if (type === "gallery") setSliders(res.data || []);
+      if (type === "spaces") setSliders(res.data || []);
       else setAmenitySliders(res.data || []);
     } catch (error) {
       console.error(`[loadSliders] Lỗi khi tải ${type}:`, error);
-      showToastError(`Không thể tải ảnh ${type === "gallery" ? "Không gian" : "Tiện ích"}: ${error?.message || "Lỗi không xác định"}`);
+      showToastError(`Không thể tải ảnh ${type === "spaces" ? "Không gian" : "Tiện ích"}: ${error?.message || "Lỗi không xác định"}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUploadSliders = async (e, type = "gallery") => {
+  const handleUploadSliders = async (e, type = "spaces") => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
@@ -344,7 +344,7 @@ export default function CMS() {
     }
   };
 
-  const handleDeleteSlider = async (id, type = "gallery") => {
+  const handleDeleteSlider = async (id, type = "spaces") => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
     setIsLoading(true);
     try {
@@ -358,7 +358,7 @@ export default function CMS() {
     }
   };
 
-  const handleUpdateSlider = async (id, file, type = "gallery") => {
+  const handleUpdateSlider = async (id, file, type = "spaces") => {
     if (!file) return;
     setIsLoading(true);
     try {
@@ -390,11 +390,11 @@ export default function CMS() {
     const draggedType = e.dataTransfer.getData("draggedType");
     if (draggedIndex === droppedIndex || draggedType !== type) return;
 
-    const currentSliders = type === "gallery" ? [...sliders] : [...amenitySliders];
+    const currentSliders = type === "spaces" ? [...sliders] : [...amenitySliders];
     const [draggedItem] = currentSliders.splice(draggedIndex, 1);
     currentSliders.splice(droppedIndex, 0, draggedItem);
 
-    if (type === "gallery") setSliders(currentSliders);
+    if (type === "spaces") setSliders(currentSliders);
     else setAmenitySliders(currentSliders);
 
     // Persist new order to backend
@@ -829,7 +829,7 @@ export default function CMS() {
                         type="file"
                         multiple
                         className="hidden"
-                        onChange={(e) => handleUploadSliders(e, "gallery")}
+                        onChange={(e) => handleUploadSliders(e, "spaces")}
                         accept="image/*"
                       />
                     </label>
@@ -840,9 +840,9 @@ export default function CMS() {
                       <div
                         key={slider.id}
                         draggable
-                        onDragStart={(e) => onDragStart(e, index, "gallery")}
+                        onDragStart={(e) => onDragStart(e, index, "spaces")}
                         onDragOver={onDragOver}
-                        onDrop={(e) => onDrop(e, index, "gallery")}
+                        onDrop={(e) => onDrop(e, index, "spaces")}
                         className="group relative aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 bg-gray-50 shadow-sm cursor-move hover:border-primary/30 transition-all duration-300"
                       >
                         <img
@@ -858,12 +858,12 @@ export default function CMS() {
                             <input
                               type="file"
                               className="hidden"
-                              onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "gallery")}
+                              onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "spaces")}
                               accept="image/*"
                             />
                           </label>
                           <button
-                            onClick={() => handleDeleteSlider(slider.id, "gallery")}
+                            onClick={() => handleDeleteSlider(slider.id, "spaces")}
                             className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all transform hover:scale-110 shadow-lg"
                             title="Xóa ảnh"
                           >
