@@ -24,9 +24,9 @@ const Amenities: React.FC = () => {
   return (
     <section id="amenities" className="my-12 sm:my-24 md:my-32 overflow-hidden">
       <div className="container mx-auto px-6 sm:px-[60px] lg:px-[90px]">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           
-          <div className="w-full lg:w-1/2 order-2 lg:order-1">
+          <div className="w-full lg:w-[58%] order-2 lg:order-1">
             <div className="space-y-6">
               <RichTextRenderer
                 html={amenitiesHeading}
@@ -46,7 +46,7 @@ const Amenities: React.FC = () => {
             </div>
           </div>
 
-          <div className="w-full lg:w-1/2 order-1 lg:order-2 relative">
+          <div className="w-full lg:w-[42%] order-1 lg:order-2 relative h-[220px] sm:h-[300px] md:h-[350px] lg:h-[280px] xl:h-[320px]">
             {sliderData.length > 0 ? (
               <Swiper
                 modules={[Autoplay, EffectFade, Navigation]}
@@ -54,29 +54,29 @@ const Amenities: React.FC = () => {
                 fadeEffect={{ crossFade: true }}
                 slidesPerView={1}
                 loop={true}
-                autoHeight={true}
                 autoplay={{
                   delay: 4000,
                   disableOnInteraction: false,
                 }}
-                className="w-full rounded-[40px] shadow-2xl shadow-black/10 overflow-hidden bg-gray-50"
+                className="w-full h-full rounded-[40px] overflow-hidden bg-gray-50"
               >
                 {sliderData.map((item: any, index: number) => (
-                  <SwiperSlide key={index} className="h-auto">
-                    <div className="relative w-full h-full group flex items-center justify-center">
+                  <SwiperSlide key={index}>
+                    <div className="relative w-full h-full group overflow-hidden">
+                      {/* Fixed frame with object-cover to allow minor cropping as requested */}
                       <img
                         src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
                         alt={`Tiện ích ${index + 1}`}
-                        className="w-full h-auto object-contain transition-transform duration-1000 group-hover:scale-105 rounded-[40px] block"
+                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 block"
                         loading={index === 0 ? "eager" : "lazy"}
                       />
-                      <div className="absolute inset-0 bg-black/5 pointer-events-none rounded-[40px]" />
+                      <div className="absolute inset-0 z-20 bg-black/5 pointer-events-none" />
                     </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
             ) : (
-              <div className="w-full aspect-video bg-gray-50 rounded-[40px] flex items-center justify-center border-2 border-dashed border-gray-200">
+              <div className="w-full h-full bg-gray-50 rounded-[40px] flex items-center justify-center border-2 border-dashed border-gray-200">
                  <p className="text-gray-400 font-medium italic">Tiện ích đang được cập nhật...</p>
               </div>
             )}

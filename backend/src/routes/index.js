@@ -6,6 +6,7 @@ const sliderRouter = require('./slider');
 const uploadRouter = require('./upload');
 const redirectRouter = require('./redirect');
 const blogRouter = require('./blog');
+const fontRouter = require('./fontRoutes');
 
 function route(app) {
 
@@ -25,6 +26,7 @@ function route(app) {
 
     app.use('/api/blog', blogRouter);
 
+    app.use('/api/fonts', fontRouter);
 }
 
 module.exports = route;

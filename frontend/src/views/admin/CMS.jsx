@@ -88,37 +88,12 @@ export default function CMS() {
   const [sliders, setSliders] = useState([]); // Gallery sliders
   const [amenitySliders, setAmenitySliders] = useState([]); // Services sliders
   const [savingProductId, setSavingProductId] = useState(null);
+  const [dynamicFonts, setDynamicFonts] = useState([]);
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
 
-    .ql-font-inter { font-family: 'Inter', sans-serif !important; }
-    .ql-font-roboto { font-family: 'Roboto', sans-serif !important; }
-    .ql-font-playfair-display { font-family: 'Playfair Display', serif !important; }
-    .ql-font-montserrat { font-family: 'Montserrat', sans-serif !important; }
-    .ql-font-poppins { font-family: 'Poppins', sans-serif !important; }
-    .ql-font-raleway { font-family: 'Raleway', sans-serif !important; }
-    .ql-font-dancing-script { font-family: 'Dancing Script', cursive !important; }
-    .ql-font-pacifico { font-family: 'Pacifico', cursive !important; }
-    .ql-font-amatic-sc { font-family: 'Amatic SC', cursive !important; }
-    .ql-font-bebas-neue { font-family: 'Bebas Neue', sans-serif !important; }
-    .ql-font-syncopate { font-family: 'Syncopate', sans-serif !important; }
-    .ql-font-great-vibes { font-family: 'Great Vibes', cursive !important; }
-    .ql-font-pinyon-script { font-family: 'Pinyon Script', cursive !important; }
-    .ql-font-alex-brush { font-family: 'Alex Brush', cursive !important; }
-    .ql-font-parisienne { font-family: 'Parisienne', cursive !important; }
-    .ql-font-tangerine { font-family: 'Tangerine', cursive !important; }
-    .ql-font-satisfy { font-family: 'Satisfy', cursive !important; }
-    .ql-font-caveat { font-family: 'Caveat', cursive !important; }
-    .ql-font-oswald { font-family: 'Oswald', sans-serif !important; }
-    .ql-font-lato { font-family: 'Lato', sans-serif !important; }
-    .ql-font-nunito { font-family: 'Nunito', sans-serif !important; }
-    .ql-font-quicksand { font-family: 'Quicksand', sans-serif !important; }
-    .ql-font-arial { font-family: Arial, sans-serif !important; }
-    .ql-font-times-new-roman { font-family: 'Times New Roman', serif !important; }
-    .ql-font-serif { font-family: serif !important; }
-    .ql-font-monospace { font-family: monospace !important; }
-    .ql-font-iciel-amber { font-family: 'iCiel Amber', sans-serif !important; }
+    /* Dynamic fonts will be injected here */
     
     .ql-size-small { font-size: 0.85rem !important; }
     .ql-size-large { font-size: 2rem !important; }
@@ -133,12 +108,10 @@ export default function CMS() {
     .ql-editor h1 {
       font-size: 2.5rem !important;
       color: #563c39 !important;
-      font-family: inherit !important;
     }
     .ql-editor h2 {
       font-size: 2rem !important;
       color: #563c39 !important;
-      font-family: inherit !important;
     }
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;
@@ -153,35 +126,20 @@ export default function CMS() {
     .ql-snow .ql-picker.ql-size {
       width: 130px !important;
     }
-    .ql-snow .ql-picker.ql-font .ql-picker-label::before,
-    .ql-snow .ql-picker.ql-font .ql-picker-item::before { content: 'Mặc định'; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="inter"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="inter"]::before { content: 'Inter'; font-family: 'Inter', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="roboto"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before { content: 'Roboto'; font-family: 'Roboto', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="playfair-display"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="playfair-display"]::before { content: 'Playfair Display'; font-family: 'Playfair Display', serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="montserrat"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="montserrat"]::before { content: 'Montserrat'; font-family: 'Montserrat', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="poppins"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="poppins"]::before { content: 'Poppins'; font-family: 'Poppins', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="raleway"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="raleway"]::before { content: 'Raleway'; font-family: 'Raleway', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="dancing-script"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="dancing-script"]::before { content: 'Dancing Script'; font-family: 'Dancing Script', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="pacifico"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="pacifico"]::before { content: 'Pacifico'; font-family: 'Pacifico', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="amatic-sc"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="amatic-sc"]::before { content: 'Amatic SC'; font-family: 'Amatic SC', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="bebas-neue"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="bebas-neue"]::before { content: 'Bebas Neue'; font-family: 'Bebas Neue', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="syncopate"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="syncopate"]::before { content: 'Syncopate'; font-family: 'Syncopate', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="great-vibes"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="great-vibes"]::before { content: 'Great Vibes'; font-family: 'Great Vibes', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="pinyon-script"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="pinyon-script"]::before { content: 'Pinyon Script'; font-family: 'Pinyon Script', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="alex-brush"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="alex-brush"]::before { content: 'Alex Brush'; font-family: 'Alex Brush', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="parisienne"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="parisienne"]::before { content: 'Parisienne'; font-family: 'Parisienne', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="tangerine"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="tangerine"]::before { content: 'Tangerine'; font-family: 'Tangerine', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="satisfy"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="satisfy"]::before { content: 'Satisfy'; font-family: 'Satisfy', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="caveat"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="caveat"]::before { content: 'Caveat'; font-family: 'Caveat', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="oswald"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="oswald"]::before { content: 'Oswald'; font-family: 'Oswald', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="lato"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="lato"]::before { content: 'Lato'; font-family: 'Lato', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nunito"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nunito"]::before { content: 'Nunito'; font-family: 'Nunito', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="quicksand"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="quicksand"]::before { content: 'Quicksand'; font-family: 'Quicksand', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before { content: 'Arial'; font-family: Arial, sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times-new-roman"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before { content: 'Times New Roman'; font-family: 'Times New Roman', serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before { content: 'Serif'; font-family: serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before { content: 'Monospace'; font-family: monospace; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="iciel-amber"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="iciel-amber"]::before { content: 'iCiel Amber'; font-family: 'iCiel Amber', sans-serif; }
+    .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before,
+    .ql-snow .ql-picker.ql-font .ql-picker-item:not([data-value])::before { content: 'Mặc định'; }
+    
+    ${dynamicFonts.map(f => {
+      const className = f.name.toLowerCase().replace(/\s+/g, '-');
+      return `
+        .ql-font-${className} { font-family: '${f.name}', sans-serif; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${f.name}"]::before, 
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${f.name}"]::before { 
+          content: '${f.name}'; 
+          font-family: '${f.name}', sans-serif; 
+        }
+      `;
+    }).join('\n')}
     
     .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
     .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Normal'; }
@@ -217,7 +175,33 @@ export default function CMS() {
   useEffect(() => {
     document.title = "Admin | Quản lý Giao diện";
     loadConfigs();
+    fetchFonts();
   }, []);
+
+  const fetchFonts = async () => {
+    try {
+      const res = await fetch(`${URL_API}api/fonts`);
+      if (res.ok) {
+        const data = await res.json();
+        setDynamicFonts(data);
+        
+        // Inject Google Fonts CSS links
+        data.forEach(font => {
+          if (font.url && font.url.startsWith('http')) {
+            if (!document.getElementById(`font-${font.id}`)) {
+              const link = document.createElement('link');
+              link.id = `font-${font.id}`;
+              link.href = font.url;
+              link.rel = 'stylesheet';
+              document.head.appendChild(link);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to fetch fonts in CMS:", e);
+    }
+  };
 
   useEffect(() => {
     if (activeSection === "product_detail") {

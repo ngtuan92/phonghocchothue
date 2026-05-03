@@ -44,7 +44,7 @@ const Describe = () => {
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
                     <RichTextRenderer
                         html={watermarkText || "HOAHOCTRO"}
-                        className="title-bg-text text-[24vw] lg:text-[20vw] tracking-[-0.02em] leading-none text-[#f8ebdb] font-black uppercase opacity-60 flex items-center justify-center"
+                        className="title-bg-text text-[24vw] lg:text-[20vw] tracking-[-0.02em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center"
                     />
                 </div>
 
@@ -69,7 +69,7 @@ const Describe = () => {
 
                 <div className="relative z-10 w-full flex flex-col items-center gap-4 lg:gap-5 mb-[4vh] lg:mb-[6vh]">
                     <div className="w-full text-center">
-                        <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] border-t border-b border-[#563c39]/10 py-2 px-6 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-[#563c39]">
+                        <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] border-t border-b border-[#563c39]/10 py-2 px-6 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.2em] md:tracking-[0.4em] uppercase text-[#563c39]">
                             <RichTextRenderer
                                 html={h1Text}
                                 className="text-center"
@@ -92,7 +92,7 @@ const Describe = () => {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center px-4 md:px-0 mt-10 lg:mt-16">
                 <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
                     {bgTitle && (
-                        <div className="w-full -mb-3 flex justify-center md:justify-start">
+                        <div className="w-full -mb-3 flex justify-center">
                             <Image
                                 src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
                                 alt="Decoration"
@@ -109,7 +109,7 @@ const Describe = () => {
                         <div className="w-full mb-6">
                             <RichTextRenderer
                                 html={describeH2}
-                                className="mx-auto md:mx-0"
+                                className="mx-auto"
                             />
                         </div>
                     )}

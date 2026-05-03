@@ -4,14 +4,7 @@ import "react-quill-new/dist/quill.snow.css";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-const FONT_FAMILIES = [
-  "Roboto", "Playfair Display", "Montserrat", "Poppins",
-  "Raleway", "Dancing Script", "Pacifico", "Amatic SC", "Bebas Neue",
-  "Syncopate", "Great Vibes", "Pinyon Script", "Alex Brush", "Parisienne",
-  "Tangerine", "Satisfy", "Caveat", "Oswald", "Lato", "Nunito", "Quicksand",
-  "Arial", "Times New Roman", "serif", "monospace", "Inter", "iCiel Amber", "FontViet"
-];
-
+let FONT_FAMILIES = ["Inter"];
 const SIZE_MAP = {
   "Small": "0.75rem",
   "Normal": "1rem",
@@ -20,24 +13,11 @@ const SIZE_MAP = {
   "Super Huge": "17rem"
 };
 
-if (typeof window !== "undefined" && Quill) {
-  const FontStyle = Quill.import("attributors/style/font");
-  if (FontStyle) {
-    FontStyle.whitelist = FONT_FAMILIES;
-    Quill.register(FontStyle, true);
-  }
 
-  const SizeStyle = Quill.import("attributors/style/size");
-  if (SizeStyle) {
-    SizeStyle.whitelist = Object.values(SIZE_MAP);
-    Quill.register(SizeStyle, true);
-  }
-}
-
-const MODULES = {
+const createModules = (fontList, fontsRef) => ({
   toolbar: [
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [false, ...FONT_FAMILIES] }],
+    [{ font: fontList }],
     [{ size: Object.values(SIZE_MAP) }],
     ["bold", "italic", "underline", "strike"],
     [{ color: [] }, { background: [] }],
@@ -46,7 +26,22 @@ const MODULES = {
     ["link", "image"],
     ["clean"],
   ],
-};
+  clipboard: {
+    matchers: [
+      [Node.ELEMENT_NODE, (node, delta) => {
+        const dynamicFonts = fontsRef?.current || [];
+        const style = node.getAttribute('style');
+        if (style && style.includes('font-family')) {
+          const cleanStyle = style.replace(/font-family:\s*(&quot;|['"])?([^;'"&]+)(&quot;|['"])?/i, 'font-family: $2');
+          if (cleanStyle !== style) {
+            node.setAttribute('style', cleanStyle);
+          }
+        }
+        return delta;
+      }]
+    ]
+  }
+});
 
 if (typeof window !== "undefined" && Quill) {
   const ImageBlot = Quill.import("formats/image");
@@ -86,13 +81,69 @@ const QuillWrapper = forwardRef((props, ref) => {
   const [isReady, setIsReady] = useState(false);
 
   React.useImperativeHandle(ref, () => ({
-    getEditor: () => editorRef.current?.getEditor(),
-    focus: () => editorRef.current?.focus(),
-    blur: () => editorRef.current?.blur(),
+    getEditor: () => {
+      try {
+        return editorRef.current?.getEditor();
+      } catch (e) {
+        return null;
+      }
+    },
+    focus: () => {
+      try {
+        editorRef.current?.focus();
+      } catch (e) { }
+    },
+    blur: () => {
+      try {
+        editorRef.current?.blur();
+      } catch (e) { }
+    },
   }));
 
+  const [dynamicFonts, setDynamicFonts] = useState([]);
+  const [modules, setModules] = useState(null);
+  const fontsRef = useRef([]);
+
   useEffect(() => {
-    setIsReady(true);
+    const fetchFonts = async () => {
+      try {
+        const res = await fetch(`${URL_API}api/fonts`);
+        if (res.ok) {
+          const fonts = await res.json();
+          const cleanFonts = fonts.filter(f => f.name.trim().toLowerCase() !== 'inter');
+          const sortedFonts = cleanFonts.sort((a, b) => a.name.localeCompare(b.name));
+          const dynamicFontNames = sortedFonts.map(f => f.name.trim());
+          const mergedFonts = ["Inter", ...dynamicFontNames];
+          
+          fontsRef.current = sortedFonts;
+          setDynamicFonts(sortedFonts);
+
+          if (typeof window !== "undefined" && Quill) {
+            const FontStyle = Quill.import("attributors/style/font");
+            if (FontStyle) {
+              FontStyle.whitelist = mergedFonts;
+              Quill.register(FontStyle, true);
+            }
+            const SizeStyle = Quill.import("attributors/style/size");
+            if (SizeStyle) {
+              SizeStyle.whitelist = Object.values(SIZE_MAP);
+              Quill.register(SizeStyle, true);
+            }
+            const AlignStyle = Quill.import("attributors/style/align");
+            if (AlignStyle) {
+              Quill.register(AlignStyle, true);
+            }
+            setModules(createModules(mergedFonts, fontsRef));
+          }
+        }
+      } catch (e) {
+        console.error("Font error:", e);
+        setModules(createModules(["Inter"]));
+      } finally {
+        setIsReady(true);
+      }
+    };
+    fetchFonts();
   }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,47 +166,42 @@ const QuillWrapper = forwardRef((props, ref) => {
     if (isReady && editorRef.current) {
       const quill = editorRef.current.getEditor();
       if (quill) {
-        // Handle clicking images to edit alt text
         quill.root.addEventListener("click", (ev) => {
           const img = ev.target;
           if (img.tagName === "IMG") {
             const currentAlt = img.getAttribute("alt") || img.getAttribute("title") || "";
-            
+
             openAltModal({ alt: currentAlt }, (newData) => {
               img.setAttribute("alt", newData.alt);
-              img.setAttribute("title", newData.alt); // Keep title same as alt
-              
-              // Trigger change for React state
+              img.setAttribute("title", newData.alt);
+
               const range = quill.getSelection();
               quill.setSelection(range);
             });
           }
         });
 
-        if (props.value) {
-          const currentHtml = quill.root.innerHTML;
-          if ((props.value.includes('font-family') && !currentHtml.includes('font-family')) ||
-            (props.value.includes('font-size') && !currentHtml.includes('font-size'))) {
-            quill.clipboard.dangerouslyPasteHTML(props.value);
-          }
-        }
       }
     }
   }, [isReady]);
 
   const fileInputRef = useRef(null);
 
-  const customModules = React.useMemo(() => ({
-    ...MODULES,
-    toolbar: {
-      container: MODULES.toolbar,
+  const customModules = React.useMemo(() => {
+    if (!modules) return null;
+    const mods = { ...modules };
+    mods.toolbar = {
+      container: modules.toolbar,
       handlers: {
-        image: function() {
-          fileInputRef.current?.click();
+        image: function () {
+          if (fileInputRef.current) {
+            fileInputRef.current.click();
+          }
         }
       }
-    }
-  }), []);
+    };
+    return mods;
+  }, [modules]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -176,12 +222,12 @@ const QuillWrapper = forwardRef((props, ref) => {
 
       if (result.uploaded) {
         const range = quill.getSelection(true);
-        
+
         openAltModal({ alt: "" }, (newData) => {
-          quill.insertEmbed(range.index, "image", { 
-            src: result.url, 
+          quill.insertEmbed(range.index, "image", {
+            src: result.url,
             alt: newData.alt,
-            title: newData.alt 
+            title: newData.alt
           }, "user");
           quill.setSelection(range.index + 1);
         });
@@ -206,14 +252,14 @@ const QuillWrapper = forwardRef((props, ref) => {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-in fade-in zoom-in duration-200 font-inter">
             <div className="bg-primary/5 p-6 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-navy-700">Thông tin hình ảnh</h3>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="p-2 hover:bg-white rounded-full transition-colors text-gray-400 hover:text-red-500"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             <div className="p-6 space-y-8">
               <div>
                 <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-4 ml-1">Mô tả ảnh (Alt & Title text)</label>
@@ -256,20 +302,54 @@ const QuillWrapper = forwardRef((props, ref) => {
         accept="image/*"
         onChange={handleFileUpload}
       />
-      <ReactQuill
-        ref={editorRef}
-        {...props}
-        modules={props.modules || customModules}
-        formats={props.formats || FORMATS}
-      />
+      {!modules ? (
+        <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Đang khởi tạo trình soạn thảo...</span>
+          </div>
+        </div>
+      ) : (
+        <ReactQuill
+          key={dynamicFonts.map(f => f.name).join(',')}
+          ref={editorRef}
+          {...props}
+          modules={customModules}
+          formats={props.formats || FORMATS}
+        />
+      )}
       <style jsx global>{`
-        .ql-snow .ql-picker.ql-font .ql-picker-label::before,
-        .ql-snow .ql-picker.ql-font .ql-picker-item::before { content: 'Default font' !important; }
-        
-        ${FONT_FAMILIES.map(f => `
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${f}"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${f}"]::before { 
-            content: '${f}' !important; 
+        .ql-editor *[style*="font-family"] {
+          font-family: inherit !important;
+        }
+        .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6, .ql-editor p, .ql-editor span {
+          font-family: inherit;
+        }
+        .ql-editor {
+          font-family: 'Inter', sans-serif;
+          font-size: 1rem;
+        }
+
+        .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item:not([data-value])::before { 
+          content: 'Inter' !important; 
+          font-family: 'Inter', sans-serif !important;
+        }
+
+        ${dynamicFonts.map(font => `
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.name}"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.name}"]::before { 
+            content: '${font.name}' !important; 
+            font-family: '${font.name}', sans-serif !important;
+          }
+
+          .ql-editor [style*="font-family: ${font.name}"],
+          .ql-editor [style*="font-family:${font.name}"],
+          .ql-editor [style*="font-family: '${font.name}'"],
+          .ql-editor [style*="font-family:'${font.name}'"],
+          .ql-editor [style*='font-family: "${font.name}"'],
+          .ql-editor [style*='font-family:"${font.name}"'] {
+            font-family: '${font.name}', sans-serif !important;
           }
         `).join('\n')}
 
@@ -287,7 +367,6 @@ const QuillWrapper = forwardRef((props, ref) => {
           line-height: 1.1 !important; 
           margin-bottom: 0.5rem !important;
         }
-        .ql-editor { font-size: 1rem; }
       `}</style>
     </div>
   );
