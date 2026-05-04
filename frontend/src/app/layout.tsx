@@ -16,9 +16,22 @@ export const metadata: Metadata = {
     default: "Thuê Phòng Học Chất Lượng – Giá Tốt",
     template: "%s | Thuê Phòng Học Chất Lượng – Giá Tốt",
   },
-  description: "Website cho thuê phòng chuyên nghiệp, uy tín.",
+  description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
+  keywords: "thuê phòng học Đà Nẵng, thuê phòng họp, phòng đào tạo, phòng sự kiện",
   icons: {
     icon: "/favicon.png",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://phonghocchothue.com",
+    title: "Thuê Phòng Học Chất Lượng – Giá Tốt",
+    description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
+    siteName: "PhongHocChoThue",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Thuê Phòng Học Chất Lượng – Giá Tốt",
+    description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
   },
 };
 

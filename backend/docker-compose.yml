@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis:7.2.4-alpine3.19
+    container_name: redis_phonghocchothue
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server
+    networks:
+      - phonghocchothue-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: website_thue_phong
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "3306:3306"
+    networks:
+      - phonghocchothue-network
+
+networks:
+  phonghocchothue-network:
+    driver: bridge
