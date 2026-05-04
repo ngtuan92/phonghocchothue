@@ -1,11 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
 
-.describe-h2-wrapper *,
-.describe-description-wrapper *,
-.rich-text-renderer * {
-    text-align: center !important;
-}
-
 #root {
   width: 100%;
 
@@ -352,7 +346,7 @@
 .rich-text-renderer h6 {
   color: #563c39;
   line-height: 1.1;
-  margin-bottom: 0.5rem;
+  margin-bottom: 2.5rem;
   font-weight: 400;
 
 }
@@ -362,7 +356,7 @@
 }
 
 .rich-text-renderer h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
 }
 
 .rich-text-renderer h3 {
@@ -378,27 +372,13 @@
     margin-bottom: 8px !important;
   }
 
-  .rich-text-renderer h1,
-  .rich-text-renderer h2,
-  .rich-text-renderer h3 {
-    line-height: 1.0 !important;
-    margin-bottom: 0px !important;
-    margin-top: 0px !important;
-    display: block !important;
-  }
-
   .rich-text-renderer h1 {
     font-size: 2.3rem !important;
   }
 
-  .decoration-image-wrapper *,
-  .describe-h2-wrapper *,
-  .describe-description-wrapper * {
+  .decoration-image-wrapper img {
     margin-bottom: 0px !important;
     margin-top: 0px !important;
-  }
-
-  .decoration-image-wrapper img {
     display: block !important;
   }
 }
@@ -453,7 +433,7 @@
 
 .ql-size-super-huge {
   font-size: 15vw !important;
-  line-height: 1 !important;
+  line-height: 1.6 !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   display: block !important;
@@ -528,7 +508,7 @@
   .title-main-text h1 span,
   .title-main-text h2 span {
     font-size: 36px !important;
-    line-height: 1 !important;
+    line-height: 1.6 !important;
     display: block !important;
     margin-top: 5px !important;
     margin-bottom: 5px !important;
@@ -546,23 +526,15 @@
   .mobile-watermark-text p,
   .mobile-watermark-text span {
     font-size: 28vw !important;
-    line-height: 1 !important;
+    line-height: 0.8 !important;
     display: block !important;
     white-space: nowrap !important;
+    margin: 0 !important;
   }
 }
 
 .title-main-text *:first-child {
   margin-bottom: 2.5rem !important;
-}
-
-.rich-text-renderer h1,
-.rich-text-renderer h2,
-.rich-text-renderer h3,
-.rich-text-renderer h4,
-.rich-text-renderer h5,
-.rich-text-renderer h6 {
-  margin-bottom: 2rem !important;
 }
 
 .rich-text-renderer h1+h1,
@@ -572,7 +544,7 @@
 .rich-text-renderer h2+h3,
 .rich-text-renderer h3+h2,
 .rich-text-renderer h3+h3 {
-  margin-top: -1.5rem !important;
+  margin-top: -1.rem !important;
 
 }
 
@@ -672,16 +644,26 @@
   .describe-h2-wrapper h2,
   .describe-h2-wrapper h3,
   .describe-h2-wrapper p,
+  .describe-h2-wrapper div,
   .describe-h2-wrapper span,
   .describe-h2-wrapper *,
   h3.text-lg.font-bold {
     font-size: 20px !important;
-    line-height: 2.0 !important; 
+    line-height: 1.6 !important; 
     margin-bottom: 10px !important;
     margin-top: 10px !important;
-    display: block !important;
     font-weight: 400 !important;
     text-transform: none !important;
+  }
+
+  .rich-text-renderer h1+h1,
+  .rich-text-renderer h1+h2,
+  .rich-text-renderer h2+h1,
+  .rich-text-renderer h2+h2,
+  .rich-text-renderer h2+h3,
+  .rich-text-renderer h3+h2,
+  .rich-text-renderer h3+h3 {
+    margin-top: 10px !important;
   }
 
   .rich-text-renderer .ql-size-huge,
@@ -690,7 +672,7 @@
   .describe-h2-wrapper .ql-size-huge,
   .describe-h2-wrapper .ql-size-large {
     font-size: 20px !important;
-    line-height: 1.3 !important;
+    line-height: 1.6 !important;
   }
 
   .title-main-text h1,
@@ -699,10 +681,18 @@
   .title-main-text .font-cursive,
   .title-main-text span {
     font-size: 36px !important;
-    line-height: 1.1 !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0 !important;
   }
 
   .title-sub-text, .title-sub-text * {
     font-size: 15px !important;
+  }
+
+  .describe-h2-wrapper *,
+  .describe-description-wrapper *,
+  .rich-text-renderer * {
+    text-align: center !important;
+    line-height: 1.6 !important;
   }
 }

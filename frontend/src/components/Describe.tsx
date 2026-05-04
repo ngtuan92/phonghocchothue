@@ -150,17 +150,17 @@ const Describe = () => {
                     )}
 
                     {describeH2 && (
-                        <div className="w-full mb-8 describe-h2-wrapper">
+                        <div className="w-full mb-8 describe-h2-wrapper text-center md:text-left">
                             <RichTextRenderer
                                 html={describeH2}
-                                className="mx-auto"
+                                className="mx-auto text-center md:text-left"
                             />
                         </div>
                     )}
 
                     {description && (
-                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-2xl describe-description-wrapper">
-                            <RichTextRenderer html={description} />
+                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-2xl describe-description-wrapper text-center md:text-left">
+                            <RichTextRenderer html={description} className="text-center md:text-left" />
                         </div>
                     )}
                 </div>

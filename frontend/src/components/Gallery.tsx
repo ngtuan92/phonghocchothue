@@ -32,21 +32,29 @@ const Gallery: React.FC = () => {
           />
         </div>
 
-        <div className="relative group/gallery w-full h-[400px] sm:h-[450px] lg:h-[550px]">
+        <div className="relative group/gallery w-full h-auto sm:h-[450px] lg:h-[550px]">
           <Swiper
             modules={[Navigation, Pagination, Autoplay, Grid]}
             grid={{
-              rows: 2,
+              rows: 1,
               fill: "row",
             }}
-            spaceBetween={20}
-            slidesPerView={2}
-            slidesPerGroup={2}
+            spaceBetween={15}
+            slidesPerView={1.2}
+            centeredSlides={true}
+            slidesPerGroup={1}
             breakpoints={{
+              640: {
+                slidesPerView: 2,
+                slidesPerGroup: 2,
+                grid: { rows: 2, fill: "row" },
+                centeredSlides: false,
+              },
               1024: {
                 slidesPerView: 3,
                 slidesPerGroup: 3,
                 grid: { rows: 2, fill: "row" },
+                centeredSlides: false,
               },
             }}
             navigation={{
@@ -58,7 +66,7 @@ const Gallery: React.FC = () => {
             className="w-full h-full gallery-swiper"
           >
             {sliderData.map((item: any, index: number) => (
-              <SwiperSlide key={index} className="!h-[calc((100%-20px)/2)]">
+              <SwiperSlide key={index} className="sm:!h-[calc((100%-20px)/2)] aspect-video sm:aspect-auto">
                 <div className="relative w-full h-full rounded-2xl overflow-hidden group/item shadow-md border-2 border-white/50 transition-all duration-500">
                   <Image
                     src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
