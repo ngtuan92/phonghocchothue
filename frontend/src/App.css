@@ -349,7 +349,8 @@
   color: #563c39;
   line-height: 1.1;
   margin-bottom: 0.5rem;
-  font-weight: 400; /* Respect CMS bolding */
+  font-weight: 400;
+  /* Respect CMS bolding */
 }
 
 .rich-text-renderer h1 {
@@ -365,8 +366,9 @@
 }
 
 @media (max-width: 767px) {
-  .rich-text-renderer h1, 
-  .rich-text-renderer h2, 
+
+  .rich-text-renderer h1,
+  .rich-text-renderer h2,
   .rich-text-renderer h3,
   .rich-text-renderer p,
   .rich-text-renderer span,
@@ -448,6 +450,7 @@
 }
 
 @media (max-width: 767px) {
+
   .ql-editor h1 .ql-size-huge,
   .ql-editor h2 .ql-size-huge,
   .ql-editor p .ql-size-huge {
@@ -477,6 +480,7 @@
 }
 
 @media (max-width: 767px) {
+
   .ql-editor h1 .ql-size-super-huge,
   .ql-editor h2 .ql-size-super-huge,
   .ql-editor p .ql-size-super-huge {
@@ -517,6 +521,7 @@
 }
 
 @media (max-width: 767px) {
+
   .title-main-text,
   .title-main-text *,
   .title-main-text h1,
@@ -526,7 +531,7 @@
     font-size: 18px !important;
     line-height: 1.4 !important;
   }
-  
+
   .title-main-text .font-cursive,
   .title-main-text [style*="cursive"],
   .title-main-text .ql-size-huge,
@@ -534,14 +539,15 @@
   .title-main-text h2 .font-cursive,
   .title-main-text h1 span,
   .title-main-text h2 span {
-    font-size: 36px !important; /* Điều chỉnh để bằng chiều ngang HOAHOCTRO */
+    font-size: 36px !important;
+    /* Điều chỉnh để bằng chiều ngang HOAHOCTRO */
     line-height: 1 !important;
     display: block !important;
     margin-top: 5px !important;
     margin-bottom: 5px !important;
   }
 
-  .title-main-text h1, 
+  .title-main-text h1,
   .title-main-text h2 {
     font-size: 28px !important;
     margin-bottom: 5px !important;
@@ -564,8 +570,8 @@
   margin-bottom: 2.5rem !important;
 }
 
-.rich-text-renderer h1, 
-.rich-text-renderer h2, 
+.rich-text-renderer h1,
+.rich-text-renderer h2,
 .rich-text-renderer h3,
 .rich-text-renderer h4,
 .rich-text-renderer h5,
@@ -573,14 +579,15 @@
   margin-bottom: 2rem !important;
 }
 
-.rich-text-renderer h1 + h1,
-.rich-text-renderer h1 + h2,
-.rich-text-renderer h2 + h1,
-.rich-text-renderer h2 + h2,
-.rich-text-renderer h2 + h3,
-.rich-text-renderer h3 + h2,
-.rich-text-renderer h3 + h3 {
-  margin-top: -1.5rem !important; /* Kéo chúng lại gần nhau để triệt tiêu margin-bottom 2rem */
+.rich-text-renderer h1+h1,
+.rich-text-renderer h1+h2,
+.rich-text-renderer h2+h1,
+.rich-text-renderer h2+h2,
+.rich-text-renderer h2+h3,
+.rich-text-renderer h3+h2,
+.rich-text-renderer h3+h3 {
+  margin-top: -1.5rem !important;
+  /* Kéo chúng lại gần nhau để triệt tiêu margin-bottom 2rem */
 }
 
 .rich-text-renderer *:last-child {

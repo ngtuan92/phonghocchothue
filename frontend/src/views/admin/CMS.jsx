@@ -23,7 +23,6 @@ import fetchData from "../../axios";
 import Loading from "../../components/admin/loading";
 import ColorPicker from "../../components/admin/color-picker";
 
-
 const QuillWrapper = dynamic(
   () => import("./QuillWrapper"),
   { ssr: false }
@@ -32,7 +31,6 @@ const QuillWrapper = dynamic(
 import "react-quill-new/dist/quill.snow.css";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
-
 
 const SECTIONS = [
   { id: "about", label: "Giới thiệu", icon: MdArticle },
@@ -85,21 +83,18 @@ export default function CMS() {
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
   const [savingKey, setSavingKey] = useState(null);
   const [products, setProducts] = useState([]);
-  const [sliders, setSliders] = useState([]); // Gallery sliders
-  const [amenitySliders, setAmenitySliders] = useState([]); // Services sliders
+  const [sliders, setSliders] = useState([]);
+  const [amenitySliders, setAmenitySliders] = useState([]);
   const [savingProductId, setSavingProductId] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
-
-    /* Dynamic fonts will be injected here */
     
     .ql-size-small { font-size: 0.85rem !important; }
     .ql-size-large { font-size: 2rem !important; }
     .ql-size-huge { font-size: 5rem !important; }
     .ql-size-super-huge { font-size: 15vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
-
 
     .ql-editor {
       font-family: 'Inter', sans-serif;
@@ -126,25 +121,11 @@ export default function CMS() {
     .ql-snow .ql-picker.ql-size {
       width: 130px !important;
     }
-    .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before,
-    .ql-snow .ql-picker.ql-font .ql-picker-item:not([data-value])::before { content: 'Mặc định'; }
-    
-    ${dynamicFonts.map(f => {
-      const className = f.name.toLowerCase().replace(/\s+/g, '-');
-      return `
-        .ql-font-${className} { font-family: '${f.name}', sans-serif; }
-        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${f.name}"]::before, 
-        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${f.name}"]::before { 
-          content: '${f.name}'; 
-          font-family: '${f.name}', sans-serif; 
-        }
-      `;
-    }).join('\n')}
     
     .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
     .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Normal'; }
     .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before { content: 'Small'; }
-    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before { content: 'Large'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before, .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before { content: 'Large'; }
     .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before { content: 'Huge'; }
     .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="super-huge"]::before { 
       content: 'Super Huge'; 
@@ -185,7 +166,6 @@ export default function CMS() {
         const data = await res.json();
         setDynamicFonts(data);
         
-        // Inject Google Fonts CSS links
         data.forEach(font => {
           if (font.url && font.url.startsWith('http')) {
             if (!document.getElementById(`font-${font.id}`)) {
@@ -199,7 +179,7 @@ export default function CMS() {
         });
       }
     } catch (e) {
-      console.error("Failed to fetch fonts in CMS:", e);
+      console.error(e);
     }
   };
 
@@ -249,9 +229,32 @@ export default function CMS() {
               } else {
                 item.style.display = 'none';
               }
+              
+              if (!item.__closeHandler) {
+                item.addEventListener('click', (e) => {
+                  const pickerRoot = item.closest('.ql-picker');
+                  if (pickerRoot) pickerRoot.classList.remove('ql-expanded');
+                });
+                item.__closeHandler = true;
+              }
             });
           };
-          picker.insertBefore(wrapper, picker.firstChild);
+          
+          const styleId = 'quill-picker-flex-fix';
+          if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.innerHTML = `
+              .ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-options {
+                display: flex !important;
+                flex-direction: column !important;
+              }
+            `;
+            document.head.appendChild(style);
+          }
+
+          wrapper.style.order = '-1'; 
+          picker.appendChild(wrapper);
         }
       });
     };
@@ -293,12 +296,10 @@ export default function CMS() {
     setIsLoading(true);
     try {
       const res = await fetchData(`${URL_API}api/slider?type=${type}&t=${Date.now()}`, "GET");
-      console.log(`[loadSliders] type=${type} res=`, res);
       if (type === "spaces") setSliders(res.data || []);
       else setAmenitySliders(res.data || []);
     } catch (error) {
-      console.error(`[loadSliders] Lỗi khi tải ${type}:`, error);
-      showToastError(`Không thể tải ảnh ${type === "spaces" ? "Không gian" : "Tiện ích"}: ${error?.message || "Lỗi không xác định"}`);
+      showToastError(`Không thể tải ảnh: ${error?.message || "Lỗi không xác định"}`);
     } finally {
       setIsLoading(false);
     }
@@ -381,7 +382,6 @@ export default function CMS() {
     if (type === "spaces") setSliders(currentSliders);
     else setAmenitySliders(currentSliders);
 
-    // Persist new order to backend
     try {
       const orders = currentSliders.map((item, index) => ({
         id: item.id,
@@ -391,7 +391,7 @@ export default function CMS() {
       showToastSuccess("Đã lưu thứ tự mới");
     } catch (error) {
       showToastError("Lưu thứ tự thất bại");
-      loadSliders(type); // Rollback
+      loadSliders(type);
     }
   };
 
@@ -668,7 +668,6 @@ export default function CMS() {
       );
     }
 
-
     return (
       <Textarea
         value={config.content || ""}
@@ -835,7 +834,6 @@ export default function CMS() {
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
 
-                        {/* Overlay Actions */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                           <label className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all transform hover:scale-110 cursor-pointer shadow-lg" title="Thay đổi ảnh">
                             <MdEdit size={20} />

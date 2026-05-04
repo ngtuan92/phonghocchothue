@@ -136,7 +136,7 @@ const Describe = () => {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center px-4 md:px-0 mt-10 lg:mt-16">
                 <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
                     {bgTitle && (
-                        <div className="w-full -mb-3 flex justify-center">
+                        <div className="w-full mb-4 md:mb-6 flex justify-center">
                             <Image
                                 src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
                                 alt="Decoration"

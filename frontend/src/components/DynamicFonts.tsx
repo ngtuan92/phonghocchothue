@@ -2,6 +2,8 @@ import React from 'react';
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/").replace(/\/$/, "");
 
+const slugify = (name: string) => name.trim().toLowerCase().replace(/\s+/g, '-');
+
 export default async function DynamicFonts() {
   let fonts = [];
   try {
@@ -16,15 +18,16 @@ export default async function DynamicFonts() {
   if (!fonts || fonts.length === 0) return null;
 
   const renderFontCSS = (font: any) => {
-    const className = font.name.toLowerCase().replace(/\s+/g, '-');
+    const name = font.name.trim();
+    const slug = slugify(name);
     return `
-      .ql-font-${className} { font-family: '${font.name}', sans-serif; }
-      .ql-picker.ql-font .ql-picker-label[data-value="${className}"]::before,
-      .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${className}"]::before,
-      .ql-picker.ql-font .ql-picker-item[data-value="${className}"]::before,
-      .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${className}"]::before {
-        content: '${font.name}' !important;
-        font-family: '${font.name}', sans-serif !important;
+      [style*="font-family: ${slug}"],
+      [style*="font-family:${slug}"],
+      [style*="font-family: '${slug}'"],
+      [style*="font-family:'${slug}'"],
+      [style*='font-family: "${slug}"'],
+      [style*='font-family:"${slug}"'] {
+        font-family: '${name}', sans-serif !important;
       }
     `;
   };
