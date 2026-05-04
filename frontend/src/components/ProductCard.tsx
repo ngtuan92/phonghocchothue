@@ -72,12 +72,13 @@ const ProductCard = ({ product }: { product?: Product }) => {
   const roomHeading = useConfigContentByKey("room-heading");
 
   return (
-    <div className="w-full mx-auto px-6 sm:px-[60px] lg:px-[90px] relative my-8 sm:my-36">
-      <RichTextRenderer 
-        html={roomHeading} 
-        className="text-center mb-6"
-        fallback={<h2 className="text-xl sm:text-3xl font-bold mb-6 text-[#563c39]">Không gian phù hợp cho từng quy mô lớp học</h2>}
-      />
+    <div className="w-full mx-auto px-6 sm:px-[60px] lg:px-[90px] relative my-30 sm:my-36">
+      <div className="describe-h2-wrapper">
+        <RichTextRenderer
+          html={roomHeading}
+          className="text-center mb-6"
+        />
+      </div>
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={9}

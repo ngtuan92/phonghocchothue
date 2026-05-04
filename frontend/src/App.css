@@ -1,8 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
 
+.describe-h2-wrapper *,
+.describe-description-wrapper *,
+.rich-text-renderer * {
+    text-align: center !important;
+}
+
 #root {
   width: 100%;
-  /* min-width: 575px; */
+
   height: 100%;
 }
 
@@ -51,7 +57,6 @@
   font-weight: bold;
 }
 
-/* Màn hình điện thoại (<= 768px) */
 @media (max-width: 768px) {
 
   .swiper-button-next-custom,
@@ -186,16 +191,16 @@
 
 .hide-scrollbar {
   overflow: auto;
-  /* Cho phép cuộn */
+
   scrollbar-width: none;
-  /* Firefox */
+
   -ms-overflow-style: none;
-  /* Internet Explorer và Edge cũ */
+
 }
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari và Opera */
+
 }
 
 .color-header-table p {
@@ -229,7 +234,6 @@
 .title-product-detail {
   font-family: "FontViet", sans-serif;
 }
-
 
 @font-face {
   font-family: "FontVietSVN";
@@ -350,7 +354,7 @@
   line-height: 1.1;
   margin-bottom: 0.5rem;
   font-weight: 400;
-  /* Respect CMS bolding */
+
 }
 
 .rich-text-renderer h1 {
@@ -367,29 +371,35 @@
 
 @media (max-width: 767px) {
 
-  .rich-text-renderer h1,
-  .rich-text-renderer h2,
-  .rich-text-renderer h3,
   .rich-text-renderer p,
   .rich-text-renderer span,
   .rich-text-renderer strong {
-    font-size: 16px !important;
     line-height: 1.6 !important;
     margin-bottom: 8px !important;
   }
-}
 
-@media (max-width: 480px) {
-  .rich-text-renderer h1 {
-    font-size: 0.9rem !important;
-  }
-
-  .rich-text-renderer h2 {
-    font-size: 0.8rem !important;
-  }
-
+  .rich-text-renderer h1,
+  .rich-text-renderer h2,
   .rich-text-renderer h3 {
-    font-size: 0.75rem !important;
+    line-height: 1.0 !important;
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
+    display: block !important;
+  }
+
+  .rich-text-renderer h1 {
+    font-size: 2.3rem !important;
+  }
+
+  .decoration-image-wrapper *,
+  .describe-h2-wrapper *,
+  .describe-description-wrapper * {
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
+  }
+
+  .decoration-image-wrapper img {
+    display: block !important;
   }
 }
 
@@ -401,23 +411,6 @@
   font-weight: 400;
   font-size: 1rem;
 }
-
-@media (max-width: 767px) {
-  .rich-text-renderer p {
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .rich-text-renderer p {
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
-  }
-}
-
-/* Removed legacy Quill font classes to prevent conflicts with dynamic fonts */
-
 
 .ql-size-small {
   font-size: 0.75em !important;
@@ -522,14 +515,9 @@
 
 @media (max-width: 767px) {
 
-  .title-main-text,
-  .title-main-text *,
-  .title-main-text h1,
-  .title-main-text h2,
-  .title-main-text p,
-  .title-main-text span {
-    font-size: 18px !important;
-    line-height: 1.4 !important;
+  .title-sub-text,
+  .title-sub-text * {
+    font-size: 15px !important;
   }
 
   .title-main-text .font-cursive,
@@ -540,7 +528,6 @@
   .title-main-text h1 span,
   .title-main-text h2 span {
     font-size: 36px !important;
-    /* Điều chỉnh để bằng chiều ngang HOAHOCTRO */
     line-height: 1 !important;
     display: block !important;
     margin-top: 5px !important;
@@ -549,7 +536,6 @@
 
   .title-main-text h1,
   .title-main-text h2 {
-    font-size: 28px !important;
     margin-bottom: 5px !important;
   }
 
@@ -587,7 +573,7 @@
 .rich-text-renderer h3+h2,
 .rich-text-renderer h3+h3 {
   margin-top: -1.5rem !important;
-  /* Kéo chúng lại gần nhau để triệt tiêu margin-bottom 2rem */
+
 }
 
 .rich-text-renderer *:last-child {
@@ -626,7 +612,6 @@
   color: #563c39;
 }
 
-/* Slideshow Indicators */
 .each-slideshow-indicator:before {
   background: #563c39 !important;
   opacity: 0.2;
@@ -646,7 +631,6 @@
   }
 }
 
-/* Amenities full-width auto-scroll slider */
 .amenities-swiper {
   width: 100%;
   overflow: visible !important;
@@ -677,4 +661,48 @@
 .amenities-bullet-active {
   background: #799f85 !important;
   opacity: 1 !important;
+}
+
+@media (max-width: 767px) {
+
+  .rich-text-renderer h1,
+  .rich-text-renderer h2,
+  .rich-text-renderer h3,
+  .describe-h2-wrapper h1,
+  .describe-h2-wrapper h2,
+  .describe-h2-wrapper h3,
+  .describe-h2-wrapper p,
+  .describe-h2-wrapper span,
+  .describe-h2-wrapper *,
+  h3.text-lg.font-bold {
+    font-size: 20px !important;
+    line-height: 2.0 !important; 
+    margin-bottom: 10px !important;
+    margin-top: 10px !important;
+    display: block !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+  }
+
+  .rich-text-renderer .ql-size-huge,
+  .rich-text-renderer .ql-size-large,
+  .rich-text-renderer .ql-size-small,
+  .describe-h2-wrapper .ql-size-huge,
+  .describe-h2-wrapper .ql-size-large {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+  }
+
+  .title-main-text h1,
+  .title-main-text h2,
+  .title-main-text .ql-size-huge,
+  .title-main-text .font-cursive,
+  .title-main-text span {
+    font-size: 36px !important;
+    line-height: 1.1 !important;
+  }
+
+  .title-sub-text, .title-sub-text * {
+    font-size: 15px !important;
+  }
 }

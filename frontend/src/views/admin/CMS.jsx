@@ -44,8 +44,8 @@ const SECTIONS = [
 
 const SECTION_KEY_MAP = {
   about: ["describe-heading", "describe-bg-text", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
-  services: ["room-heading", "amenities-content", "amenities-description"],
-  gallery: ["gallery-heading"],
+  services: ["amenities-description"],
+  gallery: ["gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
 };
 

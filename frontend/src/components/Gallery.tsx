@@ -24,16 +24,11 @@ const Gallery: React.FC = () => {
   return (
     <section id="gallery" className="min-h-screen w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden py-10">
       <div className="container mx-auto px-4 sm:px-[60px] lg:px-[80px] flex flex-col items-center h-full w-full max-w-[1400px]">
-        
-        <div className="mb-6 sm:mb-10 text-center w-full">
+
+        <div className="mb-6 sm:mb-10 text-center w-full describe-h2-wrapper">
           <RichTextRenderer
             html={galleryHeading}
             className="text-center text-[#563c39]"
-            fallback={
-              <h2 className="text-center text-4xl sm:text-5xl lg:text-6xl text-[#563c39] font-cursive leading-tight">
-                Không gian phòng học qua từng khung hình
-              </h2>
-            }
           />
         </div>
 

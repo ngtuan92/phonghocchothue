@@ -104,7 +104,7 @@ const Describe = () => {
                             className="title-main-text text-center"
                         />
                         <div className="mobile-watermark-wrapper mt-1">
-                             <RichTextRenderer
+                            <RichTextRenderer
                                 html={watermarkText || "HOAHOCTRO"}
                                 className="mobile-watermark-text text-[28vw] font-bold text-[#563c39] opacity-40 tracking-tighter leading-none uppercase text-center whitespace-nowrap"
                             />
@@ -136,7 +136,7 @@ const Describe = () => {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center px-4 md:px-0 mt-10 lg:mt-16">
                 <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
                     {bgTitle && (
-                        <div className="w-full mb-4 md:mb-6 flex justify-center">
+                        <div className="w-full mb-8 flex justify-center decoration-image-wrapper">
                             <Image
                                 src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
                                 alt="Decoration"
@@ -150,7 +150,7 @@ const Describe = () => {
                     )}
 
                     {describeH2 && (
-                        <div className="w-full mb-6">
+                        <div className="w-full mb-8 describe-h2-wrapper">
                             <RichTextRenderer
                                 html={describeH2}
                                 className="mx-auto"
@@ -159,7 +159,7 @@ const Describe = () => {
                     )}
 
                     {description && (
-                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-2xl">
+                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-2xl describe-description-wrapper">
                             <RichTextRenderer html={description} />
                         </div>
                     )}
