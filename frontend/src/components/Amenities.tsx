@@ -22,9 +22,9 @@ const Amenities: React.FC = () => {
   if (!amenitiesHeading && !amenitiesDescription) return null;
 
   return (
-    <section id="amenities" className="my-12 sm:my-24 md:my-32 overflow-hidden">
+    <section id="amenities" className="my-8 sm:my-24 md:my-32 overflow-hidden">
       <div className="container mx-auto px-6 sm:px-[60px] lg:px-[90px]">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16">
           
           <div className="w-full lg:w-[58%] order-2 lg:order-1">
             <div className="space-y-6">
@@ -32,14 +32,14 @@ const Amenities: React.FC = () => {
                 html={amenitiesHeading}
                 className="text-[#563c39]"
                 fallback={
-                  <h2 className="text-3xl sm:text-4xl font-bold text-[#563c39]">
+                  <h2 className="text-sm sm:text-lg lg:text-4xl font-bold text-[#563c39]">
                     Đầy đủ các tiện nghi sẵn sàng cho mỗi buổi học
                   </h2>
                 }
               />
 
               {amenitiesDescription && (
-                <div className="prose prose-lg max-w-none">
+                <div className="prose prose-sm sm:prose-lg max-w-none">
                   <RichTextRenderer html={amenitiesDescription} />
                 </div>
               )}

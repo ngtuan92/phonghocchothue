@@ -360,13 +360,34 @@
   font-size: 2rem;
 }
 
-@media (max-width: 640px) {
+.rich-text-renderer h3 {
+  font-size: 1.75rem;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer h1, 
+  .rich-text-renderer h2, 
+  .rich-text-renderer h3,
+  .rich-text-renderer p,
+  .rich-text-renderer span,
+  .rich-text-renderer strong {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
   .rich-text-renderer h1 {
-    font-size: 2rem;
+    font-size: 0.9rem !important;
   }
 
   .rich-text-renderer h2 {
-    font-size: 1.75rem;
+    font-size: 0.8rem !important;
+  }
+
+  .rich-text-renderer h3 {
+    font-size: 0.75rem !important;
   }
 }
 
@@ -376,6 +397,21 @@
   color: #323232;
   margin-bottom: 1rem;
   font-weight: 400;
+  font-size: 1rem;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer p {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .rich-text-renderer p {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
 /* Removed legacy Quill font classes to prevent conflicts with dynamic fonts */
@@ -393,14 +429,34 @@
   font-size: 3em !important;
 }
 
+@media (max-width: 767px) {
+  .ql-size-huge {
+    font-size: 22px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ql-size-huge {
+    font-size: 1.15em !important;
+  }
+}
+
 .ql-editor h1 .ql-size-huge,
 .ql-editor h2 .ql-size-huge,
 .ql-editor p .ql-size-huge {
   font-size: 3em !important;
 }
 
+@media (max-width: 767px) {
+  .ql-editor h1 .ql-size-huge,
+  .ql-editor h2 .ql-size-huge,
+  .ql-editor p .ql-size-huge {
+    font-size: 1.25em !important;
+  }
+}
+
 .ql-size-super-huge {
-  font-size: 20vw !important;
+  font-size: 15vw !important;
   line-height: 1 !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
@@ -408,10 +464,24 @@
   text-align: center !important;
 }
 
+@media (max-width: 767px) {
+  .ql-size-super-huge {
+    font-size: 45px !important;
+  }
+}
+
 .ql-editor h1 .ql-size-super-huge,
 .ql-editor h2 .ql-size-super-huge,
 .ql-editor p .ql-size-super-huge {
-  font-size: 20vw !important;
+  font-size: 15vw !important;
+}
+
+@media (max-width: 767px) {
+  .ql-editor h1 .ql-size-super-huge,
+  .ql-editor h2 .ql-size-super-huge,
+  .ql-editor p .ql-size-super-huge {
+    font-size: 12vw !important;
+  }
 }
 
 .title-main-text {
@@ -443,25 +513,57 @@
   white-space: normal;
   word-break: break-word;
   line-height: 1.2;
-  margin: 0;
-}
-
-.title-main-text h1,
-.title-main-text h2,
-.title-main-text h3,
-.title-main-text p {
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.2;
   margin: 0 !important;
 }
 
-/* Khoảng cách Tiêu đề Hero (Dòng 1) - Nội dung Hero (Các dòng sau) */
+@media (max-width: 767px) {
+  .title-main-text,
+  .title-main-text *,
+  .title-main-text h1,
+  .title-main-text h2,
+  .title-main-text p,
+  .title-main-text span {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .title-main-text .font-cursive,
+  .title-main-text [style*="cursive"],
+  .title-main-text .ql-size-huge,
+  .title-main-text h1 .font-cursive,
+  .title-main-text h2 .font-cursive,
+  .title-main-text h1 span,
+  .title-main-text h2 span {
+    font-size: 36px !important; /* Điều chỉnh để bằng chiều ngang HOAHOCTRO */
+    line-height: 1 !important;
+    display: block !important;
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .title-main-text h1, 
+  .title-main-text h2 {
+    font-size: 28px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .rich-text-renderer.mobile-watermark-text,
+  .rich-text-renderer.mobile-watermark-text *,
+  .mobile-watermark-text h1,
+  .mobile-watermark-text h2,
+  .mobile-watermark-text p,
+  .mobile-watermark-text span {
+    font-size: 28vw !important;
+    line-height: 1 !important;
+    display: block !important;
+    white-space: nowrap !important;
+  }
+}
+
 .title-main-text *:first-child {
   margin-bottom: 2.5rem !important;
 }
 
-/* Trong nội dung chung: Tiêu đề - Nội dung cách nhau 1 khoảng */
 .rich-text-renderer h1, 
 .rich-text-renderer h2, 
 .rich-text-renderer h3,
@@ -471,7 +573,6 @@
   margin-bottom: 2rem !important;
 }
 
-/* Tiêu đề - Tiêu đề giữ nguyên (hủy bỏ margin-bottom khi tiêu đề đi liền nhau) */
 .rich-text-renderer h1 + h1,
 .rich-text-renderer h1 + h2,
 .rich-text-renderer h2 + h1,

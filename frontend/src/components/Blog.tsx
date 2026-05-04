@@ -105,11 +105,11 @@ function BlogCard({ blog }: { blog: Blog }) {
           </span>
         </p>
 
-        <h3 className="text-sm sm:text-base font-bold text-[#563c39] line-clamp-2 mb-2 leading-snug">
+        <h3 className="text-xs sm:text-base font-bold text-[#563c39] line-clamp-2 mb-1.5 leading-snug">
           {blog.title}
         </h3>
 
-        <p className="text-[12px] sm:text-base text-gray-700 raleway !font-normal line-clamp-3 flex-1">
+        <p className="text-[11px] sm:text-base text-gray-700 raleway !font-normal line-clamp-3 flex-1">
           {blog.excerpt}
         </p>
 
@@ -203,7 +203,7 @@ export default function Blog() {
           className="text-center"
           fallback={
             <>
-              <h2 className="font-cursive text-5xl sm:text-7xl text-[#563c39] mb-4">Kiến thức và kinh nghiệm thuê phòng dạy học</h2>
+              <h2 className="font-cursive text-2xl sm:text-7xl text-[#563c39] mb-4">Kiến thức và kinh nghiệm thuê phòng dạy học</h2>
             </>
           }
         />

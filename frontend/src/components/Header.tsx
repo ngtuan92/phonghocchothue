@@ -137,7 +137,7 @@ const Header = ({ icon }: HeaderProps) => {
   return (
     <header
       className={classNames(
-        "z-10 fixed left-[43px] right-[43px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[10px] sm:mt-[8px] max-sm:pl-[5px] flex justify-between items-center"
+        "z-10 fixed left-[10px] right-[10px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[8px] sm:mt-[8px] max-sm:pl-[2px] flex justify-between items-center"
       )}
     >
       <div className="flex items-center justify-start sm:ml-[25px]">
@@ -148,7 +148,7 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faFacebook}
-            className="w-[18px] sm:w-[22px] h-[18px] mr-[18px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
+            className="w-[16px] sm:w-[22px] h-[16px] mr-[14px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
           />
         </a>
         <a
@@ -158,7 +158,7 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faFacebookMessenger}
-            className="w-[18px] sm:w-[22px] h-[18px] mr-[18px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
+            className="w-[16px] sm:w-[22px] h-[16px] mr-[14px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
           />
         </a>
         <a
@@ -168,17 +168,17 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faYoutube}
-            className="w-[18px] sm:w-[23px] h-[18px] mr-[18px] sm:mr-[20px] sm:h-[23px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
+            className="w-[16px] sm:w-[23px] h-[16px] mr-[14px] sm:mr-[20px] sm:h-[23px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
           />
         </a>
         <a
-          href={`tel:${useConfigContentByKey("phone") || ""}`}
+          href={useConfigContentByKey("phone") || "#"}
           target="_blank"
           rel="noopener noreferrer"
         >
           <FontAwesomeIcon
             icon={faPhone}
-            className="w-[18px] sm:w-[22px] h-[18px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
+            className="w-[16px] sm:w-[22px] h-[16px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300 wl-max-[1380px]"
           />
         </a>
       </div>
@@ -200,7 +200,7 @@ const Header = ({ icon }: HeaderProps) => {
               scrollAmount={scrollAmount}
               className="text-sm"
             >
-              <span className="text-[10px] sm:text-[13px] text-black raleway !font-normal">
+              <span className="text-[9px] sm:text-[13px] text-black raleway !font-normal">
                 {homeMusicName}
               </span>
             </LegacyMarquee>
@@ -249,8 +249,8 @@ const Header = ({ icon }: HeaderProps) => {
               transformOrigin: "top right",
             }}
           >
-            <div className="h-8"></div>
-            <ul className="ml-16 mt-0 sm:mt-4 text-center text-sm sm:text-xl font-medium">
+            <div className="h-6 sm:h-8"></div>
+            <ul className="ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium">
               <li className="mb-4">
                 <a href="/" className="hover:underline decoration-wavy p-4">
                   Trang chủ
