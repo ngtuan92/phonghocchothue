@@ -134,7 +134,7 @@ const Describe = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center px-4 md:px-0 mt-10 lg:mt-16">
-                <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
+                <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left">
                     {bgTitle && (
                         <div className="w-full mb-8 flex justify-center decoration-image-wrapper">
                             <Image
@@ -150,7 +150,7 @@ const Describe = () => {
                     )}
 
                     {describeH2 && (
-                        <div className="w-full mb-8 describe-h2-wrapper text-center md:text-left">
+                        <div className="w-full mb-8 describe-h2-wrapper">
                             <RichTextRenderer
                                 html={describeH2}
                                 className="mx-auto text-center md:text-left"
@@ -165,7 +165,7 @@ const Describe = () => {
                     )}
                 </div>
 
-                <div className="md:col-span-6 w-full flex justify-center relative">
+                <div className="md:col-span-5 w-full flex justify-center relative">
                     <div className="w-full max-w-[700px] md:max-w-none relative z-10">
                         <Fade
                             autoplay={true}
