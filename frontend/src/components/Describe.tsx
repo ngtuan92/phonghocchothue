@@ -40,7 +40,7 @@ const Describe = () => {
 
     return (
         <div className="mb-32 sm:mb-20 px-4 sm:px-10 lg:px-[90px]">
-            <div className="relative w-full h-screen sm:h-[85vh] md:h-[90vh] lg:h-[92vh] overflow-hidden">
+            <div className="relative w-full h-screen sm:h-[85vh] md:h-[90vh] lg:h-[92vh]">
                 <div className="absolute inset-0 hidden sm:flex items-center justify-center pointer-events-none select-none z-0 -translate-y-8 lg:-translate-y-12">
                     <RichTextRenderer
                         html={watermarkText || "HOAHOCTRO"}

@@ -470,6 +470,11 @@ export default function CMS() {
   const getSectionConfigs = () => {
     const sectionKeys = SECTION_KEY_MAP[activeSection];
     const filtered = configs.filter((c) => {
+      // Loại bỏ faq_list và home-h1 khỏi Cấu hình chung vì đã có chỗ quản lý riêng
+      if (activeSection === "general" && (c.key === "faq_list" || c.key === "home-h1")) {
+        return false;
+      }
+
       if (c.section && c.section !== "general" && c.section !== "default") {
         return c.section === activeSection;
       }

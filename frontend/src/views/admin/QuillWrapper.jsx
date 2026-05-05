@@ -14,6 +14,15 @@ const SIZE_MAP = {
 
 let cachedFonts = null;
 let fetchPromise = null;
+const COLORS = [
+  "#000000", "#e60000", "#ff9900", "#ffff00", "#008a00", "#0066cc", "#9933ff",
+  "#ffffff", "#facccc", "#ffebcc", "#ffffcc", "#cce8cc", "#cce0f5", "#ebd6ff",
+  "#bbbbbb", "#f06666", "#ffc266", "#ffff66", "#66b966", "#66a3e0", "#c285ff",
+  "#888888", "#a10000", "#b26b00", "#b2b200", "#006100", "#0047b2", "#6b24b2",
+  "#444444", "#5c0000", "#663d00", "#666600", "#003700", "#002966", "#3d1466",
+  "#f1c40f", "#f39c12", "#e67e22", "#d35400", "#7f8c8d", "#34495e", "#2c3e50",
+  "#ffeacb", "#ffd19a", "#ffb347", "#799f85", "#e57f7f", "#563c39", "#323232"
+];
 
 const createModules = (fontList) => ({
   toolbar: [
@@ -21,7 +30,7 @@ const createModules = (fontList) => ({
     [{ font: fontList }],
     [{ size: Object.values(SIZE_MAP) }],
     ["bold", "italic", "underline", "strike"],
-    [{ color: [] }, { background: [] }],
+    [{ color: COLORS }, { background: COLORS }],
     [{ list: "ordered" }, { list: "bullet" }],
     [{ align: [] }],
     ["link", "image"],

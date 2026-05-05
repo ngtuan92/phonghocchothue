@@ -276,6 +276,8 @@
   font-weight: 400;
   text-align: center;
   width: 100%;
+  overflow: visible !important;
+  padding-right: 0.2em;
 }
 
 .title-bg-text .rich-text-renderer {
@@ -284,6 +286,7 @@
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
+  overflow: visible !important;
 }
 
 .title-bg-text .rich-text-renderer p {
@@ -649,11 +652,25 @@
   .describe-h2-wrapper *,
   h3.text-lg.font-bold {
     font-size: 20px !important;
-    line-height: 1.6 !important; 
-    margin-bottom: 10px !important;
-    margin-top: 10px !important;
+    line-height: 1.4 !important; 
+    margin-bottom: 12px !important;
+    margin-top: 4px !important;
     font-weight: 400 !important;
     text-transform: none !important;
+  }
+
+  .decoration-image-wrapper {
+    margin-bottom: 10px !important;
+  }
+
+  .describe-h2-wrapper {
+    margin-bottom: 10px !important;
+    margin-top: 0px !important;
+    width: auto !important;
+    margin-left: -1.2rem !important;
+    margin-right: -1.2rem !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 
   .rich-text-renderer h1+h1,
@@ -663,7 +680,7 @@
   .rich-text-renderer h2+h3,
   .rich-text-renderer h3+h2,
   .rich-text-renderer h3+h3 {
-    margin-top: 10px !important;
+    margin-top: 4px !important;
   }
 
   .rich-text-renderer .ql-size-huge,
@@ -672,7 +689,7 @@
   .describe-h2-wrapper .ql-size-huge,
   .describe-h2-wrapper .ql-size-large {
     font-size: 20px !important;
-    line-height: 1.6 !important;
+    line-height: 1.4 !important;
   }
 
   .title-main-text h1,
@@ -693,6 +710,32 @@
   .describe-description-wrapper *,
   .rich-text-renderer * {
     text-align: center !important;
-    line-height: 1.6 !important;
+  }
+
+  .describe-h2-wrapper h1, .describe-h2-wrapper h2, .describe-h2-wrapper h3,
+  .rich-text-renderer h1, .rich-text-renderer h2, .rich-text-renderer h3 {
+    line-height: 1.2 !important;
+  }
+
+  .describe-description-wrapper p, .rich-text-renderer p {
+    line-height: 1.4 !important;
+  }
+
+  .describe-description-wrapper p,
+  .describe-description-wrapper span,
+  .describe-description-wrapper * {
+    font-size: 16px !important;
+  }
+
+  .faq-container [itemprop="text"],
+  .faq-container [itemprop="text"] * {
+    font-size: 16px !important;
+    text-align: left !important;
+  }
+
+  .faq-container [itemprop="name"],
+  .faq-container [itemprop="name"] * {
+    font-size: 17px !important;
+    text-align: left !important;
   }
 }

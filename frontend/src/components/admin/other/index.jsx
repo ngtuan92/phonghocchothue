@@ -65,7 +65,7 @@ export default function Other() {
       const res = await fetchData(`${URL_API}api/config`, "GET");
       // Lọc bỏ home-h1 và faq_list
       const filteredData = (res.data || []).filter(
-        (item) => item.key !== "home-h1" && item.key !== "faq_list"
+        (item) => item.key !== "home-h1" && item.key !== "faq_list" && item.key !== "faq-list"
       );
       setData(filteredData);
     } catch (error) {
