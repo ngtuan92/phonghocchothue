@@ -277,7 +277,6 @@
   text-align: center;
   width: 100%;
   overflow: visible !important;
-  padding-right: 0.2em;
 }
 
 .title-bg-text .rich-text-renderer {
@@ -542,7 +541,7 @@
 }
 
 .title-main-text *:first-child {
-  margin-bottom: 2.5rem !important;
+  margin-bottom: 0 !important;
 }
 
 
