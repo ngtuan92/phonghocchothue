@@ -19,7 +19,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useSEO from "@/hooks/useSEO";
 import { useCountVisit } from "@/hooks/api/useVisits";
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const URL_API =
+  process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 export default function Home() {
   const [showNotification, setShowNotification] = useState(true);

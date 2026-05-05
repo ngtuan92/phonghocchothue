@@ -21,6 +21,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  openGraph: {
+    type: "website",
+    url: "https://phonghocchothue.com",
+    title: "Thuê Phòng Học Chất Lượng – Giá Tốt",
+    description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
+    siteName: "PhongHocChoThue",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Thuê Phòng Học Chất Lượng – Giá Tốt",
+    description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
+  },
 };
 
 export default function RootLayout({
