@@ -38,6 +38,7 @@ const MAP_KEY_NAME = {
   'textNotication': 'Nội dung thông báo góc',
   'linkNotication': 'Link thông báo',
   'describe-bg-text': 'Chữ nền HOAHOCTRO (Dưới tiêu đề chính)',
+  'describe-phone': 'Số điện thoại phần giới thiệu',
 };
 
 export default function Other() {
@@ -63,7 +64,6 @@ export default function Other() {
   const handleCallApiGetConfig = async () => {
     try {
       const res = await fetchData(`${URL_API}api/config`, "GET");
-      // Lọc bỏ home-h1 và faq_list
       const filteredData = (res.data || []).filter(
         (item) => item.key !== "home-h1" && item.key !== "faq_list" && item.key !== "faq-list"
       );

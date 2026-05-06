@@ -18,7 +18,7 @@ const Footer = () => {
 
   return (
     <footer
-      className="mx-auto text-white  rounded-b-[15px] p-4"
+      className="mx-auto text-white rounded-b-[15px] main-container py-8"
       style={{ backgroundColor: bgFt }}
     >
       <div className=" grid grid-cols-1 md:grid-cols-3 gap-10 lg:mx-14 place-items-center place-content-center">
@@ -38,7 +38,7 @@ const Footer = () => {
               <div className="text-sm sm:text-base">
                 {address.split(",").map((line: any, index: number) => (
                   <p key={index}>{line}</p>
-                ))} 
+                ))}
               </div>
             </div>
           )}

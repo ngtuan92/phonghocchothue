@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay, Grid } from "swiper/modules";
+import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import { useSliders } from "@/hooks/api/useSlider";
@@ -10,8 +10,8 @@ import RichTextRenderer from "./RichTextRenderer";
 
 import "swiper/css";
 import "swiper/css/navigation";
+import "swiper/css/effect-fade";
 import "swiper/css/pagination";
-import "swiper/css/grid";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -22,67 +22,52 @@ const Gallery: React.FC = () => {
   if (sliderData.length === 0) return null;
 
   return (
-    <section id="gallery" className="min-h-screen w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden py-10">
-      <div className="container mx-auto px-4 sm:px-[60px] lg:px-[80px] flex flex-col items-center h-full w-full max-w-[1400px]">
+    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden py-16 sm:py-24">
+      <div className="w-full main-container flex flex-col items-center h-full max-w-[1400px]">
 
-        <div className="mb-6 sm:mb-10 text-center w-full describe-h2-wrapper">
+        <div className="mb-8 sm:mb-14 text-center w-full describe-h2-wrapper">
           <RichTextRenderer
             html={galleryHeading}
             className="text-center text-[#563c39]"
           />
         </div>
 
-        <div className="relative group/gallery w-full h-auto sm:h-[450px] lg:h-[550px]">
+        <div className="relative group/gallery w-full max-w-[900px]">
           <Swiper
-            modules={[Navigation, Pagination, Autoplay, Grid]}
-            grid={{
-              rows: 1,
-              fill: "row",
-            }}
-            spaceBetween={15}
-            slidesPerView={1.2}
-            centeredSlides={true}
-            slidesPerGroup={1}
-            breakpoints={{
-              640: {
-                slidesPerView: 2,
-                slidesPerGroup: 2,
-                grid: { rows: 2, fill: "row" },
-                centeredSlides: false,
-              },
-              1024: {
-                slidesPerView: 3,
-                slidesPerGroup: 3,
-                grid: { rows: 2, fill: "row" },
-                centeredSlides: false,
-              },
-            }}
+            modules={[Navigation, Autoplay, EffectFade]}
+            effect="fade"
+            fadeEffect={{ crossFade: true }}
+            speed={1000}
+            spaceBetween={0}
+            slidesPerView={1}
+            loop={true}
             navigation={{
               nextEl: ".gallery-next",
               prevEl: ".gallery-prev",
             }}
-            autoplay={{ delay: 6000, disableOnInteraction: false }}
-            loop={false}
-            className="w-full h-full gallery-swiper"
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            className="w-full gallery-swiper rounded-[12px] shadow-xl overflow-hidden border border-white/50"
           >
             {sliderData.map((item: any, index: number) => (
-              <SwiperSlide key={index} className="sm:!h-[calc((100%-20px)/2)] aspect-video sm:aspect-auto">
-                <div className="relative w-full h-full rounded-2xl overflow-hidden group/item shadow-md border-2 border-white/50 transition-all duration-500">
+              <SwiperSlide key={index}>
+                <div className="relative aspect-[16/9] sm:aspect-[16/7] w-full bg-white">
                   <Image
                     src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
                     alt={`Ảnh không gian ${index + 1}`}
                     fill
-                    className="object-cover group-hover/item:scale-110 transition-transform duration-1000"
-                    sizes="(max-width: 1024px) 50vw, 33vw"
-                    quality={90}
+                    className="object-cover"
+                    sizes="(max-width: 900px) 100vw, 900px"
+                    quality={95}
+                    priority={index === 0}
                   />
-                  <div className="absolute inset-0 bg-black/5 group-hover/item:bg-transparent transition-colors duration-300"></div>
+                  <div className="absolute inset-0 bg-black/5"></div>
                 </div>
               </SwiperSlide>
             ))}
           </Swiper>
 
-          <div className="gallery-prev swiper-button-prev-custom !-left-2 sm:!-left-8 lg:!-left-12 !z-20">
+          {/* Navigation Buttons - Hidden on Mobile, Visible on Desktop */}
+          <div className="gallery-prev swiper-button-prev-custom hidden md:flex !-left-12 lg:!-left-20 !z-20 shadow-md">
             <Image
               className="w-full h-full rounded-[50%]"
               src="/assets/images/pre-new.jpg"
@@ -91,7 +76,7 @@ const Gallery: React.FC = () => {
               sizes="50px"
             />
           </div>
-          <div className="gallery-next swiper-button-next-custom !-right-2 sm:!-right-8 lg:!-right-12 !z-20">
+          <div className="gallery-next swiper-button-next-custom hidden md:flex !-right-12 lg:!-right-20 !z-20 shadow-md">
             <Image
               className="w-full h-full rounded-[50%]"
               src="/assets/images/next-new.jpg"

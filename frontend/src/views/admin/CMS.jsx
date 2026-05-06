@@ -43,7 +43,7 @@ const SECTIONS = [
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "describe-bg-text", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
+  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
   services: ["amenities-description"],
   gallery: ["gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
@@ -63,6 +63,7 @@ const KEY_LABEL_MAP = {
   "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
   "faq_list": "Danh sách câu hỏi thường gặp (FAQ)",
   bgTitle: "Ảnh trang trí nghệ thuật",
+  "describe-phone": "Số điện thoại phần giới thiệu (Hero)",
 };
 
 const TYPE_OPTIONS = [

@@ -196,7 +196,7 @@ export default function Blog() {
   };
 
   return (
-    <section id="blog" className="mt-12 sm:mt-24 md:mt-36 mb-12 sm:mb-24 px-6 sm:px-[60px] lg:px-[90px]">
+    <section id="blog" className="mt-12 sm:mt-24 md:mt-36 mb-12 sm:mb-24 main-container">
       <div className="mb-10 text-center">
         <RichTextRenderer 
           html={blogHeading} 
