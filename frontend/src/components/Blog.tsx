@@ -207,7 +207,7 @@ export default function Blog() {
             </>
           }
         />
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex items-center justify-center gap-2 mt-7">
           <span className="h-px w-12 bg-[#b8c7b0]" />
           <span className="text-[#b8c7b0] text-xs">✿</span>
           <span className="h-px w-12 bg-[#b8c7b0]" />

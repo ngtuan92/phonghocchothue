@@ -143,9 +143,9 @@ const Describe = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center md:px-0 mt-10 lg:mt-16">
-                <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left">
+                <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
                     {bgTitle && (
-                        <div className="w-full mb-8 flex justify-center decoration-image-wrapper">
+                        <div className="w-full mb-2 flex justify-center md:pl-5 decoration-image-wrapper">
                             <Image
                                 src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
                                 alt="Decoration"
@@ -168,13 +168,13 @@ const Describe = () => {
                      )}
 
                     {description && (
-                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-2xl describe-description-wrapper text-center md:text-left">
+                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-3xl describe-description-wrapper text-center md:text-left">
                             <RichTextRenderer html={description} className="text-center md:text-left" />
                         </div>
                     )}
                 </div>
 
-                <div className="md:col-span-5 w-full flex justify-center relative">
+                <div className="md:col-span-6 w-full flex justify-center relative">
                     <div className="w-full max-w-[700px] md:max-w-none relative z-10">
                         <Fade
                             autoplay={true}
@@ -183,13 +183,13 @@ const Describe = () => {
                             arrows={false}
                         >
                             {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                <div key={index} className="relative w-full">
+                                <div key={index} className="relative w-full overflow-hidden rounded-[10px] shadow-sm">
                                     <Image
                                         className="w-full h-auto object-contain"
                                         src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
                                         alt={`Slide ${index + 1}`}
                                         width={1200}
-                                        height={1200}
+                                        height={800}
                                         sizes="(max-width: 768px) 100vw, 45vw"
                                         quality={95}
                                         priority={index === 0}

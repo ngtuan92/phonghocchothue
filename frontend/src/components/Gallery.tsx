@@ -32,7 +32,7 @@ const Gallery: React.FC = () => {
           />
         </div>
 
-        <div className="relative group/gallery w-full max-w-[900px]">
+        <div className="relative group/gallery w-full max-w-[1000px] mx-auto">
           <Swiper
             modules={[Navigation, Autoplay, EffectFade]}
             effect="fade"
@@ -50,13 +50,13 @@ const Gallery: React.FC = () => {
           >
             {sliderData.map((item: any, index: number) => (
               <SwiperSlide key={index}>
-                <div className="relative aspect-[16/9] sm:aspect-[16/7] w-full bg-white">
+                <div className="relative aspect-[16/9] sm:aspect-[16/8] w-full bg-white">
                   <Image
                     src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
                     alt={`Ảnh không gian ${index + 1}`}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 900px) 100vw, 900px"
+                    sizes="(max-width: 1100px) 100vw, 1100px"
                     quality={95}
                     priority={index === 0}
                   />

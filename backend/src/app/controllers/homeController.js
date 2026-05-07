@@ -1,55 +1,40 @@
-require("dotenv").config();
-const db = require("../../config/db");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const validator = require("validator");
-const userModel = require("../models/userModel");
+require('dotenv').config();
+const db = require('../../config/db');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const validator = require('validator');
+const userModel = require('../models/userModel');
 const productModel = require('../models/productModel');
-const VisitsModel = require('../models/visitsModel')
-const orderModel = require("../models/orderModel");
-const mail = require("../../util/sendMail");
+const VisitsModel = require('../models/visitsModel');
+const orderModel = require('../models/orderModel');
+const mail = require('../../util/sendMail');
+const { getOrSetCache } = require('../../util/cacheUtil');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 class HomeController {
 
   async dashboard(req, res, next) {
     try {
-      const totalRoom = await productModel.count();
+      const resultJson = await getOrSetCache('dashboard:stats', async () => {
+        const [totalRoom, totalOrder, emptyRoom, usingRoom, totalAccess] = await Promise.all([
+          productModel.count(),
+          orderModel.count(),
+          productModel.count({ where: { status: 1 } }),
+          productModel.count({ where: { status: 0 } }),
+          VisitsModel.count(),
+        ]);
 
-      const totalOrder = await orderModel.count();
+        return {
+          success: true,
+          message: 'Lấy data thành công!',
+          data: { totalRoom, emptyRoom, usingRoom, totalAccess, totalOrder }
+        };
+      }, 60);
 
-      const emptyRoom = await productModel.count({
-        where: { status: 1 }
-      });
-
-      const usingRoom = await productModel.count({
-        where: { status: 0 }
-      });
-
-      const totalAccess = await VisitsModel.count();
-
-
-      const data = {
-        totalRoom,
-        emptyRoom,
-        usingRoom,
-        totalAccess,
-        totalOrder
-      }
-
-      return res.json({
-        success: true,
-        message: 'Lấy data thành công!',
-        data: data
-      }, 200)
-
+      return res.json(JSON.parse(resultJson));
     } catch (error) {
-      return res.json({
-        success: false,
-        message: 'Lấy data thất bại!'
-      }, 500)
+      return res.status(500).json({ success: false, message: 'Lấy data thất bại!' });
     }
-
   }
 
   async login(req, res, next) {

@@ -7,9 +7,13 @@ const mail = require("../../util/sendMail");
 const { mutipleConvertToObject } = require("../../util/convert");
 require('dotenv').config();
 
-class ConfigController {
+class OrderController {
   async index(req, res) {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = (page - 1) * limit;
+
       const orderData = await orderModel.findAll({
         attributes: [
           "id",
@@ -26,6 +30,9 @@ class ConfigController {
             as: "product",
           },
         ],
+        limit,
+        offset,
+        order: [["id", "DESC"]],
       });
       const orders = mutipleConvertToObject(orderData);
 
@@ -166,4 +173,4 @@ class ConfigController {
   }
 }
 
-module.exports = new ConfigController();
+module.exports = new OrderController();

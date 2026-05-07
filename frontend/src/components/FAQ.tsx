@@ -37,7 +37,7 @@ const FAQ = () => {
   }
 
   return (
-    <section className="py-8 max-w-4xl mx-auto main-container mt-8 sm:mt-24 md:mt-32 mb-8 sm:mb-24">
+    <section className="py-8 max-w-5xl mx-auto main-container mt-8 sm:mt-24 md:mt-32 mb-8 sm:mb-24">
       <RichTextRenderer
         html={faqHeading}
         className="text-center mb-6"

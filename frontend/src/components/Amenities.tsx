@@ -31,7 +31,7 @@ const Amenities: React.FC = () => {
     }
 
     return (
-      <div className="relative w-full h-full group shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-[#799f851a] rounded-[12px] overflow-hidden">
+      <div className="relative w-full aspect-[16/10] group shadow-sm border border-[#799f851a] rounded-[10px] overflow-hidden">
         <Swiper
           modules={[Autoplay, EffectFade, Navigation]}
           effect="fade"
@@ -63,16 +63,16 @@ const Amenities: React.FC = () => {
   };
 
   return (
-    <section id="amenities" className="my-8 sm:my-24 md:my-32 overflow-hidden">
+    <section id="amenities" className="mt-10 lg:mt-16 mb-12 sm:mb-24 overflow-hidden">
       <div className="container mx-auto main-container">
-        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center">
 
-          <div className="w-full lg:w-[58%]">
-            <div className="space-y-6">
+          <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <div className="space-y-8 w-full">
               <div className="describe-h2-wrapper">
                 <RichTextRenderer
                   html={amenitiesHeading}
-                  className="text-[#563c39]"
+                  className="text-[#563c39] mx-auto md:mx-0"
                   fallback={
                     <h2 className="text-sm sm:text-lg lg:text-4xl font-bold text-[#563c39]">
                       Đầy đủ các tiện nghi sẵn sàng cho mỗi buổi học
@@ -82,20 +82,20 @@ const Amenities: React.FC = () => {
               </div>
 
               {/* Slider cho Mobile - Nằm giữa H2 và Text */}
-              <div className="block lg:hidden w-full relative h-[210px] sm:h-[280px]">
+              <div className="block lg:hidden w-full relative">
                 {renderSlider(sliderData, "mobile")}
               </div>
 
               {amenitiesDescription && (
-                <div className="prose prose-sm sm:prose-lg max-w-none">
-                  <RichTextRenderer html={amenitiesDescription} />
+                <div className="prose prose-sm sm:prose-lg max-w-3xl describe-description-wrapper mx-auto md:mx-0">
+                  <RichTextRenderer html={amenitiesDescription} className="text-center md:text-left" />
                 </div>
               )}
             </div>
           </div>
 
           {/* Slider cho Desktop - Nằm bên phải */}
-          <div className="hidden lg:block w-full lg:w-[42%] relative lg:h-[260px] xl:h-[300px]">
+          <div className="hidden md:block md:col-span-6 w-full relative">
             {renderSlider(sliderData, "desktop")}
           </div>
 

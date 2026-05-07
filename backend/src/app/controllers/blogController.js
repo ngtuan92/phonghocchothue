@@ -1,7 +1,8 @@
 const BlogModel = require('../models/blogModel');
 const { createUniqueSlug } = require('../../util/slug');
 const { redis, getOrSetCache } = require('../../util/cacheUtil');
-const db = require('../../config/db');
+const { sequelize, Sequelize } = require('../../config/db');
+const { Op } = Sequelize;
 
 class BlogController {
     async index(req, res) {
@@ -19,7 +20,6 @@ class BlogController {
             
             const offset = (page - 1) * limit;
 
-            // 1. Lấy version hiện tại của cache blog
             let cacheVersion = await redis.get('blogs:version') || '1';
             const cacheKey = `blogs:list:v${cacheVersion}:p${page}:l${limit}:c${category || 'all'}:s${status}`;
 
@@ -93,7 +93,6 @@ class BlogController {
                 publishedAt: new Date()
             });
 
-            // Tăng version để clear cache danh sách
             await redis.incr('blogs:version');
 
             res.status(201).json({ success: true, data: blog });
@@ -116,7 +115,7 @@ class BlogController {
             
             if (title && title !== blog.title) {
                 updateData.slug = await createUniqueSlug(title, async (s) => {
-                    return await BlogModel.findOne({ where: { slug: s, id: { [db.Sequelize.Op.ne]: id } } });
+                    return await BlogModel.findOne({ where: { slug: s, id: { [Op.ne]: id } } });
                 });
             }
 
@@ -159,9 +158,9 @@ class BlogController {
             if (status !== undefined) {
                 whereClause += ` AND status = ${parseInt(status)}`;
             }
-            const results = await db.sequelize.query(
+            const results = await sequelize.query(
                 `SELECT DISTINCT category FROM blogs ${whereClause} ORDER BY category ASC`,
-                { type: db.sequelize.QueryTypes.SELECT }
+                { type: sequelize.QueryTypes.SELECT }
             );
             const categoryList = results.map(r => r.category).filter(Boolean);
             res.json({ success: true, data: categoryList });

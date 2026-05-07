@@ -13,15 +13,14 @@
 
 @media (min-width: 1024px) {
   .main-container {
-    padding-left: 120px !important;
-    padding-right: 120px !important;
+    padding-left: 60px !important;
   }
 }
 
 @media (min-width: 1440px) {
   .main-container {
-    padding-left: 150px !important;
-    padding-right: 150px !important;
+    padding-left: 80px !important;
+    padding-right: 80px !important;
   }
 }
 
@@ -425,20 +424,21 @@
     margin-top: 0px !important;
     display: block !important;
   }
+
 }
 
 .rich-text-renderer p {
   font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
   color: #323232;
-  margin-bottom: 1rem;
+  margin-bottom: 14px;
   font-weight: 400;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
 }
 
 .rich-text-renderer [style*="font-size: 1rem"],
 .rich-text-renderer [style*="font-size:1rem"] {
-  font-size: 1.15rem !important;
+  font-size: 1.05rem !important;
 }
 
 .ql-size-small {
