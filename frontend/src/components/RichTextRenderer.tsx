@@ -68,6 +68,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           display: block;
           width: 100%;
         }
+        .rich-text-renderer a {
+          color: #3b82f6; /* Màu xanh link */
+          text-decoration: underline;
+          transition: color 0.2s;
+        }
+        .rich-text-renderer a:hover {
+          color: #2563eb;
+          text-decoration: none;
+        }
       `}</style>
     </>
   );

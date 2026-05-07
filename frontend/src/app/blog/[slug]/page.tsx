@@ -92,7 +92,7 @@ export default function BlogDetail() {
         </div>
       )}
 
-      <div className="absolute inset-0 flex items-center justify-center p-[30px] sm:p-[70px]">
+      <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-[70px]">
         <div
           className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto hide-scrollbar bg-white shadow-2xl"
           style={pageStyle}
@@ -100,7 +100,7 @@ export default function BlogDetail() {
           <Header />
 
           <div
-            className={`flex flex-col justify-center items-center px-2 mt-8 sm:mt-4 z-2 sm:h-auto relative`}
+            className={`flex flex-col justify-center items-center px-2 mt-16 sm:mt-4 z-2 sm:h-auto relative`}
           >
             {iconHeader && (
               <Image
@@ -124,22 +124,20 @@ export default function BlogDetail() {
             )}
           </div>
 
-          <main className="max-w-4xl mx-auto px-6 sm:px-10 py-10">
-            <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-10 overflow-x-auto whitespace-nowrap pb-2 border-b border-gray-50">
+          <main className="max-w-4xl mx-auto px-5 sm:px-10 py-8 sm:py-12">
+            <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500 mb-10 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
               <Link href="/" className="flex items-center gap-1 hover:text-[#e57f7f] transition-colors">
                 <FaHome size={14} />
-                Trang chủ
+                <span>Trang chủ</span>
               </Link>
-              <FaChevronRight size={10} className="text-gray-300" />
-              <Link href="/#blog" className="hover:text-[#e57f7f] transition-colors">
-                Blog
-              </Link>
-              <FaChevronRight size={10} className="text-gray-300" />
-              <span className="text-[#563c39] font-medium truncate">{blog.title}</span>
+              <span className="text-gray-300">/</span>
+              <Link href="/#blog" className="hover:text-[#e57f7f] transition-colors">Blog</Link>
+              <span className="text-gray-300">/</span>
+              <span className="text-[#563c39] font-medium truncate max-w-[300px]">{blog.title}</span>
             </nav>
 
-            <header className="mb-12">
-              <div className="mb-4">
+            <header className="mb-12 text-center sm:text-left">
+              <div className="mb-6">
                 <span className={`text-[11px] font-bold uppercase tracking-[2px] ${
                   blog.category === 'kien-thuc' ? 'text-[#799f85]' : 'text-[#e57f7f]'
                 }`}>
@@ -147,35 +145,42 @@ export default function BlogDetail() {
                 </span>
               </div>
               
-              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-[1.2] mb-8">
+              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-10">
                 {blog.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-500 border-y border-gray-100 py-4 mb-10">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-[#b8c7b0]/20 flex items-center justify-center text-[#b8c7b0]">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-4 sm:border-y sm:border-gray-100 mb-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#f8f9fa] border border-gray-100 flex items-center justify-center text-[#563c39]">
                     <FaUserEdit size={14} />
                   </div>
-                  <span className="font-bold text-[#563c39]">{blog.authorName}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[#563c39] text-sm sm:text-base">{blog.authorName}</span>
+                    <span className="sm:hidden text-gray-300">•</span>
+                    <span className="sm:hidden text-xs text-gray-500">{new Date(blog.publishedAt).toLocaleDateString("vi-VN")}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
                   <FaCalendarAlt size={12} className="text-gray-400" />
-                  <span>{new Date(blog.publishedAt).toLocaleDateString("vi-VN", {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
+                  <span>Ngày đăng: {new Date(blog.publishedAt).toLocaleDateString("vi-VN", {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
                   })}</span>
                 </div>
               </div>
 
               {blog.excerpt && (
-                <p className="text-lg sm:text-xl text-gray-700 leading-relaxed font-bold mb-10">
-                  {blog.excerpt}
-                </p>
+                <div className="mb-12 px-2 sm:px-0 py-4 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6">
+                  <p className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
+                    <span className="text-[#b8c7b0] text-3xl font-serif mr-1 sm:hidden leading-none">“</span>
+                    {blog.excerpt}
+                    <span className="text-[#b8c7b0] text-3xl font-serif ml-1 sm:hidden leading-none">”</span>
+                  </p>
+                </div>
               )}
             </header>
 
-            <article className="prose prose-lg max-w-none mb-20">
+            <article className="blog-content-area mb-20">
               <RichTextRenderer html={blog.content} className="blog-content" />
             </article>
 
