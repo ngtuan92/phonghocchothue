@@ -101,7 +101,7 @@ const Describe = () => {
                         </div>
                     )}
 
-                    <div className="relative w-full flex items-center justify-center py-8">
+                    <div className="relative w-full flex items-center justify-center py-4">
                         <div className="absolute top-1/2 left-[49%] -translate-x-1/2 -translate-y-1/2 w-full flex justify-center opacity-40 select-none pointer-events-none">
                              <RichTextRenderer
                                  html={watermarkText || "HOAHOCTRO"}

@@ -19,10 +19,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     let sanitized = DOMPurify.sanitize(html);
     sanitized = sanitized.replace(/&nbsp;/g, " ");
 
-    // Automatically add caption after images that have a title or alt
-    // Using regex for SSR compatibility (DOMParser is browser-only)
     const processedHtml = sanitized.replace(/<img([^>]*?)\/?>/gi, (match, attributes) => {
-      // Extract title or alt
       const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
       const altMatch = attributes.match(/alt=["']([^"']*)["']/i);
       const captionText = (titleMatch?.[1] || altMatch?.[1] || "").trim();

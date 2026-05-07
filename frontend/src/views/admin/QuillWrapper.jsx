@@ -5,8 +5,8 @@ import "react-quill-new/dist/quill.snow.css";
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 const SIZE_MAP = {
-  "Small": "0.75rem",
-  "Normal": "1rem",
+  "Small": "0.85rem",
+  "Normal": "1.5rem",
   "Large": "2.5rem",
   "Huge": "6.5rem",
   "Super Huge": "17rem"

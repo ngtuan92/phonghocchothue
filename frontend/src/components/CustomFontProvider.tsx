@@ -20,7 +20,7 @@ export default async function CustomFontProvider() {
             fetch(`${URL_API}/api/fonts/local`, { next: { revalidate: 60 } }),
             fetch(`${URL_API}/api/config`, { next: { revalidate: 60 } })
         ]);
-        
+
         if (fontsRes.ok) {
             const result = await fontsRes.json();
             if (result.success && Array.isArray(result.data)) {
@@ -42,8 +42,8 @@ export default async function CustomFontProvider() {
     }
 
     const fontFaceCSS = localFonts.map(font => {
-        const fullUrl = font.file_url.startsWith('http') 
-            ? font.file_url 
+        const fullUrl = font.file_url.startsWith('http')
+            ? font.file_url
             : `${URL_API}${font.file_url}`;
 
         return `
@@ -63,10 +63,20 @@ export default async function CustomFontProvider() {
         }
     ` : '';
 
+    const overrideFontCSS = localFonts.map(font => `
+        [style*="font-family: ${font.font_family}"],
+        [style*="font-family:${font.font_family}"],
+        [style*="font-family: '${font.font_family}'"],
+        [style*="font-family:'${font.font_family}'"],
+        [style*='font-family: "${font.font_family}"'],
+        [style*='font-family:"${font.font_family}"'] {
+            font-family: '${font.font_family}', sans-serif !important;
+        }
+    `).join('\n');
     return (
-        <style 
+        <style
             id="custom-local-fonts"
-            dangerouslySetInnerHTML={{ __html: fontFaceCSS + globalFontCSS }} 
+            dangerouslySetInnerHTML={{ __html: fontFaceCSS + globalFontCSS + overrideFontCSS }}
         />
     );
 }

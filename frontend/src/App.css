@@ -98,10 +98,16 @@
   width: 100%;
 }
 
-/* Force hero phone size inheritance */
 .hero-phone-text, 
 .hero-phone-text * {
-  font-size: inherit !important;
+  font-size: inherit;
+}
+
+@media (max-width: 767px) {
+  .hero-phone-text, 
+  .hero-phone-text * {
+    font-size: 10px !important;
+  }
 }
 
 .boder-green-gray {
@@ -386,7 +392,7 @@
 .rich-text-renderer h1:has(+ p),
 .rich-text-renderer h2:has(+ p),
 .rich-text-renderer h3:has(+ p) {
-  margin-bottom: 2.5rem !important;
+  margin-bottom: 1.5rem !important;
 }
 
 .rich-text-renderer h1 {
@@ -427,7 +433,12 @@
   color: #323232;
   margin-bottom: 1rem;
   font-weight: 400;
-  font-size: 1rem;
+  font-size: 1.15rem;
+}
+
+.rich-text-renderer [style*="font-size: 1rem"],
+.rich-text-renderer [style*="font-size:1rem"] {
+  font-size: 1.15rem !important;
 }
 
 .ql-size-small {
@@ -705,7 +716,7 @@
   .rich-text-renderer h2+h3,
   .rich-text-renderer h3+h2,
   .rich-text-renderer h3+h3 {
-    margin-top: 4px !important;
+    margin-top: 0 !important;
   }
 
   .rich-text-renderer .ql-size-huge,
@@ -723,8 +734,9 @@
   .title-main-text .font-cursive,
   .title-main-text span {
     font-size: 36px !important;
-    line-height: 1.2 !important;
+    line-height: 1.1 !important;
     margin-bottom: 0 !important;
+    margin-top: 0 !important;
   }
 
   .title-sub-text,
@@ -755,7 +767,7 @@
   .describe-description-wrapper p,
   .describe-description-wrapper span,
   .describe-description-wrapper * {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 
   .faq-container [itemprop="text"],
