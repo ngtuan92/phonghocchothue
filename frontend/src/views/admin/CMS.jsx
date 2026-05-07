@@ -30,7 +30,7 @@ const QuillWrapper = dynamic(
 
 import "react-quill-new/dist/quill.snow.css";
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 const SECTIONS = [
   { id: "about", label: "Giới thiệu", icon: MdArticle },

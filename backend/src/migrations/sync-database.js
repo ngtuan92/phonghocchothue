@@ -11,6 +11,7 @@ require("../app/models/redirectModel");
 require("../app/models/blogModel");
 require("../app/models/productDetailModel");
 require("../app/models/fontModel");
+require("../app/models/customFontModel");
 
 (async () => {
   try {

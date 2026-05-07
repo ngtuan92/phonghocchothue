@@ -12,6 +12,7 @@ import {
 import Slider from "../../components/admin/slider";
 import Other from "../../components/admin/other";
 import FontsManager from "../../components/admin/FontsManager";
+import FontManagement from "../../components/admin/FontManagement";
 
 export default function Config() {
   const [activeTab, setActiveTab] = React.useState("slider");
@@ -29,10 +30,16 @@ export default function Config() {
       desc: <Other />,
     },
     {
-      label: "Font Chữ",
+      label: "Font Google",
       value: "fonts",
-      icon: "🔤",
+      icon: "🌐",
       desc: <FontsManager />,
+    },
+    {
+      label: "Font Local",
+      value: "fonts-local",
+      icon: "📁",
+      desc: <FontManagement />,
     },
   ];
 

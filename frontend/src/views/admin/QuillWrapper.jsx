@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useRef, useState } from "react";
 import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 const SIZE_MAP = {
   "Small": "0.75rem",
@@ -128,31 +128,53 @@ const QuillWrapper = forwardRef((props, ref) => {
         if (!fetchPromise) {
           fetchPromise = (async () => {
             try {
-              const res = await fetch(`${URL_API}api/fonts`);
-              if (res.ok) {
-                const fonts = await res.json();
-                const clean = fonts
+              // Fetch Google Fonts
+              const googleRes = await fetch(`${URL_API}api/fonts`);
+              let googleFonts = [];
+              if (googleRes.ok) {
+                const data = await googleRes.json();
+                googleFonts = data
                   .filter(f => f.name.trim().toLowerCase() !== 'inter')
                   .map(f => ({ 
-                    ...f, 
                     name: f.name.trim(),
-                    slug: slugify(f.name) 
+                    slug: slugify(f.name),
+                    family: f.name.trim() // Google uses name as family
                   }));
-                const sorted = clean.sort((a, b) => a.name.localeCompare(b.name));
-                const finalWhitelist = ['macdinh', ...sorted.map(f => f.slug)];
-                
-                if (typeof window !== "undefined" && Quill) {
-                  const FontStyle = Quill.import("attributors/style/font");
-                  if (FontStyle) {
-                    FontStyle.whitelist = finalWhitelist;
-                    Quill.register(FontStyle, true);
-                  }
-                }
-                cachedFonts = sorted;
-                return sorted;
               }
+
+              // Fetch Local Fonts
+              const localRes = await fetch(`${URL_API}api/fonts/local`);
+              let localFonts = [];
+              if (localRes.ok) {
+                const result = await localRes.json();
+                if (result.success && Array.isArray(result.data)) {
+                  localFonts = result.data
+                    .filter(f => f.status === 'active')
+                    .map(f => ({
+                      name: f.display_name,
+                      slug: f.font_family,
+                      family: f.font_family // Local uses slug as family in @font-face
+                    }));
+                }
+              }
+
+              // Combine and sort
+              const combined = [...googleFonts, ...localFonts];
+              const sorted = combined.sort((a, b) => a.name.localeCompare(b.name));
+              
+              const finalWhitelist = ['macdinh', ...sorted.map(f => f.slug)];
+              
+              if (typeof window !== "undefined" && Quill) {
+                const FontStyle = Quill.import("attributors/style/font");
+                if (FontStyle) {
+                  FontStyle.whitelist = finalWhitelist;
+                  Quill.register(FontStyle, true);
+                }
+              }
+              cachedFonts = sorted;
+              return sorted;
             } catch (e) {
-              console.error(e);
+              console.error("Error initializing fonts for editor:", e);
             }
             return [];
           })();
@@ -349,7 +371,7 @@ const QuillWrapper = forwardRef((props, ref) => {
           .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before,
           .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before { 
             content: '${font.name}' !important; 
-            font-family: '${font.name}', sans-serif !important;
+            font-family: '${font.family}', sans-serif !important;
           }
           .ql-editor span[style*="font-family: ${font.slug}"],
           .ql-editor span[style*="font-family:${font.slug}"],
@@ -361,7 +383,7 @@ const QuillWrapper = forwardRef((props, ref) => {
           .ql-editor h1[style*="font-family: ${font.slug}"],
           .ql-editor h2[style*="font-family: ${font.slug}"],
           .ql-editor h3[style*="font-family: ${font.slug}"] {
-            font-family: '${font.name}', sans-serif !important;
+            font-family: '${font.family}', sans-serif !important;
           }
         `).join('\n')}
         .ql-snow .ql-picker.ql-size .ql-picker-label::before,

@@ -19,7 +19,21 @@ const getOrSetCache = async (key, fetchDataCallback, ttl = process.env.CACHE_TTL
     }
 };
 
+const clearCache = async (key) => {
+    try {
+        await redis.del(key);
+    } catch (error) {
+        console.error('Clear Cache Error:', error);
+    }
+};
+
+const clearSystemCache = async () => {
+    await clearCache('configs:v2');
+};
+
 module.exports = {
     getOrSetCache,
+    clearCache,
+    clearSystemCache,
     redis
 };
