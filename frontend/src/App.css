@@ -1,6 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
+
+:root {
+  /* Fluid Gutter for Mobile/Tablet */
+  --site-gutter: clamp(1rem, 5vw, 2.5rem);
+}
+
+.main-container {
+  padding-left: var(--site-gutter) !important;
+  padding-right: var(--site-gutter) !important;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .main-container {
+    padding-left: 60px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .main-container {
+    padding-left: 80px !important;
+    padding-right: 80px !important;
+  }
+}
+
 #root {
   width: 100%;
-  /* min-width: 575px; */
+
   height: 100%;
 }
 
@@ -49,7 +75,6 @@
   font-weight: bold;
 }
 
-/* Màn hình điện thoại (<= 768px) */
 @media (max-width: 768px) {
 
   .swiper-button-next-custom,
@@ -70,6 +95,19 @@
 .bg-img {
   background-image: url("https://c7.alamy.com/comp/2E8W6XR/vector-green-rows-of-fun-daisy-flowers-repeat-pattern-with-canvas-background-suitable-for-textile-gift-wrap-and-wallpaper-2E8W6XR.jpg");
   width: 100%;
+}
+
+.hero-phone-text,
+.hero-phone-text * {
+  font-size: inherit;
+}
+
+@media (max-width: 767px) {
+
+  .hero-phone-text,
+  .hero-phone-text * {
+    font-size: 10px !important;
+  }
 }
 
 .boder-green-gray {
@@ -184,16 +222,16 @@
 
 .hide-scrollbar {
   overflow: auto;
-  /* Cho phép cuộn */
+
   scrollbar-width: none;
-  /* Firefox */
+
   -ms-overflow-style: none;
-  /* Internet Explorer và Edge cũ */
+
 }
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari và Opera */
+
 }
 
 .color-header-table p {
@@ -212,7 +250,6 @@
   font-display: swap;
 }
 
-/* Bước 2: Áp dụng cho class */
 .my-class-font {
   font-family: "MyCustomFont", sans-serif;
 }
@@ -225,11 +262,9 @@
   font-display: swap;
 }
 
-/* Bước 2: Áp dụng cho class */
 .title-product-detail {
   font-family: "FontViet", sans-serif;
 }
-
 
 @font-face {
   font-family: "FontVietSVN";
@@ -247,7 +282,6 @@
   font-display: swap;
 }
 
-/* Bước 2: Áp dụng cho class */
 .title-footer-custom {
   font-family: "FontVietSVN", sans-serif;
 }
@@ -279,6 +313,28 @@
   font-weight: 400;
   text-align: center;
   width: 100%;
+  overflow: visible !important;
+}
+
+.title-bg-text .rich-text-renderer {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: visible !important;
+}
+
+.title-bg-text .rich-text-renderer p {
+  margin: 0 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+  font-family: inherit !important;
+}
+
+.title-bg-text .rich-text-renderer * {
+  max-width: none !important;
 }
 
 .title-main-text {
@@ -321,192 +377,189 @@
   height: auto !important;
 }
 
+.rich-text-renderer h1,
+.rich-text-renderer h2,
+.rich-text-renderer h3,
+.rich-text-renderer h4,
+.rich-text-renderer h5,
+.rich-text-renderer h6 {
+  color: #563c39;
+  line-height: 1.4;
+  margin-bottom: 1.0rem;
+  font-weight: 400;
+}
+
+.rich-text-renderer h1:has(+ p),
+.rich-text-renderer h2:has(+ p),
+.rich-text-renderer h3:has(+ p) {
+  margin-bottom: 1.5rem !important;
+}
+
 .rich-text-renderer h1 {
   font-size: 2.5rem;
-  color: #563c39;
-  line-height: 1.2;
-  margin-bottom: 1rem;
 }
 
 .rich-text-renderer h2 {
   font-size: 2rem;
-  color: #563c39;
-  line-height: 1.2;
-  margin-bottom: 0.8rem;
 }
 
-@media (max-width: 640px) {
-  .rich-text-renderer h1 {
-    font-size: 2rem;
+.rich-text-renderer h3 {
+  font-size: 1.75rem;
+}
+
+@media (max-width: 767px) {
+
+  .rich-text-renderer p,
+  .rich-text-renderer span,
+  .rich-text-renderer strong {
+    line-height: 1.6 !important;
+    margin-bottom: 8px !important;
   }
 
-  .rich-text-renderer h2 {
-    font-size: 1.75rem;
+  .rich-text-renderer h1 {
+    font-size: 2.3rem !important;
   }
+
+  .decoration-image-wrapper img {
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
+    display: block !important;
+  }
+
 }
 
 .rich-text-renderer p {
   font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
   color: #323232;
-  margin-bottom: 1rem;
+  margin-bottom: 14px;
   font-weight: 400;
+  font-size: 1.05rem;
 }
 
-.ql-font-inter {
-  font-family: 'Inter', sans-serif !important;
-  letter-spacing: 0.03em;
+.rich-text-renderer h2 {
+  font-size: 1.6rem !important;
 }
 
-.ql-font-roboto {
-  font-family: 'Roboto', sans-serif !important;
+.rich-text-renderer h3 {
+  font-size: 1.4rem !important;
 }
 
-.ql-font-playfair-display {
-  font-family: 'Playfair Display', serif !important;
+.rich-text-renderer h4 {
+  font-size: 1.2rem !important;
 }
 
-.ql-font-montserrat {
-  font-family: 'Montserrat', sans-serif !important;
+@media (max-width: 767px) {
+  .rich-text-renderer h2 {
+    font-size: 1.4rem !important;
+  }
+  .rich-text-renderer h3 {
+    font-size: 1.25rem !important;
+  }
+  .rich-text-renderer h4 {
+    font-size: 1.15rem !important;
+  }
 }
 
-.ql-font-poppins {
-  font-family: 'Poppins', sans-serif !important;
+@media (max-width: 767px) {
+  .blog-content p {
+    line-height: 1.75 !important;
+    margin-bottom: 18px !important;
+  }
+
+  .blog-content img {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 8px;
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .blog-content li {
+    line-height: 1.7 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .blog-content h2,
+  .blog-content h3 {
+    margin-top: 28px !important;
+    margin-bottom: 12px !important;
+  }
 }
 
-.ql-font-raleway {
-  font-family: 'Raleway', sans-serif !important;
+.rich-text-renderer [style*="font-size: 1rem"],
+.rich-text-renderer [style*="font-size:1rem"] {
+  font-size: 1.05rem !important;
 }
 
-.ql-font-dancing-script {
-  font-family: 'Dancing Script', cursive !important;
+.ql-size-small {
+  font-size: 0.75em !important;
 }
 
-.ql-font-pacifico {
-  font-family: 'Pacifico', cursive !important;
+.ql-size-large {
+  font-size: 2.25em !important;
 }
 
-.ql-font-amatic-sc {
-  font-family: 'Amatic SC', cursive !important;
+.ql-size-huge {
+  font-size: 3em !important;
 }
 
-.ql-font-bebas-neue {
-  font-family: 'Bebas Neue', sans-serif !important;
+@media (max-width: 767px) {
+  .ql-size-huge {
+    font-size: 22px !important;
+  }
 }
 
-.ql-font-syncopate {
-  font-family: 'Syncopate', sans-serif !important;
+@media (max-width: 480px) {
+  .ql-size-huge {
+    font-size: 1.15em !important;
+  }
 }
 
-.ql-font-great-vibes {
-  font-family: 'Great Vibes', cursive !important;
+.ql-editor h1 .ql-size-huge,
+.ql-editor h2 .ql-size-huge,
+.ql-editor p .ql-size-huge {
+  font-size: 3em !important;
 }
 
-.ql-font-pinyon-script {
-  font-family: 'Pinyon Script', cursive !important;
+@media (max-width: 767px) {
+
+  .ql-editor h1 .ql-size-huge,
+  .ql-editor h2 .ql-size-huge,
+  .ql-editor p .ql-size-huge {
+    font-size: 1.25em !important;
+  }
 }
 
-.ql-font-alex-brush {
-  font-family: 'Alex Brush', cursive !important;
-}
-
-.ql-font-parisienne {
-  font-family: 'Parisienne', cursive !important;
-}
-
-.ql-font-tangerine {
-  font-family: 'Tangerine', cursive !important;
-}
-
-.ql-font-satisfy {
-  font-family: 'Satisfy', cursive !important;
-}
-
-.ql-font-caveat {
-  font-family: 'Caveat', cursive !important;
-}
-
-.ql-font-oswald {
-  font-family: 'Oswald', sans-serif !important;
-}
-
-.ql-font-lato {
-  font-family: 'Lato', sans-serif !important;
-}
-
-.ql-font-nunito {
-  font-family: 'Nunito', sans-serif !important;
-}
-
-.ql-font-quicksand {
-  font-family: 'Quicksand', sans-serif !important;
-}
-
-.ql-font-arial {
-  font-family: Arial, sans-serif !important;
-}
-
-.ql-font-times-new-roman {
-  font-family: 'Times New Roman', serif !important;
-}
-
-.ql-font-serif {
-  font-family: serif !important;
-}
-
-.ql-font-monospace {
-  font-family: monospace !important;
-}
-
-.ql-font-iciel-amber {
-  font-family: 'iCiel Amber', sans-serif !important;
-}
-
-/* Hiển thị tên font trong danh sách chọn của trình soạn thảo */
-.ql-picker.ql-font .ql-picker-label[data-value="iciel-amber"]::before,
-.ql-picker.ql-font .ql-picker-item[data-value="iciel-amber"]::before {
-  content: "iCiel Amber" !important;
-}
-
-.ql-picker.ql-font .ql-picker-label[data-value="dancing-script"]::before,
-.ql-picker.ql-font .ql-picker-item[data-value="dancing-script"]::before {
-  content: "Dancing Script" !important;
-}
-
-.ql-picker.ql-font .ql-picker-label[data-value="pacifico"]::before,
-.ql-picker.ql-font .ql-picker-item[data-value="pacifico"]::before {
-  content: "Pacifico" !important;
-}
-
-.ql-picker.ql-font .ql-picker-label[data-value="bebas-neue"]::before,
-.ql-picker.ql-font .ql-picker-item[data-value="bebas-neue"]::before {
-  content: "Bebas Neue" !important;
-}
-
-.ql-align-center {
+.ql-size-super-huge {
+  font-size: 15vw !important;
+  line-height: 1.6 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  display: block !important;
   text-align: center !important;
 }
 
-.ql-align-right {
-  text-align: right !important;
+@media (max-width: 767px) {
+  .ql-size-super-huge {
+    font-size: 45px !important;
+  }
 }
 
-.ql-align-justify {
-  text-align: justify !important;
+.ql-editor h1 .ql-size-super-huge,
+.ql-editor h2 .ql-size-super-huge,
+.ql-editor p .ql-size-super-huge {
+  font-size: 15vw !important;
 }
 
-.rich-text-renderer { 
-  font-size: 1.25rem; 
-  line-height: 1.6;
+@media (max-width: 767px) {
+
+  .ql-editor h1 .ql-size-super-huge,
+  .ql-editor h2 .ql-size-super-huge,
+  .ql-editor p .ql-size-super-huge {
+    font-size: 12vw !important;
+  }
 }
-
-.rich-text-renderer h1 { font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 400; }
-.rich-text-renderer h2 { font-size: 2rem; margin-bottom: 1.2rem; font-weight: 400; }
-.rich-text-renderer h3 { font-size: 1.75rem; margin-bottom: 1rem; font-weight: 400; }
-
-.ql-size-small { font-size: 0.75em !important; }
-.ql-size-large { font-size: 1.5em !important; }
-.ql-size-huge { font-size: 2.5em !important; }
 
 .title-main-text {
   z-index: 10;
@@ -536,31 +589,83 @@
 .title-main-text p {
   white-space: normal;
   word-break: break-word;
-  line-height: 1.2;
-  margin: 0; /* Reset margin để không lệch bố cục */
+  line-height: 1.4;
+  margin: 0 !important;
+}
+
+@media (max-width: 767px) {
+
+  .title-sub-text,
+  .title-sub-text * {
+    font-size: 15px !important;
+  }
+
+  .title-main-text .font-cursive,
+  .title-main-text [style*="cursive"],
+  .title-main-text .ql-size-huge,
+  .title-main-text h1 .font-cursive,
+  .title-main-text h2 .font-cursive,
+  .title-main-text h1 span,
+  .title-main-text h2 span {
+    font-size: 36px !important;
+    line-height: 1.6 !important;
+    display: block !important;
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .title-main-text h1,
+  .title-main-text h2 {
+    margin-bottom: 5px !important;
+  }
+
+  .rich-text-renderer.mobile-watermark-text,
+  .rich-text-renderer.mobile-watermark-text *,
+  .mobile-watermark-text h1,
+  .mobile-watermark-text h2,
+  .mobile-watermark-text p,
+  .mobile-watermark-text span {
+    font-size: 28vw !important;
+    line-height: 0.8 !important;
+    display: block !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+  }
+}
+
+.title-main-text *:first-child {
+  margin-bottom: 0 !important;
+}
+
+
+.rich-text-renderer *:last-child {
+  margin-bottom: 0 !important;
 }
 
 @media (min-width: 640px) {
+
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text p {
-    white-space: nowrap !important;
+    white-space: normal !important;
   }
 }
 
 @media (min-width: 768px) {
+
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text p {
-    white-space: nowrap !important;
+    white-space: normal !important;
   }
 }
 
 @media (min-width: 1024px) {
+
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text p {
-    white-space: nowrap !important;
+    white-space: normal !important;
   }
 }
 
@@ -569,7 +674,6 @@
   color: #563c39;
 }
 
-/* Slideshow Indicators */
 .each-slideshow-indicator:before {
   background: #563c39 !important;
   opacity: 0.2;
@@ -586,5 +690,146 @@
 @media (max-width: 1023px) {
   .gallery-swiper .swiper-pagination {
     display: none !important;
+  }
+}
+
+.amenities-swiper {
+  width: 100%;
+  overflow: visible !important;
+}
+
+.amenities-swiper .swiper-wrapper {
+  transition-timing-function: linear !important;
+}
+
+.amenities-swiper .swiper-slide {
+  width: 320px !important;
+  height: 220px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .amenities-swiper .swiper-slide {
+    width: 240px !important;
+    height: 160px;
+  }
+}
+
+.amenities-bullet {
+  background: #563c39 !important;
+  opacity: 0.2 !important;
+}
+
+.amenities-bullet-active {
+  background: #799f85 !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 767px) {
+
+  .rich-text-renderer h1,
+  .rich-text-renderer h2,
+  .rich-text-renderer h3,
+  .describe-h2-wrapper h1,
+  .describe-h2-wrapper h2,
+  .describe-h2-wrapper h3,
+  .describe-h2-wrapper p,
+  .describe-h2-wrapper div,
+  .describe-h2-wrapper span,
+  .describe-h2-wrapper *,
+  h3.text-lg.font-bold {
+    font-size: 20px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 12px !important;
+    margin-top: 4px !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+  }
+
+  .decoration-image-wrapper {
+    margin-bottom: 10px !important;
+  }
+
+  .describe-h2-wrapper {
+    margin-bottom: 10px !important;
+    margin-top: 0px !important;
+    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .rich-text-renderer h1+h1,
+  .rich-text-renderer h1+h2,
+  .rich-text-renderer h2+h1,
+  .rich-text-renderer h2+h2,
+  .rich-text-renderer h2+h3,
+  .rich-text-renderer h3+h2,
+  .rich-text-renderer h3+h3 {
+    margin-top: 0 !important;
+  }
+
+  .rich-text-renderer .ql-size-huge,
+  .rich-text-renderer .ql-size-large,
+  .rich-text-renderer .ql-size-small,
+  .describe-h2-wrapper .ql-size-huge,
+  .describe-h2-wrapper .ql-size-large {
+    font-size: 20px !important;
+    line-height: 1.4 !important;
+  }
+
+  .title-main-text h1,
+  .title-main-text h2,
+  .title-main-text .ql-size-huge,
+  .title-main-text .font-cursive,
+  .title-main-text span {
+    font-size: 36px !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .title-sub-text,
+  .title-sub-text * {
+    font-size: 15px !important;
+  }
+
+  .describe-h2-wrapper *,
+  .describe-description-wrapper *,
+  .rich-text-renderer * {
+    text-align: center !important;
+  }
+
+  .describe-h2-wrapper h1,
+  .describe-h2-wrapper h2,
+  .describe-h2-wrapper h3,
+  .rich-text-renderer h1,
+  .rich-text-renderer h2,
+  .rich-text-renderer h3 {
+    line-height: 1.2 !important;
+  }
+
+  .describe-description-wrapper p,
+  .rich-text-renderer p {
+    line-height: 1.4 !important;
+  }
+
+  .describe-description-wrapper p,
+  .describe-description-wrapper span,
+  .describe-description-wrapper * {
+    font-size: 16px;
+  }
+
+  .faq-container [itemprop="text"],
+  .faq-container [itemprop="text"] * {
+    font-size: 16px !important;
+    text-align: left !important;
+  }
+
+  .faq-container [itemprop="name"],
+  .faq-container [itemprop="name"] * {
+    font-size: 17px !important;
+    text-align: left !important;
   }
 }

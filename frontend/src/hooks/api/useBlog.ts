@@ -3,7 +3,7 @@ import fetchData from "@/lib/api-client";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-export type BlogCategory = "kien-thuc" | "kinh-nghiem";
+export type BlogCategory = string;
 
 export interface Blog {
   id: number;

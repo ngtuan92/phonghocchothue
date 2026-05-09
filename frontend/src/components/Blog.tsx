@@ -11,25 +11,27 @@ import RichTextRenderer from "./RichTextRenderer";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-type FilterTab = "all" | BlogCategory;
+type FilterTab = "all" | string;
 
-const TABS: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "Tất cả" },
-  { key: "kien-thuc", label: "Kiến thức" },
-  { key: "kinh-nghiem", label: "Kinh nghiệm" },
-];
+const getCategoryConfig = (category: string) => {
+  const configs: Record<string, { label: string; icon: React.ReactNode; bg: string }> = {
+    "kien-thuc": {
+      label: "Kiến thức",
+      icon: <FaBookOpen size={10} />,
+      bg: "bg-[#799f85]",
+    },
+    "kinh-nghiem": {
+      label: "Kinh nghiệm",
+      icon: <FaSeedling size={10} />,
+      bg: "bg-[#799f85]",
+    },
+  };
 
-const CATEGORY_CONFIG: Record<BlogCategory, { label: string; icon: React.ReactNode; bg: string }> = {
-  "kien-thuc": {
-    label: "Kiến thức",
-    icon: <FaBookOpen size={10} />,
+  return configs[category] || {
+    label: category.charAt(0).toUpperCase() + category.slice(1), // Viết hoa chữ cái đầu
+    icon: <FaSeedling size={10} />, // Icon mặc định
     bg: "bg-[#799f85]",
-  },
-  "kinh-nghiem": {
-    label: "Kinh nghiệm",
-    icon: <FaSeedling size={10} />,
-    bg: "bg-[#e57f7f]",
-  },
+  };
 };
 
 function formatDate(dateStr: string) {
@@ -54,7 +56,8 @@ function BlogCardSkeleton() {
 }
 
 function BlogCard({ blog }: { blog: Blog }) {
-  const cat = CATEGORY_CONFIG[blog.category];
+  const cat = getCategoryConfig(blog.category);
+
   const thumbnailSrc =
     blog.thumbnail
       ? blog.thumbnail.startsWith("http")
@@ -102,11 +105,11 @@ function BlogCard({ blog }: { blog: Blog }) {
           </span>
         </p>
 
-        <h3 className="text-sm sm:text-base font-bold text-[#563c39] line-clamp-2 mb-2 leading-snug">
+        <h3 className="text-xs sm:text-base font-bold text-[#563c39] line-clamp-2 mb-1.5 leading-snug">
           {blog.title}
         </h3>
 
-        <p className="text-[12px] sm:text-base text-gray-700 raleway !font-normal line-clamp-3 flex-1">
+        <p className="text-[11px] sm:text-base text-gray-700 raleway !font-normal line-clamp-3 flex-1">
           {blog.excerpt}
         </p>
 
@@ -125,6 +128,11 @@ function BlogCard({ blog }: { blog: Blog }) {
 export default function Blog() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [categories, setCategories] = useState<{key: string, label: string}[]>([
+    { key: "all", label: "Tất cả" },
+    { key: "kien-thuc", label: "Kiến thức" },
+    { key: "kinh-nghiem", label: "Kinh nghiệm" },
+  ]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const limit = 3;
@@ -139,6 +147,29 @@ export default function Blog() {
   });
 
   useEffect(() => {
+    fetch(`${URL_API}api/blog/categories?status=1`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success && res.data.length > 0) {
+          const defaultTabs = [
+            { key: "all", label: "Tất cả" },
+            { key: "kien-thuc", label: "Kiến thức" },
+            { key: "kinh-nghiem", label: "Kinh nghiệm" },
+          ];
+          const dynamicTabs = res.data
+            .filter((cat: string) => cat !== "kien-thuc" && cat !== "kinh-nghiem")
+            .map((cat: string) => ({
+              key: cat,
+              label: cat.charAt(0).toUpperCase() + cat.slice(1)
+            }));
+          
+          setCategories([...defaultTabs, ...dynamicTabs]);
+        }
+      })
+      .catch(err => console.error("Lỗi tải danh mục:", err));
+  }, []);
+
+  useEffect(() => {
     if (data?.data) {
       if (page === 1) {
         setBlogs(data.data);
@@ -149,11 +180,10 @@ export default function Blog() {
         });
       }
       
-      const totalItems = data.pagination?.totalItems || 0;
-      const currentCount = page === 1 ? data.data.length : blogs.length + data.data.length;
-      setHasMore(data.data.length === limit && currentCount < totalItems);
+      const totalPages = data.pagination?.totalPages || 0;
+      setHasMore(page < totalPages);
     }
-  }, [data, page, limit]);
+  }, [data, page]);
 
   const handleTabChange = (tab: FilterTab) => {
     setActiveTab(tab);
@@ -166,18 +196,18 @@ export default function Blog() {
   };
 
   return (
-    <section id="blog" className="mt-12 sm:mt-24 md:mt-36 mb-12 sm:mb-24 px-6 sm:px-[60px] lg:px-[90px]">
+    <section id="blog" className="mt-12 sm:mt-24 md:mt-36 mb-12 sm:mb-24 main-container">
       <div className="mb-10 text-center">
         <RichTextRenderer 
           html={blogHeading} 
           className="text-center"
           fallback={
             <>
-              <h2 className="font-cursive text-5xl sm:text-7xl text-[#563c39] mb-4">Kiến thức và kinh nghiệm thuê phòng dạy học</h2>
+              <h2 className="font-cursive text-2xl sm:text-7xl text-[#563c39] mb-4">Kiến thức và kinh nghiệm thuê phòng dạy học</h2>
             </>
           }
         />
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex items-center justify-center gap-2 mt-7">
           <span className="h-px w-12 bg-[#b8c7b0]" />
           <span className="text-[#b8c7b0] text-xs">✿</span>
           <span className="h-px w-12 bg-[#b8c7b0]" />
@@ -185,7 +215,7 @@ export default function Blog() {
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 mb-8 flex-wrap">
-        {TABS.map((tab) => (
+        {categories.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleTabChange(tab.key)}
@@ -222,7 +252,7 @@ export default function Blog() {
             disabled={isFetching}
             className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isFetching ? "Đang tải..." : "Xem thêm bài viết"}
+            {isFetching ? "Đang tải..." : "Xem thêm"}
             {!isFetching && <FaArrowRight size={12} />}
           </button>
         </div>

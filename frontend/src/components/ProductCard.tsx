@@ -49,22 +49,6 @@ const ProductCard = ({ product }: { product?: Product }) => {
           quality={85}
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex flex-col items-start px-4 py-2 text-white transform translate-y-100 group-hover:translate-y-0 transition-transform duration-500">
-          <h3 className="text-lg font-bold">{product.name}</h3>
-          <ul className="list-disc ml-5 text-base mt-2 space-y-1">
-            {product.equipment && <li>{product.equipment}</li>}
-            {product.contains && <li>{product.contains}</li>}
-          </ul>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDetailProduct(product)();
-            }}
-            className="my-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
-          >
-            Xem thêm
-          </button>
-        </div>
       </button>
     );
   }
@@ -72,12 +56,13 @@ const ProductCard = ({ product }: { product?: Product }) => {
   const roomHeading = useConfigContentByKey("room-heading");
 
   return (
-    <div className="w-full mx-auto px-6 sm:px-[60px] lg:px-[90px] relative my-12 sm:my-36">
-      <RichTextRenderer 
-        html={roomHeading} 
-        className="text-center mb-8"
-        fallback={<h2 className="text-3xl font-bold mb-8 text-[#563c39]">Không gian phù hợp cho từng quy mô lớp học</h2>}
-      />
+    <div className="w-full mx-auto main-container relative my-30 sm:my-36">
+      <div className="describe-h2-wrapper">
+        <RichTextRenderer
+          html={roomHeading}
+          className="text-center mb-6"
+        />
+      </div>
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={9}
@@ -103,7 +88,10 @@ const ProductCard = ({ product }: { product?: Product }) => {
       >
         {products.map((product: any) => (
           <SwiperSlide key={product.id || product._id}>
-            <div className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative">
+            <div 
+              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer"
+              onClick={handleDetailProduct(product)}
+            >
               <Image
                 src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
                 alt={product.name || "ảnh"}
@@ -113,19 +101,6 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 quality={85}
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex flex-col items-start px-4 py-2 text-white transform translate-y-100 group-hover:translate-y-0 transition-transform duration-500">
-                <h3 className="text-lg font-bold">{product.name}</h3>
-                <ul className="list-disc ml-5 text-base mt-2 space-y-1">
-                  {product.equipment && <li>{product.equipment}</li>}
-                  {product.contains && <li>{product.contains}</li>}
-                </ul>
-                <button
-                  onClick={handleDetailProduct(product)}
-                  className="my-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
-                >
-                  Xem thêm
-                </button>
-              </div>
             </div>
           </SwiperSlide>
         ))}

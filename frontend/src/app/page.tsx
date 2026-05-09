@@ -19,7 +19,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useSEO from "@/hooks/useSEO";
 import { useCountVisit } from "@/hooks/api/useVisits";
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const URL_API =
+  process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 export default function Home() {
   const [showNotification, setShowNotification] = useState(true);
@@ -151,16 +152,12 @@ export default function Home() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[70px] xl:p-[80px]">
+      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
         <div
           className="w-full min-h-screen sm:min-h-0 sm:h-full rounded-[10px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar"
           style={pageStyle}
         >
           <Header />
-          <RichTextRenderer
-            html={useConfigContentByKey("home-h1")}
-            className="sr-only"
-          />
           <div id="about">
             <Describe />
           </div>

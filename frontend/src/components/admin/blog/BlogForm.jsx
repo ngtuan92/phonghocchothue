@@ -3,42 +3,13 @@ import dynamic from "next/dynamic";
 import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility } from "react-icons/md";
 
-const ReactQuill = dynamic(
+const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
   { ssr: false }
 );
 
 import "react-quill-new/dist/quill.snow.css";
 
-const FONTS = [
-  "roboto", "playfair-display", "montserrat", "poppins", 
-  "raleway", "dancing-script", "pacifico", "amatic-sc", "bebas-neue", 
-  "syncopate", "great-vibes", "pinyon-script", "alex-brush", "parisienne",
-  "tangerine", "satisfy", "caveat", "oswald", "lato", "nunito", "quicksand",
-  "arial", "times-new-roman", "serif", "monospace", "inter"
-];
-
-const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [false, ...FONTS] }],
-    [{ size: ["small", false, "large", "huge"] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ color: [] }, { background: [] }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
-  ],
-};
-
-const QUILL_FORMATS = [
-  "header", "font", "size",
-  "bold", "italic", "underline", "strike",
-  "color", "background",
-  "list", "align",
-  "link", "image",
-];
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -62,6 +33,18 @@ export default function BlogForm({ data, onSave, onCancel }) {
       setPreviewImage(formData.thumbnail.startsWith("http") ? formData.thumbnail : `${URL_API}${formData.thumbnail.replace(/\\/g, "/")}`);
     }
   }, [formData.thumbnail]);
+
+  const [categories, setCategories] = useState([]);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+
+  useEffect(() => {
+    fetch(`${URL_API}api/blog/categories`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) setCategories(res.data);
+      })
+      .catch(err => console.error("Lỗi tải danh mục:", err));
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -111,14 +94,58 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     Chuyên mục
                   </Typography>
                 </div>
-                <select
-                  className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm appearance-none"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                >
-                  <option value="kien-thuc">Kiến thức</option>
-                  <option value="kinh-nghiem">Kinh nghiệm</option>
-                </select>
+                
+                {!isAddingNew ? (
+                  <div className="flex gap-2">
+                    <select
+                      className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm appearance-none"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    >
+                      <option value="kien-thuc">Kiến thức</option>
+                      <option value="kinh-nghiem">Kinh nghiệm</option>
+                      {categories
+                        .filter(cat => cat !== 'kien-thuc' && cat !== 'kinh-nghiem')
+                        .map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))
+                      }
+                      {formData.category && 
+                       formData.category !== 'kien-thuc' && 
+                       formData.category !== 'kinh-nghiem' && 
+                       !categories.includes(formData.category) && (
+                        <option value={formData.category}>{formData.category}</option>
+                      )}
+                    </select>
+                    <Button 
+                      size="sm"
+                      variant="outlined" 
+                      className="rounded-xl border-gray-300 text-gray-700 font-bold px-4"
+                      onClick={() => setIsAddingNew(true)}
+                    >
+                      + Mới
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Nhập chuyên mục mới..."
+                      className="!border-gray-300 focus:!border-primary !bg-white"
+                      labelProps={{ className: "hidden" }}
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      autoFocus
+                    />
+                    <Button 
+                      size="sm"
+                      variant="text" 
+                      className="rounded-xl text-red-500 font-bold px-4"
+                      onClick={() => setIsAddingNew(false)}
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -218,12 +245,10 @@ export default function BlogForm({ data, onSave, onCancel }) {
           Nội dung bài viết chi tiết
         </Typography>
         <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5">
-          <ReactQuill
+          <QuillWrapper
             theme="snow"
             value={formData.content}
             onChange={(val) => setFormData({ ...formData, content: val })}
-            modules={QUILL_MODULES}
-            formats={QUILL_FORMATS}
             className="min-h-[500px]"
           />
         </div>

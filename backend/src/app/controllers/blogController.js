@@ -1,7 +1,8 @@
 const BlogModel = require('../models/blogModel');
 const { createUniqueSlug } = require('../../util/slug');
 const { redis, getOrSetCache } = require('../../util/cacheUtil');
-const db = require('../../config/db');
+const { sequelize, Sequelize } = require('../../config/db');
+const { Op } = Sequelize;
 
 class BlogController {
     async index(req, res) {
@@ -19,11 +20,9 @@ class BlogController {
             
             const offset = (page - 1) * limit;
 
-            // 1. Lấy version hiện tại của cache blog
             let cacheVersion = await redis.get('blogs:version') || '1';
             const cacheKey = `blogs:list:v${cacheVersion}:p${page}:l${limit}:c${category || 'all'}:s${status}`;
 
-            // 2. Sử dụng getOrSetCache để lấy dữ liệu
             const resultJson = await getOrSetCache(cacheKey, async () => {
                 const where = {};
                 if (category) where.category = category;
@@ -94,7 +93,6 @@ class BlogController {
                 publishedAt: new Date()
             });
 
-            // Tăng version để clear cache danh sách
             await redis.incr('blogs:version');
 
             res.status(201).json({ success: true, data: blog });
@@ -117,13 +115,12 @@ class BlogController {
             
             if (title && title !== blog.title) {
                 updateData.slug = await createUniqueSlug(title, async (s) => {
-                    return await BlogModel.findOne({ where: { slug: s, id: { [db.Sequelize.Op.ne]: id } } });
+                    return await BlogModel.findOne({ where: { slug: s, id: { [Op.ne]: id } } });
                 });
             }
 
             await blog.update(updateData);
             
-            // Tăng version cache và xóa cache chi tiết
             await redis.incr('blogs:version');
             await redis.del(`blog:detail:${blog.slug}`);
             if (updateData.slug) await redis.del(`blog:detail:${updateData.slug}`);
@@ -145,11 +142,28 @@ class BlogController {
             const slug = blog.slug;
             await blog.destroy();
             
-            // Tăng version cache và xóa cache chi tiết
             await redis.incr('blogs:version');
             await redis.del(`blog:detail:${slug}`);
 
             res.json({ success: true, message: 'Đã xóa bài viết' });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    async getCategories(req, res) {
+        try {
+            const { status } = req.query;
+            let whereClause = 'WHERE category IS NOT NULL AND category != ""';
+            if (status !== undefined) {
+                whereClause += ` AND status = ${parseInt(status)}`;
+            }
+            const results = await sequelize.query(
+                `SELECT DISTINCT category FROM blogs ${whereClause} ORDER BY category ASC`,
+                { type: sequelize.QueryTypes.SELECT }
+            );
+            const categoryList = results.map(r => r.category).filter(Boolean);
+            res.json({ success: true, data: categoryList });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
         }

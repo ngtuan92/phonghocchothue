@@ -27,7 +27,7 @@ const Rooms = () => {
       {products.map((product: Product) => (
         <div
           key={product.id || product._id}
-          className=" p-6 text-center overflow-hidden cursor-pointer"
+          className="p-2 sm:p-6 text-center overflow-hidden cursor-pointer"
           onClick={handleDetailProduct(product)}
           role="button"
           tabIndex={0}
@@ -37,14 +37,14 @@ const Rooms = () => {
             }
           }}
         >
-          <div className="w-full h-44 overflow-hidden">
+          <div className="w-full h-36 sm:h-44 overflow-hidden">
             <img
-              className="w-full h-44 object-cover my-4 cursor-pointer duration-500 hover:scale-110  flex justify-center items-center"
+              className="w-full h-36 sm:h-44 object-cover my-2 sm:my-4 cursor-pointer duration-500 hover:scale-110  flex justify-center items-center"
               src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
               alt={product.name}
             />
           </div>
-          <div className="text-lg  text-center font-sans font-bold text-black">
+          <div className="text-base sm:text-lg  text-center font-sans font-bold text-black">
             {product.name}
           </div>
         </div>

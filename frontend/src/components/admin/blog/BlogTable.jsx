@@ -200,11 +200,20 @@ export default function BlogTable() {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        blog.category === 'kien-thuc' ? 'bg-blue-50 text-blue-500' : 'bg-orange-50 text-orange-500'
-                      }`}>
-                        {blog.category === 'kien-thuc' ? 'Kiến thức' : 'Kinh nghiệm'}
-                      </span>
+                      {(() => {
+                        const catMap = {
+                          'kien-thuc': { label: 'Kiến thức', cls: 'bg-blue-50 text-blue-500' },
+                          'kinh-nghiem': { label: 'Kinh nghiệm', cls: 'bg-orange-50 text-orange-500' },
+                        };
+                        const cat = catMap[blog.category];
+                        return (
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            cat ? cat.cls : 'bg-purple-50 text-purple-500'
+                          }`}>
+                            {cat ? cat.label : blog.category.charAt(0).toUpperCase() + blog.category.slice(1)}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 px-6">
                       <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${

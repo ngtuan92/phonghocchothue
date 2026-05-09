@@ -17,6 +17,7 @@ import {
   MdHome,
   MdSwapHoriz,
   MdArticle,
+  MdPalette,
 } from "react-icons/md";
 
 interface Route {
@@ -72,7 +73,7 @@ const routes: Route[] = [
     name: "Quản lý Giao diện",
     layout: "/admin",
     path: "cms",
-    icon: <MdSettings className="h-6 w-6" />,
+    icon: <MdPalette className="h-6 w-6" />,
     component: <CMS />,
     secondary: true,
   },

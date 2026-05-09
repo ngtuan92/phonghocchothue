@@ -4,6 +4,7 @@ const authenticateToken = require("../../middleware/authMiddleware");
 const blogController = require("../../app/controllers/blogController");
 
 // Public routes
+router.get("/categories", blogController.getCategories);
 router.get("/:slug", blogController.show);
 router.get("/", blogController.index);
 

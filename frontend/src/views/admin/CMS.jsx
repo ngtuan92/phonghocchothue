@@ -13,6 +13,7 @@ import {
   MdRssFeed,
   MdQuestionAnswer,
   MdSettings,
+  MdEdit,
 } from "react-icons/md";
 import dynamic from "next/dynamic";
 import { Input, Textarea, Typography } from "@material-tailwind/react";
@@ -22,61 +23,35 @@ import fetchData from "../../axios";
 import Loading from "../../components/admin/loading";
 import ColorPicker from "../../components/admin/color-picker";
 
-const FONTS = [
-  "roboto", "playfair-display", "montserrat", "poppins", 
-  "raleway", "dancing-script", "pacifico", "amatic-sc", "bebas-neue", 
-  "syncopate", "great-vibes", "pinyon-script", "alex-brush", "parisienne",
-  "tangerine", "satisfy", "caveat", "oswald", "lato", "nunito", "quicksand",
-  "arial", "times-new-roman", "serif", "monospace", "inter", "iciel-amber"
-];
-
-const ReactQuill = dynamic(
+const QuillWrapper = dynamic(
   () => import("./QuillWrapper"),
   { ssr: false }
 );
 
 import "react-quill-new/dist/quill.snow.css";
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
-
-const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [false, ...FONTS] }],
-    [{ size: ["small", false, "large", "huge"] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ color: [] }, { background: [] }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }],
-    ["clean"],
-  ],
-};
-
-const QUILL_FORMATS = [
-  "header", "font", "size",
-  "bold", "italic", "underline", "strike",
-  "color", "background",
-  "list", "align",
-];
+const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 const SECTIONS = [
   { id: "about", label: "Giới thiệu", icon: MdArticle },
   { id: "services", label: "Dịch vụ & Tiện ích", icon: MdDesignServices },
   { id: "gallery", label: "Không gian", icon: MdPhotoLibrary },
   { id: "blog", label: "Blog & Tin tức", icon: MdRssFeed },
+  { id: "faq", label: "FAQ", icon: MdQuestionAnswer },
   { id: "product_detail", label: "Chi tiết phòng", icon: MdArticle },
   { id: "general", label: "Cấu hình chung", icon: MdSettings },
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
-  services: ["room-heading", "amenities-content", "amenities-description"],
-  gallery: ["gallery-heading"],
-  blog: ["blog-heading"],
+  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
+  services: ["amenities-description"],
+  gallery: ["gallery-heading", "room-heading"],
+  faq: ["faq-heading", "faq_list"],
 };
 
 const KEY_LABEL_MAP = {
   "describe-heading": "Tiêu đề nghệ thuật chính (H1)",
+  "describe-bg-text": "Chữ nền nghệ thuật (Ví dụ: HOAHOCTRO)",
   "seo-h1-main": "Phòng Học Cho Thuê / Tiêu đề SEO (H1)",
   "describe-h2": "Tiêu đề phụ dưới ảnh Đừng tìm đâu xa (H2)",
   textDecription: "Nội dung bài viết Giới thiệu",
@@ -85,8 +60,10 @@ const KEY_LABEL_MAP = {
   "amenities-description": "Đoạn văn mô tả tiện ích chi tiết",
   "gallery-heading": "Tiêu đề bộ sưu tập ảnh",
   "blog-heading": "Tiêu đề chuyên mục tin tức",
-  "faq-heading": "Tiêu đề chuyên mục FAQ",
+  "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
+  "faq_list": "Danh sách câu hỏi thường gặp (FAQ)",
   bgTitle: "Ảnh trang trí nghệ thuật",
+  "describe-phone": "Số điện thoại phần giới thiệu (Hero)",
 };
 
 const TYPE_OPTIONS = [
@@ -107,38 +84,18 @@ export default function CMS() {
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
   const [savingKey, setSavingKey] = useState(null);
   const [products, setProducts] = useState([]);
+  const [sliders, setSliders] = useState([]);
+  const [amenitySliders, setAmenitySliders] = useState([]);
   const [savingProductId, setSavingProductId] = useState(null);
+  const [dynamicFonts, setDynamicFonts] = useState([]);
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
-
-    .ql-font-inter { font-family: 'Inter', sans-serif !important; }
-    .ql-font-roboto { font-family: 'Roboto', sans-serif !important; }
-    .ql-font-playfair-display { font-family: 'Playfair Display', serif !important; }
-    .ql-font-montserrat { font-family: 'Montserrat', sans-serif !important; }
-    .ql-font-poppins { font-family: 'Poppins', sans-serif !important; }
-    .ql-font-raleway { font-family: 'Raleway', sans-serif !important; }
-    .ql-font-dancing-script { font-family: 'Dancing Script', cursive !important; }
-    .ql-font-pacifico { font-family: 'Pacifico', cursive !important; }
-    .ql-font-amatic-sc { font-family: 'Amatic SC', cursive !important; }
-    .ql-font-bebas-neue { font-family: 'Bebas Neue', sans-serif !important; }
-    .ql-font-syncopate { font-family: 'Syncopate', sans-serif !important; }
-    .ql-font-great-vibes { font-family: 'Great Vibes', cursive !important; }
-    .ql-font-pinyon-script { font-family: 'Pinyon Script', cursive !important; }
-    .ql-font-alex-brush { font-family: 'Alex Brush', cursive !important; }
-    .ql-font-parisienne { font-family: 'Parisienne', cursive !important; }
-    .ql-font-tangerine { font-family: 'Tangerine', cursive !important; }
-    .ql-font-satisfy { font-family: 'Satisfy', cursive !important; }
-    .ql-font-caveat { font-family: 'Caveat', cursive !important; }
-    .ql-font-oswald { font-family: 'Oswald', sans-serif !important; }
-    .ql-font-lato { font-family: 'Lato', sans-serif !important; }
-    .ql-font-nunito { font-family: 'Nunito', sans-serif !important; }
-    .ql-font-quicksand { font-family: 'Quicksand', sans-serif !important; }
-    .ql-font-arial { font-family: Arial, sans-serif !important; }
-    .ql-font-times-new-roman { font-family: 'Times New Roman', serif !important; }
-    .ql-font-serif { font-family: serif !important; }
-    .ql-font-monospace { font-family: monospace !important; }
-    .ql-font-iciel-amber { font-family: 'iCiel Amber', sans-serif !important; }
+    
+    .ql-size-small { font-size: 0.85rem !important; }
+    .ql-size-large { font-size: 2rem !important; }
+    .ql-size-huge { font-size: 5rem !important; }
+    .ql-size-super-huge { font-size: 15vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
 
     .ql-editor {
       font-family: 'Inter', sans-serif;
@@ -147,12 +104,10 @@ export default function CMS() {
     .ql-editor h1 {
       font-size: 2.5rem !important;
       color: #563c39 !important;
-      font-family: inherit !important;
     }
     .ql-editor h2 {
       font-size: 2rem !important;
       color: #563c39 !important;
-      font-family: inherit !important;
     }
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;
@@ -164,44 +119,80 @@ export default function CMS() {
     .ql-snow .ql-picker.ql-header {
       width: 100px !important;
     }
-    .ql-snow .ql-picker.ql-font .ql-picker-label::before,
-    .ql-snow .ql-picker.ql-font .ql-picker-item::before { content: 'Mặc định'; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="inter"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="inter"]::before { content: 'Inter'; font-family: 'Inter', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="roboto"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before { content: 'Roboto'; font-family: 'Roboto', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="playfair-display"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="playfair-display"]::before { content: 'Playfair Display'; font-family: 'Playfair Display', serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="montserrat"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="montserrat"]::before { content: 'Montserrat'; font-family: 'Montserrat', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="poppins"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="poppins"]::before { content: 'Poppins'; font-family: 'Poppins', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="raleway"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="raleway"]::before { content: 'Raleway'; font-family: 'Raleway', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="dancing-script"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="dancing-script"]::before { content: 'Dancing Script'; font-family: 'Dancing Script', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="pacifico"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="pacifico"]::before { content: 'Pacifico'; font-family: 'Pacifico', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="amatic-sc"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="amatic-sc"]::before { content: 'Amatic SC'; font-family: 'Amatic SC', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="bebas-neue"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="bebas-neue"]::before { content: 'Bebas Neue'; font-family: 'Bebas Neue', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="syncopate"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="syncopate"]::before { content: 'Syncopate'; font-family: 'Syncopate', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="great-vibes"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="great-vibes"]::before { content: 'Great Vibes'; font-family: 'Great Vibes', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="pinyon-script"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="pinyon-script"]::before { content: 'Pinyon Script'; font-family: 'Pinyon Script', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="alex-brush"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="alex-brush"]::before { content: 'Alex Brush'; font-family: 'Alex Brush', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="parisienne"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="parisienne"]::before { content: 'Parisienne'; font-family: 'Parisienne', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="tangerine"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="tangerine"]::before { content: 'Tangerine'; font-family: 'Tangerine', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="satisfy"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="satisfy"]::before { content: 'Satisfy'; font-family: 'Satisfy', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="caveat"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="caveat"]::before { content: 'Caveat'; font-family: 'Caveat', cursive; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="oswald"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="oswald"]::before { content: 'Oswald'; font-family: 'Oswald', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="lato"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="lato"]::before { content: 'Lato'; font-family: 'Lato', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nunito"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nunito"]::before { content: 'Nunito'; font-family: 'Nunito', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="quicksand"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="quicksand"]::before { content: 'Quicksand'; font-family: 'Quicksand', sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before { content: 'Arial'; font-family: Arial, sans-serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times-new-roman"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before { content: 'Times New Roman'; font-family: 'Times New Roman', serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before { content: 'Serif'; font-family: serif; }
-    .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before { content: 'Monospace'; font-family: monospace; }
+    .ql-snow .ql-picker.ql-size {
+      width: 130px !important;
+    }
+    
+    .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
+    .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Normal'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before { content: 'Small'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before, .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before { content: 'Large'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before { content: 'Huge'; }
+    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="super-huge"]::before { 
+      content: 'Super Huge'; 
+      font-weight: bold;
+      font-size: 3rem !important; 
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-label::before {
+      font-size: 13px !important;
+      font-weight: normal !important;
+      text-transform: none !important;
+      line-height: 24px !important;
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="super-huge"]::before {
+      content: 'Super Huge' !important;
+    }
+
+    .ql-snow .ql-picker.ql-size .ql-picker-options .ql-picker-item {
+      padding: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      height: auto !important;
+      min-height: 35px;
+    }
   `;
 
   useEffect(() => {
     document.title = "Admin | Quản lý Giao diện";
     loadConfigs();
+    fetchFonts();
   }, []);
+
+  const fetchFonts = async () => {
+    try {
+      const res = await fetch(`${URL_API}api/fonts`);
+      if (res.ok) {
+        const data = await res.json();
+        setDynamicFonts(data);
+        
+        data.forEach(font => {
+          if (font.url && font.url.startsWith('http')) {
+            if (!document.getElementById(`font-${font.id}`)) {
+              const link = document.createElement('link');
+              link.id = `font-${font.id}`;
+              link.href = font.url;
+              link.rel = 'stylesheet';
+              document.head.appendChild(link);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     if (activeSection === "product_detail") {
       loadProducts();
+    }
+    if (activeSection === "gallery") {
+      loadSliders("spaces");
+    }
+    if (activeSection === "services") {
+      loadSliders("services");
     }
   }, [activeSection]);
 
@@ -219,7 +210,7 @@ export default function CMS() {
           wrapper.style.backgroundColor = '#fff';
           wrapper.style.zIndex = '10';
           wrapper.style.borderBottom = '1px solid #f1f1f1';
-          
+
           const input = wrapper.querySelector('input');
           input.onclick = (e) => e.stopPropagation();
           input.onkeydown = (e) => {
@@ -239,13 +230,36 @@ export default function CMS() {
               } else {
                 item.style.display = 'none';
               }
+              
+              if (!item.__closeHandler) {
+                item.addEventListener('click', (e) => {
+                  const pickerRoot = item.closest('.ql-picker');
+                  if (pickerRoot) pickerRoot.classList.remove('ql-expanded');
+                });
+                item.__closeHandler = true;
+              }
             });
           };
-          picker.insertBefore(wrapper, picker.firstChild);
+          
+          const styleId = 'quill-picker-flex-fix';
+          if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.innerHTML = `
+              .ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-options {
+                display: flex !important;
+                flex-direction: column !important;
+              }
+            `;
+            document.head.appendChild(style);
+          }
+
+          wrapper.style.order = '-1'; 
+          picker.appendChild(wrapper);
         }
       });
     };
-    
+
     const timeoutId = setInterval(initSearch, 1000);
     return () => clearInterval(timeoutId);
   }, []);
@@ -253,7 +267,7 @@ export default function CMS() {
   const loadConfigs = async () => {
     setIsLoading(true);
     try {
-      const res = await fetchData(`${URL_API}api/config?noCache=true`, "GET");
+      const res = await fetchData(`${URL_API}api/config?noCache=true&t=${Date.now()}`, "GET");
       setConfigs(res.data || []);
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") handleInvalidToken(router);
@@ -276,6 +290,109 @@ export default function CMS() {
       showToastError("Không thể tải danh sách phòng");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSliders = async (type = "gallery") => {
+    setIsLoading(true);
+    try {
+      const res = await fetchData(`${URL_API}api/slider?type=${type}&t=${Date.now()}`, "GET");
+      if (type === "spaces") setSliders(res.data || []);
+      else setAmenitySliders(res.data || []);
+    } catch (error) {
+      showToastError(`Không thể tải ảnh: ${error?.message || "Lỗi không xác định"}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUploadSliders = async (e, type = "spaces") => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setIsLoading(true);
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("name", file.name);
+        formData.append("type", type);
+        await fetchData(`${URL_API}api/slider/insert`, "POST", formData, {
+          "Content-Type": "multipart/form-data",
+        });
+      }
+      showToastSuccess(`Đã tải lên ${files.length} ảnh thành công`);
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Tải ảnh lên thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSlider = async (id, type = "spaces") => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
+    setIsLoading(true);
+    try {
+      await fetchData(`${URL_API}api/slider/delete/${id}`, "DELETE");
+      showToastSuccess("Xóa ảnh thành công");
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Xóa ảnh thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateSlider = async (id, file, type = "spaces") => {
+    if (!file) return;
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      await fetchData(`${URL_API}api/slider/update/${id}`, "PUT", formData, {
+        "Content-Type": "multipart/form-data",
+      });
+      showToastSuccess("Cập nhật ảnh thành công");
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Cập nhật ảnh thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onDragStart = (e, index, type) => {
+    e.dataTransfer.setData("draggedIndex", index);
+    e.dataTransfer.setData("draggedType", type);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const onDrop = async (e, droppedIndex, type) => {
+    const draggedIndex = parseInt(e.dataTransfer.getData("draggedIndex"));
+    const draggedType = e.dataTransfer.getData("draggedType");
+    if (draggedIndex === droppedIndex || draggedType !== type) return;
+
+    const currentSliders = type === "spaces" ? [...sliders] : [...amenitySliders];
+    const [draggedItem] = currentSliders.splice(draggedIndex, 1);
+    currentSliders.splice(droppedIndex, 0, draggedItem);
+
+    if (type === "spaces") setSliders(currentSliders);
+    else setAmenitySliders(currentSliders);
+
+    try {
+      const orders = currentSliders.map((item, index) => ({
+        id: item.id,
+        position: index + 1
+      }));
+      await fetchData(`${URL_API}api/slider/reorder`, "POST", { orders });
+      showToastSuccess("Đã lưu thứ tự mới");
+    } catch (error) {
+      showToastError("Lưu thứ tự thất bại");
+      loadSliders(type);
     }
   };
 
@@ -339,7 +456,7 @@ export default function CMS() {
       name_rich: product.name_rich || "",
       name: product.name,
     };
-    
+
     try {
       await fetchData(`${URL_API}api/product/update/${product.id}`, "PUT", data);
       showToastSuccess(`Đã lưu tiêu đề cho "${product.name}"`);
@@ -353,77 +470,155 @@ export default function CMS() {
 
   const getSectionConfigs = () => {
     const sectionKeys = SECTION_KEY_MAP[activeSection];
-    return configs.filter((c) => {
+    const filtered = configs.filter((c) => {
+      // Loại bỏ faq_list và home-h1 khỏi Cấu hình chung vì đã có chỗ quản lý riêng
+      if (activeSection === "general" && (c.key === "faq_list" || c.key === "home-h1")) {
+        return false;
+      }
+
       if (c.section && c.section !== "general" && c.section !== "default") {
         return c.section === activeSection;
       }
       if (sectionKeys) return sectionKeys.includes(c.key);
       return activeSection === "general";
     });
+
+    if (sectionKeys) {
+      return filtered.sort((a, b) => {
+        const idxA = sectionKeys.indexOf(a.key);
+        const idxB = sectionKeys.indexOf(b.key);
+        if (idxA === -1 && idxB === -1) return 0;
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
+      });
+    }
+    return filtered;
   };
 
   const renderEditor = (config, onContentChange) => {
     const keyLower = config.key.toLowerCase();
     const isRichText = config.type === "richtext" || keyLower.includes("decription") || keyLower.includes("description") || keyLower.includes("content");
-    
+
+    if (config.key === "faq_list") {
+      let faqData = [];
+      try {
+        faqData = typeof config.content === 'string' ? JSON.parse(config.content || "[]") : (config.content || []);
+      } catch (e) {
+        faqData = [];
+      }
+
+      const updateFAQ = (index, field, value) => {
+        const newData = [...faqData];
+        newData[index][field] = value;
+        onSaveInternal(JSON.stringify(newData));
+      };
+
+      const addFAQ = () => {
+        const newData = [...faqData, { question: "", answer: "" }];
+        onSaveInternal(JSON.stringify(newData));
+      };
+
+      const deleteFAQ = (index) => {
+        if (!window.confirm("Xóa câu hỏi này?")) return;
+        const newData = faqData.filter((_, i) => i !== index);
+        onSaveInternal(JSON.stringify(newData));
+      };
+
+      const onSaveInternal = (val) => {
+        setConfigs((prev) => prev.map((c) => (c.key === config.key ? { ...c, content: val } : c)));
+      };
+
+      return (
+        <div className="space-y-6">
+          {faqData.map((item, index) => (
+            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4">
+              <button
+                onClick={() => deleteFAQ(index)}
+                className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                title="Xóa câu hỏi"
+              >
+                <MdDelete size={20} />
+              </button>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
+                  <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                    <style>{`
+                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; }
+                      .faq-quill .ql-container.ql-snow { border: none !important; }
+                    `}</style>
+                    <QuillWrapper
+                      theme="snow"
+                      className="faq-quill"
+                      value={item.question || ""}
+                      onChange={(val) => updateFAQ(index, "question", val)}
+                      placeholder="Nhập nội dung câu hỏi..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu trả lời {index + 1}</label>
+                  <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                    <QuillWrapper
+                      theme="snow"
+                      className="faq-quill"
+                      value={item.answer || ""}
+                      onChange={(val) => updateFAQ(index, "answer", val)}
+                      placeholder="Nhập nội dung câu trả lời..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button
+            onClick={addFAQ}
+            className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold hover:border-primary hover:text-primary hover:bg-green-50/50 transition-all group"
+          >
+            <MdAdd className="h-6 w-6 transform group-hover:scale-110 transition-transform" />
+            <span>Thêm câu hỏi mới</span>
+          </button>
+        </div>
+      );
+    }
+
     if (isRichText) {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
       return (
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
-          <ReactQuill
+          <QuillWrapper
             ref={(el) => {
               if (el && el.getEditor) {
                 const quill = el.getEditor();
-                
-                const Quill = quill.constructor;
-                const Font = Quill.import("formats/font");
-                const FontClass = Quill.import("attributors/class/font");
-                Font.whitelist = [false, ...FONTS];
-                FontClass.whitelist = [false, ...FONTS];
-                Quill.register(Font, true);
-                Quill.register(FontClass, true);
+                if (quill) {
+                  const toolbar = quill.getModule('toolbar');
+                  if (toolbar && !toolbar.__patched) {
+                    const originalUpdate = toolbar.update.bind(toolbar);
+                    toolbar.update = function (range) {
+                      if (range == null && quill.getLength() > 0) {
+                        range = { index: 0, length: 0 };
+                      }
+                      originalUpdate(range);
+                    };
+                    toolbar.__patched = true;
 
-                const toolbar = quill.getModule('toolbar');
-                
-                const clipboard = quill.getModule('clipboard');
-                if (clipboard && !clipboard.__patched) {
-                  clipboard.addMatcher('SPAN', (node, delta) => {
-                    const classes = node.getAttribute('class') || '';
-                    const fontMatch = classes.match(/ql-font-([\w-]+)/);
-                    if (fontMatch) {
-                      const fontName = fontMatch[1];
-                      const Delta = Quill.import('delta');
-                      return delta.compose(new Delta().retain(delta.length(), { font: fontName }));
-                    }
-                    return delta;
-                  });
-                  clipboard.__patched = true;
-                }
-
-                if (toolbar && !toolbar.__patched) {
-                  const originalUpdate = toolbar.update.bind(toolbar);
-                  toolbar.update = function(range) {
-                    if (range == null && quill.getLength() > 0) {
-                      range = { index: 0, length: 0 };
-                    }
-                    originalUpdate(range);
-                  };
-                  toolbar.__patched = true;
-                  
-                  quill.on('text-change', () => {
-                    if (!quill.hasFocus()) {
-                      setTimeout(() => toolbar.update(null), 10);
-                    }
-                  });
+                    quill.on('text-change', () => {
+                      if (!quill.hasFocus()) {
+                        setTimeout(() => toolbar.update(null), 10);
+                      }
+                    });
+                  }
                 }
               }
             }}
             theme="snow"
             value={config.content || ""}
-            onChange={onContentChange}
-            modules={QUILL_MODULES}
-            formats={QUILL_FORMATS}
+            onChange={(val) => updateField(config.key, val)}
             className={`quill-editor-${config.key}`}
           />
           <style jsx global>{`
@@ -479,7 +674,6 @@ export default function CMS() {
       );
     }
 
-
     return (
       <Textarea
         value={config.content || ""}
@@ -496,17 +690,8 @@ export default function CMS() {
   return (
     <div className="h-full w-full p-2 md:p-4">
       <style jsx global>{FONT_STYLES}</style>
-      <div className="mb-4 flex justify-end">
-        <button
-          onClick={() => setOpenAdd(true)}
-          className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl bg-white border border-gray-100 text-navy-700 shadow-sm hover:bg-gray-50 transition-all duration-200 active:scale-95"
-        >
-          <MdAdd className="h-5 w-5 text-primary" />
-          Thêm nội dung mới
-        </button>
-      </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div className="bg-white rounded-2xl p-1 shadow-sm border border-gray-50 sticky top-[72px] z-30">
           <ul className="flex flex-row gap-1 overflow-x-auto scrollbar-hide p-1">
             {SECTIONS.map(({ id, label, icon: Icon }) => {
@@ -535,16 +720,10 @@ export default function CMS() {
             <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-sm border border-gray-50">
               <Loading />
             </div>
-          ) : (sectionConfigs.length === 0 && activeSection !== "product_detail") ? (
+          ) : (sectionConfigs.length === 0 && activeSection !== "product_detail" && activeSection !== "gallery" && activeSection !== "services") ? (
             <div className="flex flex-col items-center justify-center h-80 bg-white rounded-2xl border-2 border-dashed border-gray-200">
               <MdSettings className="h-16 w-16 text-gray-100 mb-4" />
-              <p className="text-gray-400 font-bold">Mục này chưa có nội dung</p>
-              <button
-                onClick={() => { setNewConfig({ ...EMPTY_NEW_CONFIG, section: activeSection }); setOpenAdd(true); }}
-                className="mt-4 text-primary text-sm font-bold hover:underline"
-              >
-                Tạo nội dung đầu tiên ngay
-              </button>
+              <p className="text-gray-400 font-bold">Mục này chưa có nội dung cấu hình</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -602,13 +781,6 @@ export default function CMS() {
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => deleteConfig(config.key)}
-                        className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                        title="Xóa"
-                      >
-                        <MdDelete className="h-5 w-5" />
-                      </button>
                     </div>
 
                     <div className="p-6">
@@ -631,113 +803,155 @@ export default function CMS() {
                   </div>
                 ))
               )}
+
+              {activeSection === "gallery" && (
+                <div className="mt-10 pt-10 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-sm font-bold text-navy-700">Bộ sưu tập hình ảnh không gian phòng học</h3>
+                      <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Slider hiển thị tại trang chủ</p>
+                    </div>
+                    <label className="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                      <MdPhotoLibrary size={20} />
+                      <span>Thêm ảnh mới</span>
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => handleUploadSliders(e, "spaces")}
+                        accept="image/*"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {sliders.map((slider, index) => (
+                      <div
+                        key={slider.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, index, "spaces")}
+                        onDragOver={onDragOver}
+                        onDrop={(e) => onDrop(e, index, "spaces")}
+                        className="group relative aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 bg-gray-50 shadow-sm cursor-move hover:border-primary/30 transition-all duration-300"
+                      >
+                        <img
+                          src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                          alt={slider.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                          <label className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all transform hover:scale-110 cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                            <MdEdit size={20} />
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "spaces")}
+                              accept="image/*"
+                            />
+                          </label>
+                          <button
+                            onClick={() => handleDeleteSlider(slider.id, "spaces")}
+                            className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all transform hover:scale-110 shadow-lg"
+                            title="Xóa ảnh"
+                          >
+                            <MdDelete size={20} />
+                          </button>
+                        </div>
+                        <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-lg text-gray-600 shadow-sm">
+                          #{index + 1}
+                        </div>
+                      </div>
+                    ))}
+                    {sliders.length === 0 && (
+                      <div className="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                        <MdPhotoLibrary size={32} className="text-gray-300 mb-2" />
+                        <p className="text-gray-500 text-xs font-bold">Chưa có hình ảnh nào trong bộ sưu tập không gian</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeSection === "services" && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-md transition-shadow duration-300 mt-6">
+                  <div className="px-6 py-4 bg-gray-50/10 border-b border-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-1 h-8 bg-primary rounded-full" />
+                        <div>
+                          <h3 className="text-sm font-bold text-navy-700">Bộ sưu tập ảnh Tiện ích & Dịch vụ</h3>
+                          <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Hiển thị slider tại mục tiện ích</p>
+                        </div>
+                      </div>
+                      <label className="cursor-pointer bg-primary text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                        <MdPhotoLibrary size={16} />
+                        <span>Thêm ảnh mới</span>
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleUploadSliders(e, "services")}
+                          accept="image/*"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {amenitySliders.map((slider, index) => (
+                        <div
+                          key={slider.id}
+                          draggable
+                          onDragStart={(e) => onDragStart(e, index, "services")}
+                          onDragOver={onDragOver}
+                          onDrop={(e) => onDrop(e, index, "services")}
+                          className="group relative aspect-video rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 cursor-move hover:border-primary/30 transition-all duration-300"
+                        >
+                          <img
+                            src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                            alt={slider.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <label className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                              <MdEdit size={16} />
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "services")}
+                                accept="image/*"
+                              />
+                            </label>
+                            <button
+                              onClick={() => handleDeleteSlider(slider.id, "services")}
+                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all shadow-lg"
+                              title="Xóa ảnh"
+                            >
+                              <MdDelete size={16} />
+                            </button>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-gray-600">
+                            #{index + 1}
+                          </div>
+                        </div>
+                      ))}
+                      {amenitySliders.length === 0 && (
+                        <div className="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                          <MdPhotoLibrary size={32} className="text-gray-300 mb-2" />
+                          <p className="text-gray-500 text-xs font-bold">Chưa có hình ảnh nào trong bộ sưu tập tiện ích</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
-
-      {openAdd && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <button
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setOpenAdd(false)}
-            aria-label="Đóng"
-          />
-          <div className="relative bg-white rounded-2xl w-full max-w-xl shadow-2xl z-10 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div>
-                <Typography variant="h5" className="text-navy-700 font-bold">Thêm nội dung mới</Typography>
-                <Typography variant="small" className="text-gray-400 font-normal">Tạo một mục cấu hình mới cho website</Typography>
-              </div>
-              <button
-                onClick={() => setOpenAdd(false)}
-                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all"
-              >
-                <MdClose className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="px-6 py-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mã định danh nội bộ</label>
-                  <Input
-                    placeholder="Nhập mã định danh (vd: tieu-de-moi)"
-                    value={newConfig.key}
-                    onChange={(e) => setNewConfig({ ...newConfig, key: e.target.value })}
-                    className="!border-gray-200 focus:!border-primary"
-                    labelProps={{ className: "hidden" }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Loại nội dung</label>
-                  <select
-                    value={newConfig.type}
-                    onChange={(e) => setNewConfig({ ...newConfig, type: e.target.value })}
-                    className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-primary outline-none text-sm text-navy-700 bg-white"
-                  >
-                    {TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Thuộc menu</label>
-                  <select
-                    value={newConfig.section}
-                    onChange={(e) => setNewConfig({ ...newConfig, section: e.target.value })}
-                    className="w-full h-10 px-3 rounded-lg border border-gray-200 focus:border-primary outline-none text-sm text-navy-700 bg-white"
-                  >
-                    {SECTIONS.map((s) => (
-                      <option key={s.id} value={s.id}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nội dung ban đầu</label>
-                {newConfig.type === "richtext" ? (
-                  <div className="border border-gray-200 rounded-lg overflow-visible">
-                    <ReactQuill
-                      theme="snow"
-                      value={newConfig.content}
-                      onChange={(val) => setNewConfig({ ...newConfig, content: val })}
-                      modules={QUILL_MODULES}
-                      formats={QUILL_FORMATS}
-                    />
-                  </div>
-                ) : (
-                  <Textarea
-                    placeholder="Nhập nội dung..."
-                    value={newConfig.content}
-                    onChange={(e) => setNewConfig({ ...newConfig, content: e.target.value })}
-                    rows={4}
-                    className="!border-gray-200 focus:!border-primary"
-                    labelProps={{ className: "hidden" }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
-              <button
-                onClick={() => setOpenAdd(false)}
-                className="px-5 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                onClick={createConfig}
-                className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl bg-primary text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
-              >
-                <MdAdd className="h-5 w-5" />
-                Tạo nội dung
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

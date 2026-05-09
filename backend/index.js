@@ -19,6 +19,17 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers']
 };
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    if (duration > 1000) {
+      console.log(`[PERF] ${req.method} ${req.originalUrl} - ${duration}ms`);
+    }
+  });
+  next();
+});
+
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(fileUpload({
@@ -36,7 +47,16 @@ app.use('/api/admin', sessionMiddleware, flash());
 app.use('/api/login', sessionMiddleware);
 
 db.sequelize;
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1y',
+  immutable: true,
+  setHeaders: (res, filePath) => {
+    if (filePath.match(/\.(ttf|woff|woff2|otf)$/)) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }
+}));
 
 app.use(express.urlencoded({
   extended: true,

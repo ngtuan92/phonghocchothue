@@ -29,7 +29,7 @@ const BlogModel = db.sequelize.define("blogs", {
         allowNull: true 
     },
     category: { 
-        type: DataTypes.ENUM('kien-thuc', 'kinh-nghiem'), 
+        type: DataTypes.STRING(100), 
         defaultValue: 'kien-thuc' 
     },
     authorName: { 

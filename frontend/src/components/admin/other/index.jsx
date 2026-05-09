@@ -37,6 +37,8 @@ const MAP_KEY_NAME = {
   'icon-goc': 'Biểu tượng chú chim thông báo',
   'textNotication': 'Nội dung thông báo góc',
   'linkNotication': 'Link thông báo',
+  'describe-bg-text': 'Chữ nền HOAHOCTRO (Dưới tiêu đề chính)',
+  'describe-phone': 'Số điện thoại phần giới thiệu',
 };
 
 export default function Other() {
@@ -62,7 +64,10 @@ export default function Other() {
   const handleCallApiGetConfig = async () => {
     try {
       const res = await fetchData(`${URL_API}api/config`, "GET");
-      setData(res.data);
+      const filteredData = (res.data || []).filter(
+        (item) => item.key !== "home-h1" && item.key !== "faq_list" && item.key !== "faq-list"
+      );
+      setData(filteredData);
     } catch (error) {
       if (error.response.data.message === "Invalid token") {
         handleInvalidToken(router);
