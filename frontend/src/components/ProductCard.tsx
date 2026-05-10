@@ -37,7 +37,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
     return (
       <button
         type="button"
-        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer w-full p-0 border-0 bg-transparent"
+        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer w-full p-0 border-0 bg-transparent text-left"
         onClick={handleDetailProduct(product)}
       >
         <Image
@@ -49,6 +49,23 @@ const ProductCard = ({ product }: { product?: Product }) => {
           quality={85}
           loading="lazy"
         />
+        {/* Desktop Hover Overlay - Exact Original UI - Isolated from Mobile */}
+        <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
+          <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+          <ul className="list-disc ml-5 text-base mt-2 space-y-1">
+            {product.equipment && <li>{product.equipment}</li>}
+            {product.contains && <li>{product.contains}</li>}
+          </ul>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDetailProduct(product)();
+            }}
+            className="my-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
+          >
+            Xem thêm
+          </button>
+        </div>
       </button>
     );
   }
@@ -101,6 +118,23 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 quality={85}
                 loading="lazy"
               />
+              {/* Desktop Hover Overlay - Exact Original UI - Isolated from Mobile */}
+              <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
+                <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+                <ul className="list-disc ml-5 text-base mt-2 space-y-1">
+                  {product.equipment && <li>{product.equipment}</li>}
+                  {product.contains && <li>{product.contains}</li>}
+                </ul>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDetailProduct(product)();
+                  }}
+                  className="my-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
+                >
+                  Xem thêm
+                </button>
+              </div>
             </div>
           </SwiperSlide>
         ))}
