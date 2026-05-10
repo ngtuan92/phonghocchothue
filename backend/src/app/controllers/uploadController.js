@@ -16,15 +16,13 @@ const uploadImage = async (req, res) => {
         const fileName = `${Date.now()}_${file.name}`;
         const imagePath = await uploadFile(file, 'ckeditor', fileName);
 
-        // Return URL that CKEditor expects
-        const baseUrl = process.env.URL_API || 'http://localhost:8080/';
-        const imageUrl = `${baseUrl}${imagePath.replace(/\\/g, '/')}`;
+        const relativePath = imagePath.replace(/\\/g, '/').replace(/^\//, '');
 
         res.json({
             uploaded: 1,
             fileName: fileName,
-            url: imageUrl,
-            location: imageUrl // Required for TinyMCE automatic upload
+            url: `/${relativePath}`,
+            location: `/${relativePath}`
         });
     } catch (error) {
         console.error('Upload error:', error);
