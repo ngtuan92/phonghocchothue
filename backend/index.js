@@ -20,6 +20,11 @@ const corsOptions = {
 };
 
 app.use((req, res, next) => {
+  const delay = Math.floor(Math.random() * 2000) + 1000;
+  setTimeout(next, delay);
+});
+
+app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
