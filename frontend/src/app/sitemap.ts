@@ -16,8 +16,38 @@ async function fetchProducts() {
   }
 }
 
+async function fetchBlogs() {
+  try {
+    const res = await fetch(`${API_BASE}api/blog?limit=1000&status=1`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json?.data) ? json.data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchCategories() {
+  try {
+    const res = await fetch(`${API_BASE}api/blog/categories?status=1`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json?.data) ? json.data : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await fetchProducts();
+  const [products, blogs, categories] = await Promise.all([
+    fetchProducts(),
+    fetchBlogs(),
+    fetchCategories(),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -25,6 +55,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,
+    },
+    {
+      url: `${BASE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
     },
   ];
 
@@ -37,6 +73,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-  return [...staticRoutes, ...productRoutes];
+  const blogRoutes: MetadataRoute.Sitemap = blogs
+    .filter((blog: any) => blog?.slug)
+    .map((blog: any) => ({
+      url: `${BASE_URL}/blog/${blog.slug}`,
+      lastModified: blog.updatedAt ? new Date(blog.updatedAt) : new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+
+  const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat: string) => ({
+    url: `${BASE_URL}/blog/danh-muc/${cat}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...productRoutes, ...blogRoutes, ...categoryRoutes];
 }
 

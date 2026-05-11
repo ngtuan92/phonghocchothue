@@ -131,7 +131,7 @@ export default function BlogDetail() {
                 <span>Trang chủ</span>
               </Link>
               <span className="text-gray-300">/</span>
-              <Link href="/#blog" className="hover:text-[#e57f7f] transition-colors">Blog</Link>
+              <Link href="/blog" className="hover:text-[#e57f7f] transition-colors">Blog</Link>
               <span className="text-gray-300">/</span>
               <span className="text-[#563c39] font-medium truncate max-w-[300px]">{blog.title}</span>
             </nav>
@@ -186,7 +186,7 @@ export default function BlogDetail() {
 
             <div className="pt-10 border-t border-gray-100 flex justify-center">
               <Link
-                href="/#blog"
+                href="/blog"
                 className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-10 py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md"
               >
                 Quay lại danh sách bài viết

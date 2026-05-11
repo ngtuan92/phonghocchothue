@@ -28,8 +28,8 @@ const getCategoryConfig = (category: string) => {
   };
 
   return configs[category] || {
-    label: category.charAt(0).toUpperCase() + category.slice(1), // Viết hoa chữ cái đầu
-    icon: <FaSeedling size={10} />, // Icon mặc định
+    label: category.charAt(0).toUpperCase() + category.slice(1),
+    icon: <FaSeedling size={10} />,
     bg: "bg-[#799f85]",
   };
 };
@@ -66,7 +66,7 @@ function BlogCard({ blog }: { blog: Blog }) {
       : null;
 
   return (
-    <div className="group rounded-tl-2xl rounded-br-2xl overflow-hidden border border-[#799f85]/25 flex flex-col transition-shadow duration-300 hover:shadow-md">
+    <div className="group rounded-tl-2xl rounded-br-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white">
       <div className="relative aspect-video overflow-hidden bg-gray-100 flex-shrink-0">
         {thumbnailSrc ? (
           <Image
@@ -125,48 +125,124 @@ function BlogCard({ blog }: { blog: Blog }) {
   );
 }
 
-export default function Blog() {
-  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+function FeaturedBlogCard({ blog }: { blog: Blog }) {
+  const cat = getCategoryConfig(blog.category);
+  const thumbnailSrc = blog.thumbnail
+    ? blog.thumbnail.startsWith("http")
+      ? blog.thumbnail
+      : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`
+    : null;
+
+  return (
+    <div className="group relative rounded-tl-[2rem] rounded-br-[2rem] overflow-hidden flex flex-col lg:flex-row bg-white transition-all duration-500 hover:shadow-2xl mb-12">
+      <div className="relative w-full lg:w-3/5 aspect-video lg:aspect-auto min-h-[300px] overflow-hidden">
+        {thumbnailSrc ? (
+          <Image
+            src={thumbnailSrc}
+            alt={blog.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 1024px) 100vw, 60vw"
+            priority
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#fdf6f5] to-[#e8d5cc]">
+            <FaBookOpen className="text-[#b8c7b0]" size={60} />
+          </div>
+        )}
+        <div className="absolute top-6 left-6 z-10">
+          <span className={classNames("flex items-center gap-2 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg", cat.bg)}>
+            {cat.icon}
+            {cat.label}
+          </span>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-2/5 p-8 lg:p-12 flex flex-col justify-center">
+        <div className="flex items-center gap-4 text-xs text-[#563c39]/60 italic mb-6">
+          <span className="flex items-center gap-1.5">
+            <FaCalendarAlt size={12} className="text-[#799f85]" />
+            {formatDate(blog.publishedAt)}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <FaUserEdit size={12} className="text-[#799f85]" />
+            {blog.authorName || "Hoa Học Trò"}
+          </span>
+        </div>
+
+        <h2 className="text-2xl sm:text-4xl font-bold text-[#563c39] mb-6 leading-tight group-hover:text-[#e57f7f] transition-colors duration-300">
+          {blog.title}
+        </h2>
+
+        <p className="text-gray-600 raleway text-sm sm:text-base mb-8 line-clamp-4 leading-relaxed">
+          {blog.excerpt}
+        </p>
+
+        <Link
+          href={`/blog/${blog.slug}`}
+          className="self-start inline-flex items-center gap-3 text-sm font-bold text-white bg-[#563c39] hover:bg-[#e57f7f] px-8 py-4 rounded-tl-2xl rounded-br-2xl transition-all duration-300 hover:rounded-bl-2xl hover:rounded-tr-2xl hover:rounded-br-none hover:rounded-tl-none"
+        >
+          Đọc bài viết nổi bật
+          <FaArrowRight size={14} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+interface BlogProps {
+  isHomePage?: boolean;
+  currentCategory?: string;
+  noContainer?: boolean;
+  showFeatured?: boolean;
+  hideTabs?: boolean;
+}
+
+export default function Blog({ 
+  isHomePage = false, 
+  currentCategory = "all",
+  noContainer = false,
+  showFeatured = false,
+  hideTabs = false
+}: BlogProps) {
+  const [activeTab, setActiveTab] = useState<FilterTab>(currentCategory);
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [categories, setCategories] = useState<{key: string, label: string}[]>([
-    { key: "all", label: "Tất cả" },
-    { key: "kien-thuc", label: "Kiến thức" },
-    { key: "kinh-nghiem", label: "Kinh nghiệm" },
+  const [categories, setCategories] = useState<{ key: string; label: string }[]>([
+    { key: "all", label: "Tất cả bài viết" },
   ]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const limit = 3;
-  
+  const limit = isHomePage ? 3 : 10;
+
   const blogHeading = useConfigContentByKey("blog-heading");
 
   const { data, isLoading, isFetching } = useBlogs({
     category: activeTab === "all" ? undefined : activeTab,
     page: page,
     limit: limit,
-    status: 1
+    status: 1,
   });
 
   useEffect(() => {
+    setActiveTab(currentCategory);
+    setPage(1);
+    setBlogs([]);
+  }, [currentCategory]);
+
+  useEffect(() => {
     fetch(`${URL_API}api/blog/categories?status=1`)
-      .then(res => res.json())
-      .then(res => {
+      .then((res) => res.json())
+      .then((res) => {
         if (res.success && res.data.length > 0) {
-          const defaultTabs = [
-            { key: "all", label: "Tất cả" },
-            { key: "kien-thuc", label: "Kiến thức" },
-            { key: "kinh-nghiem", label: "Kinh nghiệm" },
-          ];
-          const dynamicTabs = res.data
-            .filter((cat: string) => cat !== "kien-thuc" && cat !== "kinh-nghiem")
-            .map((cat: string) => ({
-              key: cat,
-              label: cat.charAt(0).toUpperCase() + cat.slice(1)
-            }));
-          
-          setCategories([...defaultTabs, ...dynamicTabs]);
+          const dynamicTabs = res.data.map((cat: string) => ({
+            key: cat,
+            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " "),
+          }));
+
+          setCategories([{ key: "all", label: "Tất cả bài viết" }, ...dynamicTabs]);
         }
       })
-      .catch(err => console.error("Lỗi tải danh mục:", err));
+      .catch((err) => console.error("Lỗi tải danh mục:", err));
   }, []);
 
   useEffect(() => {
@@ -174,69 +250,75 @@ export default function Blog() {
       if (page === 1) {
         setBlogs(data.data);
       } else {
-        setBlogs(prev => {
-          const newBlogs = data.data.filter((nb: Blog) => !prev.some(pb => pb.id === nb.id));
+        setBlogs((prev) => {
+          const newBlogs = data.data.filter((nb: Blog) => !prev.some((pb) => pb.id === nb.id));
           return [...prev, ...newBlogs];
         });
       }
-      
+
       const totalPages = data.pagination?.totalPages || 0;
       setHasMore(page < totalPages);
     }
   }, [data, page]);
 
-  const handleTabChange = (tab: FilterTab) => {
-    setActiveTab(tab);
-    setPage(1);
-    setBlogs([]);
-  };
-
   const handleLoadMore = () => {
-    setPage(prev => prev + 1);
+    setPage((prev) => prev + 1);
   };
 
   return (
-    <section id="blog" className="mt-12 sm:mt-24 md:mt-36 mb-12 sm:mb-24 main-container">
-      <div className="mb-10 text-center">
-        <RichTextRenderer 
-          html={blogHeading} 
-          className="text-center"
-          fallback={
-            <>
-              <h2 className="font-cursive text-2xl sm:text-7xl text-[#563c39] mb-4">Kiến thức và kinh nghiệm thuê phòng dạy học</h2>
-            </>
-          }
-        />
-        <div className="flex items-center justify-center gap-2 mt-7">
-          <span className="h-px w-12 bg-[#b8c7b0]" />
-          <span className="text-[#b8c7b0] text-xs">✿</span>
-          <span className="h-px w-12 bg-[#b8c7b0]" />
+    <section id="blog" className={classNames("mb-12 sm:mb-24", !noContainer && "main-container", isHomePage ? "mt-12 sm:mt-24 md:mt-36" : "mt-0")}>
+      {isHomePage && (
+        <div className="mb-10 text-center">
+          <RichTextRenderer
+            html={blogHeading}
+            className="text-center"
+            fallback={
+              <>
+                <h2 className="font-cursive text-2xl sm:text-7xl text-[#563c39] mb-4">
+                  Kiến thức và kinh nghiệm thuê phòng dạy học
+                </h2>
+              </>
+            }
+          />
+          <div className="flex items-center justify-center gap-4 mt-7">
+            <div className="h-px w-12 bg-[#b8c7b0]/40" />
+            <span className="text-[#b8c7b0] text-xs">✿</span>
+            <div className="h-px w-12 bg-[#b8c7b0]/40" />
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="flex items-center justify-center gap-2 sm:gap-3 mb-8 flex-wrap">
-        {categories.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
-            className={classNames(
-              "text-xs sm:text-sm px-4 py-1.5 transition-all duration-300 border",
-              activeTab === tab.key
-                ? "bg-[#e57f7f] border-[#e57f7f] text-white rounded-tl-xl rounded-br-xl"
-                : "bg-transparent border-[#799f85]/40 text-[#563c39] rounded-tl-xl rounded-br-xl hover:border-[#e57f7f] hover:text-[#e57f7f]"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {!hideTabs && (
+        <div className="flex items-center justify-center gap-2 sm:gap-3 mb-8 flex-wrap">
+          {categories.map((tab) => (
+            <Link
+              key={tab.key}
+              href={tab.key === "all" ? "/blog" : `/blog/danh-muc/${tab.key}`}
+              className={classNames(
+                "text-xs sm:text-sm px-4 py-1.5 transition-all duration-300 border",
+                activeTab === tab.key
+                  ? "bg-[#e57f7f] border-[#e57f7f] text-white rounded-tl-xl rounded-br-xl"
+                  : "bg-transparent border-[#799f85]/40 text-[#563c39] rounded-tl-xl rounded-br-xl hover:border-[#e57f7f] hover:text-[#e57f7f]"
+              )}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogs.map((blog) => (
-          <BlogCard key={blog.id} blog={blog} />
-        ))}
-        {isLoading && page === 1 && Array.from({ length: 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
-        {isFetching && page > 1 && Array.from({ length: 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
+      <div className="flex flex-col">
+        {showFeatured && page === 1 && blogs.length > 0 && (
+          <FeaturedBlogCard blog={blogs[0]} />
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {(showFeatured && page === 1 ? blogs.slice(1) : blogs).map((blog) => (
+            <BlogCard key={blog.id} blog={blog} />
+          ))}
+          {isLoading && page === 1 && Array.from({ length: 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
+          {isFetching && page > 1 && Array.from({ length: 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
+        </div>
       </div>
 
       {!isLoading && blogs.length === 0 && (
@@ -245,17 +327,29 @@ export default function Blog() {
         </p>
       )}
 
-      {hasMore && blogs.length > 0 && (
+      {isHomePage ? (
         <div className="flex justify-center mt-10">
-          <button
-            onClick={handleLoadMore}
-            disabled={isFetching}
-            className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-10 py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
           >
-            {isFetching ? "Đang tải..." : "Xem thêm"}
-            {!isFetching && <FaArrowRight size={12} />}
-          </button>
+            Xem tất cả bài viết
+            <FaArrowRight size={12} />
+          </Link>
         </div>
+      ) : (
+        hasMore && blogs.length > 0 && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={handleLoadMore}
+              disabled={isFetching}
+              className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFetching ? "Đang tải..." : "Xem thêm"}
+              {!isFetching && <FaArrowRight size={12} />}
+            </button>
+          </div>
+        )
       )}
     </section>
   );
