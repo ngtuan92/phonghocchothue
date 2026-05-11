@@ -359,7 +359,6 @@
 
 .rich-text-renderer,
 .rich-text-renderer * {
-  width: auto !important;
   max-width: 100% !important;
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
@@ -468,11 +467,11 @@
   }
 
   .blog-content img {
-    width: 100% !important;
     max-width: 100% !important;
     border-radius: 8px;
     margin-top: 16px !important;
     margin-bottom: 16px !important;
+    height: auto;
   }
 
   .blog-content li {

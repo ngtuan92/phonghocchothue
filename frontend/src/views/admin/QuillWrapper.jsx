@@ -73,14 +73,23 @@ if (typeof window !== "undefined" && Quill) {
       }
       return node;
     }
-    static value(node) {
+    static formats(node) {
       return {
-        src: node.getAttribute("src"),
-        alt: node.getAttribute("alt"),
-        title: node.getAttribute("title"),
         width: node.getAttribute("width"),
         style: node.getAttribute("style"),
+        alt: node.getAttribute("alt"),
+        title: node.getAttribute("title")
       };
+    }
+    format(name, value) {
+      if (name === "width") {
+        this.domNode.setAttribute("width", value);
+        this.domNode.style.width = value;
+      } else if (name === "style") {
+        this.domNode.setAttribute("style", value);
+      } else {
+        super.format(name, value);
+      }
     }
   }
   CustomImageBlot.blotName = "image";
@@ -446,18 +455,28 @@ const QuillWrapper = forwardRef((props, ref) => {
       
       const finalPixelWidth = img.clientWidth;
       const percentageWidth = Math.round((finalPixelWidth / containerWidth) * 100);
-      img.style.width = `${percentageWidth}%`;
-      img.setAttribute('width', `${percentageWidth}%`);
+      const widthValue = `${percentageWidth}%`;
       
+      img.style.width = widthValue;
+      img.setAttribute('width', widthValue);
+      
+      // Update React state for UI sync
       updateResizerRect();
       
       const quill = editorRef.current?.getEditor();
       const currentImg = selectedImageRef.current;
+      
       if (quill && currentImg) {
+        // Force Quill to recognize the change
+        quill.update();
+        
+        // Find the blot and format it explicitly to ensure it's in the delta
         const blot = Quill.find(currentImg);
         if (blot) {
           const index = quill.getIndex(blot);
-          quill.setSelection(index, 1, 'user');
+          // Re-apply format to the blot to sync with internal model
+          quill.formatText(index, 1, 'width', widthValue);
+          quill.setSelection(index + 1, 0, 'user');
         }
       }
     };

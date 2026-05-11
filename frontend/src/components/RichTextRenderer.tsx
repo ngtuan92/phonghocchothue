@@ -16,16 +16,22 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
-    let sanitized = DOMPurify.sanitize(html);
-    sanitized = sanitized.replace(/&nbsp;/g, " ");
+    
+    // Configure DOMPurify to allow style and width attributes
+    const sanitized = DOMPurify.sanitize(html, {
+      ADD_ATTR: ['style', 'width', 'height', 'target', 'rel'],
+      ADD_TAGS: ['iframe'], // Allow iframes for videos if needed
+    });
+    
+    let processedHtml = sanitized.replace(/&nbsp;/g, " ");
 
-    const processedHtml = sanitized.replace(/<img([^>]*?)\/?>/gi, (match, attributes) => {
+    processedHtml = processedHtml.replace(/<img([^>]*?)\/?>/gi, (match, attributes) => {
       const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
       const altMatch = attributes.match(/alt=["']([^"']*)["']/i);
       const captionText = (titleMatch?.[1] || altMatch?.[1] || "").trim();
 
       if (captionText) {
-        return `<img${attributes}><div class="image-caption">${captionText}</div>`;
+        return `<div class="image-wrapper"><img${attributes}><div class="image-caption">${captionText}</div></div>`;
       }
       return match;
     });
