@@ -85,14 +85,16 @@ export default function BlogCategoryPage() {
                 <div className="flex flex-col items-center">
                   {logo && (
                     <div className="mb-6 flex justify-center w-full">
-                      <Image
-                        src={`${URL_API}${logo.replace(/\\/g, "/")}`}
-                        alt="Logo"
-                        width={120}
-                        height={120}
-                        className="w-[70px] md:w-[100px] lg:w-[120px] h-auto object-contain drop-shadow-xl"
-                        priority
-                      />
+                      <Link href="/" className="transition-transform hover:scale-105 active:scale-95 duration-300">
+                        <Image
+                          src={`${URL_API}${logo.replace(/\\/g, "/")}`}
+                          alt="Logo"
+                          width={120}
+                          height={120}
+                          className="w-[70px] md:w-[100px] lg:w-[120px] h-auto object-contain drop-shadow-xl"
+                          priority
+                        />
+                      </Link>
                     </div>
                   )}
 
