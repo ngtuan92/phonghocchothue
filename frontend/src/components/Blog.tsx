@@ -212,7 +212,18 @@ export default function Blog({
   ]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const limit = isHomePage ? 3 : 10;
+  const [limit, setLimit] = useState(isHomePage ? 3 : 6);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && !isHomePage) {
+      const handleResize = () => {
+        setLimit(window.innerWidth < 640 ? 3 : 6);
+      };
+      handleResize();
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, [isHomePage]);
 
   const blogHeading = useConfigContentByKey("blog-heading");
 

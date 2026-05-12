@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import classNames from "classnames";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NurseryHeader from "@/components/NurseryHeader";
@@ -12,14 +10,12 @@ import useSEO from "@/hooks/useSEO";
 import Image from "next/image";
 import Link from "next/link";
 import CategorySidebar from "@/components/CategorySidebar";
-import { FaHome, FaChevronRight, FaBookOpen, FaTags, FaThLarge, FaTimes } from "react-icons/fa";
+import { FaHome, FaThLarge, FaTimes } from "react-icons/fa";
+import classNames from "classnames";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-export default function BlogCategoryPage() {
-  const params = useParams();
-  const category = params.category as string;
-
+export default function BlogPage() {
   const colorBg = useConfigContentByKey("color-bg");
   const background = useConfigContentByKey("background");
   const logo = useConfigContentByKey("logo");
@@ -46,13 +42,9 @@ export default function BlogCategoryPage() {
       .catch((err) => console.error("Lỗi tải danh mục:", err));
   }, []);
 
-  const displayCategory = category
-    ? category.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
-    : "Danh mục";
-
   useSEO({
-    title: `${displayCategory} - Blog | ChoThuePhongHoc.com`,
-    description: `Danh sách bài viết thuộc danh mục ${displayCategory}. Kiến thức và kinh nghiệm thuê phòng dạy học tại Đà Nẵng.`,
+    title: "Blog Kiến Thức & Kinh Nghiệm | ChoThuePhongHoc.com",
+    description: "Tổng hợp kiến thức, kinh nghiệm và mẹo hay khi thuê phòng dạy học, phòng họp tại Đà Nẵng. Cập nhật những xu hướng giáo dục mới nhất.",
     ogType: "website",
   });
 
@@ -103,20 +95,18 @@ export default function BlogCategoryPage() {
                         <span>Trang chủ</span>
                       </Link>
                       <span className="text-gray-400">/</span>
-                      <Link href="/blog" className="hover:text-[#e57f7f] transition-colors">Blog</Link>
-                      <span className="text-gray-400">/</span>
-                      <span className="text-gray-600 capitalize">{displayCategory}</span>
+                      <span className="text-[#563c39] font-medium">Blog</span>
                     </nav>
 
                     <div className="flex items-end gap-4 mb-2">
                       <h1 className="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none">
-                        {displayCategory}<span className="text-[#e57f7f]">.</span>
+                        Blog<span className="text-[#e57f7f]">.</span>
                       </h1>
                       <div className="hidden sm:block h-px flex-1 bg-gray-100 mb-4" />
                     </div>
 
                     <p className="max-w-xl text-xs sm:text-sm text-gray-500 leading-relaxed raleway italic">
-                      Khám phá các bài viết chuyên sâu về chủ đề {displayCategory} tại ChoThuePhongHoc.com
+                      Chia sẻ kiến thức, kinh nghiệm và những câu chuyện xoay quanh việc giảng dạy và không gian học tập chuyên nghiệp.
                     </p>
                   </div>
                 </div>
@@ -133,7 +123,7 @@ export default function BlogCategoryPage() {
                         href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
                         className={classNames(
                           "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
-                          category === cat.key 
+                          cat.key === "all" 
                             ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20" 
                             : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                         )}
@@ -150,7 +140,7 @@ export default function BlogCategoryPage() {
                             href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
                             className={classNames(
                               "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
-                              category === cat.key 
+                              cat.key === "all" 
                                 ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20" 
                                 : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                             )}
@@ -177,12 +167,7 @@ export default function BlogCategoryPage() {
                               key={cat.key}
                               href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
                               onClick={() => setIsDrawerOpen(false)}
-                              className={classNames(
-                                "px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-md border text-center text-[13px] font-semibold shadow-sm active:scale-95 transition-all",
-                                category === cat.key
-                                  ? "bg-[#563c39] text-white border-[#563c39]"
-                                  : "text-[#563c39] border-[#799f85]/10"
-                              )}
+                              className="px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-md text-[#563c39] border border-[#799f85]/10 text-center text-[13px] font-semibold shadow-sm active:scale-95 transition-all"
                             >
                               {cat.label}
                             </Link>
@@ -195,13 +180,18 @@ export default function BlogCategoryPage() {
               </div>
 
               <div className="flex flex-col lg:flex-row gap-16">
-                {/* Sidebar - Hidden on Mobile, Visible on Desktop (lg+) */}
                 <aside className="hidden lg:block lg:w-[20%]">
-                  <CategorySidebar currentCategory={category} showSupport={false} />
+                  <CategorySidebar currentCategory="all" showSupport={false} />
                 </aside>
 
                 <div className="w-full lg:w-[80%]">
-                  <Blog isHomePage={false} currentCategory={category} noContainer={true} showFeatured={false} hideTabs={true} />
+                  <Blog
+                    isHomePage={false}
+                    currentCategory="all"
+                    noContainer={true}
+                    showFeatured={false}
+                    hideTabs={true}
+                  />
                 </div>
               </div>
             </div>

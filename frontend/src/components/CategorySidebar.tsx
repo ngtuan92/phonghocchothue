@@ -92,9 +92,15 @@ export default function CategorySidebar({ currentCategory = "all", showSupport =
       ) : (
         <div className="bg-[#fdf6f5] p-8 rounded-2xl border border-[#799f85]/10">
           <h4 className="text-lg font-bold text-[#563c39] mb-3">Về Blog</h4>
-          <p className="text-xs text-gray-500 leading-relaxed raleway">
+          <p className="text-xs text-gray-700 leading-relaxed raleway mb-6">
             Nơi chia sẻ những bí quyết tối ưu không gian học tập và làm việc hiệu quả nhất.
           </p>
+          <Link
+            href="/#contact"
+            className="inline-block w-full text-center py-3 bg-[#563c39] hover:bg-[#e57f7f] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-sm"
+          >
+            Liên hệ ngay
+          </Link>
         </div>
       )}
     </div>
