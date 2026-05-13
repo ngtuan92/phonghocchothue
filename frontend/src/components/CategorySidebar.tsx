@@ -15,12 +15,22 @@ interface Category {
 interface CategorySidebarProps {
   currentCategory?: string;
   showSupport?: boolean;
+  onCategoryChange?: (category: string) => void;
 }
 
-export default function CategorySidebar({ currentCategory = "all", showSupport = false }: CategorySidebarProps) {
+export default function CategorySidebar({ 
+  currentCategory = "all", 
+  showSupport = false,
+  onCategoryChange 
+}: CategorySidebarProps) {
   const [categories, setCategories] = useState<Category[]>([
     { key: "all", label: "Tất cả bài viết" },
   ]);
+
+  const getCategoryLabel = (cat: string) => {
+    if (!cat) return "";
+    return decodeURIComponent(cat);
+  };
 
   useEffect(() => {
     fetch(`${URL_API}api/blog/categories?status=1`)
@@ -29,7 +39,7 @@ export default function CategorySidebar({ currentCategory = "all", showSupport =
         if (res.success && res.data.length > 0) {
           const dynamicTabs = res.data.map((cat: string) => ({
             key: cat,
-            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " "),
+            label: getCategoryLabel(cat),
           }));
 
           setCategories([{ key: "all", label: "Tất cả bài viết" }, ...dynamicTabs]);
@@ -48,14 +58,13 @@ export default function CategorySidebar({ currentCategory = "all", showSupport =
         <ul className="space-y-4">
           {categories.map((cat) => {
             const isActive = currentCategory === cat.key;
-            const href = cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`;
 
             return (
               <li key={cat.key}>
-                <Link
-                  href={href}
+                <button
+                  onClick={() => onCategoryChange?.(cat.key)}
                   className={classNames(
-                    "group flex items-center justify-between transition-colors",
+                    "w-full group flex items-center justify-between transition-colors text-left",
                     isActive ? "text-[#e57f7f]" : "text-gray-600 hover:text-[#e57f7f]"
                   )}
                 >
@@ -69,7 +78,7 @@ export default function CategorySidebar({ currentCategory = "all", showSupport =
                         : "opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0"
                     )}
                   />
-                </Link>
+                </button>
               </li>
             );
           })}

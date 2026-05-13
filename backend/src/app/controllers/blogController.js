@@ -4,6 +4,12 @@ const { redis, getOrSetCache } = require('../../util/cacheUtil');
 const { sequelize, Sequelize } = require('../../config/db');
 const { Op } = Sequelize;
 
+const sanitizePath = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    const match = url.match(/(\/assets\/.*)/);
+    return match ? match[1] : url;
+};
+
 class BlogController {
     async index(req, res) {
         try {
@@ -85,7 +91,7 @@ class BlogController {
                 title,
                 slug,
                 content,
-                thumbnail,
+                thumbnail: sanitizePath(thumbnail),
                 category,
                 authorName,
                 status: status || 1,
@@ -111,7 +117,15 @@ class BlogController {
                 return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
             }
 
-            const updateData = { title, content, thumbnail, category, authorName, status, excerpt };
+            const updateData = { 
+                title, 
+                content, 
+                thumbnail: sanitizePath(thumbnail), 
+                category, 
+                authorName, 
+                status, 
+                excerpt 
+            };
             
             if (title && title !== blog.title) {
                 updateData.slug = await createUniqueSlug(title, async (s) => {

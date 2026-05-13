@@ -18,8 +18,8 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 export default function BlogCategoryPage() {
   const params = useParams();
-  const category = params.category as string;
-
+  const category = decodeURIComponent(params.category as string);
+  
   const colorBg = useConfigContentByKey("color-bg");
   const background = useConfigContentByKey("background");
   const logo = useConfigContentByKey("logo");
@@ -30,6 +30,11 @@ export default function BlogCategoryPage() {
   ]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  const getCategoryLabel = (cat: string) => {
+    if (!cat) return "Danh mục";
+    return decodeURIComponent(cat);
+  };
+
   useEffect(() => {
     fetch(`${URL_API}api/blog/categories?status=1`)
       .then((res) => res.json())
@@ -37,7 +42,7 @@ export default function BlogCategoryPage() {
         if (res.success && res.data.length > 0) {
           const dynamicTabs = res.data.map((cat: string) => ({
             key: cat,
-            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " "),
+            label: getCategoryLabel(cat),
           }));
 
           setCategories([{ key: "all", label: "Tất cả" }, ...dynamicTabs]);
@@ -46,9 +51,7 @@ export default function BlogCategoryPage() {
       .catch((err) => console.error("Lỗi tải danh mục:", err));
   }, []);
 
-  const displayCategory = category
-    ? category.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
-    : "Danh mục";
+  const displayCategory = getCategoryLabel(category);
 
   useSEO({
     title: `${displayCategory} - Blog | ChoThuePhongHoc.com`,
@@ -132,7 +135,7 @@ export default function BlogCategoryPage() {
                     categories.map((cat) => (
                       <Link 
                         key={cat.key}
-                        href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
+                        href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
                         className={classNames(
                           "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
                           category === cat.key 
@@ -149,7 +152,7 @@ export default function BlogCategoryPage() {
                         {categories.slice(0, 3).map((cat) => (
                           <Link 
                             key={cat.key}
-                            href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
+                            href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
                             className={classNames(
                               "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
                               category === cat.key 
@@ -177,7 +180,7 @@ export default function BlogCategoryPage() {
                           {categories.slice(3).map((cat) => (
                             <Link 
                               key={cat.key}
-                              href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
+                              href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
                               onClick={() => setIsDrawerOpen(false)}
                               className={classNames(
                                 "px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-md border text-center text-[13px] font-semibold shadow-sm active:scale-95 transition-all",

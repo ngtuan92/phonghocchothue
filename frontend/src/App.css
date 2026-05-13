@@ -435,6 +435,7 @@
   .describe-h2-wrapper h2 *,
   .describe-h2-wrapper h3,
   .describe-h2-wrapper h3 *,
+  .describe-h2-wrapper *,
   .blog-hero-title h1,
   .blog-hero-title h2,
   .blog-hero-title h3,
@@ -442,7 +443,7 @@
   .blog-hero-title span:not(.blog-flower-icon),
   .blog-hero-title .rich-text-renderer,
   .blog-hero-title .rich-text-renderer>* {
-    font-size: 14px !important;
+    font-size: 18px !important;
     line-height: 1.4 !important;
     margin-bottom: 15px !important;
     margin-top: 0 !important;

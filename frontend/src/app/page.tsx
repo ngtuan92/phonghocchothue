@@ -171,7 +171,7 @@ export default function Home() {
             <Gallery />
           </div>
           <div id="blog">
-            <Blog isHomePage={true} />
+            <Blog isHomePage={true} hideTabs={true} />
           </div>
           <div id="faq">
             <FAQ />

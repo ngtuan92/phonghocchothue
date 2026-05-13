@@ -17,10 +17,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const cleanHtml = useMemo(() => {
     if (!html) return "";
     
-    // Configure DOMPurify to allow style and width attributes
     const sanitized = DOMPurify.sanitize(html, {
       ADD_ATTR: ['style', 'width', 'height', 'target', 'rel'],
-      ADD_TAGS: ['iframe'], // Allow iframes for videos if needed
+      ADD_TAGS: ['iframe'],
     });
     
     let processedHtml = sanitized.replace(/&nbsp;/g, " ");
@@ -39,7 +38,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     return processedHtml;
   }, [html]);
 
-  if (!html) return fallback ? <div className={className}>{fallback}</div> : null;
+  if (!html) return fallback ? <div className={`rich-text-renderer ${className}`}>{fallback}</div> : null;
 
   return (
     <>
@@ -75,7 +74,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           width: 100%;
         }
         .rich-text-renderer a {
-          color: #3b82f6; /* Màu xanh link */
+          color: #3b82f6;
           text-decoration: underline;
           transition: color 0.2s;
         }
@@ -83,6 +82,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           color: #2563eb;
           text-decoration: none;
         }
+
       `}</style>
     </>
   );

@@ -46,6 +46,13 @@ export default function BlogForm({ data, onSave, onCancel }) {
       .catch(err => console.error("Lỗi tải danh mục:", err));
   }, []);
 
+  const getCategoryLabel = (cat) => {
+    if (cat === "kien-thuc") return "Kiến thức";
+    if (cat === "kinh-nghiem") return "Kinh nghiệm";
+    if (!cat) return "";
+    return cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " ");
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -102,19 +109,16 @@ export default function BlogForm({ data, onSave, onCancel }) {
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     >
-                      <option value="kien-thuc">Kiến thức</option>
-                      <option value="kinh-nghiem">Kinh nghiệm</option>
-                      {categories
-                        .filter(cat => cat !== 'kien-thuc' && cat !== 'kinh-nghiem')
-                        .map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))
-                      }
-                      {formData.category && 
-                       formData.category !== 'kien-thuc' && 
-                       formData.category !== 'kinh-nghiem' && 
-                       !categories.includes(formData.category) && (
-                        <option value={formData.category}>{formData.category}</option>
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>
+                          {getCategoryLabel(cat)}
+                        </option>
+                      ))}
+                      
+                      {formData.category && !categories.includes(formData.category) && (
+                        <option value={formData.category}>
+                          {getCategoryLabel(formData.category)}
+                        </option>
                       )}
                     </select>
                     <Button 

@@ -25,6 +25,7 @@ export default function BlogPage() {
     { key: "all", label: "Tất cả" },
   ]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
 
   useEffect(() => {
     fetch(`${URL_API}api/blog/categories?status=1`)
@@ -33,7 +34,7 @@ export default function BlogPage() {
         if (res.success && res.data.length > 0) {
           const dynamicTabs = res.data.map((cat: string) => ({
             key: cat,
-            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " "),
+            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : decodeURIComponent(cat),
           }));
 
           setCategories([{ key: "all", label: "Tất cả" }, ...dynamicTabs]);
@@ -42,8 +43,12 @@ export default function BlogPage() {
       .catch((err) => console.error("Lỗi tải danh mục:", err));
   }, []);
 
+  const displayCategory = activeCategory === "all" 
+    ? "Blog" 
+    : (categories.find(c => c.key === activeCategory)?.label || decodeURIComponent(activeCategory));
+
   useSEO({
-    title: "Blog Kiến Thức & Kinh Nghiệm | ChoThuePhongHoc.com",
+    title: `${displayCategory === "Blog" ? "Blog Kiến Thức & Kinh Nghiệm" : displayCategory} | ChoThuePhongHoc.com`,
     description: "Tổng hợp kiến thức, kinh nghiệm và mẹo hay khi thuê phòng dạy học, phòng họp tại Đà Nẵng. Cập nhật những xu hướng giáo dục mới nhất.",
     ogType: "website",
   });
@@ -72,7 +77,7 @@ export default function BlogPage() {
           <Header />
 
           <main className="min-h-screen">
-            <div className="relative pt-12 pb-8 sm:pt-20 sm:pb-12 overflow-hidden">
+            <div className="relative pt-12 pb-8 sm:pt-20 sm:pb-4 overflow-hidden">
               <div className="main-container relative z-10">
                 <div className="flex flex-col items-center">
                   {logo && (
@@ -97,7 +102,12 @@ export default function BlogPage() {
                         <span>Trang chủ</span>
                       </Link>
                       <span className="text-gray-400">/</span>
-                      <span className="text-[#563c39] font-medium">Blog</span>
+                      <button 
+                        onClick={() => setActiveCategory("all")}
+                        className="text-[#563c39] font-medium hover:text-[#e57f7f] transition-colors"
+                      >
+                        Blog
+                      </button>
                     </nav>
 
                     <div className="flex items-end gap-4 mb-2">
@@ -115,42 +125,42 @@ export default function BlogPage() {
               </div>
             </div>
 
-            <div className="main-container py-6 sm:py-20">
+            <div className="main-container py-6 sm:py-8">
               <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-4 bg-transparent mb-8">
                 <div className="flex flex-wrap gap-2">
                   {categories.length <= 5 ? (
                     categories.map((cat) => (
-                      <Link 
+                      <button
                         key={cat.key}
-                        href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
+                        onClick={() => setActiveCategory(cat.key)}
                         className={classNames(
                           "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
-                          cat.key === "all" 
-                            ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20" 
+                          activeCategory === cat.key
+                            ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20"
                             : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                         )}
                       >
                         {cat.label}
-                      </Link>
+                      </button>
                     ))
                   ) : (
                     <>
                       <div className="flex flex-wrap gap-2 w-full">
                         {categories.slice(0, 3).map((cat) => (
-                          <Link 
+                          <button
                             key={cat.key}
-                            href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
+                            onClick={() => setActiveCategory(cat.key)}
                             className={classNames(
                               "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
-                              cat.key === "all" 
-                                ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20" 
+                              activeCategory === cat.key
+                                ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20"
                                 : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                             )}
                           >
                             {cat.label}
-                          </Link>
+                          </button>
                         ))}
-                        <button 
+                        <button
                           onClick={() => setIsDrawerOpen(!isDrawerOpen)}
                           className={classNames(
                             "whitespace-nowrap flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border bg-white/80 backdrop-blur-md text-[#563c39] border-[#799f85]/20 shadow-sm",
@@ -165,14 +175,21 @@ export default function BlogPage() {
                       {isDrawerOpen && (
                         <div className="w-full mt-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
                           {categories.slice(3).map((cat) => (
-                            <Link 
+                            <button
                               key={cat.key}
-                              href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${cat.key}`}
-                              onClick={() => setIsDrawerOpen(false)}
-                              className="px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-md text-[#563c39] border border-[#799f85]/10 text-center text-[13px] font-semibold shadow-sm active:scale-95 transition-all"
+                              onClick={() => {
+                                setActiveCategory(cat.key);
+                                setIsDrawerOpen(false);
+                              }}
+                              className={classNames(
+                                "px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-md border text-center text-[13px] font-semibold shadow-sm active:scale-95 transition-all",
+                                activeCategory === cat.key
+                                  ? "bg-[#563c39] text-white border-[#563c39]"
+                                  : "text-[#563c39] border-[#799f85]/10"
+                              )}
                             >
                               {cat.label}
-                            </Link>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -183,13 +200,17 @@ export default function BlogPage() {
 
               <div className="flex flex-col lg:flex-row gap-16">
                 <aside className="hidden lg:block lg:w-[20%]">
-                  <CategorySidebar currentCategory="all" showSupport={false} />
+                  <CategorySidebar
+                    currentCategory={activeCategory}
+                    showSupport={false}
+                    onCategoryChange={setActiveCategory}
+                  />
                 </aside>
 
                 <div className="w-full lg:w-[80%]">
                   <Blog
                     isHomePage={false}
-                    currentCategory="all"
+                    currentCategory={activeCategory}
                     noContainer={true}
                     showFeatured={false}
                     hideTabs={true}

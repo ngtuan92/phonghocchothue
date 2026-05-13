@@ -240,6 +240,11 @@ export default function Blog({
     setBlogs([]);
   }, [currentCategory]);
 
+  const getCategoryLabel = (cat: string) => {
+    if (!cat) return "";
+    return decodeURIComponent(cat);
+  };
+
   useEffect(() => {
     fetch(`${URL_API}api/blog/categories?status=1`)
       .then((res) => res.json())
@@ -247,7 +252,7 @@ export default function Blog({
         if (res.success && res.data.length > 0) {
           const dynamicTabs = res.data.map((cat: string) => ({
             key: cat,
-            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " "),
+            label: getCategoryLabel(cat),
           }));
 
           setCategories([{ key: "all", label: "Tất cả bài viết" }, ...dynamicTabs]);
@@ -279,28 +284,21 @@ export default function Blog({
   return (
     <section id="blog" className={classNames("mb-12 sm:mb-24", !noContainer && "main-container", isHomePage ? "mt-12 sm:mt-24 md:mt-36" : "mt-0")}>
       {isHomePage && (
-        <div className="mb-10 text-center">
+        <div className="mb-14 sm:mb-10 text-center blog-hero-title">
           <RichTextRenderer
             html={blogHeading}
             className="text-center"
-            fallback={
-              <>
-                <h2 className="font-cursive text-2xl sm:text-7xl text-[#563c39] mb-4">
-                  Kiến thức và kinh nghiệm thuê phòng dạy học
-                </h2>
-              </>
-            }
           />
-          <div className="flex items-center justify-center gap-4 mt-7">
-            <div className="h-px w-12 bg-[#b8c7b0]/40" />
-            <span className="text-[#b8c7b0] text-xs">✿</span>
-            <div className="h-px w-12 bg-[#b8c7b0]/40" />
+          <div className="flex items-center justify-center gap-4 mt-1 sm:mt-2">
+            <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
+            <span className="text-[#b8c7b0] text-[10px] sm:text-base blog-flower-icon">✿</span>
+            <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
           </div>
         </div>
       )}
 
       {!hideTabs && (
-        <div className="flex items-center justify-center gap-2 sm:gap-3 mb-8 flex-wrap">
+        <div className="flex items-center sm:justify-center gap-2 sm:gap-3 mb-8 overflow-x-auto hide-scrollbar px-2 sm:px-0 whitespace-nowrap">
           {categories.map((tab) => (
             <Link
               key={tab.key}
