@@ -40,7 +40,7 @@ const Describe = () => {
     };
 
     return (
-        <div className="mb-32 sm:mb-20 main-container">
+        <div className="mb-32 sm:mb-20 main-container overflow-x-hidden">
             <div className="relative w-full h-screen sm:h-[85vh] md:h-[90vh] lg:h-[92vh]">
                 <div className="absolute inset-0 hidden sm:flex items-center justify-center pointer-events-none select-none z-0 -translate-y-8 lg:-translate-y-12">
                     <RichTextRenderer
@@ -77,9 +77,9 @@ const Describe = () => {
 
                         <div className="w-full max-w-[1100px] flex flex-row justify-between items-center px-16">
                             <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap">
-                                <RichTextRenderer 
-                                    html={describePhone} 
-                                    className="inline-block [&_*]:inline hero-phone-text" 
+                                <RichTextRenderer
+                                    html={describePhone}
+                                    className="inline-block [&_*]:inline hero-phone-text"
                                 />
                             </span>
                             <div className="flex items-center gap-2">
@@ -90,7 +90,7 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-4 pb-20">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-4 pb-4">
                     {logo && (
                         <div className="transition-all duration-700 mb-10">
                             <img
@@ -101,13 +101,14 @@ const Describe = () => {
                         </div>
                     )}
 
-                    <div className="relative w-full flex items-center justify-center py-4">
-                        <div className="absolute top-1/2 left-[49%] -translate-x-1/2 -translate-y-1/2 w-full flex justify-center opacity-40 select-none pointer-events-none">
-                             <RichTextRenderer
-                                 html={watermarkText || "HOAHOCTRO"}
-                                 className="mobile-watermark-text text-[28vw] font-bold text-[#563c39] tracking-tighter leading-none uppercase text-center whitespace-nowrap w-full"
-                             />
+                    <div className="relative w-full flex items-center justify-center py-2">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-50 select-none pointer-events-none">
+                            <RichTextRenderer
+                                html={watermarkText || "HOAHOCTRO"}
+                                className="mobile-watermark-text"
+                            />
                         </div>
+
                         <div className="relative z-10 -translate-y-1">
                             <RichTextRenderer
                                 html={describeHeading}
@@ -128,21 +129,21 @@ const Describe = () => {
                     <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-0">
                         <div className="flex-shrink-0">
                             <span className="text-[12px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
-                                <RichTextRenderer 
-                                    html={describePhone} 
-                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text" 
+                                <RichTextRenderer
+                                    html={describePhone}
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
                                 />
                             </span>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <span className="text-[11px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
+                            <span className="text-[12px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
                             <span className="text-[#563c39] opacity-60 text-[11px]">♡</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center md:px-0 mt-10 lg:mt-16">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center md:px-0 mt-2 sm:mt-10 lg:mt-16">
                 <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
                     {bgTitle && (
                         <div className="w-full mb-2 flex justify-center md:pl-5 decoration-image-wrapper">
@@ -158,14 +159,14 @@ const Describe = () => {
                         </div>
                     )}
 
-                     {describeH2 && (
-                         <div className="w-full mb-8 describe-h2-wrapper">
-                             <RichTextRenderer
-                                 html={describeH2}
-                                 className="mx-auto text-center md:text-left"
-                             />
-                         </div>
-                     )}
+                    {describeH2 && (
+                        <div className="w-full mb-8 describe-h2-wrapper">
+                            <RichTextRenderer
+                                html={describeH2}
+                                className="mx-auto text-center md:text-left"
+                            />
+                        </div>
+                    )}
 
                     {description && (
                         <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-3xl describe-description-wrapper text-center md:text-left">
