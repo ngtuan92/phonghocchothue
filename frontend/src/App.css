@@ -609,7 +609,7 @@
   .title-sub-text *,
   .title-sub-text span,
   .title-sub-text p {
-    font-size: 12px !important;
+    font-size: 13px !important;
   }
 
   .title-main-text .font-cursive,
@@ -832,11 +832,18 @@
   .title-sub-text * {
     font-size: 13px !important;
     white-space: nowrap !important;
+    display: inline-block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .describe-description-wrapper *,
   .rich-text-renderer p,
   .rich-text-renderer span,
+  .rich-text-renderer h1,
+  .rich-text-renderer h2,
+  .rich-text-renderer h3,
   .rich-text-renderer div:not(.image-wrapper) {
     text-align: center !important;
   }
