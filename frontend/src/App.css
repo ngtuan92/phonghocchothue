@@ -619,7 +619,7 @@
   .title-main-text h2 .font-cursive,
   .title-main-text h1 span,
   .title-main-text h2 span {
-    font-size: 30px !important;
+    font-size: 26px !important;
     line-height: 1.6 !important;
     display: block !important;
     margin-top: 5px !important;
@@ -637,7 +637,7 @@
     overflow: visible !important;
     display: block !important;
     text-align: center !important;
-    font-size: 22vw !important;
+    font-size: 20vw !important;
     line-height: 0.6 !important;
     white-space: nowrap !important;
     letter-spacing: -0.04em !important;
@@ -770,7 +770,7 @@
   .describe-h2-wrapper span,
   .describe-h2-wrapper div,
   h3.text-lg.font-bold {
-    font-size: 21px !important;
+    font-size: 18px !important;
     line-height: 1.0 !important;
     margin-bottom: 12px !important;
     margin-top: 2px !important;
@@ -785,7 +785,6 @@
   .decoration-image-wrapper img {
     max-width: 350px !important;
     margin: 0 auto !important;
-    transform: translateX(2px) !important;
   }
 
   .describe-h2-wrapper {
@@ -807,12 +806,15 @@
   }
 
   .rich-text-renderer .ql-size-huge,
+  .describe-h2-wrapper .ql-size-huge {
+    font-size: 1.4em !important;
+    line-height: 1.2 !important;
+  }
+
   .rich-text-renderer .ql-size-large,
-  .rich-text-renderer .ql-size-small,
-  .describe-h2-wrapper .ql-size-huge,
   .describe-h2-wrapper .ql-size-large {
-    font-size: 18px !important;
-    line-height: 1.4 !important;
+    font-size: 1.2em !important;
+    line-height: 1.2 !important;
   }
 
   .title-main-text h1,
@@ -872,6 +874,7 @@
     font-size: 17px !important;
     text-align: left !important;
   }
+
   .mobile-watermark-text,
   .mobile-watermark-text * {
     font-size: 13vw !important;

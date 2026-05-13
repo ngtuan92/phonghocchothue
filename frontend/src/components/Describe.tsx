@@ -90,13 +90,13 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-4 pb-4">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-12">
                     {logo && (
                         <div className="transition-all duration-700 mb-12">
                             <img
                                 src={buildUrl(logo)}
                                 alt="Logo"
-                                className="w-[90px] h-auto object-contain drop-shadow-xl"
+                                className="w-[75px] h-auto object-contain drop-shadow-xl"
                             />
                         </div>
                     )}
@@ -126,9 +126,9 @@ const Describe = () => {
                         </div>
                     </div>
 
-                    <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-[-1px]">
+                    <div className="w-full flex flex-row justify-between items-center px-0 gap-1 mt-[-1px]">
                         <div className="flex-shrink-0">
-                            <span className="text-[12px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
+                            <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
                                 <RichTextRenderer
                                     html={describePhone}
                                     className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
@@ -136,8 +136,8 @@ const Describe = () => {
                             </span>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <span className="text-[12px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
-                            <span className="text-[#563c39] opacity-60 text-[12px]">♡</span>
+                            <span className="text-[10px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
+                            <span className="text-[#563c39] opacity-60 text-[10px]">♡</span>
                         </div>
                     </div>
                 </div>
