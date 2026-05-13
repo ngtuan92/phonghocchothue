@@ -61,20 +61,35 @@ const Header = ({ icon }: HeaderProps) => {
     setIsOpen(false);
   };
 
-  const handleSmoothScroll = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    targetId: string,
-  ) => {
-    e.preventDefault();
+  const handleSmoothScroll = (targetId: string) => {
+    setIsOpen(false);
     if (typeof document === "undefined") return;
-    const targetElement = document.querySelector(targetId);
-    if (targetElement) {
-      targetElement.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+    const target = document.querySelector(targetId) as HTMLElement | null;
+    if (target) {
+      const container = document.getElementById('main-scroll-container');
+      const headerOffset = 80;
+      
+      const isMobile = window.innerWidth < 640;
+
+      if (isMobile || !container) {
+        const elementPosition = target.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      } else {
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const scrollTarget = targetRect.top - containerRect.top + container.scrollTop - headerOffset;
+
+        container.scrollTo({
+          top: scrollTarget,
+          behavior: "smooth"
+        });
+      }
     }
-    closeMenu();
   };
 
   const audioRef = useRef<ReactAudioPlayer>(null);
@@ -137,7 +152,7 @@ const Header = ({ icon }: HeaderProps) => {
   return (
     <header
       className={classNames(
-        "z-10 fixed left-[10px] right-[10px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[8px] sm:mt-[8px] max-sm:pl-[2px] flex justify-between items-center"
+        "z-[9999] fixed left-[10px] right-[10px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[8px] sm:mt-[8px] max-sm:pl-[2px] flex justify-between items-center"
       )}
     >
       <div className="flex items-center justify-start ml-[2px] sm:ml-[25px] w-[95px] xs:w-[105px] sm:w-auto flex-shrink-0">
@@ -233,17 +248,20 @@ const Header = ({ icon }: HeaderProps) => {
         </div>
       </div>
       <div className="flex items-center">
-        <button
-          onClick={toggleMenu}
-          className="relative focus:outline-none "
-        >
-          <FontAwesomeIcon
-            icon={isOpen ? faTimes : faBars}
-            className="w-[22px] h-[22px] sm:w-7 sm:h-7 m-2 sm:mr-[22px] text-[#563c39] z-[9999] relative"
-          />
-          <div
-            className={`z-30 -top-[10px] -right-[13px] sm:right-[0px] sm:-top-[8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-transform duration-500 ease-in-out rounded-tr-[15x] sm:rounded-tr-[20px] ${
-              isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0"
+        <div className="relative flex items-center justify-end">
+          <button
+            onClick={toggleMenu}
+            className="relative focus:outline-none z-[9999]"
+          >
+            <FontAwesomeIcon
+              icon={isOpen ? faTimes : faBars}
+              className="w-[22px] h-[22px] sm:w-7 sm:h-7 m-2 sm:mr-[22px] text-[#563c39] relative"
+            />
+          </button>
+        </div>
+        <div
+            className={`z-[9998] top-[-8px] right-[-3px] sm:!right-[-46px] lg:!right-[-46px] xl:!right-[-20px] sm:!top-[-8px] lg:!top-[-8px] xl:!top-[-8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${
+              isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
             }`}
             style={{
               transformOrigin: "top right",
@@ -251,60 +269,35 @@ const Header = ({ icon }: HeaderProps) => {
           >
             <div className="h-6 sm:h-8"></div>
             <ul className="ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium">
-              <li className="mb-4">
-                <a href="/" className="hover:underline decoration-wavy p-4">
-                  Trang chủ
-                </a>
-              </li>
-              <li className="mb-4">
-                <a
-                  href="#about"
-                  className="hover:underline decoration-wavy p-4"
-                  onClick={(e) => handleSmoothScroll(e, "#about")}
+              {[
+                { label: "Trang chủ", href: "/", onClick: () => setIsOpen(false) },
+                { label: "Giới thiệu", href: "#about", onClick: () => handleSmoothScroll("#about") },
+                { label: "Dịch vụ", href: "#room", onClick: () => handleSmoothScroll("#room") },
+                { label: "Blog", href: "#blog", onClick: () => handleSmoothScroll("#blog") },
+                { label: "FAQ", href: "#faq", onClick: () => handleSmoothScroll("#faq") },
+                { label: "Liên hệ", href: "#contact", onClick: () => handleSmoothScroll("#contact") },
+              ].map((item, index) => (
+                <li
+                  key={index}
+                  className="mb-0 sm:mb-1 cursor-pointer pointer-events-auto"
+                  onClick={item.onClick}
                 >
-                  Giới thiệu
-                </a>
-              </li>
-              <li className="mb-4">
-                <a
-                  href="#room"
-                  className="hover:underline decoration-wavy p-4"
-                  onClick={(e) => handleSmoothScroll(e, "#room")}
-                >
-                  Dịch vụ
-                </a>
-              </li>
-              <li className="mb-4">
-                <a
-                  href="#blog"
-                  className="hover:underline decoration-wavy p-4"
-                  onClick={(e) => handleSmoothScroll(e, "#blog")}
-                >
-                  Blog
-                </a>
-              </li>
-              <li className="mb-4">
-                <a
-                  href="#faq"
-                  className="hover:underline decoration-wavy p-4"
-                  onClick={(e) => handleSmoothScroll(e, "#faq")}
-                >
-                  FAQ
-                </a>
-              </li>
-              <li className="mb-4">
-                <a
-                  href="#contact"
-                  className="hover:underline decoration-wavy p-4"
-                  onClick={(e) => handleSmoothScroll(e, "#contact")}
-                >
-                  Liên hệ
-                </a>
-              </li>
+                  <a
+                    href={item.href}
+                    onClick={(e) => {
+                      if (item.href.startsWith("#")) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="hover:underline decoration-wavy py-1 px-4 sm:p-2 block w-full relative z-[10005] pointer-events-auto"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
-        </button>
-      </div>
+        </div>
     </header>
   );
 };

@@ -440,7 +440,7 @@
   .blog-hero-title h2,
   .blog-hero-title h3,
   .blog-hero-title p,
-  .blog-hero-title span:not(.blog-flower-icon),
+  .blog-hero-title,
   .blog-hero-title .rich-text-renderer,
   .blog-hero-title .rich-text-renderer>* {
     font-size: 18px !important;
@@ -606,8 +606,10 @@
 @media (max-width: 767px) {
 
   .title-sub-text,
-  .title-sub-text * {
-    font-size: 15px !important;
+  .title-sub-text *,
+  .title-sub-text span,
+  .title-sub-text p {
+    font-size: 14px !important;
   }
 
   .title-main-text .font-cursive,
@@ -787,7 +789,7 @@
   }
 
   .describe-h2-wrapper {
-    margin-bottom: 10px !important;
+    margin-bottom: 4px !important;
     margin-top: 0px !important;
     width: auto !important;
     margin-left: 0 !important;
@@ -848,6 +850,7 @@
   .describe-description-wrapper p,
   .rich-text-renderer p {
     line-height: 1.4 !important;
+    margin-bottom: 2px !important;
   }
 
   .describe-description-wrapper p:not(.mobile-watermark-text *),

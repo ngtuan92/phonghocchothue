@@ -40,7 +40,7 @@ const Describe = () => {
     };
 
     return (
-        <div className="mb-32 sm:mb-20 main-container overflow-x-hidden">
+        <div className="mb-16 sm:mb-30 main-container overflow-x-hidden">
             <div className="relative w-full h-screen sm:h-[85vh] md:h-[90vh] lg:h-[92vh]">
                 <div className="absolute inset-0 hidden sm:flex items-center justify-center pointer-events-none select-none z-0 -translate-y-8 lg:-translate-y-12">
                     <RichTextRenderer
@@ -92,7 +92,7 @@ const Describe = () => {
 
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-4 pb-4">
                     {logo && (
-                        <div className="transition-all duration-700 mb-10">
+                        <div className="transition-all duration-700 mb-12">
                             <img
                                 src={buildUrl(logo)}
                                 alt="Logo"
@@ -117,8 +117,8 @@ const Describe = () => {
                         </div>
                     </div>
 
-                    <div className="w-full text-center mb-2">
-                        <div className="title-sub-text text-[clamp(7px,2.4vw,11px)] border-t border-b border-[#563c39]/10 py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
+                    <div className="w-full text-center mb-1">
+                        <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] border-t border-b border-[#563c39]/10 py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
                             <RichTextRenderer
                                 html={h1Text}
                                 className="text-center"
@@ -126,7 +126,7 @@ const Describe = () => {
                         </div>
                     </div>
 
-                    <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-0">
+                    <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-[-1px]">
                         <div className="flex-shrink-0">
                             <span className="text-[12px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
                                 <RichTextRenderer
@@ -143,10 +143,10 @@ const Describe = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center md:px-0 mt-2 sm:mt-10 lg:mt-16">
-                <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-0 sm:gap-10 lg:gap-20 items-center md:px-0 mt-2 sm:mt-10 lg:mt-16">
+                <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left mb-2 md:mb-0">
                     {bgTitle && (
-                        <div className="w-full mb-2 flex justify-center md:pl-5 decoration-image-wrapper">
+                        <div className="w-full mb-1 flex justify-center md:pl-5 decoration-image-wrapper">
                             <Image
                                 src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
                                 alt="Decoration"

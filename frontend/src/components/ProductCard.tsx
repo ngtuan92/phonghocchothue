@@ -49,7 +49,6 @@ const ProductCard = ({ product }: { product?: Product }) => {
           quality={85}
           loading="lazy"
         />
-        {/* Desktop Hover Overlay - Exact Original UI - Isolated from Mobile */}
         <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
           <h2 className="text-lg font-bold uppercase">{product.name}</h2>
           <ul className="list-disc ml-5 text-base mt-2 space-y-1">
@@ -73,7 +72,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
   const roomHeading = useConfigContentByKey("room-heading");
 
   return (
-    <div className="w-full mx-auto main-container relative my-30 sm:my-36">
+    <div className="w-full mx-auto main-container relative my-10 sm:my-36">
       <div className="describe-h2-wrapper">
         <RichTextRenderer
           html={roomHeading}
@@ -118,7 +117,6 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 quality={85}
                 loading="lazy"
               />
-              {/* Desktop Hover Overlay - Exact Original UI - Isolated from Mobile */}
               <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
                 <h2 className="text-lg font-bold uppercase">{product.name}</h2>
                 <ul className="list-disc ml-5 text-base mt-2 space-y-1">

@@ -22,7 +22,7 @@ const Gallery: React.FC = () => {
   if (sliderData.length === 0) return null;
 
   return (
-    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden py-16 sm:py-24">
+    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden py-8 sm:py-14">
       <div className="w-full main-container flex flex-col items-center h-full max-w-[1400px]">
 
         <div className="mb-8 sm:mb-14 text-center w-full describe-h2-wrapper">

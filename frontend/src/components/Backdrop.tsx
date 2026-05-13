@@ -7,7 +7,7 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 const Backdrop = () => {
   const imgIcon = useConfigContentByKey("logo");
-
+  
   const buildUrl = (path: string | undefined) => {
     if (!path) return "";
     return `${URL_API}${path.replace(/\\/g, "/")}`;

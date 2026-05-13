@@ -282,16 +282,16 @@ export default function Blog({
   };
 
   return (
-    <section id="blog" className={classNames("mb-12 sm:mb-24", !noContainer && "main-container", isHomePage ? "mt-12 sm:mt-24 md:mt-36" : "mt-0")}>
+    <section id="blog" className={classNames("mb-16 sm:mb-24", !noContainer && "main-container", isHomePage ? "mt-12 sm:mt-24 md:mt-36" : "mt-0")}>
       {isHomePage && (
         <div className="mb-14 sm:mb-10 text-center blog-hero-title">
           <RichTextRenderer
             html={blogHeading}
             className="text-center"
           />
-          <div className="flex items-center justify-center gap-4 mt-1 sm:mt-2">
+          <div className="flex items-center justify-center gap-4 mt-4 sm:mt-2">
             <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
-            <span className="text-[#b8c7b0] text-[10px] sm:text-base blog-flower-icon">✿</span>
+            <span className="text-[#b8c7b0] text-[6px] sm:text-base blog-flower-icon">✿</span>
             <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
           </div>
         </div>
