@@ -136,7 +136,7 @@ const Describe = () => {
                             </span>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <span className="text-[10px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
+                            <span className="text-[11px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
                             <span className="text-[#563c39] opacity-60 text-[10px]">♡</span>
                         </div>
                     </div>

@@ -609,7 +609,7 @@
   .title-sub-text *,
   .title-sub-text span,
   .title-sub-text p {
-    font-size: 14px !important;
+    font-size: 12px !important;
   }
 
   .title-main-text .font-cursive,
@@ -830,7 +830,8 @@
 
   .title-sub-text,
   .title-sub-text * {
-    font-size: 15px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
   }
 
   .describe-description-wrapper *,
