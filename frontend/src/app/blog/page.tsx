@@ -72,7 +72,7 @@ export default function BlogPage() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
+      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-7 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
         <div
           className="w-full min-h-screen sm:min-h-0 sm:h-full rounded-[10px] sm:rounded-[30px] overflow-y-auto hide-scrollbar"
           style={pageStyle}
@@ -127,8 +127,8 @@ export default function BlogPage() {
               </div>
             </div>
 
-            <div className="main-container py-6 sm:py-8">
-              <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-4 bg-transparent mb-8">
+            <div className="main-container pt-0 pb-4 sm:pt-0 sm:pb-8">
+              <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-2 bg-transparent mb-2">
                 <div className="flex flex-wrap gap-2">
                   {categories.length <= 5 ? (
                     categories.map((cat) => (

@@ -8,10 +8,10 @@ const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 const SIZE_MAP = {
   "Small": "0.85rem",
-  "Normal": "1.5rem",
-  "Large": "2.5rem",
-  "Huge": "6.5rem",
-  "Super Huge": "17rem"
+  "Normal": "1.05rem",
+  "Large": "2rem",
+  "Huge": "5rem",
+  "Super Huge": "15vw"
 };
 
 let cachedFonts = null;
@@ -139,6 +139,58 @@ const QuillWrapper = forwardRef((props, ref) => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    const initSearch = () => {
+      const pickers = containerRef.current?.querySelectorAll('.ql-font .ql-picker-options');
+      if (!pickers) return;
+
+      pickers.forEach(picker => {
+        if (!picker.querySelector('.font-search-wrapper')) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'font-search-wrapper';
+          wrapper.innerHTML = '<input type="text" placeholder="Tìm kiếm font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
+          wrapper.style.padding = '8px';
+          wrapper.style.position = 'sticky';
+          wrapper.style.top = '0';
+          wrapper.style.backgroundColor = '#fff';
+          wrapper.style.zIndex = '10';
+          wrapper.style.borderBottom = '1px solid #f1f1f1';
+          wrapper.style.marginBottom = '4px';
+
+          const input = wrapper.querySelector('input');
+          input.onclick = (e) => e.stopPropagation();
+          input.onmousedown = (e) => e.stopPropagation();
+          input.onkeydown = (e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') e.preventDefault();
+          };
+          input.onkeyup = (e) => {
+            e.stopPropagation();
+            const search = e.target.value.toLowerCase().replace(/[-_ ]/g, '');
+            const items = picker.querySelectorAll('.ql-picker-item');
+            items.forEach(item => {
+              const rawVal = item.getAttribute('data-value') || 'macdinh';
+              const val = rawVal.toLowerCase().replace(/[-_ ]/g, '');
+              const label = item.textContent ? item.textContent.toLowerCase().replace(/[-_ ]/g, '') : '';
+              if (val.includes(search) || label.includes(search) || rawVal === 'macdinh') {
+                item.style.display = 'block';
+              } else {
+                item.style.display = 'none';
+              }
+            });
+          };
+          
+          picker.insertBefore(wrapper, picker.firstChild);
+        }
+      });
+    };
+
+    const interval = setInterval(initSearch, 1000);
+    return () => clearInterval(interval);
+  }, [isReady]);
 
   React.useImperativeHandle(ref, () => ({
     getEditor: () => {
@@ -583,7 +635,26 @@ const QuillWrapper = forwardRef((props, ref) => {
       <style jsx global>{`
         .ql-editor {
           font-family: 'Inter', sans-serif;
-          font-size: 1rem;
+          font-size: 1.05rem;
+          line-height: 1.6;
+          padding: 24px !important;
+          min-height: inherit;
+        }
+        .ql-editor p {
+          margin-bottom: 14px;
+        }
+        .ql-toolbar.ql-snow {
+          border: none !important;
+          border-bottom: 1px solid #f1f5f9 !important;
+          padding: 12px !important;
+          background: #f8fafc !important;
+          border-top-left-radius: 12px;
+          border-top-right-radius: 12px;
+        }
+        .ql-container.ql-snow {
+          border: none !important;
+          border-bottom-left-radius: 12px;
+          border-bottom-right-radius: 12px;
         }
         .ql-editor img {
           cursor: pointer;
@@ -594,6 +665,19 @@ const QuillWrapper = forwardRef((props, ref) => {
         }
         .ql-editor img:hover {
           border-color: rgba(26, 148, 255, 0.3);
+        }
+        .ql-snow .ql-picker.ql-font {
+          width: 160px !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-options {
+          max-height: 250px !important;
+          overflow-y: auto !important;
+          padding-top: 0 !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-item {
+          padding: 8px 12px !important;
+          display: block !important;
+          width: 100% !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="macdinh"]::before,
         .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="macdinh"]::before { 
@@ -607,8 +691,9 @@ const QuillWrapper = forwardRef((props, ref) => {
             font-family: '${font.family}', sans-serif !important;
           }
         `).join('\n')}
-        .ql-snow .ql-picker.ql-size .ql-picker-label::before,
-        .ql-snow .ql-picker.ql-size .ql-picker-item::before { content: 'Normal' !important; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Normal' !important; }
+        
         ${Object.entries(SIZE_MAP).map(([label, value]) => `
           .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="${value}"]::before,
           .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="${value}"]::before { 
@@ -616,9 +701,12 @@ const QuillWrapper = forwardRef((props, ref) => {
           }
         `).join('\n')}
         .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 { 
-          line-height: 1.1 !important; 
-          margin-bottom: 0.5rem !important;
+          line-height: 1.2; 
+          margin-bottom: 0.8rem;
         }
+        .ql-editor h1 { font-size: 2.5rem; }
+        .ql-editor h2 { font-size: 2rem; }
+        .ql-editor h3 { font-size: 1.75rem; }
         .resizer-handle {
           position: absolute;
           width: 24px;

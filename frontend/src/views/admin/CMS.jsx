@@ -100,18 +100,6 @@ export default function CMS() {
     .ql-size-huge { font-size: 5rem !important; }
     .ql-size-super-huge { font-size: 15vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
 
-    .ql-editor {
-      font-family: 'Inter', sans-serif;
-    }
-
-    .ql-editor h1 {
-      font-size: 2.5rem !important;
-      color: #563c39 !important;
-    }
-    .ql-editor h2 {
-      font-size: 2rem !important;
-      color: #563c39 !important;
-    }
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;
     }

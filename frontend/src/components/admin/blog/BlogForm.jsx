@@ -276,36 +276,6 @@ export default function BlogForm({ data, onSave, onCancel }) {
         </button>
       </div>
 
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
-        }
-        .ql-toolbar.ql-snow {
-          border: none !important;
-          border-bottom: 1px solid #f1f5f9 !important;
-          padding: 12px !important;
-          background: #f8fafc !important;
-        }
-        .ql-container.ql-snow {
-          border: none !important;
-        }
-        .ql-editor {
-          font-family: 'Inter', sans-serif;
-          font-size: 16px;
-          line-height: 1.6;
-          padding: 24px !important;
-        }
-      `}</style>
     </form>
   );
 }
