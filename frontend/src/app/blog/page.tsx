@@ -12,6 +12,7 @@ import Link from "next/link";
 import CategorySidebar from "@/components/CategorySidebar";
 import { FaHome, FaThLarge, FaTimes } from "react-icons/fa";
 import classNames from "classnames";
+import RichTextRenderer from "@/components/RichTextRenderer";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -19,6 +20,8 @@ export default function BlogPage() {
   const colorBg = useConfigContentByKey("color-bg");
   const background = useConfigContentByKey("background");
   const logo = useConfigContentByKey("logo");
+  const blogPageTitle = useConfigContentByKey("blog-page-title");
+  const blogPageDescription = useConfigContentByKey("blog-page-description");
   const pageStyle = colorBg ? { backgroundColor: colorBg } : {};
 
   const [categories, setCategories] = useState<{ key: string; label: string }[]>([
@@ -111,15 +114,15 @@ export default function BlogPage() {
                     </nav>
 
                     <div className="flex items-end gap-4 mb-2">
-                      <h1 className="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none">
-                        Blog<span className="text-[#e57f7f]">.</span>
-                      </h1>
+                      <div className="w-full">
+                        <RichTextRenderer html={blogPageTitle || '<h1 class="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none">Blog<span class="text-[#e57f7f]">.</span></h1>'} />
+                      </div>
                       <div className="hidden sm:block h-px flex-1 bg-gray-100 mb-4" />
                     </div>
 
-                    <p className="max-w-xl text-xs sm:text-sm text-gray-500 leading-relaxed raleway italic">
-                      Chia sẻ kiến thức, kinh nghiệm và những câu chuyện xoay quanh việc giảng dạy và không gian học tập chuyên nghiệp.
-                    </p>
+                    <div className="max-w-xl">
+                      <RichTextRenderer html={blogPageDescription || '<p class="text-xs sm:text-sm text-gray-500 leading-relaxed raleway italic">Chia sẻ kiến thức, kinh nghiệm và những câu chuyện xoay quanh việc giảng dạy và không gian học tập chuyên nghiệp.</p>'} />
+                    </div>
                   </div>
                 </div>
               </div>
