@@ -68,7 +68,7 @@ const Describe = () => {
                     </div>
 
                     <div className="w-full flex flex-col items-center gap-2 lg:gap-3 mb-2 lg:mb-4">
-                        <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] border-t border-b border-[#563c39]/10 py-1.5 px-4 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
+                        <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-1.5 px-4 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
                             <RichTextRenderer
                                 html={h1Text}
                                 className="text-center"
@@ -118,7 +118,7 @@ const Describe = () => {
                     </div>
 
                     <div className="w-full text-center mb-1">
-                        <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] border-t border-b border-[#563c39]/10 py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
+                        <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
                             <RichTextRenderer
                                 html={h1Text}
                                 className="text-center"
