@@ -1,5 +1,6 @@
 "use client";
 
+export const runtime = 'edge'
 import Image from "next/image";
 import { Button, Modal, Textarea, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
