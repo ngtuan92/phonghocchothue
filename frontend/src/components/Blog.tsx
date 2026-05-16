@@ -212,12 +212,17 @@ export default function Blog({
   ]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [limit, setLimit] = useState(isHomePage ? 3 : 6);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !isHomePage) {
+    if (typeof window !== "undefined") {
       const handleResize = () => {
-        setLimit(window.innerWidth < 640 ? 3 : 6);
+        const mobile = window.innerWidth < 1024;
+        setIsMobile(mobile);
+        if (!isHomePage) {
+          setLimit(mobile ? 3 : 12);
+        }
       };
       handleResize();
       window.addEventListener("resize", handleResize);
@@ -263,26 +268,44 @@ export default function Blog({
 
   useEffect(() => {
     if (data?.data) {
-      if (page === 1) {
-        setBlogs(data.data);
+      if (isMobile || isHomePage) {
+        if (page === 1) {
+          setBlogs(data.data);
+        } else {
+          setBlogs((prev) => {
+            const newBlogs = data.data.filter((nb: Blog) => !prev.some((pb) => pb.id === nb.id));
+            return [...prev, ...newBlogs];
+          });
+        }
       } else {
-        setBlogs((prev) => {
-          const newBlogs = data.data.filter((nb: Blog) => !prev.some((pb) => pb.id === nb.id));
-          return [...prev, ...newBlogs];
-        });
+        setBlogs(data.data);
+        if (page > 1) {
+          const element = document.getElementById("blog-list-start");
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
       }
 
       const totalPages = data.pagination?.totalPages || 0;
       setHasMore(page < totalPages);
     }
-  }, [data, page]);
+  }, [data, page, isMobile, isHomePage]);
 
   const handleLoadMore = () => {
     setPage((prev) => prev + 1);
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const totalPages = data?.pagination?.totalPages || 1;
+
   return (
     <section id="blog" className={classNames("mb-16 sm:mb-24", !noContainer && "main-container", isHomePage ? "mt-12 sm:mt-24 md:mt-36" : "mt-0")}>
+      <div id="blog-list-start" className="absolute -translate-y-32" />
+      
       {isHomePage && (
         <div className="mb-14 sm:mb-10 text-center blog-hero-title">
           <RichTextRenderer
@@ -322,15 +345,14 @@ export default function Blog({
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(showFeatured && page === 1 ? blogs.slice(1) : blogs).map((blog) => (
+          {(showFeatured && page === 1 && !isMobile ? blogs.slice(1) : blogs).map((blog) => (
             <BlogCard key={blog.id} blog={blog} />
           ))}
-          {isLoading && page === 1 && Array.from({ length: 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
-          {isFetching && page > 1 && Array.from({ length: 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
+          {(isLoading || isFetching) && Array.from({ length: isMobile ? 1 : 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
         </div>
       </div>
 
-      {!isLoading && blogs.length === 0 && (
+      {!isLoading && !isFetching && blogs.length === 0 && (
         <p className="text-center raleway text-sm text-[#563c39]/60 italic mt-8">
           Chưa có bài viết nào trong danh mục này.
         </p>
@@ -347,18 +369,60 @@ export default function Blog({
           </Link>
         </div>
       ) : (
-        hasMore && blogs.length > 0 && (
-          <div className="flex justify-center mt-10">
-            <button
-              onClick={handleLoadMore}
-              disabled={isFetching}
-              className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isFetching ? "Đang tải..." : "Xem thêm"}
-              {!isFetching && <FaArrowRight size={12} />}
-            </button>
-          </div>
-        )
+        <>
+          {isMobile ? (
+            hasMore && blogs.length > 0 && (
+              <div className="flex justify-center mt-10">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isFetching}
+                  className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isFetching ? "Đang tải..." : "Xem thêm"}
+                  {!isFetching && <FaArrowRight size={12} />}
+                </button>
+              </div>
+            )
+          ) : (
+            totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-12">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, page - 1))}
+                  disabled={page === 1 || isFetching}
+                  className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
+                >
+                  <FaArrowRight size={12} className="rotate-180" />
+                </button>
+                
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => handlePageChange(i + 1)}
+                      disabled={isFetching}
+                      className={classNames(
+                        "w-10 h-10 rounded-lg text-sm font-bold transition-all",
+                        page === i + 1
+                          ? "bg-[#563c39] text-white shadow-lg"
+                          : "bg-white border border-gray-100 text-[#563c39] hover:border-[#e57f7f]"
+                      )}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages || isFetching}
+                  className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
+                >
+                  <FaArrowRight size={12} />
+                </button>
+              </div>
+            )
+          )}
+        </>
       )}
     </section>
   );
