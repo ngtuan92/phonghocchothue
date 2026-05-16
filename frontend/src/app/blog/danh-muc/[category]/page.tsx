@@ -101,8 +101,8 @@ export default function BlogCategoryPage() {
                     </div>
                   )}
 
-                  <div className="w-full flex flex-col gap-4">
-                    <nav className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
+                  <div className="w-full flex flex-col items-center gap-4 text-center">
+                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway main-container">
                       <Link href="/" className="flex items-center gap-1.5 hover:text-[#e57f7f] transition-colors">
                         <FaHome size={15} className="-translate-y-0.5" />
                         <span>Trang chủ</span>
@@ -113,14 +113,13 @@ export default function BlogCategoryPage() {
                       <span className="text-gray-600 capitalize">{displayCategory}</span>
                     </nav>
 
-                    <div className="flex items-end gap-4 mb-2">
-                      <h1 className="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none">
+                    <div className="flex flex-col items-center mb-0 blog-header-dynamic">
+                      <h1 className="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none text-center">
                         {displayCategory}<span className="text-[#e57f7f]">.</span>
                       </h1>
-                      <div className="hidden sm:block h-px flex-1 bg-gray-100 mb-4" />
                     </div>
 
-                    <p className="max-w-xl text-xs sm:text-sm text-gray-500 leading-relaxed raleway italic">
+                    <p className="max-w-2xl mx-auto text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center blog-header-dynamic main-container">
                       Khám phá các bài viết chuyên sâu về chủ đề {displayCategory} tại ChoThuePhongHoc.com
                     </p>
                   </div>

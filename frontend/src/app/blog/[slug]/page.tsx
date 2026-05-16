@@ -124,7 +124,7 @@ export default function BlogDetail() {
             )}
           </div>
 
-          <main className="max-w-4xl mx-auto px-5 sm:px-10 py-8 sm:py-12">
+          <main className="main-container py-8 sm:py-12">
             <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500 mb-10 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
               <Link href="/" className="flex items-center gap-1 hover:text-[#e57f7f] transition-colors">
                 <FaHome size={14} />

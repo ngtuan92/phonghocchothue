@@ -98,8 +98,8 @@ export default function BlogPage() {
                     </div>
                   )}
 
-                  <div className="w-full flex flex-col gap-4">
-                    <nav className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
+                  <div className="w-full flex flex-col items-center gap-1 text-center">
+                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway main-container">
                       <Link href="/" className="flex items-center gap-1.5 hover:text-[#e57f7f] transition-colors">
                         <FaHome size={15} className="-translate-y-0.5" />
                         <span>Trang chủ</span>
@@ -113,15 +113,14 @@ export default function BlogPage() {
                       </button>
                     </nav>
 
-                    <div className="flex items-end gap-4 mb-2">
-                      <div className="w-full">
-                        <RichTextRenderer html={blogPageTitle || '<h1 class="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none">Blog<span class="text-[#e57f7f]">.</span></h1>'} />
+                    <div className="flex flex-col items-center mb-0 blog-header-dynamic">
+                      <div className="w-full text-center">
+                        <RichTextRenderer html={blogPageTitle} />
                       </div>
-                      <div className="hidden sm:block h-px flex-1 bg-gray-100 mb-4" />
                     </div>
 
-                    <div className="max-w-xl">
-                      <RichTextRenderer html={blogPageDescription || '<p class="text-xs sm:text-sm text-gray-500 leading-relaxed raleway italic">Chia sẻ kiến thức, kinh nghiệm và những câu chuyện xoay quanh việc giảng dạy và không gian học tập chuyên nghiệp.</p>'} />
+                    <div className="max-w-2xl mx-auto text-center blog-header-dynamic main-container">
+                      <RichTextRenderer html={blogPageDescription} />
                     </div>
                   </div>
                 </div>
