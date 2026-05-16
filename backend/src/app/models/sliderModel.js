@@ -1,5 +1,5 @@
 const db = require('../../config/db');
-const {DataTypes} = require("sequelize");
+const { DataTypes } = require("sequelize");
 
 const SliderModel = db.sequelize.define("sliders", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

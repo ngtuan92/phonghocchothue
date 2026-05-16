@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -138,13 +140,12 @@ export default function BlogDetail() {
 
             <header className="mb-12 text-center sm:text-left">
               <div className="mb-6">
-                <span className={`text-[11px] font-bold uppercase tracking-[2px] ${
-                  blog.category === 'kien-thuc' ? 'text-[#799f85]' : 'text-[#e57f7f]'
-                }`}>
+                <span className={`text-[11px] font-bold uppercase tracking-[2px] ${blog.category === 'kien-thuc' ? 'text-[#799f85]' : 'text-[#e57f7f]'
+                  }`}>
                   {blog.category === 'kien-thuc' ? 'Kiến thức' : 'Kinh nghiệm'}
                 </span>
               </div>
-              
+
               <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-10">
                 {blog.title}
               </h1>
@@ -160,7 +161,7 @@ export default function BlogDetail() {
                     <span className="sm:hidden text-xs text-gray-500">{new Date(blog.publishedAt).toLocaleDateString("vi-VN")}</span>
                   </div>
                 </div>
-                
+
                 <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
                   <FaCalendarAlt size={12} className="text-gray-400" />
                   <span>Ngày đăng: {new Date(blog.publishedAt).toLocaleDateString("vi-VN", {

@@ -1,0 +1,8 @@
+name = "phonghocchothue-frontend"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_PUBLIC_URL_API = "https://api-phct-1.chickenkiller.com/"
