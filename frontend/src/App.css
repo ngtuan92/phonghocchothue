@@ -419,6 +419,18 @@
   font-size: 1.05rem;
 }
 
+.ql-align-center {
+  text-align: center !important;
+}
+
+.ql-align-right {
+  text-align: right !important;
+}
+
+.ql-align-justify {
+  text-align: justify !important;
+}
+
 @media (max-width: 767px) {
 
   .rich-text-renderer h1,
@@ -835,9 +847,8 @@
   }
 
   .describe-description-wrapper *,
-  .rich-text-renderer p,
-  .rich-text-renderer span,
-  .rich-text-renderer div:not(.image-wrapper) {
+  .describe-description-wrapper p,
+  .describe-description-wrapper span {
     text-align: center !important;
   }
 
