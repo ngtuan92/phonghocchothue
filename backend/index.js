@@ -14,15 +14,10 @@ const flash = require('connect-flash');
 const cors = require('cors');
 
 const corsOptions = {
-  origin: '*',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers']
 };
-
-app.use((req, res, next) => {
-  const delay = Math.floor(Math.random() * 2000) + 1000;
-  setTimeout(next, delay);
-});
 
 app.use((req, res, next) => {
   const start = Date.now();

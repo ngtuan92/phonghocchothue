@@ -449,29 +449,6 @@
     margin-top: 0 !important;
   }
 
-  /* Isolated styling for Blog Page Header on Mobile */
-  .blog-header-dynamic h1,
-  .blog-header-dynamic h1 * {
-    font-size: 32px !important;
-    line-height: 1.1 !important;
-    margin-bottom: 10px !important;
-  }
-
-  .blog-header-dynamic h2,
-  .blog-header-dynamic h2 * {
-    font-size: 24px !important;
-    line-height: 1.2 !important;
-    margin-bottom: 8px !important;
-  }
-
-  .blog-header-dynamic p,
-  .blog-header-dynamic p *,
-  .blog-header-dynamic span {
-    font-size: 16px !important;
-    line-height: 1.5 !important;
-    margin-bottom: 10px !important;
-  }
-
   .blog-hero-title {
     margin-bottom: 40px !important;
   }
@@ -632,7 +609,7 @@
   .title-sub-text *,
   .title-sub-text span,
   .title-sub-text p {
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 
   .title-main-text .font-cursive,
@@ -855,18 +832,11 @@
   .title-sub-text * {
     font-size: 13px !important;
     white-space: nowrap !important;
-    display: inline-block !important;
-    width: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
 
   .describe-description-wrapper *,
   .rich-text-renderer p,
   .rich-text-renderer span,
-  .rich-text-renderer h1,
-  .rich-text-renderer h2,
-  .rich-text-renderer h3,
   .rich-text-renderer div:not(.image-wrapper) {
     text-align: center !important;
   }

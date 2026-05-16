@@ -1,7 +1,5 @@
 "use client";
 
-
-export const runtime = 'edge'
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import classNames from "classnames";
@@ -77,7 +75,7 @@ export default function BlogCategoryPage() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-7 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
+      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
         <div
           className="w-full min-h-screen sm:min-h-0 sm:h-full rounded-[10px] sm:rounded-[30px] overflow-y-auto hide-scrollbar"
           style={pageStyle}
@@ -85,7 +83,7 @@ export default function BlogCategoryPage() {
           <Header />
 
           <main className="min-h-screen">
-            <div className="relative pt-12 pb-2 sm:pt-20 sm:pb-0 overflow-hidden">
+            <div className="relative pt-12 pb-8 sm:pt-20 sm:pb-12 overflow-hidden">
               <div className="main-container relative z-10">
                 <div className="flex flex-col items-center">
                   {logo && (
@@ -104,7 +102,7 @@ export default function BlogCategoryPage() {
                   )}
 
                   <div className="w-full flex flex-col items-center gap-4 text-center">
-                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
+                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway main-container">
                       <Link href="/" className="flex items-center gap-1.5 hover:text-[#e57f7f] transition-colors">
                         <FaHome size={15} className="-translate-y-0.5" />
                         <span>Trang chủ</span>
@@ -121,7 +119,7 @@ export default function BlogCategoryPage() {
                       </h1>
                     </div>
 
-                    <p className="max-w-2xl mx-auto text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center blog-header-dynamic">
+                    <p className="max-w-2xl mx-auto text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center blog-header-dynamic main-container">
                       Khám phá các bài viết chuyên sâu về chủ đề {displayCategory} tại ChoThuePhongHoc.com
                     </p>
                   </div>
@@ -129,7 +127,7 @@ export default function BlogCategoryPage() {
               </div>
             </div>
 
-            <div className="main-container py-2 sm:py-6">
+            <div className="main-container py-6 sm:py-20">
               <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-4 bg-transparent mb-8">
                 <div className="flex flex-wrap gap-2">
                   {categories.length <= 5 ? (

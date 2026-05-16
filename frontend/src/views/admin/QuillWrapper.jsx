@@ -380,13 +380,6 @@ const QuillWrapper = forwardRef((props, ref) => {
             }
           }
           showAlert("Vui lòng chọn một hình ảnh trước khi chỉnh sửa thuộc tính.");
-        },
-        header: function (value) {
-          // Reset size formatting when applying a header (like Word Styles)
-          if (value) {
-            this.quill.format('size', false);
-          }
-          this.quill.format('header', value);
         }
       }
     };
@@ -622,12 +615,6 @@ const QuillWrapper = forwardRef((props, ref) => {
             content: '${label}' !important; 
           }
         `).join('\n')}
-        .ql-editor h1 { font-size: 3.5rem !important; line-height: 1.2 !important; }
-        .ql-editor h2 { font-size: 2.5rem !important; line-height: 1.2 !important; }
-        .ql-editor h3 { font-size: 2rem !important; line-height: 1.2 !important; }
-        .ql-editor h4 { font-size: 1.5rem !important; line-height: 1.2 !important; }
-        .ql-editor h5 { font-size: 1.25rem !important; line-height: 1.2 !important; }
-        .ql-editor h6 { font-size: 1rem !important; line-height: 1.2 !important; }
         .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 { 
           line-height: 1.1 !important; 
           margin-bottom: 0.5rem !important;

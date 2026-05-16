@@ -1,7 +1,5 @@
 "use client";
 
-export const runtime = "edge";
-
 import { useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -94,7 +92,7 @@ export default function BlogDetail() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-7 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
+      <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-[70px]">
         <div
           className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto hide-scrollbar bg-white shadow-2xl"
           style={pageStyle}
@@ -126,7 +124,7 @@ export default function BlogDetail() {
             )}
           </div>
 
-          <main className="max-w-4xl mx-auto px-5 sm:px-10 py-8 sm:py-12">
+          <main className="main-container py-8 sm:py-12">
             <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500 mb-10 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
               <Link href="/" className="flex items-center gap-1 hover:text-[#e57f7f] transition-colors">
                 <FaHome size={14} />
@@ -140,12 +138,13 @@ export default function BlogDetail() {
 
             <header className="mb-12 text-center sm:text-left">
               <div className="mb-6">
-                <span className={`text-[11px] font-bold uppercase tracking-[2px] ${blog.category === 'kien-thuc' ? 'text-[#799f85]' : 'text-[#e57f7f]'
-                  }`}>
+                <span className={`text-[11px] font-bold uppercase tracking-[2px] ${
+                  blog.category === 'kien-thuc' ? 'text-[#799f85]' : 'text-[#e57f7f]'
+                }`}>
                   {blog.category === 'kien-thuc' ? 'Kiến thức' : 'Kinh nghiệm'}
                 </span>
               </div>
-
+              
               <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-10">
                 {blog.title}
               </h1>
@@ -161,7 +160,7 @@ export default function BlogDetail() {
                     <span className="sm:hidden text-xs text-gray-500">{new Date(blog.publishedAt).toLocaleDateString("vi-VN")}</span>
                   </div>
                 </div>
-
+                
                 <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
                   <FaCalendarAlt size={12} className="text-gray-400" />
                   <span>Ngày đăng: {new Date(blog.publishedAt).toLocaleDateString("vi-VN", {
