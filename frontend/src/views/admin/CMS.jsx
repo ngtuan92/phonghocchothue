@@ -105,11 +105,11 @@ export default function CMS() {
     }
 
     .ql-editor h1 {
-      font-size: 2.5rem !important;
+      font-size: 3.5rem !important;
       color: #563c39 !important;
     }
     .ql-editor h2 {
-      font-size: 2rem !important;
+      font-size: 2.5rem !important;
       color: #563c39 !important;
     }
     .ql-snow .ql-picker.ql-font {

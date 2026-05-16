@@ -449,6 +449,29 @@
     margin-top: 0 !important;
   }
 
+  /* Isolated styling for Blog Page Header on Mobile */
+  .blog-header-dynamic h1,
+  .blog-header-dynamic h1 * {
+    font-size: 32px !important;
+    line-height: 1.1 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .blog-header-dynamic h2,
+  .blog-header-dynamic h2 * {
+    font-size: 24px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .blog-header-dynamic p,
+  .blog-header-dynamic p *,
+  .blog-header-dynamic span {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 10px !important;
+  }
+
   .blog-hero-title {
     margin-bottom: 40px !important;
   }

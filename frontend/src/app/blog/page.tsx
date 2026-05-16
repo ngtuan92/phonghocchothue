@@ -72,7 +72,7 @@ export default function BlogPage() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
+      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-7 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
         <div
           className="w-full min-h-screen sm:min-h-0 sm:h-full rounded-[10px] sm:rounded-[30px] overflow-y-auto hide-scrollbar"
           style={pageStyle}
@@ -80,7 +80,7 @@ export default function BlogPage() {
           <Header />
 
           <main className="min-h-screen">
-            <div className="relative pt-12 pb-8 sm:pt-20 sm:pb-4 overflow-hidden">
+            <div className="relative pt-12 pb-2 sm:pt-20 sm:pb-0 overflow-hidden">
               <div className="main-container relative z-10">
                 <div className="flex flex-col items-center">
                   {logo && (
@@ -98,8 +98,8 @@ export default function BlogPage() {
                     </div>
                   )}
 
-                  <div className="w-full flex flex-col gap-4">
-                    <nav className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
+                  <div className="w-full flex flex-col items-center gap-1 text-center">
+                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
                       <Link href="/" className="flex items-center gap-1.5 hover:text-[#e57f7f] transition-colors">
                         <FaHome size={15} className="-translate-y-0.5" />
                         <span>Trang chủ</span>
@@ -113,22 +113,21 @@ export default function BlogPage() {
                       </button>
                     </nav>
 
-                    <div className="flex items-end gap-4 mb-2">
-                      <div className="w-full">
-                        <RichTextRenderer html={blogPageTitle || '<h1 class="text-4xl sm:text-7xl font-bold text-[#563c39] raleway tracking-tighter leading-none">Blog<span class="text-[#e57f7f]">.</span></h1>'} />
+                    <div className="flex flex-col items-center mb-0 blog-header-dynamic">
+                      <div className="w-full text-center">
+                        <RichTextRenderer html={blogPageTitle} />
                       </div>
-                      <div className="hidden sm:block h-px flex-1 bg-gray-100 mb-4" />
                     </div>
 
-                    <div className="max-w-xl">
-                      <RichTextRenderer html={blogPageDescription || '<p class="text-xs sm:text-sm text-gray-500 leading-relaxed raleway italic">Chia sẻ kiến thức, kinh nghiệm và những câu chuyện xoay quanh việc giảng dạy và không gian học tập chuyên nghiệp.</p>'} />
+                    <div className="max-w-2xl mx-auto text-center blog-header-dynamic">
+                      <RichTextRenderer html={blogPageDescription} />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="main-container py-6 sm:py-8">
+            <div className="main-container py-2 sm:py-4">
               <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-4 bg-transparent mb-8">
                 <div className="flex flex-wrap gap-2">
                   {categories.length <= 5 ? (
