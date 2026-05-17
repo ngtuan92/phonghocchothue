@@ -11,7 +11,7 @@ const SIZE_MAP = {
   "Normal": "1.05rem",
   "Large": "2rem",
   "Huge": "5rem",
-  "Super Huge": "15vw"
+  "Super Huge": "19vw"
 };
 
 let cachedFonts = null;

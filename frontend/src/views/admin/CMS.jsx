@@ -100,7 +100,7 @@ export default function CMS() {
     .ql-size-small { font-size: 0.85rem !important; }
     .ql-size-large { font-size: 2rem !important; }
     .ql-size-huge { font-size: 5rem !important; }
-    .ql-size-super-huge { font-size: 15vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
+    .ql-size-super-huge { font-size: 19vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
 
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;

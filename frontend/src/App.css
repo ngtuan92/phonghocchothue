@@ -304,21 +304,25 @@
 
 .title-bg-text {
   font-family: 'Bebas Neue', sans-serif !important;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.05em !important;
   opacity: 0.12;
   color: #d4908a;
   text-transform: uppercase;
   z-index: 0;
-  line-height: 1;
+  line-height: 0.75 !important;
   font-weight: 400;
   text-align: center;
   width: 100%;
   overflow: visible !important;
+  font-size: clamp(15rem, 19vw, 26rem) !important;
+}
+
+.title-bg-text strong,
+.title-bg-text b {
+  font-weight: 400 !important;
 }
 
 .title-bg-text .rich-text-renderer {
-  font-size: inherit !important;
-  line-height: inherit !important;
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
@@ -327,10 +331,6 @@
 
 .title-bg-text .rich-text-renderer p {
   margin: 0 !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  color: inherit !important;
-  font-family: inherit !important;
 }
 
 .title-bg-text .rich-text-renderer * {
@@ -342,6 +342,7 @@
   z-index: 10;
   text-shadow: 0 4px 12px rgba(86, 60, 57, 0.08);
   line-height: 1.4;
+  margin-left: 0.08rem !important;
 }
 
 .title-sub-text {
@@ -554,7 +555,7 @@
 }
 
 .ql-size-super-huge {
-  font-size: 15vw !important;
+  font-size: 19vw !important;
   line-height: 1.6 !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
@@ -571,7 +572,7 @@
 .ql-editor h1 .ql-size-super-huge,
 .ql-editor h2 .ql-size-super-huge,
 .ql-editor p .ql-size-super-huge {
-  font-size: 15vw !important;
+  font-size: 19vw !important;
 }
 
 @media (max-width: 767px) {
@@ -617,12 +618,7 @@
 
 @media (max-width: 767px) {
 
-  .title-sub-text,
-  .title-sub-text *,
-  .title-sub-text span,
-  .title-sub-text p {
-    font-size: 12px !important;
-  }
+
 
   .title-main-text .font-cursive,
   .title-main-text [style*="cursive"],
@@ -630,8 +626,11 @@
   .title-main-text h1 .font-cursive,
   .title-main-text h2 .font-cursive,
   .title-main-text h1 span,
-  .title-main-text h2 span {
-    font-size: 26px !important;
+  .title-main-text h2 span,
+  .title-main-text p,
+  .title-main-text p span,
+  .title-main-text p .font-cursive {
+    font-size: clamp(22px, 6.8vw, 28px) !important;
     line-height: 1.6 !important;
     display: block !important;
     margin-top: 5px !important;
@@ -639,7 +638,8 @@
   }
 
   .title-main-text h1,
-  .title-main-text h2 {
+  .title-main-text h2,
+  .title-main-text p {
     margin-bottom: 5px !important;
   }
 
@@ -649,11 +649,12 @@
     overflow: visible !important;
     display: block !important;
     text-align: center !important;
-    font-size: clamp(38px, 17.8vw, 75px) !important;
-    line-height: 0.6 !important;
+    font-size: clamp(40px, 18.5vw, 90px) !important;
+    line-height: 0.85 !important;
     white-space: nowrap !important;
-    letter-spacing: -0.04em !important;
+    letter-spacing: -0.05em !important;
     font-family: 'Bebas Neue', sans-serif !important;
+    transform: scaleY(1.25) !important;
   }
 
   div.rich-text-renderer.mobile-watermark-text *,
@@ -671,6 +672,18 @@
     max-width: none !important;
     letter-spacing: inherit !important;
     font-family: inherit !important;
+  }
+
+  .title-sub-text,
+  .title-sub-text *,
+  .title-sub-text h1,
+  .title-sub-text h1 *,
+  .title-sub-text span,
+  .title-sub-text p {
+    font-size: clamp(9px, 2.7vw, 14px) !important;
+    letter-spacing: 0.05em !important;
+    padding-left: 0.15em !important;
+    text-align: center !important;
   }
 
   :root {
@@ -842,7 +855,6 @@
 
   .title-sub-text,
   .title-sub-text * {
-    font-size: 13px !important;
     white-space: nowrap !important;
   }
 
@@ -870,8 +882,8 @@
   .describe-description-wrapper p:not(.mobile-watermark-text *),
   .describe-description-wrapper span:not(.mobile-watermark-text *),
   .describe-description-wrapper *:not(.mobile-watermark-text *),
-  .rich-text-renderer p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *),
-  .rich-text-renderer span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *) {
+  .rich-text-renderer p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *),
+  .rich-text-renderer span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *) {
     font-size: 13px !important;
   }
 
@@ -895,5 +907,14 @@
     line-height: 1 !important;
     display: block !important;
     width: 100% !important;
+  }
+
+  .hero-phone-text,
+  .hero-phone-text *,
+  .hero-phone-text span,
+  .hero-phone-text p,
+  div.rich-text-renderer.hero-phone-text span,
+  div.rich-text-renderer.hero-phone-text p {
+    font-size: 9px !important;
   }
 }

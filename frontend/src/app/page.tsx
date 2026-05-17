@@ -35,10 +35,10 @@ export default function Home() {
 
   const seoTitle =
     useConfigContentByKey("seo-title-home") ||
-    "Thuê phòng học & phòng sự kiện linh hoạt tại Đà Nẵng";
+    "Cho thuê phòng dạy học tại Đà Nẵng | Phòng học đầy đủ tiện nghi.";
   const seoDescription =
     useConfigContentByKey("seo-description-home") ||
-    "Hệ thống phòng học, phòng họp tiêu chuẩn với trang thiết bị đầy đủ, đặt nhanh theo giờ hoặc theo buổi cùng nhiều ưu đãi.";
+    "Cho thuê phòng dạy học theo giờ, buổi, dài hạn tại Đà Nẵng. Phòng học sạch sẽ, wifi mạnh, máy chiếu, bàn ghế tiêu chuẩn. Liên hệ đặt phòng nhanh chóng.";
   const seoKeywords =
     useConfigContentByKey("seo-keywords-home") ||
     "thuê phòng học Đà Nẵng, thuê phòng họp, phòng đào tạo, phòng sự kiện";

@@ -15,24 +15,24 @@ import CustomFontProvider from "@/components/CustomFontProvider";
 export const metadata: Metadata = {
   metadataBase: new URL("https://phonghocchothue.com"),
   title: {
-    default: "Cho thuê phòng dạy học theo giờ, buổi, dài hạn tại Đà Nẵng. Phòng học sạch sẽ, wifi mạnh, máy chiếu, bàn ghế tiêu chuẩn. Liên hệ đặt phòng nhanh chóng.",
+    default: "Cho thuê phòng dạy học tại Đà Nẵng | Phòng học đầy đủ tiện nghi.",
     template: "%s | Cho thuê phòng dạy học tại Đà Nẵng.",
   },
-  description: "Cho thuê phòng dạy học tại Đà Nẵng | Phòng học đầy đủ tiện nghi",
+  description: "Cho thuê phòng dạy học theo giờ, buổi, dài hạn tại Đà Nẵng. Phòng học sạch sẽ, wifi mạnh, máy chiếu, bàn ghế tiêu chuẩn. Liên hệ đặt phòng nhanh chóng.",
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
     type: "website",
     url: "https://phonghocchothue.com",
-    title: "Thuê Phòng Học Chất Lượng – Giá Tốt",
-    description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
+    title: "Cho thuê phòng dạy học tại Đà Nẵng | Phòng học đầy đủ tiện nghi.",
+    description: "Cho thuê phòng dạy học theo giờ, buổi, dài hạn tại Đà Nẵng. Phòng học sạch sẽ, wifi mạnh, máy chiếu, bàn ghế tiêu chuẩn. Liên hệ đặt phòng nhanh chóng.",
     siteName: "PhongHocChoThue",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Thuê Phòng Học Chất Lượng – Giá Tốt",
-    description: "Website cho thuê phòng chuyên nghiệp, uy tín tại Đà Nẵng.",
+    title: "Cho thuê phòng dạy học tại Đà Nẵng | Phòng học đầy đủ tiện nghi.",
+    description: "Cho thuê phòng dạy học theo giờ, buổi, dài hạn tại Đà Nẵng. Phòng học sạch sẽ, wifi mạnh, máy chiếu, bàn ghế tiêu chuẩn. Liên hệ đặt phòng nhanh chóng.",
   },
 };
 

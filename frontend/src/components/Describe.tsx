@@ -40,13 +40,20 @@ const Describe = () => {
             .replace(/<\/p>/gi, "");
     };
 
+    const replaceTagName = (html: string | undefined, newTag: string) => {
+        if (!html) return "";
+        return html
+            .replace(/<h1([^>]*)>/gi, `<${newTag}$1>`)
+            .replace(/<\/h1>/gi, `</${newTag}>`);
+    };
+
     return (
         <div className="mb-16 sm:mb-30 main-container overflow-x-hidden">
             <div className="relative w-full h-screen sm:h-[85vh] md:h-[90vh] lg:h-[92vh]">
                 <div className="absolute inset-0 hidden sm:flex items-center justify-center pointer-events-none select-none z-0 -translate-y-8 lg:-translate-y-12">
                     <RichTextRenderer
-                        html={watermarkText || "HOAHOCTRO"}
-                        className="title-bg-text text-[60px] sm:text-[18vw] lg:text-[20vw] tracking-[-0.02em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center"
+                        html={replaceTagName(watermarkText || "HOAHOCTRO", "div")}
+                        className="title-bg-text text-[60px] sm:text-[18vw] lg:text-[20vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center"
                     />
                 </div>
 
@@ -63,7 +70,7 @@ const Describe = () => {
 
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+32px)] lg:-translate-y-[calc(50%+48px)] w-full">
                         <RichTextRenderer
-                            html={describeHeading}
+                            html={replaceTagName(describeHeading, "div")}
                             className="title-main-text text-center"
                         />
                     </div>
@@ -114,16 +121,16 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-0.5">
-                            <div className="absolute inset-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
+                            <div className="absolute -top-12 -bottom-12 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
                                 <RichTextRenderer
-                                    html={watermarkText || "HOAHOCTRO"}
+                                    html={replaceTagName(watermarkText || "HOAHOCTRO", "div")}
                                     className="mobile-watermark-text"
                                 />
                             </div>
 
                             <div className="relative z-10 -translate-y-1">
                                 <RichTextRenderer
-                                    html={describeHeading}
+                                    html={replaceTagName(describeHeading, "div")}
                                     className="title-main-text text-center"
                                 />
                             </div>
@@ -132,7 +139,7 @@ const Describe = () => {
                         <div className="w-full text-center mb-0 relative z-10">
                             <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
                                 <RichTextRenderer
-                                    html={h1Text}
+                                    html={replaceTagName(h1Text, "div")}
                                     className="text-center"
                                 />
                             </div>
