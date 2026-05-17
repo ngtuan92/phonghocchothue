@@ -373,7 +373,7 @@ export default function Blog({
       )}
 
       {isHomePage ? (
-        <div className="flex justify-end mt-6 sm:mt-10">
+        <div className="flex justify-end mt-4 sm:mt-8">
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-xs sm:text-lg text-white bg-[#563c39] hover:bg-[#e57f7f] px-[15px] sm:px-[20px] py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
@@ -386,7 +386,7 @@ export default function Blog({
         <>
           {isMobile ? (
             hasMore && blogs.length > 0 && (
-              <div className="flex justify-end mt-6 sm:mt-10">
+              <div className="flex justify-end mt-4 sm:mt-8">
                 <button
                   onClick={handleLoadMore}
                   disabled={isFetching}
