@@ -456,13 +456,13 @@
   .blog-hero-title .rich-text-renderer,
   .blog-hero-title .rich-text-renderer>* {
     font-size: 18px !important;
-    line-height: 1.4 !important;
+    line-height: 1.5 !important;
     margin-bottom: 15px !important;
     margin-top: 0 !important;
   }
 
   .blog-hero-title {
-    margin-bottom: 40px !important;
+    margin-bottom: 30px !important;
   }
 
   .blog-flower-icon {
@@ -783,7 +783,7 @@
   .describe-h2-wrapper div,
   h3.text-lg.font-bold {
     font-size: 18px !important;
-    line-height: 1.0 !important;
+    line-height: 1.5 !important;
     margin-bottom: 12px !important;
     margin-top: 2px !important;
     font-weight: 400 !important;

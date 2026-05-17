@@ -91,7 +91,7 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-20">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-32">
                     <div className="relative w-full flex flex-col items-center overflow-x-hidden">
                         {describeFrameImage && (
                             <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-3 -right-3 sm:max-w-[420px] mx-auto rounded-[16px] overflow-hidden pointer-events-none">
@@ -197,7 +197,7 @@ const Describe = () => {
                             arrows={false}
                         >
                             {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                <div key={index} className="relative w-full overflow-hidden rounded-[10px] shadow-sm">
+                                <div key={index} className="relative w-full overflow-hidden rounded-none shadow-sm">
                                     <Image
                                         className="w-full h-auto object-contain"
                                         src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}

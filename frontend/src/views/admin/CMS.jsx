@@ -47,7 +47,7 @@ const SECTION_KEY_MAP = {
   services: ["amenities-description"],
   gallery: ["gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
-  blog: ["blog-page-title", "blog-page-description"],
+  blog: ["blog-heading", "blog-decoration", "blog-page-title", "blog-page-description"],
 };
 
 const KEY_LABEL_MAP = {
@@ -61,6 +61,7 @@ const KEY_LABEL_MAP = {
   "amenities-description": "Đoạn văn mô tả tiện ích chi tiết",
   "gallery-heading": "Tiêu đề bộ sưu tập ảnh",
   "blog-heading": "Tiêu đề chuyên mục tin tức (Home)",
+  "blog-decoration": "Ảnh trang trí tiêu đề chuyên mục blog (Home)",
   "blog-page-title": "Tiêu đề trang danh sách Blog",
   "blog-page-description": "Nội dung mô tả trang danh sách Blog",
   "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
