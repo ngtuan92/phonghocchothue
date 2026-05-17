@@ -23,6 +23,7 @@ const Describe = () => {
     const logo = useConfigContentByKey("logo");
     const watermarkText = useConfigContentByKey("describe-bg-text");
     const describePhone = useConfigContentByKey("describe-phone");
+    const describeFrameImage = useConfigContentByKey("describe-frame-image");
 
     const buildUrl = (path: string | undefined) => {
         if (!path) return "";
@@ -91,53 +92,65 @@ const Describe = () => {
                 </div>
 
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-20">
-                    {logo && (
-                        <div className="transition-all duration-700 mb-12">
-                            <img
-                                src={buildUrl(logo)}
-                                alt="Logo"
-                                className="w-[75px] h-auto object-contain drop-shadow-xl"
-                            />
-                        </div>
-                    )}
-
-                    <div className="relative w-full flex items-center justify-center py-0.5">
-                        <div className="absolute inset-0 flex items-center justify-center opacity-50 select-none pointer-events-none">
-                            <RichTextRenderer
-                                html={watermarkText || "HOAHOCTRO"}
-                                className="mobile-watermark-text"
-                            />
-                        </div>
-
-                        <div className="relative z-10 -translate-y-1">
-                            <RichTextRenderer
-                                html={describeHeading}
-                                className="title-main-text text-center"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="w-full text-center mb-0">
-                        <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
-                            <RichTextRenderer
-                                html={h1Text}
-                                className="text-center"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-[-2px]">
-                        <div className="flex-shrink-0">
-                            <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
-                                <RichTextRenderer
-                                    html={describePhone}
-                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
+                    <div className="relative w-full flex flex-col items-center overflow-x-hidden">
+                        {describeFrameImage && (
+                            <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-3 -right-3 sm:max-w-[420px] mx-auto rounded-[16px] overflow-hidden pointer-events-none">
+                                <img
+                                    src={buildUrl(describeFrameImage)}
+                                    alt="Frame"
+                                    className="w-full h-full object-fill opacity-100"
                                 />
-                            </span>
+                            </div>
+                        )}
+                        
+                        {logo && (
+                            <div className="transition-all duration-700 mb-12">
+                                <img
+                                    src={buildUrl(logo)}
+                                    alt="Logo"
+                                    className="w-[75px] h-auto object-contain drop-shadow-xl relative z-10"
+                                />
+                            </div>
+                        )}
+
+                        <div className="relative w-full flex items-center justify-center py-0.5">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0">
+                                <RichTextRenderer
+                                    html={watermarkText || "HOAHOCTRO"}
+                                    className="mobile-watermark-text"
+                                />
+                            </div>
+
+                            <div className="relative z-10 -translate-y-1">
+                                <RichTextRenderer
+                                    html={describeHeading}
+                                    className="title-main-text text-center"
+                                />
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                            <span className="text-[11px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
-                            <span className="text-[#563c39] opacity-60 text-[10px]">♡</span>
+
+                        <div className="w-full text-center mb-0 relative z-10">
+                            <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
+                                <RichTextRenderer
+                                    html={h1Text}
+                                    className="text-center"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-[-2px] relative z-10">
+                            <div className="flex-shrink-0">
+                                <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
+                                    <RichTextRenderer
+                                        html={describePhone}
+                                        className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
+                                    />
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                                <span className="text-[11px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
+                                <span className="text-[#563c39] opacity-60 text-[10px]">♡</span>
+                            </div>
                         </div>
                     </div>
                 </div>

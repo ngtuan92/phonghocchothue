@@ -43,7 +43,7 @@ const SECTIONS = [
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
+  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "describe-h2", "bgTitle", "describe-frame-image", "textDecription"],
   services: ["amenities-description"],
   gallery: ["gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
@@ -66,6 +66,7 @@ const KEY_LABEL_MAP = {
   "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
   "faq_list": "Danh sách câu hỏi thường gặp (FAQ)",
   bgTitle: "Ảnh trang trí nghệ thuật",
+  "describe-frame-image": "Khung ảnh nền (sau HOAHOCTRO trên mobile)",
   "describe-phone": "Số điện thoại phần giới thiệu (Hero)",
 };
 
@@ -394,12 +395,17 @@ export default function CMS() {
   const saveConfig = async (config) => {
     setSavingKey(config.key);
     const fd = new FormData();
-    fd.append("content", config.content ?? "");
+    if (config.type === "image" && config._file) {
+      fd.set("content", config._file);
+    } else {
+      fd.set("content", config.content ?? "");
+    }
     fd.append("type", config.type);
     fd.append("section", config.section || activeSection);
-    if (config.type === "image" && config._file) fd.append("content", config._file);
     try {
-      await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd);
+      await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd, {
+        "Content-Type": "multipart/form-data",
+      });
       showToastSuccess(`Đã lưu "${KEY_LABEL_MAP[config.key] || config.key}"`);
       loadConfigs();
     } catch {
