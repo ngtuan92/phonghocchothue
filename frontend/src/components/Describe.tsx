@@ -98,7 +98,7 @@ const Describe = () => {
                                 <img
                                     src={buildUrl(describeFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100"
+                                    className="w-full h-full object-fill opacity-100 rounded-[16px]"
                                 />
                             </div>
                         )}
