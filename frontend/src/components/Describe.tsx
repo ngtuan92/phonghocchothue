@@ -90,7 +90,7 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-20">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-32">
                     {logo && (
                         <div className="transition-all duration-700 mb-12">
                             <img
@@ -184,7 +184,7 @@ const Describe = () => {
                             arrows={false}
                         >
                             {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                <div key={index} className="relative w-full overflow-hidden rounded-[10px] shadow-sm">
+                                <div key={index} className="relative w-full overflow-hidden rounded-none shadow-sm">
                                     <Image
                                         className="w-full h-auto object-contain"
                                         src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}

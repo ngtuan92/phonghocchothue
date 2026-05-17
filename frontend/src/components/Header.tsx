@@ -151,11 +151,9 @@ const Header = ({ icon }: HeaderProps) => {
 
   return (
     <header
-      className={classNames(
-        "z-[9999] fixed left-[42px] right-[42px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[10px] sm:mt-[8px] flex justify-between items-center px-1"
-      )}
+      className="z-10 fixed left-[43px] right-[43px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[10px] sm:mt-[8px] max-sm:pl-[5px] flex justify-between items-center"
     >
-      <div className="flex items-center justify-start ml-0 sm:ml-[25px] w-[95px] xs:w-[105px] sm:w-auto flex-shrink-0">
+      <div className="flex items-center justify-start sm:ml-[25px]">
         <a
           href={useConfigContentByKey("linkfb") || "#"}
           target="_blank"
@@ -163,7 +161,7 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faFacebook}
-            className="w-[16px] xs:w-[18px] sm:w-[22px] h-[16px] xs:h-[18px] mr-[6px] xs:mr-[8px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300"
+            className="w-[18px] sm:w-[22px] h-[18px] mr-[18px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300"
           />
         </a>
         <a
@@ -173,7 +171,7 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faFacebookMessenger}
-            className="w-[16px] xs:w-[18px] sm:w-[22px] h-[16px] xs:h-[18px] mr-[6px] xs:mr-[8px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300"
+            className="w-[18px] sm:w-[22px] h-[18px] mr-[18px] sm:mr-[20px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300"
           />
         </a>
         <a
@@ -183,7 +181,7 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faYoutube}
-            className="w-[16px] xs:w-[18px] sm:w-[23px] h-[16px] xs:h-[18px] mr-[6px] xs:mr-[8px] sm:mr-[20px] sm:h-[23px] text-[#563c39] hover:scale-150 transition-transform duration-300"
+            className="w-[18px] sm:w-[23px] h-[18px] mr-[18px] sm:mr-[20px] sm:h-[23px] text-[#563c39] hover:scale-150 transition-transform duration-300"
           />
         </a>
         <a
@@ -193,13 +191,14 @@ const Header = ({ icon }: HeaderProps) => {
         >
           <FontAwesomeIcon
             icon={faPhone}
-            className="w-[16px] xs:w-[18px] sm:w-[22px] h-[16px] xs:h-[18px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300"
+            className="w-[18px] sm:w-[22px] h-[18px] sm:h-[22px] text-[#563c39] hover:scale-150 transition-transform duration-300"
           />
         </a>
       </div>
-      <div className="flex items-center justify-end flex-1 px-1 sm:px-0 min-w-0 max-sm:mb-[3px]">
-        <div className="flex items-center px-[2px] justify-between bg-[#AD9551] rounded-[15px] h-[18px] sm:h-[24px] w-[140px] xs:w-[160px] sm:w-[250px]">
-          <div className="w-[16px] sm:w-[20px] h-[16px] sm:h-[20px] rounded-[50%] overflow-hidden flex-shrink-0">
+      
+      <div className="flex items-center justify-end w-full max-sm:mb-[3px]">
+        <div className="flex items-center px-[2px] justify-between bg-[#AD9551] rounded-[15px] h-[24px] max-sm:h-[20px] w-[250px] max-sm:w-[93%]">
+          <div className="w-[20px] max-sm:w-[16px] h-[20px] max-sm:h-[16px] rounded-[50%] overflow-hidden flex-shrink-0">
             <img
               src={icon || "/favicon.jpg"}
               className={`w-full h-full rounded-full ${
@@ -208,14 +207,14 @@ const Header = ({ icon }: HeaderProps) => {
               alt="icon"
             />
           </div>
-          <div className="flex-1 flex items-center justify-center min-w-0 px-1 overflow-hidden">
+          <div className="w-[200px] max-sm:w-[calc(100%-35px)] flex items-center justify-center overflow-hidden">
             <LegacyMarquee
               behavior="scroll"
               direction="left"
               scrollAmount={scrollAmount}
               className="text-sm w-full"
             >
-              <span className="text-[8px] xs:text-[9px] sm:text-[13px] text-black raleway !font-normal whitespace-nowrap text-center block w-full">
+              <span className="text-[10px] sm:text-[13px] text-black raleway !font-normal whitespace-nowrap">
                 {homeMusicName}
               </span>
             </LegacyMarquee>
@@ -224,29 +223,17 @@ const Header = ({ icon }: HeaderProps) => {
           <button
             aria-label="Play And Pause Music"
             onClick={handleTogglePlay}
-            className="w-[16px] sm:w-[20px] h-[16px] sm:h-[20px] flex items-center justify-center border-none bg-white text-[#563c39] rounded-[50%] flex-shrink-0"
+            className="w-[20px] max-sm:w-[16px] h-[20px] max-sm:h-[16px] flex items-center justify-center border-none bg-white text-[#563c39] rounded-[50%] flex-shrink-0"
           >
             {isPlaying ? (
-              <FaPause className="w-[9px] sm:w-[12px] h-[9px] sm:h-[12px]" />
+              <FaPause className="w-[9px] sm:w-[12px] h-[9px] sm:h-[12px] max-sm:w-[8px] max-sm:h-[8px]" />
             ) : (
-              <FaPlay className="w-[9px] sm:w-[12px] h-[9px] sm:h-[12px]" />
+              <FaPlay className="w-[9px] sm:w-[12px] h-[9px] sm:h-[12px] max-sm:w-[8px] max-sm:h-[8px]" />
             )}
           </button>
         </div>
-        <div className="hidden">
-          {isMounted && (
-            <ReactAudioPlayer
-              ref={audioRef}
-              src={`${URL_API}${
-                typeof homeMusic === "string" ? homeMusic.replaceAll("\\", "/") : ""
-              }`}
-              autoPlay={false}
-              controls
-              loop={false}
-            />
-          )}
-        </div>
       </div>
+      
       <div className="flex items-center">
         <div className="relative flex items-center justify-end">
           <button
@@ -255,49 +242,62 @@ const Header = ({ icon }: HeaderProps) => {
           >
             <FontAwesomeIcon
               icon={isOpen ? faTimes : faBars}
-              className="w-[20px] h-[20px] sm:w-7 sm:h-7 mx-0 my-1 sm:mr-[22px] text-[#563c39] relative"
+              className="w-[22px] h-[22px] sm:w-7 sm:h-7 m-2 sm:mr-[22px] text-[#563c39] relative"
             />
           </button>
         </div>
         <div
-            className={`z-[9998] top-[-10px] right-0 sm:!right-[-46px] lg:!right-[-46px] xl:!right-[-20px] sm:!top-[-8px] lg:!top-[-8px] xl:!top-[-8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${
-              isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
-            }`}
-            style={{
-              transformOrigin: "top right",
-            }}
-          >
-            <div className="h-6 sm:h-8"></div>
-            <ul className="ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium">
-              {[
-                { label: "Trang chủ", href: "/", onClick: () => setIsOpen(false) },
-                { label: "Giới thiệu", href: "#about", onClick: () => handleSmoothScroll("#about") },
-                { label: "Dịch vụ", href: "#room", onClick: () => handleSmoothScroll("#room") },
-                { label: "Blog", href: "#blog", onClick: () => handleSmoothScroll("#blog") },
-                { label: "FAQ", href: "#faq", onClick: () => handleSmoothScroll("#faq") },
-                { label: "Liên hệ", href: "#contact", onClick: () => handleSmoothScroll("#contact") },
-              ].map((item, index) => (
-                <li
-                  key={index}
-                  className="mb-0 sm:mb-1 cursor-pointer pointer-events-auto"
-                  onClick={item.onClick}
+          className={`z-[9998] top-[-10px] right-0 sm:!right-[-46px] lg:!right-[-46px] xl:!right-[-20px] sm:!top-[-8px] lg:!top-[-8px] xl:!top-[-8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${
+            isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
+          }`}
+          style={{
+            transformOrigin: "top right",
+          }}
+        >
+          <div className="h-6 sm:h-8"></div>
+          <ul className="ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium">
+            {[
+              { label: "Trang chủ", href: "/", onClick: () => setIsOpen(false) },
+              { label: "Giới thiệu", href: "#about", onClick: () => handleSmoothScroll("#about") },
+              { label: "Dịch vụ", href: "#room", onClick: () => handleSmoothScroll("#room") },
+              { label: "Blog", href: "#blog", onClick: () => handleSmoothScroll("#blog") },
+              { label: "FAQ", href: "#faq", onClick: () => handleSmoothScroll("#faq") },
+              { label: "Liên hệ", href: "#contact", onClick: () => handleSmoothScroll("#contact") },
+            ].map((item, index) => (
+              <li
+                key={index}
+                className="mb-0 sm:mb-1 cursor-pointer pointer-events-auto"
+                onClick={item.onClick}
+              >
+                <a
+                  href={item.href}
+                  onClick={(e) => {
+                    if (item.href.startsWith("#")) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="hover:underline decoration-wavy py-1 px-4 sm:p-2 block w-full relative z-[10005] pointer-events-auto"
                 >
-                  <a
-                    href={item.href}
-                    onClick={(e) => {
-                      if (item.href.startsWith("#")) {
-                        e.preventDefault();
-                      }
-                    }}
-                    className="hover:underline decoration-wavy py-1 px-4 sm:p-2 block w-full relative z-[10005] pointer-events-auto"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
+      </div>
+      <div className="hidden">
+        {isMounted && (
+          <ReactAudioPlayer
+            ref={audioRef}
+            src={`${URL_API}${
+              typeof homeMusic === "string" ? homeMusic.replaceAll("\\", "/") : ""
+            }`}
+            autoPlay={false}
+            controls
+            loop={false}
+          />
+        )}
+      </div>
     </header>
   );
 };
