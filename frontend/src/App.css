@@ -649,7 +649,7 @@
     overflow: visible !important;
     display: block !important;
     text-align: center !important;
-    font-size: 20vw !important;
+    font-size: clamp(38px, 17.8vw, 75px) !important;
     line-height: 0.6 !important;
     white-space: nowrap !important;
     letter-spacing: -0.04em !important;

@@ -98,7 +98,7 @@ if (typeof window !== "undefined" && Quill) {
   
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
-    SizeStyle.whitelist = Object.values(SIZE_MAP);
+    SizeStyle.whitelist = undefined;
     Quill.register(SizeStyle, true);
   }
   const AlignStyle = Quill.import("attributors/style/align");

@@ -92,13 +92,13 @@ const Describe = () => {
                 </div>
 
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-32">
-                    <div className="relative w-full flex flex-col items-center overflow-x-hidden">
+                    <div className="relative w-full flex flex-col items-center">
                         {describeFrameImage && (
-                            <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-3 -right-3 sm:max-w-[420px] mx-auto rounded-[16px] overflow-hidden pointer-events-none">
+                            <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-3 -right-3 sm:max-w-[420px] mx-auto rounded-[8px] overflow-hidden pointer-events-none">
                                 <img
                                     src={buildUrl(describeFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100 rounded-[16px]"
+                                    className="w-full h-full object-fill opacity-100 rounded-[8px]"
                                 />
                             </div>
                         )}
@@ -114,7 +114,7 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-0.5">
-                            <div className="absolute inset-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
                                 <RichTextRenderer
                                     html={watermarkText || "HOAHOCTRO"}
                                     className="mobile-watermark-text"
