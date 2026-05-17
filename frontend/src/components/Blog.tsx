@@ -231,6 +231,7 @@ export default function Blog({
   }, [isHomePage]);
 
   const blogHeading = useConfigContentByKey("blog-heading");
+  const blogDecoration = useConfigContentByKey("blog-decoration");
 
   const { data, isLoading, isFetching } = useBlogs({
     category: activeTab === "all" ? undefined : activeTab,
@@ -312,11 +313,24 @@ export default function Blog({
             html={blogHeading}
             className="text-center"
           />
-          <div className="flex items-center justify-center gap-4 mt-4 sm:mt-2">
-            <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
-            <span className="text-[#b8c7b0] text-[6px] sm:text-base blog-flower-icon">✿</span>
-            <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
-          </div>
+          {blogDecoration ? (
+            <div className="w-full mt-1.5 sm:mt-2 flex justify-center blog-decoration-wrapper">
+              <Image
+                src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
+                alt="Decoration"
+                width={800}
+                height={240}
+                className="w-full h-auto object-contain max-w-[280px] sm:max-w-[380px]"
+                quality={100}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-4 mt-1.5 sm:mt-2">
+              <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
+              <span className="text-[#b8c7b0] text-[6px] sm:text-base blog-flower-icon">✿</span>
+              <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
+            </div>
+          )}
         </div>
       )}
 
@@ -344,7 +358,7 @@ export default function Blog({
           <FeaturedBlogCard blog={blogs[0]} />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
           {(showFeatured && page === 1 && !isMobile ? blogs.slice(1) : blogs).map((blog) => (
             <BlogCard key={blog.id} blog={blog} />
           ))}
@@ -359,12 +373,12 @@ export default function Blog({
       )}
 
       {isHomePage ? (
-        <div className="flex justify-center mt-10">
+        <div className="flex justify-end mt-6 sm:mt-10">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-10 py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
+            className="inline-flex items-center gap-2 text-xs sm:text-lg text-white bg-[#563c39] hover:bg-[#e57f7f] px-[15px] sm:px-[20px] py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
           >
-            Xem tất cả bài viết
+            Xem thêm
             <FaArrowRight size={12} />
           </Link>
         </div>
@@ -372,11 +386,11 @@ export default function Blog({
         <>
           {isMobile ? (
             hasMore && blogs.length > 0 && (
-              <div className="flex justify-center mt-10">
+              <div className="flex justify-end mt-6 sm:mt-10">
                 <button
                   onClick={handleLoadMore}
                   disabled={isFetching}
-                  className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-6 py-2.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 text-xs sm:text-lg text-white bg-[#563c39] hover:bg-[#e57f7f] px-[15px] sm:px-[20px] py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isFetching ? "Đang tải..." : "Xem thêm"}
                   {!isFetching && <FaArrowRight size={12} />}
