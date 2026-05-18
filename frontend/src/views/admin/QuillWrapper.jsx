@@ -23,7 +23,8 @@ const COLORS = [
   "#888888", "#a10000", "#b26b00", "#b2b200", "#006100", "#0047b2", "#6b24b2",
   "#444444", "#5c0000", "#663d00", "#666600", "#003700", "#002966", "#3d1466",
   "#f1c40f", "#f39c12", "#e67e22", "#d35400", "#7f8c8d", "#34495e", "#2c3e50",
-  "#ffeacb", "#ffd19a", "#ffb347", "#799f85", "#e57f7f", "#563c39", "#323232"
+  "#ffeacb", "#ffd19a", "#ffb347", "#799f85", "#e57f7f", "#563c39", "#323232",
+  "custom-color"
 ];
 
 const createModules = (fontList) => ({
@@ -104,6 +105,16 @@ if (typeof window !== "undefined" && Quill) {
   const AlignStyle = Quill.import("attributors/style/align");
   if (AlignStyle) {
     Quill.register(AlignStyle, true);
+  }
+
+  const ColorStyle = Quill.import("attributors/style/color");
+  if (ColorStyle) {
+    Quill.register(ColorStyle, true);
+  }
+
+  const BackgroundStyle = Quill.import("attributors/style/background");
+  if (BackgroundStyle) {
+    Quill.register(BackgroundStyle, true);
   }
 
   const icons = Quill.import('ui/icons');
@@ -432,6 +443,72 @@ const QuillWrapper = forwardRef((props, ref) => {
             }
           }
           showAlert("Vui lòng chọn một hình ảnh trước khi chỉnh sửa thuộc tính.");
+        },
+        color: function (value) {
+          if (value === 'custom-color') {
+            let picker = document.getElementById('quill-custom-color-picker');
+            if (!picker) {
+              picker = document.createElement('input');
+              picker.id = 'quill-custom-color-picker';
+              picker.type = 'color';
+              picker.style.position = 'absolute';
+              picker.style.width = '1px';
+              picker.style.height = '1px';
+              picker.style.opacity = '0';
+              picker.style.pointerEvents = 'none';
+              document.body.appendChild(picker);
+            }
+            // Định vị input ẩn ngay dưới nút bấm để hộp thoại màu của trình duyệt mở đúng vị trí dưới nút màu
+            const expandedPicker = document.querySelector('.ql-color.ql-expanded');
+            if (expandedPicker) {
+              const rect = expandedPicker.getBoundingClientRect();
+              picker.style.top = `${rect.top + window.scrollY}px`;
+              picker.style.left = `${rect.left + window.scrollX}px`;
+            }
+            const currentFormat = this.quill.getFormat();
+            if (currentFormat && currentFormat.color && currentFormat.color.startsWith('#')) {
+              picker.value = currentFormat.color;
+            }
+            picker.onchange = () => {
+              this.quill.format('color', picker.value);
+            };
+            picker.click();
+          } else {
+            this.quill.format('color', value);
+          }
+        },
+        background: function (value) {
+          if (value === 'custom-color') {
+            let picker = document.getElementById('quill-custom-bg-picker');
+            if (!picker) {
+              picker = document.createElement('input');
+              picker.id = 'quill-custom-bg-picker';
+              picker.type = 'color';
+              picker.style.position = 'absolute';
+              picker.style.width = '1px';
+              picker.style.height = '1px';
+              picker.style.opacity = '0';
+              picker.style.pointerEvents = 'none';
+              document.body.appendChild(picker);
+            }
+            // Định vị input ẩn ngay dưới nút bấm để hộp thoại màu của trình duyệt mở đúng vị trí dưới nút màu
+            const expandedPicker = document.querySelector('.ql-background.ql-expanded');
+            if (expandedPicker) {
+              const rect = expandedPicker.getBoundingClientRect();
+              picker.style.top = `${rect.top + window.scrollY}px`;
+              picker.style.left = `${rect.left + window.scrollX}px`;
+            }
+            const currentFormat = this.quill.getFormat();
+            if (currentFormat && currentFormat.background && currentFormat.background.startsWith('#')) {
+              picker.value = currentFormat.background;
+            }
+            picker.onchange = () => {
+              this.quill.format('background', picker.value);
+            };
+            picker.click();
+          } else {
+            this.quill.format('background', value);
+          }
         }
       }
     };
@@ -633,6 +710,65 @@ const QuillWrapper = forwardRef((props, ref) => {
         />
       )}
       <style jsx global>{`
+        /* Custom Color Picker dropdown overrides */
+        .ql-snow .ql-picker-options {
+          z-index: 100 !important;
+        }
+        .ql-snow .ql-color-picker.ql-expanded .ql-picker-options,
+        .ql-snow .ql-background-picker.ql-expanded .ql-picker-options {
+          width: 152px !important;
+          padding: 8px !important;
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 3px !important;
+          z-index: 100 !important;
+        }
+        .ql-snow .ql-color-picker .ql-picker-options .ql-picker-item,
+        .ql-snow .ql-background-picker .ql-picker-options .ql-picker-item {
+          width: 16px !important;
+          height: 16px !important;
+          margin: 0 !important;
+          border-radius: 3px !important;
+          border: 1px solid rgba(0,0,0,0.1) !important;
+          float: none !important;
+          display: block !important;
+        }
+        .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"],
+        .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"] {
+          background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff) !important;
+          width: 100% !important;
+          height: 24px !important;
+          border: 1px solid #d1d5db !important;
+          border-radius: 6px !important;
+          margin-top: 6px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          cursor: pointer !important;
+          position: relative !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+          transition: all 0.2s ease !important;
+        }
+        .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"]:hover,
+        .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"]:hover {
+          transform: translateY(-1px) !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+          border-color: #9ca3af !important;
+        }
+        .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"]::after,
+        .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"]::after {
+          content: "Tự chọn màu" !important;
+          font-family: 'Inter', sans-serif !important;
+          font-size: 10px !important;
+          color: white !important;
+          text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.9) !important;
+          font-weight: 700 !important;
+          letter-spacing: 0.5px !important;
+          text-transform: uppercase !important;
+          pointer-events: none !important;
+          white-space: nowrap !important;
+        }
+
         .ql-editor {
           font-family: 'Inter', sans-serif;
           font-size: 1.05rem;
@@ -650,6 +786,8 @@ const QuillWrapper = forwardRef((props, ref) => {
           background: #f8fafc !important;
           border-top-left-radius: 12px;
           border-top-right-radius: 12px;
+          position: relative !important;
+          z-index: 10 !important;
         }
         .ql-container.ql-snow {
           border: none !important;

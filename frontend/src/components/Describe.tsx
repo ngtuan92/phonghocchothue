@@ -18,7 +18,6 @@ const Describe = () => {
     const description = useConfigContentByKey("textDecription");
     const describeHeading = useConfigContentByKey("describe-heading");
     const h1Text = useConfigContentByKey("seo-h1-main");
-    const describeH2 = useConfigContentByKey("describe-h2");
     const bgTitle = useConfigContentByKey("bgTitle");
     const logo = useConfigContentByKey("logo");
     const watermarkText = useConfigContentByKey("describe-bg-text");
@@ -101,7 +100,7 @@ const Describe = () => {
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-32">
                     <div className="relative w-full flex flex-col items-center">
                         {describeFrameImage && (
-                            <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-3 -right-3 sm:max-w-[420px] mx-auto rounded-[8px] overflow-hidden pointer-events-none">
+                            <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-5 -right-5 sm:max-w-[420px] mx-auto rounded-[8px] overflow-hidden pointer-events-none">
                                 <img
                                     src={buildUrl(describeFrameImage)}
                                     alt="Frame"
@@ -179,14 +178,7 @@ const Describe = () => {
                         </div>
                     )}
 
-                    {describeH2 && (
-                        <div className="w-full mb-3 describe-h2-wrapper">
-                            <RichTextRenderer
-                                html={describeH2}
-                                className="mx-auto text-center md:text-left"
-                            />
-                        </div>
-                    )}
+
 
                     {description && (
                         <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-3xl describe-description-wrapper text-center md:text-left">
