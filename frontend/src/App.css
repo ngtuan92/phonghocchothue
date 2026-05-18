@@ -444,9 +444,20 @@
   }
 
 @media (max-width: 767px) {
+  .rich-text-renderer h1,
+  .rich-text-renderer h1 *,
+  .rich-text-renderer h2,
+  .rich-text-renderer h2 *,
+  .rich-text-renderer h3,
+  .rich-text-renderer h3 *,
+  .rich-text-renderer h4,
+  .rich-text-renderer h4 *,
   .describe-h2-wrapper .rich-text-renderer *,
   .blog-hero-title .rich-text-renderer * {
     font-size: 16px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 5px !important;
+    margin-top: 0 !important;
   }
 
 

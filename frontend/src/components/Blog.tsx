@@ -308,14 +308,14 @@ export default function Blog({
       <div id="blog-list-start" className="absolute -translate-y-32" />
       
       {isHomePage && (
-        <div className="mb-[-30px] sm:mb-6 text-center blog-hero-title">
+        <div className="mb-2 sm:mb-6 text-center blog-hero-title">
           <RichTextRenderer
             html={blogHeading}
             className="text-center"
           />
           {blogDecoration && (
-            <div className="w-full mt-[-20px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
-              <div className="w-[320px] h-[70px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
+            <div className="w-full mt-[-10px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
+              <div className="w-[320px] h-[40px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
                 <Image
                   src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
                   alt="Decoration"
