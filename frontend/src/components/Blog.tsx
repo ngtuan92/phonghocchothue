@@ -308,27 +308,22 @@ export default function Blog({
       <div id="blog-list-start" className="absolute -translate-y-32" />
       
       {isHomePage && (
-        <div className="mb-14 sm:mb-10 text-center blog-hero-title">
+        <div className="-mb-4 sm:-mb-2 text-center blog-hero-title">
           <RichTextRenderer
             html={blogHeading}
             className="text-center"
           />
-          {blogDecoration ? (
-            <div className="w-full mt-1.5 sm:mt-2 flex justify-center blog-decoration-wrapper">
-              <Image
-                src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
-                alt="Decoration"
-                width={800}
-                height={240}
-                className="w-full h-auto object-contain max-w-[280px] sm:max-w-[380px]"
-                quality={100}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center gap-4 mt-1.5 sm:mt-2">
-              <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
-              <span className="text-[#b8c7b0] text-[6px] sm:text-base blog-flower-icon">✿</span>
-              <div className="h-px w-12 sm:w-60 bg-[#b8c7b0]/40" />
+          {blogDecoration && (
+            <div className="w-full mt-[-20px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
+              <div className="w-[280px] h-[60px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
+                <Image
+                  src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
+                  alt="Decoration"
+                  fill
+                  className="object-contain"
+                  quality={100}
+                />
+              </div>
             </div>
           )}
         </div>

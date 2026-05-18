@@ -43,9 +43,9 @@ const SECTIONS = [
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "describe-h2", "bgTitle", "describe-frame-image", "textDecription"],
+  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "bgTitle", "describe-frame-image", "textDecription"],
   services: ["amenities-description"],
-  gallery: ["gallery-heading", "room-heading"],
+  gallery: ["describe-h2", "describe-h2-image", "gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
   blog: ["blog-heading", "blog-decoration", "blog-page-title", "blog-page-description"],
 };
@@ -54,7 +54,8 @@ const KEY_LABEL_MAP = {
   "describe-heading": "Tiêu đề nghệ thuật chính (H1)",
   "describe-bg-text": "Chữ nền nghệ thuật (Ví dụ: HOAHOCTRO)",
   "seo-h1-main": "Phòng Học Cho Thuê / Tiêu đề SEO (H1)",
-  "describe-h2": "Tiêu đề phụ dưới ảnh Đừng tìm đâu xa (H2)",
+  "describe-h2": "Tiêu đề chính phần Giải pháp (H2)",
+  "describe-h2-image": "Ảnh tiện ích / dịch vụ dưới tiêu đề Giải pháp (H2)",
   textDecription: "Nội dung bài viết Giới thiệu",
   "room-heading": "Tiêu đề khu vực phòng học",
   "amenities-content": "Tiêu đề khu vực tiện ích",

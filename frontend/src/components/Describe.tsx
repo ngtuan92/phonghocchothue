@@ -108,7 +108,7 @@ const Describe = () => {
                                 />
                             </div>
                         )}
-                        
+
                         {logo && (
                             <div className="transition-all duration-700 mb-12">
                                 <img
@@ -171,7 +171,7 @@ const Describe = () => {
                                 alt="Decoration"
                                 width={800}
                                 height={240}
-                                className="w-full h-auto object-contain max-w-[380px] md:max-w-none"
+                                className="w-full h-auto object-contain max-w-[200px] md:max-w-[500px]"
                                 quality={100}
                                 priority
                             />
