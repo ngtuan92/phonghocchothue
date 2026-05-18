@@ -314,7 +314,7 @@ export default function Blog({
             className="text-center"
           />
           {blogDecoration && (
-            <div className="w-full mt-[-20px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
+            <div className="w-full mt-[-20px] sm:mt-[-36px] mb-[5px] flex justify-center blog-decoration-wrapper">
               <div className="w-[280px] h-[60px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
                 <Image
                   src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
