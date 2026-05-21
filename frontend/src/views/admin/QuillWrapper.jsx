@@ -70,6 +70,10 @@ if (typeof window !== "undefined" && Quill) {
           node.setAttribute("width", value.width);
           node.style.width = value.width.includes('%') || value.width.includes('px') ? value.width : `${value.width}px`;
         }
+        if (value.borderRadius) {
+          node.style.borderRadius = value.borderRadius;
+          node.setAttribute("data-border-radius", value.borderRadius);
+        }
         if (value.style) node.setAttribute("style", value.style);
       }
       return node;
@@ -79,7 +83,8 @@ if (typeof window !== "undefined" && Quill) {
         width: node.getAttribute("width"),
         style: node.getAttribute("style"),
         alt: node.getAttribute("alt"),
-        title: node.getAttribute("title")
+        title: node.getAttribute("title"),
+        borderRadius: node.style.borderRadius || node.getAttribute("data-border-radius")
       };
     }
     format(name, value) {
@@ -88,6 +93,13 @@ if (typeof window !== "undefined" && Quill) {
         this.domNode.style.width = value;
       } else if (name === "style") {
         this.domNode.setAttribute("style", value);
+      } else if (name === "borderRadius") {
+        this.domNode.style.borderRadius = value || "";
+        if (value) {
+          this.domNode.setAttribute("data-border-radius", value);
+        } else {
+          this.domNode.removeAttribute("data-border-radius");
+        }
       } else {
         super.format(name, value);
       }
@@ -293,7 +305,7 @@ const QuillWrapper = forwardRef((props, ref) => {
   }, [dynamicFonts]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalData, setModalData] = useState({ alt: "", title: "", width: "" });
+  const [modalData, setModalData] = useState({ alt: "", title: "", width: "", borderRadius: "" });
   const [modalCallback, setModalCallback] = useState(null);
   const [alertConfig, setAlertConfig] = useState({ isOpen: false, message: "" });
 
@@ -301,7 +313,8 @@ const QuillWrapper = forwardRef((props, ref) => {
     setModalData({
       alt: initialData.alt || "",
       title: initialData.title || "",
-      width: initialData.width || ""
+      width: initialData.width || "",
+      borderRadius: initialData.borderRadius || ""
     });
     setModalCallback(() => callback);
     setIsModalOpen(true);
@@ -385,10 +398,22 @@ const QuillWrapper = forwardRef((props, ref) => {
       const quill = editorRef.current?.getEditor();
       if (!quill || !img || !quill.root.contains(img)) return;
       openAltModal(
-        { alt: img.getAttribute('alt') || '', title: img.getAttribute('title') || '' },
+        { 
+          alt: img.getAttribute('alt') || '', 
+          title: img.getAttribute('title') || '',
+          borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
+        },
         (newData) => {
           img.setAttribute('alt', newData.alt);
           img.setAttribute('title', newData.title);
+          if (newData.borderRadius) {
+            img.style.borderRadius = newData.borderRadius;
+            img.setAttribute("data-border-radius", newData.borderRadius);
+          } else {
+            img.style.borderRadius = "";
+            img.removeAttribute("data-border-radius");
+          }
+          quill.update();
         }
       );
     };
@@ -425,6 +450,29 @@ const QuillWrapper = forwardRef((props, ref) => {
         },
         'image-settings': function () {
           const quill = this.quill;
+          const currentImg = selectedImageRef.current;
+          
+          if (currentImg) {
+            const currentData = {
+              alt: currentImg.getAttribute("alt") || "",
+              title: currentImg.getAttribute("title") || "",
+              borderRadius: currentImg.style.borderRadius || currentImg.getAttribute("data-border-radius") || ""
+            };
+            openAltModal(currentData, (newData) => {
+              currentImg.setAttribute("alt", newData.alt);
+              currentImg.setAttribute("title", newData.title);
+              if (newData.borderRadius) {
+                currentImg.style.borderRadius = newData.borderRadius;
+                currentImg.setAttribute("data-border-radius", newData.borderRadius);
+              } else {
+                currentImg.style.borderRadius = "";
+                currentImg.removeAttribute("data-border-radius");
+              }
+              quill.update();
+            });
+            return;
+          }
+
           const range = quill.getSelection();
           if (range) {
             const [leaf] = quill.getLeaf(range.index);
@@ -432,11 +480,20 @@ const QuillWrapper = forwardRef((props, ref) => {
               const img = leaf.domNode;
               const currentData = {
                 alt: img.getAttribute("alt") || "",
-                title: img.getAttribute("title") || ""
+                title: img.getAttribute("title") || "",
+                borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
               };
               openAltModal(currentData, (newData) => {
                 img.setAttribute("alt", newData.alt);
                 img.setAttribute("title", newData.title);
+                if (newData.borderRadius) {
+                  img.style.borderRadius = newData.borderRadius;
+                  img.setAttribute("data-border-radius", newData.borderRadius);
+                } else {
+                  img.style.borderRadius = "";
+                  img.removeAttribute("data-border-radius");
+                }
+                quill.update();
                 quill.setSelection(range);
               });
               return;
@@ -530,11 +587,12 @@ const QuillWrapper = forwardRef((props, ref) => {
       const result = await response.json();
       if (result.uploaded) {
         const range = quill.getSelection(true);
-        openAltModal({ alt: "", title: "" }, (newData) => {
+        openAltModal({ alt: "", title: "", borderRadius: "" }, (newData) => {
           quill.insertEmbed(range.index, "image", {
             src: result.url,
             alt: newData.alt,
-            title: newData.title
+            title: newData.title,
+            borderRadius: newData.borderRadius
           }, "user");
           quill.setSelection(range.index + 1);
         });
@@ -655,6 +713,18 @@ const QuillWrapper = forwardRef((props, ref) => {
                 labelProps={{ className: "hidden" }}
                 value={modalData.alt}
                 onChange={(e) => setModalData({ ...modalData, alt: e.target.value, title: e.target.value })}
+                onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Bo góc ảnh (ví dụ: 8px, 16px, 50%)</label>
+              <Input
+                size="lg"
+                placeholder="Ví dụ: 12px hoặc 24px..."
+                className="!border-gray-300 focus:!border-primary !bg-white"
+                labelProps={{ className: "hidden" }}
+                value={modalData.borderRadius || ""}
+                onChange={(e) => setModalData({ ...modalData, borderRadius: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
               />
             </div>

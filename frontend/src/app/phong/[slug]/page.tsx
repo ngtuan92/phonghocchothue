@@ -782,6 +782,12 @@ export default function DetailPage() {
                       });
                     }
 
+                    // Map data-border-radius to borderRadius if not already present
+                    const borderRadiusAttr = domNode.attribs["data-border-radius"];
+                    if (borderRadiusAttr && !existingStyles.borderRadius) {
+                      existingStyles.borderRadius = borderRadiusAttr;
+                    }
+
                     return (
                       <img
                         key={src}
