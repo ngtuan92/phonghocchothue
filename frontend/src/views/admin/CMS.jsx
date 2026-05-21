@@ -103,6 +103,22 @@ export default function CMS() {
     .ql-size-large { font-size: 2rem !important; }
     .ql-size-huge { font-size: 5rem !important; }
     .ql-size-super-huge { font-size: 19vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
+    
+    .quill-wrapper-container {
+      position: relative !important;
+      overflow: visible !important;
+    }
+    .quill-wrapper-container:focus-within,
+    .quill-wrapper-container:has(.ql-expanded) {
+      z-index: 50 !important;
+    }
+    .ql-toolbar.ql-snow {
+      overflow: visible !important;
+    }
+    .ql-toolbar.ql-snow:focus-within,
+    .ql-toolbar.ql-snow:has(.ql-expanded) {
+      z-index: 50 !important;
+    }
 
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;
@@ -544,9 +560,9 @@ export default function CMS() {
       };
 
       return (
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-visible">
           {faqData.map((item, index) => (
-            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4">
+            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4 overflow-visible">
               <button
                 onClick={() => deleteFAQ(index)}
                 className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
@@ -555,12 +571,13 @@ export default function CMS() {
                 <MdDelete size={20} />
               </button>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4 overflow-visible">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
                     <style>{`
-                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; }
+                      .faq-quill { overflow: visible !important; }
+                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; overflow: visible !important; }
                       .faq-quill .ql-container.ql-snow { border: none !important; }
                     `}</style>
                     <QuillWrapper

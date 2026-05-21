@@ -849,6 +849,14 @@ const QuillWrapper = forwardRef((props, ref) => {
         .ql-editor p {
           margin-bottom: 14px;
         }
+        .quill-wrapper-container {
+          position: relative !important;
+          overflow: visible !important;
+        }
+        .quill-wrapper-container:focus-within,
+        .quill-wrapper-container:has(.ql-expanded) {
+          z-index: 50 !important;
+        }
         .ql-toolbar.ql-snow {
           border: none !important;
           border-bottom: 1px solid #f1f5f9 !important;
@@ -858,6 +866,11 @@ const QuillWrapper = forwardRef((props, ref) => {
           border-top-right-radius: 12px;
           position: relative !important;
           z-index: 10 !important;
+          overflow: visible !important;
+        }
+        .ql-toolbar.ql-snow:focus-within,
+        .ql-toolbar.ql-snow:has(.ql-expanded) {
+          z-index: 50 !important;
         }
         .ql-container.ql-snow {
           border: none !important;
