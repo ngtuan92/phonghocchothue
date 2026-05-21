@@ -112,8 +112,22 @@ export default function CMS() {
       overflow-y: auto;
     }
     .ql-snow .ql-picker.ql-header {
-      width: 100px !important;
+      width: 120px !important;
     }
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"],
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"],
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"],
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"] {
+      display: block !important;
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'Heading 3' !important; }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: 'Heading 4' !important; }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before { content: 'Heading 5' !important; }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before { content: 'Heading 6' !important; }
     .ql-snow .ql-picker.ql-size {
       width: 130px !important;
     }

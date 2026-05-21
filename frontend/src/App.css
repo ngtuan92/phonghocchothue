@@ -926,3 +926,34 @@
     font-size: 9px !important;
   }
 }
+
+/* FAQ Question custom heading styling for desktop to fit accordion layout */
+.faq-container [itemprop="name"] h1,
+.faq-container [itemprop="name"] h1 *,
+.faq-container [itemprop="name"] h2,
+.faq-container [itemprop="name"] h2 *,
+.faq-container [itemprop="name"] h3,
+.faq-container [itemprop="name"] h3 *,
+.faq-container [itemprop="name"] h4,
+.faq-container [itemprop="name"] h4 *,
+.faq-container [itemprop="name"] h5,
+.faq-container [itemprop="name"] h5 *,
+.faq-container [itemprop="name"] h6,
+.faq-container [itemprop="name"] h6 * {
+  font-size: 18px !important;
+  display: inline !important;
+  margin: 0 !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  color: inherit !important;
+}
+
+.faq-container [itemprop="name"] p,
+.faq-container [itemprop="name"] p *,
+.faq-container [itemprop="name"] span,
+.faq-container [itemprop="name"] span * {
+  font-size: 18px !important;
+  display: inline !important;
+  margin: 0 !important;
+  font-weight: 700 !important;
+}
