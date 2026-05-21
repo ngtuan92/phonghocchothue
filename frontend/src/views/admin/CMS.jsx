@@ -94,6 +94,7 @@ export default function CMS() {
   const [amenitySliders, setAmenitySliders] = useState([]);
   const [savingProductId, setSavingProductId] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
+  const [expandedProductId, setExpandedProductId] = useState(null);
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
@@ -617,7 +618,7 @@ export default function CMS() {
             }}
             theme="snow"
             value={config.content || ""}
-            onChange={(val) => updateField(config.key, val)}
+            onChange={onContentChange}
             className={`quill-editor-${config.key}`}
           />
           <style jsx global>{`
@@ -727,44 +728,57 @@ export default function CMS() {
           ) : (
             <div className="space-y-6">
               {activeSection === "product_detail" ? (
-                products.map((product) => (
-                  <div
-                    key={`product-${product.id}`}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
-                  >
-                    <div className="flex items-center justify-between px-6 py-4 bg-gray-50/10 border-b border-gray-50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-orange-400 rounded-full" />
-                        <div>
-                          <p className="text-sm font-bold text-navy-700">
-                            {product.name}
-                          </p>
+                products.map((product) => {
+                  const isExpanded = expandedProductId === product.id;
+                  return (
+                    <div
+                      key={`product-${product.id}`}
+                      className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setExpandedProductId(isExpanded ? null : product.id)}
+                        className="w-full flex items-center justify-between px-6 py-4 bg-gray-50/10 border-b border-gray-50 cursor-pointer hover:bg-gray-50/40 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-1 h-8 rounded-full ${isExpanded ? 'bg-primary' : 'bg-orange-400'}`} />
+                          <div>
+                            <p className="text-sm font-bold text-navy-700">
+                              {product.name}
+                            </p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                              {isExpanded ? 'Đang chỉnh sửa' : 'Click để mở editor'}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                        <MdEdit className={`h-5 w-5 transition-colors ${isExpanded ? 'text-primary' : 'text-gray-300'}`} />
+                      </button>
 
-                    <div className="p-6">
-                      {renderEditor(
-                        { key: `product-rich-name-${product.id}`, type: "richtext", content: product.name_rich },
-                        (val) => updateProductRichName(product.id, val)
-                      )}
-                      <div className="flex justify-end mt-4">
-                        <button
-                          onClick={() => saveProductRichName(product)}
-                          disabled={savingProductId === product.id}
-                          className="flex items-center justify-center gap-2 px-14 py-3 min-w-[200px] bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
-                        >
-                          {savingProductId === product.id ? (
-                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <MdSave className="h-5 w-5" />
+                      {isExpanded && (
+                        <div className="p-6">
+                          {renderEditor(
+                            { key: `product-rich-name-${product.id}`, type: "richtext", content: product.name_rich },
+                            (val) => updateProductRichName(product.id, val)
                           )}
-                          {savingProductId === product.id ? "Đang lưu..." : "Lưu dữ liệu"}
-                        </button>
-                      </div>
+                          <div className="flex justify-end mt-4">
+                            <button
+                              onClick={() => saveProductRichName(product)}
+                              disabled={savingProductId === product.id}
+                              className="flex items-center justify-center gap-2 px-14 py-3 min-w-[200px] bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
+                            >
+                              {savingProductId === product.id ? (
+                                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <MdSave className="h-5 w-5" />
+                              )}
+                              {savingProductId === product.id ? "Đang lưu..." : "Lưu dữ liệu"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 sectionConfigs.map((config) => (
                   <div

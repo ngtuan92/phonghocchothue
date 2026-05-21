@@ -21,6 +21,7 @@ import ProductCard from "@/components/ProductCard";
 import parse from "html-react-parser";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
+import RichTextRenderer from "@/components/RichTextRenderer";
 
 const URL_API =
   process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -579,9 +580,10 @@ export default function DetailPage() {
             <div className="flex-1 p-4 rounded-lg text-left">
               <div className="title-product-detail mb-4">
                 {productData.product.name_rich ? (
-                  <div className="ckeditor-content">
-                    {parse(processedName)}
-                  </div>
+                  <RichTextRenderer
+                    html={processedName}
+                    className="title-product-detail-rich"
+                  />
                 ) : (
                   <h1 className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
                     {productData.product.name}
