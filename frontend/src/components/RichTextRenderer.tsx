@@ -18,7 +18,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (!html) return "";
     
     const sanitized = DOMPurify.sanitize(html, {
-      ADD_ATTR: ['style', 'width', 'height', 'target', 'rel'],
+      ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius'],
       ADD_TAGS: ['iframe'],
     });
     
