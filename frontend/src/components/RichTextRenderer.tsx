@@ -82,6 +82,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           color: #2563eb;
           text-decoration: none;
         }
+        .inline-rich-text,
+        .inline-rich-text p {
+          display: inline !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          color: inherit !important;
+        }
 
       `}</style>
     </>

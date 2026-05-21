@@ -38,6 +38,7 @@ const createModules = (fontList) => ({
     [{ align: [] }],
     ["link", "image"],
     ["clean"],
+    ["more"],
   ],
   clipboard: {
     matchers: [
@@ -136,6 +137,11 @@ if (typeof window !== "undefined" && Quill) {
         <path fill="currentColor" d="M22.7,19L24,20.3L14.6,29.7L13.3,28.4L22.7,19M7,2V4H8V2H7M11,2V4H12V2H11M15,2V4H16V2H15M19,2V4H20V2H19M5,4V28H19V18.1L21,16.1V28A2,2 0 0,1 19,30H5A2,2 0 0,1 3,28V4A2,2 0 0,1 5,2H19A2,2 0 0,1 21,4V10.1L19,12.1V4H5M20.2,13C20.3,13 20.5,13.1 20.6,13.2L21.8,14.4C22,14.6 22,15 21.8,15.2L20.8,16.2L18.8,14.2L19.8,13.2C19.9,13.1 20,13 20.2,13M18.1,14.9L20.1,16.9L14,23L12,21L18.1,14.9Z" />
       </svg>
     `;
+    icons['more'] = `
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M6 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
+      </svg>
+    `;
   }
 }
 
@@ -213,6 +219,62 @@ const QuillWrapper = forwardRef((props, ref) => {
 
     const interval = setInterval(initSearch, 1000);
     return () => clearInterval(interval);
+  }, [isReady]);
+
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
+
+    const initDropdown = () => {
+      const toolbar = containerRef.current.querySelector('.ql-toolbar');
+      if (!toolbar) return;
+
+      const formats = Array.from(toolbar.children).filter(el => el.classList.contains('ql-formats'));
+      const moreGroup = formats.find(f => f.querySelector('.ql-more'));
+      if (!moreGroup) return;
+
+      moreGroup.classList.add('ql-more-formats-group');
+
+      let dropdown = moreGroup.querySelector('.ql-more-dropdown');
+      if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.className = 'ql-more-dropdown';
+        moreGroup.appendChild(dropdown);
+
+        // Move target formatting groups (Color, List, Align, Link/Image, Clean) into dropdown
+        formats.forEach((f) => {
+          if (f === moreGroup) return; // Skip the moreGroup itself
+
+          const hasColor = f.querySelector('.ql-color') || f.querySelector('.ql-background');
+          const hasList = f.querySelector('.ql-list');
+          const hasAlign = f.querySelector('.ql-align');
+          const hasLinkImage = f.querySelector('.ql-link') || f.querySelector('.ql-image');
+          const hasClean = f.querySelector('.ql-clean');
+
+          if (hasColor || hasList || hasAlign || hasLinkImage || hasClean) {
+            dropdown.appendChild(f);
+          }
+        });
+      }
+    };
+
+    initDropdown();
+    const interval = setInterval(initDropdown, 1000);
+
+    const handleClickOutside = (event) => {
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+      if (toolbar && toolbar.classList.contains('ql-toolbar-expanded')) {
+        if (!toolbar.contains(event.target)) {
+          toolbar.classList.remove('ql-toolbar-expanded');
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isReady]);
 
   React.useImperativeHandle(ref, () => ({
@@ -443,6 +505,12 @@ const QuillWrapper = forwardRef((props, ref) => {
     mods.toolbar = {
       container: modules.toolbar,
       handlers: {
+        more: function () {
+          const toolbarEl = this.container || this.quill.root.parentNode.querySelector('.ql-toolbar');
+          if (toolbarEl) {
+            toolbarEl.classList.toggle('ql-toolbar-expanded');
+          }
+        },
         image: function () {
           if (fileInputRef.current) {
             fileInputRef.current.click();
@@ -852,11 +920,102 @@ const QuillWrapper = forwardRef((props, ref) => {
         .quill-wrapper-container {
           position: relative !important;
           overflow: visible !important;
+          container-type: inline-size !important;
+          container-name: quill-container !important;
         }
         .quill-wrapper-container:focus-within,
         .quill-wrapper-container:has(.ql-expanded) {
           z-index: 50 !important;
         }
+        
+        /* Default toolbar options behavior (desktop, width > 900px) */
+        .ql-toolbar.ql-snow .ql-formats .ql-more {
+          display: none !important;
+        }
+        .ql-toolbar.ql-snow .ql-more-formats-group {
+          display: inline-block !important;
+          margin-right: 0 !important;
+          vertical-align: middle !important;
+        }
+        .ql-toolbar.ql-snow .ql-more-dropdown {
+          display: contents !important;
+        }
+        .ql-toolbar.ql-snow .ql-more-dropdown > .ql-formats {
+          margin-right: 15px !important;
+          display: inline-block !important;
+          float: none !important;
+          vertical-align: middle !important;
+        }
+
+        /* Responsive mode (width <= 900px) */
+        @container quill-container (max-width: 900px) {
+          .ql-toolbar.ql-snow .ql-formats .ql-more {
+            display: inline-block !important;
+          }
+          .ql-toolbar.ql-snow .ql-more-formats-group {
+            position: relative !important;
+            overflow: visible !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+          }
+          
+          /* Style dropdown panel as a floating select menu */
+          .ql-toolbar.ql-snow .ql-more-dropdown {
+            display: none !important;
+            position: absolute !important;
+            top: calc(100% + 6px) !important;
+            right: 0 !important;
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            padding: 10px 14px !important;
+            z-index: 9999 !important;
+            min-width: 330px !important;
+            max-width: 450px !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            justify-content: start !important;
+            align-items: center !important;
+          }
+
+          /* Show dropdown when expanded */
+          .ql-toolbar.ql-snow.ql-toolbar-expanded .ql-more-dropdown {
+            display: flex !important;
+            animation: ql-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          }
+
+          /* Reset margins inside dropdown and lay out in a clean row with border dividers */
+          .ql-toolbar.ql-snow .ql-more-dropdown > .ql-formats {
+            margin-right: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            border-right: 1px solid #f1f5f9 !important;
+            padding-right: 8px !important;
+          }
+
+          .ql-toolbar.ql-snow .ql-more-dropdown > .ql-formats:last-child {
+            border-right: none !important;
+            padding-right: 0 !important;
+          }
+        }
+
+        .ql-toolbar.ql-snow.ql-toolbar-expanded .ql-more {
+          color: #1A94FF !important;
+        }
+
+        @keyframes ql-fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .ql-toolbar.ql-snow {
           border: none !important;
           border-bottom: 1px solid #f1f5f9 !important;

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardBody,
@@ -15,51 +15,14 @@ import {
 import dynamic from "next/dynamic";
 import PropTypes from "prop-types";
 
-import { Editor } from '@tinymce/tinymce-react';
 import { FaExclamationTriangle } from "react-icons/fa";
 
-// Component TinyMCE với file upload
-function TinyMCEComponent({ value, onChange }) {
-  const editorRef = useRef(null);
+const QuillWrapper = dynamic(
+  () => import("../../../views/admin/QuillWrapper"),
+  { ssr: false }
+);
+import "react-quill-new/dist/quill.snow.css";
 
-  // eslint-disable-next-line no-undef
-  const baseUrl = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
-  const uploadUrl = `${baseUrl}api/upload/image`;
-
-  return (
-    <div className="tinymce-wrapper">
-      <Editor
-        apiKey="c1b5aveebr9cefbde8umjxx6v2aisprm3o0azeappf0v0top"
-        onInit={(evt, editor) => editorRef.current = editor}
-        value={value}
-        onEditorChange={(newValue) => onChange?.(newValue)}
-        init={{
-          height: 400,
-          menubar: false,
-          plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-          ],
-          toolbar: 'undo redo | blocks | ' +
-            'bold italic forecolor | alignleft aligncenter ' +
-            'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat | image | help',
-          images_upload_url: uploadUrl,
-          automatic_uploads: true,
-          file_picker_types: 'image',
-          content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-          language: 'vi'
-        }}
-      />
-    </div>
-  );
-}
-
-TinyMCEComponent.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-};
 
 // eslint-disable-next-line no-undef
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -154,43 +117,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
     setMultipleImages((prev) => [...prev, ...files]);
   };
 
-  const handleRoomNameChange = (event) => {
-    const newName = event.target.value;
-    setRoomName(newName);
-
-    const generatedSlug = newName
-      .toLowerCase()
-      .trim()
-      .replaceAll(/\s+/g, "-")
-      .replaceAll(/[^a-z0-9-]/g, "")
-      .replaceAll(/-+/g, "-");
-    setRoomSlug(generatedSlug);
-
-    setErrors((prev) => ({ ...prev, roomName: "" }));
-  };
-
   const handleRoomSlugChange = (event) => {
     setRoomSlug(event.target.value);
   };
 
   const handleStatusChange = (event) => {
     setIsStatus(event.target.checked);
-  };
-
-  const handleRoomEquipmentChange = (event) => {
-    setRoomEquipment(event.target.value);
-  };
-
-  const handleRoomPriceChange = (event) => {
-    setRoomPrice(event.target.value);
-  };
-
-  const handleRoomDescriptionChange = (event) => {
-    setRoomDescription(event.target.value);
-  };
-
-  const setRoomContainsChange = (event) => {
-    setRoomContains(event.target.value);
   };
 
   const handleCheckboxChange = (event) => {
@@ -329,20 +261,46 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tên phòng */}
-              <div className="md:col-span-1">
-                <label htmlFor="room-name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên phòng <span className="text-red-500">*</span>
+              {/* Tên phòng (Nghệ thuật) */}
+              <div className="md:col-span-2">
+                <label htmlFor="room-name-rich" className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên phòng (Nghệ thuật - H1, H2, Font...) <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  id="room-name"
-                  size="lg"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
-                  value={roomName}
-                  onChange={handleRoomNameChange}
-                  error={!!errors.roomName}
-                  placeholder="Nhập tên phòng..."
-                />
+                <div id="room-name-rich" className="product-dialog-quill product-dialog-quill--name">
+                  <QuillWrapper
+                    key={`quill-name-${id || 'new'}-${open}`}
+                    theme="snow"
+                    value={roomNameRich}
+                    onChange={(val) => {
+                      setRoomNameRich(val);
+                      
+                      // Extract plain text safely, decoding HTML entities
+                      let plainText = "";
+                      if (typeof window !== "undefined") {
+                        const tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = val;
+                        plainText = (tempDiv.textContent || tempDiv.innerText || "").trim();
+                      } else {
+                        plainText = val.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+                      }
+                      setRoomName(plainText);
+                      
+                      // Auto slug with Vietnamese accent removal
+                      const generatedSlug = plainText
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/đ/g, "d")
+                        .replace(/[^a-z0-9\s-]/g, "")
+                        .trim()
+                        .replace(/[\s-]+/g, "-");
+                      setRoomSlug(generatedSlug);
+                      
+                      setErrors((prev) => ({ ...prev, roomName: "" }));
+                    }}
+                    placeholder="Nhập tên phòng..."
+                  />
+                </div>
                 {errors.roomName && (
                   <Typography variant="small" color="red" className="mt-1 flex items-center gap-1">
                     <FaExclamationTriangle className="inline-block mr-1 text-orange-500" /> {errors.roomName}
@@ -350,25 +308,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 )}
               </div>
 
-              {/* Tên phòng nghệ thuật */}
-              <div className="md:col-span-2">
-                <label htmlFor="room-name-rich" className="block text-sm font-medium text-gray-700 mb-2">
-                  🎨 Tên phòng (Nghệ thuật - H1, H2, Font...)
-                </label>
-                <div id="room-name-rich">
-                  <TinyMCEComponent
-                    key={`tinymce-name-${id || 'new'}-${open}`}
-                    value={roomNameRich}
-                    onChange={setRoomNameRich}
-                  />
-                </div>
-                <Typography variant="small" className="text-gray-500 mt-1 italic">
-                  * Nếu để trống, hệ thống sẽ sử dụng Tên phòng (phổ thông) ở trên.
-                </Typography>
-              </div>
-
               {/* Slug */}
-              <div className="md:col-span-1">
+              <div className="md:col-span-2">
                 <label htmlFor="room-slug" className="block text-sm font-medium text-gray-700 mb-2">
                   Slug <span className="text-red-500">*</span>
                 </label>
@@ -393,15 +334,15 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="room-price" className="block text-sm font-medium text-gray-700 mb-2">
                   💰 Giá thuê (VNĐ)
                 </label>
-                <Input
-                  id="room-price"
-                  size="lg"
-                  type="text"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
-                  value={roomPrice}
-                  onChange={handleRoomPriceChange}
-                  placeholder="Ví dụ: 2000000"
-                />
+                <div id="room-price" className="product-dialog-quill product-dialog-quill--price">
+                  <QuillWrapper
+                    key={`quill-price-${id || 'new'}-${open}`}
+                    theme="snow"
+                    value={roomPrice}
+                    onChange={setRoomPrice}
+                    placeholder="Ví dụ: 80.000 đ/h..."
+                  />
+                </div>
               </div>
 
               {/* Thiết bị */}
@@ -409,14 +350,15 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="room-equipment" className="block text-sm font-medium text-gray-700 mb-2">
                   🔌 Thiết bị
                 </label>
-                <Input
-                  id="room-equipment"
-                  size="lg"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
-                  value={roomEquipment}
-                  onChange={handleRoomEquipmentChange}
-                  placeholder="Ví dụ: Điều hòa, TV, Wifi..."
-                />
+                <div id="room-equipment" className="product-dialog-quill product-dialog-quill--equipment">
+                  <QuillWrapper
+                    key={`quill-equipment-${id || 'new'}-${open}`}
+                    theme="snow"
+                    value={roomEquipment}
+                    onChange={setRoomEquipment}
+                    placeholder="Ví dụ: Máy chiếu, điều hòa, bảng trắng..."
+                  />
+                </div>
               </div>
 
               {/* Chứa */}
@@ -424,14 +366,15 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="room-contains" className="block text-sm font-medium text-gray-700 mb-2">
                   👥 Sức chứa
                 </label>
-                <Textarea
-                  id="room-contains"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
-                  value={roomContains}
-                  onChange={setRoomContainsChange}
-                  placeholder="Ví dụ: 2-4 người..."
-                  rows={2}
-                />
+                <div id="room-contains" className="product-dialog-quill product-dialog-quill--contains">
+                  <QuillWrapper
+                    key={`quill-contains-${id || 'new'}-${open}`}
+                    theme="snow"
+                    value={roomContains}
+                    onChange={setRoomContains}
+                    placeholder="Ví dụ: Sức chứa 45 chỗ ngồi..."
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -558,32 +501,29 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
               <label htmlFor="room-description" className="block text-sm font-medium text-gray-700 mb-2">
                 Mô tả ngắn
               </label>
-              <Textarea
-                id="room-description"
-                className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
-                value={roomDescription}
-                onChange={handleRoomDescriptionChange}
-                placeholder="Nhập mô tả ngắn về phòng..."
-                rows={3}
-              />
+              <div id="room-description" className="product-dialog-quill product-dialog-quill--description">
+                <QuillWrapper
+                  key={`quill-description-${id || 'new'}-${open}`}
+                  theme="snow"
+                  value={roomDescription}
+                  onChange={setRoomDescription}
+                  placeholder="Nhập mô tả ngắn về phòng..."
+                />
+              </div>
             </div>
 
             <div>
               <label htmlFor="room-content" className="block text-sm font-medium text-gray-700 mb-2">
                 Mô tả chi tiết
               </label>
-              <div id="room-content">
-                {open ? (
-                  <TinyMCEComponent
-                    key={`tinymce-${id || 'new'}-${open}`}
-                    value={roomContent}
-                    onChange={setRoomContent}
-                  />
-                ) : (
-                  <div className="h-[400px] flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                    <div className="text-gray-500">Đang tải editor...</div>
-                  </div>
-                )}
+              <div id="room-content" className="product-dialog-quill product-dialog-quill--content">
+                <QuillWrapper
+                  key={`quill-content-${id || 'new'}-${open}`}
+                  theme="snow"
+                  value={roomContent}
+                  onChange={setRoomContent}
+                  placeholder="Nhập mô tả chi tiết về phòng..."
+                />
               </div>
             </div>
           </div>
@@ -724,6 +664,51 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
             </div>
           </div>
         </CardBody>
+
+        {/* Scoped CSS cho QuillWrapper trong dialog */}
+        <style jsx global>{`
+          .product-dialog-quill {
+            position: relative;
+            overflow: visible;
+          }
+          .product-dialog-quill .quill-wrapper-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: visible !important;
+            position: relative !important;
+            z-index: 10;
+          }
+          .product-dialog-quill .quill-wrapper-container:focus-within,
+          .product-dialog-quill .quill-wrapper-container:has(.ql-expanded) {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+            z-index: 100 !important;
+          }
+          .product-dialog-quill .ql-toolbar.ql-snow {
+            position: relative !important;
+            overflow: visible !important;
+          }
+          .product-dialog-quill .ql-toolbar.ql-snow:has(.ql-expanded) {
+            /* Keep it visible and responsive */
+          }
+          .product-dialog-quill .ql-snow .ql-picker-options {
+            z-index: 200 !important;
+          }
+          .product-dialog-quill--name .ql-editor {
+            min-height: 120px;
+          }
+          .product-dialog-quill--content .ql-editor {
+            min-height: 300px;
+          }
+          .product-dialog-quill--price .ql-editor,
+          .product-dialog-quill--equipment .ql-editor,
+          .product-dialog-quill--contains .ql-editor {
+            min-height: 80px;
+          }
+          .product-dialog-quill--description .ql-editor {
+            min-height: 120px;
+          }
+        `}</style>
 
         {/* Footer với nút lưu */}
         <CardFooter className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">

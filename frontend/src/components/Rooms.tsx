@@ -16,6 +16,11 @@ interface Product {
   contains?: string;
 }
 
+const stripHtml = (val: string) => {
+  if (!val) return "";
+  return val.replace(/<[^>]*>/g, "").trim();
+};
+
 const Rooms = () => {
   const router = useRouter();
   const { data: products = [] } = useProducts();
@@ -48,8 +53,8 @@ const Rooms = () => {
             <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
               <h2 className="text-lg font-bold uppercase">{product.name}</h2>
               <ul className="list-disc ml-5 text-base mt-2 space-y-1">
-                {product.equipment && <li>{product.equipment}</li>}
-                {product.contains && <li>{product.contains}</li>}
+                {product.equipment && <li>{stripHtml(product.equipment)}</li>}
+                {product.contains && <li>{stripHtml(product.contains)}</li>}
               </ul>
               <button
                 onClick={(e) => {
