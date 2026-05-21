@@ -877,6 +877,24 @@ const QuillWrapper = forwardRef((props, ref) => {
         .ql-snow .ql-picker.ql-font {
           width: 160px !important;
         }
+        .ql-snow .ql-picker.ql-header {
+          width: 120px !important;
+        }
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"],
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"],
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"],
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"] {
+          display: block !important;
+        }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'Heading 3' !important; }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: 'Heading 4' !important; }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before { content: 'Heading 5' !important; }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before { content: 'Heading 6' !important; }
+
         .ql-snow .ql-picker.ql-font .ql-picker-options {
           max-height: 250px !important;
           overflow-y: auto !important;
@@ -915,6 +933,9 @@ const QuillWrapper = forwardRef((props, ref) => {
         .ql-editor h1 { font-size: 2.5rem; }
         .ql-editor h2 { font-size: 2rem; }
         .ql-editor h3 { font-size: 1.75rem; }
+        .ql-editor h4 { font-size: 1.5rem; }
+        .ql-editor h5 { font-size: 1.25rem; }
+        .ql-editor h6 { font-size: 1rem; }
         .resizer-handle {
           position: absolute;
           width: 24px;
