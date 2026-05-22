@@ -337,6 +337,44 @@ const QuillWrapper = forwardRef((props, ref) => {
                 const FontStyle = Quill.import("attributors/style/font");
                 if (FontStyle) {
                   FontStyle.whitelist = finalWhitelist;
+                  
+                  // Wrap value function to normalize browser font-family name to our slug representation
+                  const originalValue = FontStyle.value;
+                  FontStyle.value = function (domNode) {
+                    const rawVal = originalValue.call(this, domNode);
+                    if (!rawVal) return rawVal;
+                    
+                    const cleanVal = rawVal.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+                    const cleanSlug = cleanVal.replace(/\s+/g, '-');
+                    
+                    if (cleanVal === 'inter' || cleanVal === 'macdinh') {
+                      return 'macdinh';
+                    }
+                    
+                    const listToSearch = sorted || cachedFonts || [];
+                    const matched = listToSearch.find(f => 
+                      f.slug.toLowerCase() === cleanVal ||
+                      f.slug.toLowerCase() === cleanSlug ||
+                      slugify(f.name) === cleanVal ||
+                      slugify(f.name) === cleanSlug ||
+                      slugify(f.family) === cleanVal ||
+                      slugify(f.family) === cleanSlug
+                    );
+                    
+                    if (matched) {
+                      return matched.slug;
+                    }
+                    
+                    if (finalWhitelist.includes(cleanSlug)) {
+                      return cleanSlug;
+                    }
+                    if (finalWhitelist.includes(cleanVal)) {
+                      return cleanVal;
+                    }
+                    
+                    return rawVal;
+                  };
+
                   Quill.register(FontStyle, true);
                 }
               }
@@ -847,7 +885,7 @@ const QuillWrapper = forwardRef((props, ref) => {
           formats={props.formats || FORMATS}
         />
       )}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         /* Custom Color Picker dropdown overrides */
         .ql-snow .ql-picker-options {
           z-index: 100 !important;
@@ -1124,7 +1162,7 @@ const QuillWrapper = forwardRef((props, ref) => {
           transform: scale(1.1);
           background: #f0f7ff;
         }
-      `}</style>
+      `}} />
 
       {resizerRect && (
         <div 

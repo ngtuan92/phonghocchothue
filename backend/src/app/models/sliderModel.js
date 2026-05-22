@@ -7,6 +7,7 @@ const SliderModel = db.sequelize.define("sliders", {
     image: { type: DataTypes.STRING, maxLength: 255 },
     position: { type: DataTypes.INTEGER, defaultValue: 0 },
     type: { type: DataTypes.STRING, defaultValue: 'gallery' },
+    borderRadius: { type: DataTypes.STRING(50), field: 'border_radius', allowNull: true }
 }, {
     timestamps: true,
 });

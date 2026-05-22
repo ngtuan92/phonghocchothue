@@ -16,7 +16,7 @@ class SliderController {
             if (type) where.type = type;
 
             const sliderData = await sliderModel.findAll({
-                attributes: ['id', 'name', 'image', 'position', 'type'],
+                attributes: ['id', 'name', 'image', 'position', 'type', 'borderRadius'],
                 where: where,
                 order: [['position', 'ASC'], ['createdAt', 'DESC']]
             })
@@ -39,7 +39,7 @@ class SliderController {
     async save(req, res) {
         try {
             const { image } = req.files || {};
-            const { name, type } = req.body;
+            const { name, type, borderRadius } = req.body;
 
             if (!image) {
                 return res.status(400).json({ success: false, message: 'Vui lòng chọn ảnh!' });
@@ -52,7 +52,8 @@ class SliderController {
                 name: name || image.name,
                 image: imagePatch,
                 position: maxPos + 1,
-                type: type || 'gallery'
+                type: type || 'gallery',
+                borderRadius: borderRadius || null
             });
 
             res.json({
@@ -72,7 +73,7 @@ class SliderController {
         const { id } = req.params
 
         sliderModel.findOne({
-            attributes: ['id', 'name', 'image', 'position'],
+            attributes: ['id', 'name', 'image', 'position', 'borderRadius'],
             where: { id: id }
         }).then(slider => {
             if (!slider) return res.status(404).json({ success: false, message: 'Không tìm thấy' });
@@ -93,7 +94,7 @@ class SliderController {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { name } = req.body;
+            const { name, borderRadius } = req.body;
             const { image } = req.files || {};
 
             const slider = await sliderModel.findByPk(id);
@@ -112,6 +113,7 @@ class SliderController {
             await slider.update({
                 name: name || slider.name,
                 image: imagePatch,
+                borderRadius: borderRadius !== undefined ? borderRadius : slider.borderRadius
             });
 
             return res.json({

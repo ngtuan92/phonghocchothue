@@ -22,7 +22,15 @@ const Describe = () => {
     const logo = useConfigContentByKey("logo");
     const watermarkText = useConfigContentByKey("describe-bg-text");
     const describePhone = useConfigContentByKey("describe-phone");
-    const describeFrameImage = useConfigContentByKey("describe-frame-image");
+        const describeFrameImage = useConfigContentByKey("describe-frame-image");
+    const describeFrameImageRadius = useConfigContentByKey("describe-frame-image", "borderRadius");
+    const frameBorderRadius = describeFrameImageRadius ? `${describeFrameImageRadius}px` : '0px';
+    const describeFrameImageMobile = useConfigContentByKey("describe-frame-image-mobile");
+    const describeFrameImageMobileRadius = useConfigContentByKey("describe-frame-image-mobile", "borderRadius");
+    const activeMobileFrameImage = describeFrameImageMobile || describeFrameImage;
+    const activeMobileFrameRadius = describeFrameImageMobileRadius ? `${describeFrameImageMobileRadius}px` : frameBorderRadius;
+    const gallerySliderRadius = useConfigContentByKey("gallery-slider-radius");
+    const galleryRadius = gallerySliderRadius ? `${gallerySliderRadius}px` : '0px';
 
     const buildUrl = (path: string | undefined) => {
         if (!path) return "";
@@ -48,41 +56,59 @@ const Describe = () => {
 
     return (
         <div className="mb-16 sm:mb-30 main-container overflow-x-hidden">
-            <div className="relative w-full h-screen sm:h-[85vh] md:h-[90vh] lg:h-[92vh]">
-                <div className="absolute inset-0 hidden sm:flex items-center justify-center pointer-events-none select-none z-0 -translate-y-8 lg:-translate-y-12">
-                    <RichTextRenderer
-                        html={replaceTagName(watermarkText || "HOAHOCTRO", "div")}
-                        className="title-bg-text text-[60px] sm:text-[18vw] lg:text-[20vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center"
-                    />
-                </div>
+            <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
+                <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-start z-10 pt-[60px] md:pt-[85px] lg:pt-[30px] pb-0">
+                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center">
+                        {describeFrameImage && (
+                            <div 
+                                className="absolute z-[-1] top-[34px] md:top-[50px] lg:top-[60px] bottom-[-20px] md:bottom-[-28px] lg:bottom-[-35px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
+                                style={{ borderRadius: frameBorderRadius }}
+                            >
+                                <img
+                                    src={buildUrl(describeFrameImage)}
+                                    alt="Frame"
+                                    className="w-full h-full object-fill opacity-100"
+                                    style={{ borderRadius: frameBorderRadius }}
+                                />
+                            </div>
+                        )}
 
-                <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-between pt-2 lg:pt-4 pb-28 lg:pb-40 z-10">
-                    {logo && (
-                        <div className="transition-all duration-700">
-                            <img
-                                src={buildUrl(logo)}
-                                alt="Logo"
-                                className="w-[60px] md:w-[90px] lg:w-[110px] h-auto object-contain drop-shadow-xl"
-                            />
+                        {logo && (
+                            <div className="transition-all duration-700 mb-8 md:mb-12 lg:mb-16">
+                                <img
+                                    src={buildUrl(logo)}
+                                    alt="Logo"
+                                    className="w-[60px] md:w-[90px] lg:w-[110px] h-auto object-contain drop-shadow-xl relative z-10"
+                                />
+                            </div>
+                        )}
+
+                        <div className="relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
+                            <div className="absolute -top-16 -bottom-16 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
+                                <RichTextRenderer
+                                    html={replaceTagName(watermarkText || "HOAHOCTRO", "div")}
+                                    className="title-bg-text text-[60px] sm:text-[18vw] lg:text-[20vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center"
+                                />
+                            </div>
+
+                            <div className="relative z-10">
+                                <RichTextRenderer
+                                    html={replaceTagName(describeHeading, "div")}
+                                    className="title-main-text text-center"
+                                />
+                            </div>
                         </div>
-                    )}
 
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+32px)] lg:-translate-y-[calc(50%+48px)] w-full">
-                        <RichTextRenderer
-                            html={replaceTagName(describeHeading, "div")}
-                            className="title-main-text text-center"
-                        />
-                    </div>
-
-                    <div className="w-full flex flex-col items-center gap-0 lg:gap-0.5 mb-2 lg:mb-4">
-                        <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-1.5 px-4 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
-                            <RichTextRenderer
-                                html={h1Text}
-                                className="text-center"
-                            />
+                        <div className="w-full text-center mb-1 md:mb-2 lg:mb-2 relative z-10">
+                            <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
+                                <RichTextRenderer
+                                    html={h1Text}
+                                    className="text-center"
+                                />
+                            </div>
                         </div>
 
-                        <div className="w-full max-w-[1140px] flex flex-row justify-between items-center px-16 md:px-24 lg:px-30">
+                        <div className="w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
                             <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap">
                                 <RichTextRenderer
                                     html={describePhone}
@@ -97,14 +123,18 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-32">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-10">
                     <div className="relative w-full flex flex-col items-center">
-                        {describeFrameImage && (
-                            <div className="absolute z-[-1] top-[35px] bottom-[-20px] -left-5 -right-5 sm:max-w-[420px] mx-auto rounded-[8px] overflow-hidden pointer-events-none">
+                        {activeMobileFrameImage && (
+                            <div 
+                                className="absolute z-[-1] top-[40px] bottom-[-20px] -left-5 -right-5 sm:max-w-[420px] mx-auto overflow-hidden pointer-events-none"
+                                style={{ borderRadius: activeMobileFrameRadius }}
+                            >
                                 <img
-                                    src={buildUrl(describeFrameImage)}
+                                    src={buildUrl(activeMobileFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100 rounded-[8px]"
+                                    className="w-full h-full object-fill opacity-100"
+                                    style={{ borderRadius: activeMobileFrameRadius }}
                                 />
                             </div>
                         )}
@@ -163,7 +193,7 @@ const Describe = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-0 sm:gap-6 lg:gap-10 items-center md:px-0 mt-0 sm:mt-4 lg:mt-6">
-                <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left mb-2 md:mb-0">
+                <div className="md:col-span-5 flex flex-col items-center md:items-start text-center md:text-left mb-2 md:mb-0">
                     {bgTitle && (
                         <div className="w-full mb-1 flex justify-center md:pl-5 decoration-image-wrapper">
                             <Image
@@ -187,8 +217,11 @@ const Describe = () => {
                     )}
                 </div>
 
-                <div className="md:col-span-6 w-full flex justify-center relative">
-                    <div className="w-full max-w-[700px] md:max-w-none relative z-10">
+                <div className="md:col-span-7 w-full flex justify-center relative">
+                    <div 
+                        className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden shadow-sm"
+                        style={{ borderRadius: galleryRadius }}
+                    >
                         <Fade
                             autoplay={true}
                             duration={3000}
@@ -196,14 +229,14 @@ const Describe = () => {
                             arrows={false}
                         >
                             {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                <div key={index} className="relative w-full overflow-hidden rounded-none shadow-sm">
+                                <div key={index} className="relative w-full overflow-hidden" style={{ borderRadius: galleryRadius }}>
                                     <Image
                                         className="w-full h-auto object-contain"
                                         src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
                                         alt={`Slide ${index + 1}`}
                                         width={1200}
                                         height={800}
-                                        sizes="(max-width: 768px) 100vw, 45vw"
+                                        sizes="(max-width: 768px) 95vw, 58vw"
                                         quality={95}
                                         priority={index === 0}
                                     />

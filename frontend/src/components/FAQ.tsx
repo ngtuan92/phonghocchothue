@@ -40,8 +40,8 @@ const FAQ = () => {
     <section className="py-8 max-w-5xl mx-auto main-container mt-8 sm:mt-24 md:mt-32 mb-8 sm:mb-24">
       <RichTextRenderer
         html={faqHeading}
-        className="text-center mb-6"
-        fallback={<h2 className="text-center text-2xl sm:text-7xl mb-6 text-[#563c39] font-cursive">Bạn hỏi - Hoa Học Trò đáp</h2>}
+        className="text-center mb-4 md:mb-5"
+        fallback={<h2 className="text-center text-2xl sm:text-7xl mb-4 md:mb-5 text-[#563c39] font-cursive">Bạn hỏi - Hoa Học Trò đáp</h2>}
       />
 
       <div 

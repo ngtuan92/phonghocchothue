@@ -13,7 +13,7 @@ class ConfigController {
             
             if (noCache) {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius'],
                 });
                 return res.status(200).json({
                     success: true,
@@ -24,7 +24,7 @@ class ConfigController {
 
             const configJson = await getOrSetCache('configs:v2', async () => {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius'],
                 });
                 return {
                     success: true,
@@ -45,7 +45,7 @@ class ConfigController {
     }
 
     async store(req, res, next) {
-        const { key, content, type, section, musicName } = req.body;
+        const { key, content, type, section, musicName, borderRadius } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -61,7 +61,8 @@ class ConfigController {
                 content: content_new,
                 type,
                 section,
-                musicName
+                musicName,
+                borderRadius
             });
 
             await redis.del('configs:v2');
@@ -81,7 +82,7 @@ class ConfigController {
 
     async update(req, res, next) {
         const { key } = req.params  
-        const { content, type, section, musicName } = req.body;
+        const { content, type, section, musicName, borderRadius } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -109,7 +110,8 @@ class ConfigController {
                 content: content_new,
                 type: type || config.type,
                 section: section || config.section,
-                musicName: musicName || config.musicName
+                musicName: musicName || config.musicName,
+                borderRadius: borderRadius !== undefined ? borderRadius : config.borderRadius
             });
 
             await redis.del('configs:v2');
