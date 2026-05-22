@@ -432,6 +432,32 @@
   text-align: justify !important;
 }
 
+.hover-product-title-rich.rich-text-renderer h1,
+.hover-product-title-rich.rich-text-renderer h1 *,
+.hover-product-title-rich.rich-text-renderer h2,
+.hover-product-title-rich.rich-text-renderer h2 *,
+.hover-product-title-rich.rich-text-renderer h3,
+.hover-product-title-rich.rich-text-renderer h3 *,
+.hover-product-title-rich.rich-text-renderer h4,
+.hover-product-title-rich.rich-text-renderer h4 *,
+.hover-product-title-rich.rich-text-renderer h5,
+.hover-product-title-rich.rich-text-renderer h5 *,
+.hover-product-title-rich.rich-text-renderer h6,
+.hover-product-title-rich.rich-text-renderer h6 *,
+.hover-product-title-rich.rich-text-renderer p,
+.hover-product-title-rich.rich-text-renderer p *,
+.hover-product-title-rich.rich-text-renderer span,
+.hover-product-title-rich.rich-text-renderer * {
+  color: white !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  line-height: 1.4 !important;
+  font-family: inherit !important;
+}
+
 .describe-h2-wrapper .rich-text-renderer *,
 .blog-hero-title .rich-text-renderer * {
   font-size: clamp(24px, 4vw, 34px) !important;

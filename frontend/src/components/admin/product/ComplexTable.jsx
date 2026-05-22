@@ -188,7 +188,15 @@ export default function ComplexTable() {
       ),
       cell: (info) => {
         const val = info.getValue() || "";
-        const plainText = val.replace(/<[^>]*>/g, "").trim();
+        const plainText = val
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .trim();
         return (
           <p className="text-sm font-bold text-black truncate max-w-[200px]" title={plainText}>
             {plainText}

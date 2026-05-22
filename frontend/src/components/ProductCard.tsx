@@ -20,6 +20,7 @@ interface Product {
   _id?: string | number;
   slug?: string;
   name: string;
+  name_rich?: string;
   image: string;
   equipment?: string;
   contains?: string;
@@ -27,7 +28,15 @@ interface Product {
 
 const stripHtml = (val: string) => {
   if (!val) return "";
-  return val.replace(/<[^>]*>/g, "").trim();
+  return val
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 };
 
 const ProductCard = ({ product }: { product?: Product }) => {
@@ -55,7 +64,14 @@ const ProductCard = ({ product }: { product?: Product }) => {
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
-          <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+          {product.name_rich ? (
+            <RichTextRenderer
+              html={product.name_rich}
+              className="text-lg font-bold uppercase hover-product-title-rich w-full"
+            />
+          ) : (
+            <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+          )}
           <ul className="list-disc ml-5 text-base mt-2 space-y-1">
             {product.equipment && <li>{stripHtml(product.equipment)}</li>}
             {product.contains && <li>{stripHtml(product.contains)}</li>}
@@ -123,7 +139,14 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
-                <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+                {product.name_rich ? (
+                  <RichTextRenderer
+                    html={product.name_rich}
+                    className="text-lg font-bold uppercase hover-product-title-rich w-full"
+                  />
+                ) : (
+                  <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+                )}
                 <ul className="list-disc ml-5 text-base mt-2 space-y-1">
                   {product.equipment && <li>{stripHtml(product.equipment)}</li>}
                   {product.contains && <li>{stripHtml(product.contains)}</li>}
