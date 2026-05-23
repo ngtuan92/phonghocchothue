@@ -13,16 +13,13 @@ interface SliderItem {
     [key: string]: any;
 }
 
-const trimRichText = (html: string | undefined) => {
+const cleanWatermarkText = (html: string | undefined) => {
     if (!html) return "";
-    let trimmed = html.trim();
-    trimmed = trimmed.replace(/^(&nbsp;|\s)+/gi, "");
-    trimmed = trimmed.replace(/(&nbsp;|\s)+$/gi, "");
-    trimmed = trimmed.replace(/>(&nbsp;|\s)+/gi, ">");
-    trimmed = trimmed.replace(/(&nbsp;|\s)+</gi, "<");
-    return trimmed
-        .replace(/<p>&nbsp;<\/p>/gi, "")
-        .replace(/<p>\s*<\/p>/gi, "");
+    return html
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, "")
+        .replace(/\u00a0/g, "")
+        .trim();
 };
 
 const Describe = () => {
@@ -33,7 +30,7 @@ const Describe = () => {
     const bgTitle = useConfigContentByKey("bgTitle");
     const logo = useConfigContentByKey("logo");
     const watermarkText = useConfigContentByKey("describe-bg-text");
-    const trimmedWatermark = trimRichText(watermarkText) || "HOAHOCTRO";
+    const cleanWatermark = cleanWatermarkText(watermarkText) || "HOAHOCTRO";
     const describePhone = useConfigContentByKey("describe-phone");
         const describeFrameImage = useConfigContentByKey("describe-frame-image");
     const describeFrameImageRadius = useConfigContentByKey("describe-frame-image", "borderRadius");
@@ -99,10 +96,9 @@ const Describe = () => {
 
                         <div className="relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
                             <div className="absolute -top-16 -bottom-16 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
-                                <RichTextRenderer
-                                    html={replaceTagName(trimmedWatermark, "div")}
-                                    className="title-bg-text text-[60px] sm:text-[18vw] lg:text-[20vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center"
-                                />
+                                <div className="rich-text-renderer title-bg-text text-[60px] sm:text-[18vw] lg:text-[20vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center">
+                                    {cleanWatermark}
+                                </div>
                             </div>
 
                             <div className="relative z-10">
@@ -165,10 +161,9 @@ const Describe = () => {
 
                         <div className="relative w-full flex items-center justify-center py-0.5 watermark-container-wrapper">
                             <div className="absolute -top-12 -bottom-12 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
-                                <RichTextRenderer
-                                    html={replaceTagName(trimmedWatermark, "div")}
-                                    className="mobile-watermark-text"
-                                />
+                                <div className="rich-text-renderer mobile-watermark-text">
+                                    {cleanWatermark}
+                                </div>
                             </div>
 
                             <div className="relative z-10 -translate-y-1">
