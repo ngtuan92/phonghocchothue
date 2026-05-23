@@ -988,7 +988,7 @@
 /* --- QUILL FONT SLUG MAPPINGS TO GOOGLE FONTS --- */
 @font-face { font-family: "alex-brush"; src: local("Alex Brush"); }
 @font-face { font-family: "amatic-sc"; src: local("Amatic SC"); }
-@font-face { font-family: "bebas-neue"; src: local("Bebas Neue"); }
+@font-face { font-family: "bebas-neue"; src: local("Bebas Neue"), url("https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW4.ttf") format("truetype"); }
 @font-face { font-family: "caveat"; src: local("Caveat"); }
 @font-face { font-family: "dancing-script"; src: local("Dancing Script"); }
 @font-face { font-family: "great-vibes"; src: local("Great Vibes"); }

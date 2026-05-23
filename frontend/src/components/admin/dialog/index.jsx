@@ -665,8 +665,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           </div>
         </CardBody>
 
-        {/* Scoped CSS cho QuillWrapper trong dialog */}
-        <style jsx global>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .product-dialog-quill {
             position: relative;
             overflow: visible;
@@ -708,7 +707,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           .product-dialog-quill--description .ql-editor {
             min-height: 120px;
           }
-        `}</style>
+        ` }} />
 
         {/* Footer với nút lưu */}
         <CardFooter className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
