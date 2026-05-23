@@ -15,10 +15,12 @@ interface SliderItem {
 
 const trimRichText = (html: string | undefined) => {
     if (!html) return "";
-    return html
-        .trim()
-        .replace(/>(&nbsp;|\s)+/gi, ">")
-        .replace(/(&nbsp;|\s)+</gi, "<")
+    let trimmed = html.trim();
+    trimmed = trimmed.replace(/^(&nbsp;|\s)+/gi, "");
+    trimmed = trimmed.replace(/(&nbsp;|\s)+$/gi, "");
+    trimmed = trimmed.replace(/>(&nbsp;|\s)+/gi, ">");
+    trimmed = trimmed.replace(/(&nbsp;|\s)+</gi, "<");
+    return trimmed
         .replace(/<p>&nbsp;<\/p>/gi, "")
         .replace(/<p>\s*<\/p>/gi, "");
 };
