@@ -934,14 +934,31 @@
     text-align: left !important;
   }
 
-  .mobile-watermark-text,
-  .mobile-watermark-text * {
-    font-size: clamp(60px, 19vw, 90px) !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    line-height: 1 !important;
-    display: block !important;
+  div.rich-text-renderer.mobile-watermark-text {
     width: 100% !important;
+    max-width: none !important;
+    overflow: visible !important;
+    display: block !important;
+    text-align: center !important;
+    font-size: clamp(60px, 19vw, 90px) !important;
+    line-height: 0.85 !important;
+    white-space: nowrap !important;
+    letter-spacing: -0.05em !important;
+    font-family: 'Bebas Neue', sans-serif !important;
+    transform: scaleY(1.25) !important;
+  }
+
+  div.rich-text-renderer.mobile-watermark-text * {
+    font-size: inherit !important;
+    line-height: inherit !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    text-align: center !important;
+    width: auto !important;
+    max-width: none !important;
+    letter-spacing: inherit !important;
+    font-family: inherit !important;
   }
 
   .hero-phone-text,
