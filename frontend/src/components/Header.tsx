@@ -60,6 +60,10 @@ const Header = ({ icon }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const homeMusic = useConfigContentByKey("home-music");
   const homeMusicName = useConfigContentByKey("home-music", "musicName");
+  const linkFb = useConfigContentByKey("linkfb");
+  const linkMess = useConfigContentByKey("linkMess");
+  const linkYoutube = useConfigContentByKey("linkYoutube");
+  const phone = useConfigContentByKey("phone");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -161,7 +165,7 @@ const Header = ({ icon }: HeaderProps) => {
     >
       <div className="flex items-center justify-start sm:ml-[25px] flex-shrink-0 gap-[16px] sm:gap-[20px]">
         <a
-          href={useConfigContentByKey("linkfb") || "#"}
+          href={linkFb || "#"}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -171,7 +175,7 @@ const Header = ({ icon }: HeaderProps) => {
           />
         </a>
         <a
-          href={useConfigContentByKey("linkMess") || "#"}
+          href={linkMess || "#"}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -181,7 +185,7 @@ const Header = ({ icon }: HeaderProps) => {
           />
         </a>
         <a
-          href={useConfigContentByKey("linkYoutube") || "#"}
+          href={linkYoutube || "#"}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -191,7 +195,7 @@ const Header = ({ icon }: HeaderProps) => {
           />
         </a>
         <a
-          href={useConfigContentByKey("phone") ? `tel:${useConfigContentByKey("phone")}` : "#"}
+          href={phone ? `tel:${phone}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -254,7 +258,7 @@ const Header = ({ icon }: HeaderProps) => {
             </button>
           </div>
           <div
-            className={`z-[9998] top-[-10px] right-[-13px] sm:!right-[-46px] lg:!right-[-46px] xl:!right-[-20px] sm:!top-[-8px] lg:!top-[-8px] xl:!top-[-8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
+            className={`z-[9998] top-[-10px] right-[-13px] sm:!right-0 sm:!top-[-8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
               }`}
             style={{
               transformOrigin: "top right",

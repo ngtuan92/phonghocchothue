@@ -1005,3 +1005,13 @@
 [style*="font-family: pinyon-script"], [style*="font-family:pinyon-script"], [style*="font-family: 'pinyon-script'"] { font-family: "Pinyon Script", cursive !important; }
 [style*="font-family: playfair-display"], [style*="font-family:playfair-display"], [style*="font-family: 'playfair-display'"] { font-family: "Playfair Display", serif !important; }
 [style*="font-family: syncopate"], [style*="font-family:syncopate"], [style*="font-family: 'syncopate'"] { font-family: "Syncopate", sans-serif !important; }
+
+.gallery-swiper-slide-container {
+  border-radius: var(--mobile-radius) !important;
+}
+
+@media (min-width: 768px) {
+  .gallery-swiper-slide-container {
+    border-radius: var(--desktop-radius) !important;
+  }
+}

@@ -74,7 +74,7 @@ const Amenities: React.FC = () => {
   };
 
   return (
-    <section id="amenities" className="mt-18 lg:mt-16 mb-12 sm:mb-24 overflow-hidden">
+    <section id="amenities" className="mt-10 sm:mt-36 lg:mt-36 mb-10 sm:mb-20 overflow-hidden">
       <div className="container mx-auto main-container">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center">
 

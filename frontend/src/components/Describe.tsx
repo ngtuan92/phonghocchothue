@@ -55,7 +55,7 @@ const Describe = () => {
     };
 
     return (
-        <div className="mb-16 sm:mb-30 main-container overflow-x-hidden">
+        <div className="mb-10 sm:mb-36 main-container overflow-x-hidden">
             <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-start z-10 pt-[60px] md:pt-[85px] lg:pt-[30px] pb-0">
                     <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center">
@@ -192,57 +192,59 @@ const Describe = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-0 sm:gap-6 lg:gap-10 items-center md:px-0 mt-0 sm:mt-4 lg:mt-6">
-                <div className="md:col-span-5 flex flex-col items-center md:items-start text-center md:text-left mb-2 md:mb-0">
-                    {bgTitle && (
-                        <div className="w-full mb-1 flex justify-center md:pl-5 decoration-image-wrapper">
-                            <Image
-                                src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
-                                alt="Decoration"
-                                width={800}
-                                height={240}
-                                className="w-full h-auto object-contain max-w-[200px] md:max-w-[500px]"
-                                quality={100}
-                                priority
-                            />
-                        </div>
-                    )}
-
-
-
-                    {description && (
-                        <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-3xl describe-description-wrapper text-center md:text-left">
-                            <RichTextRenderer html={description} className="text-center md:text-left" />
-                        </div>
-                    )}
-                </div>
-
-                <div className="md:col-span-7 w-full flex justify-center relative">
-                    <div 
-                        className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden shadow-sm"
-                        style={{ borderRadius: galleryRadius }}
-                    >
-                        <Fade
-                            autoplay={true}
-                            duration={3000}
-                            transitionDuration={800}
-                            arrows={false}
-                        >
-                            {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                <div key={index} className="relative w-full overflow-hidden" style={{ borderRadius: galleryRadius }}>
+            <div className="container mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center mt-0 sm:mt-4 lg:mt-6">
+                    <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left mb-2 md:mb-0">
+                        <div className="space-y-4 md:space-y-5 w-full">
+                            {bgTitle && (
+                                <div className="w-full flex justify-center decoration-image-wrapper">
                                     <Image
-                                        className="w-full h-auto object-contain"
-                                        src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
-                                        alt={`Slide ${index + 1}`}
-                                        width={1200}
-                                        height={800}
-                                        sizes="(max-width: 768px) 95vw, 58vw"
-                                        quality={95}
-                                        priority={index === 0}
+                                        src={`${URL_API}${bgTitle.replace(/\\/g, "/")}`}
+                                        alt="Decoration"
+                                        width={800}
+                                        height={240}
+                                        className="w-full h-auto object-contain max-w-[200px] md:max-w-[500px]"
+                                        quality={100}
+                                        priority
                                     />
                                 </div>
-                            ))}
-                        </Fade>
+                            )}
+
+                            {description && (
+                                <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-3xl describe-description-wrapper text-center md:text-left">
+                                    <RichTextRenderer html={description} className="text-center md:text-left" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-6 w-full flex justify-center relative">
+                        <div 
+                            className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden shadow-sm"
+                            style={{ borderRadius: galleryRadius }}
+                        >
+                            <Fade
+                                autoplay={true}
+                                duration={3000}
+                                transitionDuration={800}
+                                arrows={false}
+                            >
+                                {sliderData.map((fadeImage: SliderItem, index: number) => (
+                                    <div key={index} className="relative w-full overflow-hidden" style={{ borderRadius: galleryRadius }}>
+                                        <Image
+                                            className="w-full h-auto object-contain"
+                                            src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
+                                            alt={`Slide ${index + 1}`}
+                                            width={1200}
+                                            height={800}
+                                            sizes="(max-width: 768px) 95vw, 58vw"
+                                            quality={95}
+                                            priority={index === 0}
+                                        />
+                                    </div>
+                                ))}
+                            </Fade>
+                        </div>
                     </div>
                 </div>
             </div>
