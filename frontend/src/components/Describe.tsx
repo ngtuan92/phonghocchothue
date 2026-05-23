@@ -161,7 +161,7 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-0.5 watermark-container-wrapper">
-                            <div className="absolute -top-12 -bottom-12 left-1/2 -translate-x-1/2 w-full flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
+                            <div className="absolute -top-12 -bottom-12 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(trimmedWatermark, "div")}
                                     className="mobile-watermark-text"
