@@ -127,10 +127,6 @@ const Gallery: React.FC = () => {
                   nextEl: ".gallery-next",
                   prevEl: ".gallery-prev",
                 }}
-                pagination={{
-                  clickable: true,
-                  dynamicBullets: true,
-                }}
                 autoplay={{ delay: 6000, disableOnInteraction: false }}
                 loop={false}
                 className="w-full h-full gallery-swiper"
