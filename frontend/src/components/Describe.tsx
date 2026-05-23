@@ -17,7 +17,8 @@ const trimRichText = (html: string | undefined) => {
     if (!html) return "";
     return html
         .trim()
-        .replace(/(&nbsp;|\s)+<\/p>/gi, "</p>")
+        .replace(/>(&nbsp;|\s)+/gi, ">")
+        .replace(/(&nbsp;|\s)+</gi, "<")
         .replace(/<p>&nbsp;<\/p>/gi, "")
         .replace(/<p>\s*<\/p>/gi, "");
 };
