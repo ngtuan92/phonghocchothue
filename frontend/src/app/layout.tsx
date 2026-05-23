@@ -1,5 +1,5 @@
 // app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@mantine/core/styles.css";
 import { Providers } from "@/lib/query-client";
 import { ConfigProvider } from "@/context/ConfigProvider";
@@ -11,6 +11,12 @@ import MantineProviderWrapper from "./MantineProviderWrapper";
 import GoogleVerificationMeta from "@/components/GoogleVerificationMeta";
 import DynamicFonts from "@/components/DynamicFonts";
 import CustomFontProvider from "@/components/CustomFontProvider";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://phonghocchothue.com"),
@@ -42,6 +48,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Raleway:ital,wght@0,400..900;1,400..900&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap" rel="stylesheet" />
