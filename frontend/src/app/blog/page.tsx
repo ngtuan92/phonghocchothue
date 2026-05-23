@@ -119,7 +119,7 @@ export default function BlogPage() {
                       </div>
                     </div>
 
-                    <div className="max-w-2xl mx-auto text-center blog-header-dynamic main-container">
+                    <div className="w-full text-center blog-header-dynamic">
                       <RichTextRenderer html={blogPageDescription} />
                     </div>
                   </div>

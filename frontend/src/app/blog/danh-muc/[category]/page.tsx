@@ -120,7 +120,7 @@ export default function BlogCategoryPage() {
                       </h1>
                     </div>
 
-                    <p className="max-w-2xl mx-auto text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center blog-header-dynamic main-container">
+                    <p className="w-full text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center blog-header-dynamic">
                       Khám phá các bài viết chuyên sâu về chủ đề {displayCategory} tại ChoThuePhongHoc.com
                     </p>
                   </div>

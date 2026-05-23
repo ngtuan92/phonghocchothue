@@ -188,7 +188,7 @@ export default function BlogDetail() {
             <div className="pt-10 border-t border-gray-100 flex justify-center">
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-10 py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md"
+                className="inline-flex items-center gap-2 text-[12px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-5 py-2 sm:px-10 sm:py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md whitespace-nowrap"
               >
                 Quay lại danh sách bài viết
               </Link>
