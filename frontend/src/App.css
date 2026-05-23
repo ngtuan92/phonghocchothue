@@ -684,7 +684,7 @@
     overflow: visible !important;
     display: block !important;
     text-align: center !important;
-    font-size: clamp(40px, 18.5vw, 90px) !important;
+    font-size: clamp(60px, 19vw, 90px) !important;
     line-height: 0.85 !important;
     white-space: nowrap !important;
     letter-spacing: -0.05em !important;
@@ -936,7 +936,7 @@
 
   .mobile-watermark-text,
   .mobile-watermark-text * {
-    font-size: 13vw !important;
+    font-size: clamp(60px, 19vw, 90px) !important;
     text-align: center !important;
     white-space: nowrap !important;
     line-height: 1 !important;
