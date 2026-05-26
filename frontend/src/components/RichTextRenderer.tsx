@@ -18,19 +18,42 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (!html) return "";
     
     const sanitized = DOMPurify.sanitize(html, {
-      ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius'],
+      ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius', 'data-wrap', 'data-caption'],
       ADD_TAGS: ['iframe'],
     });
     
     let processedHtml = sanitized.replace(/&nbsp;/g, " ");
 
-    processedHtml = processedHtml.replace(/<img([^>]*?)\/?>/gi, (match, attributes) => {
+    processedHtml = processedHtml.replace(/<img([^>]*?)\/?>\s*/gi, (match, attributes) => {
       const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
-      const altMatch = attributes.match(/alt=["']([^"']*)["']/i);
-      const captionText = (titleMatch?.[1] || altMatch?.[1] || "").trim();
+      const captionMatch = attributes.match(/data-caption=["']([^"']*)["']/i);
+      const wrapMatch = attributes.match(/data-wrap=["']([^"']*)["']/i);
+      
+      const hasDataCaption = /data-caption\s*=/i.test(attributes);
+      const captionText = hasDataCaption
+        ? (captionMatch?.[1] || "").trim()
+        : (titleMatch?.[1] || "").trim();
+        
+      const wrapMode = wrapMatch?.[1] || '';
+      const wrapClass = wrapMode === 'left' || wrapMode === 'right' ? ` image-wrap-${wrapMode}` : '';
 
       if (captionText) {
-        return `<div class="image-wrapper"><img${attributes}><div class="image-caption">${captionText}</div></div>`;
+        const widthMatch = attributes.match(/width=["']([^"']*)["']/i);
+        const styleMatch = attributes.match(/style=["']([^"']*)["']/i);
+        
+        let inlineWidth = "";
+        if (widthMatch) {
+          inlineWidth = widthMatch[1];
+        } else if (styleMatch) {
+          const styleStr = styleMatch[1];
+          const widthStyle = styleStr.match(/width:\s*([^;]+)/i);
+          if (widthStyle) {
+            inlineWidth = widthStyle[1].trim();
+          }
+        }
+        
+        const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
+        return `<div class="image-wrapper${wrapClass}"${wrapperStyle}><img${attributes}><div class="image-caption">${captionText}</div></div>`;
       }
       return match;
     });
@@ -54,7 +77,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }}
         dangerouslySetInnerHTML={{ __html: cleanHtml }}
       />
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .rich-text-renderer img {
           display: block;
           margin-left: auto;
@@ -62,12 +85,108 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           max-width: 100%;
           height: auto;
         }
+        /* Style for image wrappers */
+        .rich-text-renderer .image-wrapper {
+          margin-left: auto !important;
+          margin-right: auto !important;
+          display: block;
+        }
+        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+          margin-top: 20px !important;
+          margin-bottom: 0 !important;
+        }
+        .rich-text-renderer .image-wrapper img {
+          width: 100% !important;
+          display: block !important;
+          margin: 0 !important;
+        }
+        /* Text wrapping: float left */
+        .rich-text-renderer img[data-wrap="left"] {
+          float: left !important;
+          margin-right: 20px !important;
+          margin-bottom: 16px !important;
+          margin-top: 6px !important;
+          margin-left: 0 !important;
+          display: inline !important;
+        }
+        /* Text wrapping: float right */
+        .rich-text-renderer img[data-wrap="right"] {
+          float: right !important;
+          margin-left: 20px !important;
+          margin-bottom: 16px !important;
+          margin-top: 6px !important;
+          margin-right: 0 !important;
+          display: inline !important;
+        }
+        /* Text wrapping: center/none */
+        .rich-text-renderer img[data-wrap="none"] {
+          float: none !important;
+          display: block !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          margin-top: 20px !important;
+          margin-bottom: 0 !important;
+        }
+        /* Image wrapper wrapping support */
+        .rich-text-renderer .image-wrap-left {
+          float: left !important;
+          margin-right: 20px !important;
+          margin-bottom: 16px !important;
+          margin-top: 6px !important;
+          display: inline-block !important;
+        }
+        .rich-text-renderer .image-wrap-right {
+          float: right !important;
+          margin-left: 20px !important;
+          margin-bottom: 16px !important;
+          margin-top: 6px !important;
+          display: inline-block !important;
+        }
+        .rich-text-renderer .image-wrap-left img,
+        .rich-text-renderer .image-wrap-right img {
+          display: block !important;
+          float: none !important;
+          margin: 0 !important;
+        }
+        /* Clearfix for content after floated images */
+        .rich-text-renderer::after {
+          content: '' !important;
+          display: table !important;
+          clear: both !important;
+        }
+        
+        /* Responsive Mobile styles to stack wrapped images nicely */
+        @media (max-width: 767px) {
+          .rich-text-renderer img[data-wrap="left"],
+          .rich-text-renderer img[data-wrap="right"],
+          .rich-text-renderer .image-wrapper.image-wrap-left,
+          .rich-text-renderer .image-wrapper.image-wrap-right {
+            float: none !important;
+            display: block !important;
+            width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: 16px !important;
+            margin-bottom: 16px !important;
+          }
+          .rich-text-renderer img[data-wrap="none"] {
+            margin-bottom: 20px !important;
+          }
+          .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+            margin-bottom: 20px !important;
+          }
+          .rich-text-renderer .image-caption {
+            font-size: 12px !important;
+            margin-bottom: 20px !important;
+          }
+        }
+        
         .image-caption {
           text-align: center;
           font-size: 14px;
           color: #666;
           margin-top: 8px;
-          margin-bottom: 20px;
+          margin-bottom: 0;
           font-style: italic;
           line-height: 1.4;
           display: block;
@@ -91,8 +210,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           font-weight: inherit !important;
           color: inherit !important;
         }
-
-      `}</style>
+      `}} />
     </>
   );
 };

@@ -144,7 +144,7 @@ export default function BlogDetail() {
             </nav>
 
             <header className="mb-4 text-center sm:text-left flex flex-col">
-              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 mb-6 order-2 sm:order-1">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 mb-4 order-2 sm:order-1">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#f8f9fa] border border-gray-100 flex items-center justify-center text-[#563c39] overflow-hidden relative">
                     {authorAvatarSrc ? (
@@ -165,7 +165,7 @@ export default function BlogDetail() {
                     <span className="sm:hidden text-xs text-gray-500">{new Date(blog.publishedAt).toLocaleDateString("vi-VN")}</span>
                   </div>
                 </div>
-                
+
                 <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
                   <FaCalendarAlt size={12} className="text-gray-400" />
                   <span>Ngày đăng: {new Date(blog.publishedAt).toLocaleDateString("vi-VN", {
@@ -173,8 +173,8 @@ export default function BlogDetail() {
                   })}</span>
                 </div>
               </div>
-              
-              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-6 order-1 sm:order-2">
+
+              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-4 order-1 sm:order-2">
                 {blog.title}
               </h1>
 

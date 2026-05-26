@@ -301,7 +301,7 @@ export default function BlogTable() {
       {openForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpenForm(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-6xl shadow-2xl z-10 overflow-hidden border border-gray-100">
+          <div className="relative bg-white rounded-2xl w-full max-w-[95vw] xl:max-w-[1350px] shadow-2xl z-10 overflow-hidden border border-gray-100">
             <div className="flex justify-between items-center px-8 py-4 border-b border-gray-50">
               <h2 className="text-lg font-bold text-foreground">
                 {selectedBlog ? "Chỉnh sửa bài viết" : "Soạn thảo bài viết mới"}
