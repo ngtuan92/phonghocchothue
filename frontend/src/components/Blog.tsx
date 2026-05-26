@@ -41,7 +41,7 @@ function formatDate(dateStr: string) {
 
 function BlogCardSkeleton() {
   return (
-    <div className="rounded-tl-2xl rounded-br-2xl overflow-hidden border border-[#799f85]/20 animate-pulse">
+    <div className="rounded-2xl overflow-hidden border border-[#799f85]/20 animate-pulse">
       <div className="bg-gray-200 aspect-video w-full" />
       <div className="p-5 space-y-3">
         <div className="h-3 bg-gray-200 rounded w-2/5" />
@@ -66,7 +66,7 @@ function BlogCard({ blog }: { blog: Blog }) {
       : null;
 
   return (
-    <div className="group rounded-tl-2xl rounded-br-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white">
+    <div className="group rounded-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white">
       <div className="relative aspect-video overflow-hidden bg-gray-100 flex-shrink-0">
         {thumbnailSrc ? (
           <Image
@@ -134,7 +134,7 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
     : null;
 
   return (
-    <div className="group relative rounded-tl-[2rem] rounded-br-[2rem] overflow-hidden flex flex-col lg:flex-row bg-white transition-all duration-500 hover:shadow-2xl mb-12">
+    <div className="group relative rounded-[2rem] overflow-hidden flex flex-col lg:flex-row bg-white transition-all duration-500 hover:shadow-2xl mb-12">
       <div className="relative w-full lg:w-3/5 aspect-video lg:aspect-auto min-h-[300px] overflow-hidden">
         {thumbnailSrc ? (
           <Image
@@ -368,27 +368,27 @@ export default function Blog({
       )}
 
       {isHomePage ? (
-        <div className="flex justify-end mt-4 sm:mt-8">
+        <div className="flex justify-center mt-4 sm:mt-8">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-xs sm:text-lg text-white bg-[#563c39] hover:bg-[#e57f7f] px-[15px] sm:px-[20px] py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
+            className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
           >
             Xem thêm
-            <FaArrowRight size={12} />
+            <FaArrowRight size={10} />
           </Link>
         </div>
       ) : (
         <>
           {isMobile ? (
             hasMore && blogs.length > 0 && (
-              <div className="flex justify-end mt-4 sm:mt-8">
+              <div className="flex justify-center mt-4 sm:mt-8">
                 <button
                   onClick={handleLoadMore}
                   disabled={isFetching}
-                  className="inline-flex items-center gap-2 text-xs sm:text-lg text-white bg-[#563c39] hover:bg-[#e57f7f] px-[15px] sm:px-[20px] py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isFetching ? "Đang tải..." : "Xem thêm"}
-                  {!isFetching && <FaArrowRight size={12} />}
+                  {!isFetching && <FaArrowRight size={10} />}
                 </button>
               </div>
             )

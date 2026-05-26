@@ -126,7 +126,7 @@ export default function BlogDetail() {
           </div>
 
           <main className="main-container py-8 sm:py-12">
-            <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500 mb-10 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
+            <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500 mb-6 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
               <Link href="/" className="flex items-center gap-1 hover:text-[#e57f7f] transition-colors">
                 <FaHome size={14} />
                 <span>Trang chủ</span>
@@ -137,20 +137,8 @@ export default function BlogDetail() {
               <span className="text-[#563c39] font-medium truncate max-w-[300px]">{blog.title}</span>
             </nav>
 
-            <header className="mb-12 text-center sm:text-left">
-              <div className="mb-6">
-                <span className={`text-[11px] font-bold uppercase tracking-[2px] ${
-                  blog.category === 'kien-thuc' ? 'text-[#799f85]' : 'text-[#e57f7f]'
-                }`}>
-                  {blog.category === 'kien-thuc' ? 'Kiến thức' : 'Kinh nghiệm'}
-                </span>
-              </div>
-              
-              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-10">
-                {blog.title}
-              </h1>
-
-              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-4 sm:border-y sm:border-gray-100 mb-10">
+            <header className="mb-8 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 sm:border-y sm:border-gray-100 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#f8f9fa] border border-gray-100 flex items-center justify-center text-[#563c39]">
                     <FaUserEdit size={14} />
@@ -169,9 +157,13 @@ export default function BlogDetail() {
                   })}</span>
                 </div>
               </div>
+              
+              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-6">
+                {blog.title}
+              </h1>
 
               {blog.excerpt && (
-                <div className="mb-12 px-2 sm:px-0 py-4 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6">
+                <div className="mb-8 px-2 sm:px-0 py-4 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6">
                   <p className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
                     <span className="text-[#b8c7b0] text-3xl font-serif mr-1 sm:hidden leading-none">“</span>
                     {blog.excerpt}

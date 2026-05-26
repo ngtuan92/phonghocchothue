@@ -352,6 +352,14 @@
   color: #563c39;
 }
 
+@media (min-width: 768px) {
+  .title-sub-text {
+    letter-spacing: 0.4em !important;
+    padding-left: calc(1rem + 1em) !important;
+    padding-right: 1rem !important;
+  }
+}
+
 .title-quote-text {
   font-family: 'Dancing Script', cursive;
   color: #563c39;
