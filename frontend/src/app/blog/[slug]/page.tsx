@@ -99,7 +99,7 @@ export default function BlogDetail() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-7 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
+      <div className="absolute inset-0 flex items-center justify-center px-[34px] py-[30px] sm:p-[70px] 1400px:p-[70px] 1700px:p-[85px]">
         <div
           className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto hide-scrollbar bg-white shadow-2xl"
           style={pageStyle}
