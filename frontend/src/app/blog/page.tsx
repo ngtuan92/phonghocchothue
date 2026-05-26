@@ -80,7 +80,7 @@ export default function BlogPage() {
           <Header />
 
           <main className="min-h-screen">
-            <div className="relative pt-12 pb-8 sm:pt-20 sm:pb-4 overflow-hidden">
+            <div className="relative pt-12 pb-8 sm:pt-20 sm:pb-16 overflow-hidden">
               <div className="main-container relative z-10">
                 <div className="flex flex-col items-center">
                   {logo && (
@@ -99,7 +99,7 @@ export default function BlogPage() {
                   )}
 
                   <div className="w-full flex flex-col items-center gap-1 text-center">
-                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway main-container">
+                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
                       <Link href="/" className="flex items-center gap-1.5 hover:text-[#e57f7f] transition-colors">
                         <FaHome size={15} className="-translate-y-0.5" />
                         <span>Trang chủ</span>

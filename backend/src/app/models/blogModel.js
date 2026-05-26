@@ -36,6 +36,10 @@ const BlogModel = db.sequelize.define("blogs", {
         type: DataTypes.STRING(100), 
         defaultValue: 'Hoa Học Trò' 
     },
+    authorAvatar: { 
+        type: DataTypes.STRING(255), 
+        allowNull: true 
+    },
     status: { 
         type: DataTypes.INTEGER, 
         defaultValue: 1

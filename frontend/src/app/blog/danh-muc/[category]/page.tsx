@@ -103,7 +103,7 @@ export default function BlogCategoryPage() {
                   )}
 
                   <div className="w-full flex flex-col items-center gap-4 text-center">
-                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway main-container">
+                    <nav className="hidden sm:flex self-start items-center gap-2 text-xs sm:text-sm text-gray-600 raleway">
                       <Link href="/" className="flex items-center gap-1.5 hover:text-[#e57f7f] transition-colors">
                         <FaHome size={15} className="-translate-y-0.5" />
                         <span>Trang chủ</span>

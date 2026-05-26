@@ -953,7 +953,7 @@ const QuillWrapper = forwardRef((props, ref) => {
           min-height: inherit;
         }
         .ql-editor p {
-          margin-bottom: 14px;
+          margin-bottom: 0.5rem;
         }
         .quill-wrapper-container {
           position: relative !important;
@@ -1138,7 +1138,7 @@ const QuillWrapper = forwardRef((props, ref) => {
         `).join('\n')}
         .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 { 
           line-height: 1.2; 
-          margin-bottom: 0.8rem;
+          margin-bottom: 0.5rem;
         }
         .ql-editor h1 { font-size: 2.5rem; }
         .ql-editor h2 { font-size: 2rem; }

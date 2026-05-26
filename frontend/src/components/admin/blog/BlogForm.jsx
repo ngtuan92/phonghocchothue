@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
-import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility } from "react-icons/md";
+import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -22,17 +22,23 @@ export default function BlogForm({ data, onSave, onCancel }) {
     content: "",
     thumbnail: "",
     authorName: "Hoa Học Trò",
+    authorAvatar: "",
     ...data
   });
 
   const [previewImage, setPreviewImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [previewAvatar, setPreviewAvatar] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
 
   useEffect(() => {
     if (formData.thumbnail && !formData.thumbnail.startsWith("blob:")) {
       setPreviewImage(formData.thumbnail.startsWith("http") ? formData.thumbnail : `${URL_API}${formData.thumbnail.replace(/\\/g, "/")}`);
     }
-  }, [formData.thumbnail]);
+    if (formData.authorAvatar && !formData.authorAvatar.startsWith("blob:")) {
+      setPreviewAvatar(formData.authorAvatar.startsWith("http") ? formData.authorAvatar : `${URL_API}${formData.authorAvatar.replace(/\\/g, "/")}`);
+    }
+  }, [formData.thumbnail, formData.authorAvatar]);
 
   const [categories, setCategories] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -61,11 +67,22 @@ export default function BlogForm({ data, onSave, onCancel }) {
     }
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setPreviewAvatar(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const submitData = { ...formData };
     if (imageFile) {
       submitData.thumbnailFile = imageFile;
+    }
+    if (avatarFile) {
+      submitData.avatarFile = avatarFile;
     }
     onSave(submitData);
   };
@@ -239,6 +256,32 @@ export default function BlogForm({ data, onSave, onCancel }) {
                 value={formData.authorName}
                 onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
               />
+            </div>
+
+            <div className="pt-2">
+              <div className="flex items-center gap-2 mb-3">
+                <MdCloudUpload className="text-primary h-5 w-5" />
+                <Typography variant="small" className="text-gray-700 font-bold uppercase tracking-wider text-[11px]">
+                  Ảnh đại diện tác giả (Avatar)
+                </Typography>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-gray-300 bg-gray-50 flex-shrink-0 flex items-center justify-center">
+                  {previewAvatar ? (
+                    <img
+                      src={previewAvatar}
+                      alt="Avatar Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <MdPerson className="h-6 w-6 text-gray-300" />
+                  )}
+                </div>
+                <label className="cursor-pointer bg-white border border-gray-300 hover:border-primary text-gray-700 hover:text-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95">
+                  Tải ảnh
+                  <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+                </label>
+              </div>
             </div>
           </div>
         </div>

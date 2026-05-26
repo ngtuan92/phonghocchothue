@@ -400,7 +400,7 @@
 .rich-text-renderer h1:has(+ p),
 .rich-text-renderer h2:has(+ p),
 .rich-text-renderer h3:has(+ p) {
-  margin-bottom: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .rich-text-renderer h1 {
@@ -423,7 +423,7 @@
   font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
   color: #323232;
-  margin-bottom: 14px;
+  margin-bottom: 0.5rem;
   font-weight: 400;
   font-size: 1.05rem;
 }
@@ -529,7 +529,7 @@
 @media (max-width: 767px) {
   .blog-content p {
     line-height: 1.75 !important;
-    margin-bottom: 18px !important;
+    margin-bottom: 0.5rem !important;
   }
 
   .blog-content img {

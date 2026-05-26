@@ -15,6 +15,7 @@ export interface Blog {
   category: BlogCategory;
   status: number;
   authorName: string;
+  authorAvatar?: string;
   publishedAt: string;
   createdAt?: string;
   updatedAt?: string;

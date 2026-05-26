@@ -77,6 +77,12 @@ export default function BlogDetail() {
       : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`
     : null;
 
+  const authorAvatarSrc = blog.authorAvatar
+    ? blog.authorAvatar.startsWith("http")
+      ? blog.authorAvatar
+      : `${URL_API}${blog.authorAvatar.replaceAll("\\", "/")}`
+    : null;
+
   return (
     <div className="overflow-hidden">
       {background && (
@@ -138,10 +144,20 @@ export default function BlogDetail() {
             </nav>
 
             <header className="mb-8 text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 sm:border-y sm:border-gray-100 mb-6">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#f8f9fa] border border-gray-100 flex items-center justify-center text-[#563c39]">
-                    <FaUserEdit size={14} />
+                  <div className="w-10 h-10 rounded-full bg-[#f8f9fa] border border-gray-100 flex items-center justify-center text-[#563c39] overflow-hidden relative">
+                    {authorAvatarSrc ? (
+                      <Image
+                        src={authorAvatarSrc}
+                        alt={blog.authorName || "Author Avatar"}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    ) : (
+                      <FaUserEdit size={14} />
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#563c39] text-sm sm:text-base">{blog.authorName}</span>

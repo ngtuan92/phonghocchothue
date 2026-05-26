@@ -77,11 +77,26 @@ export default function BlogTable() {
         responseThumbnail = uploadRes.url;
       }
 
+      let responseAvatar = formData.authorAvatar;
+      if (formData.avatarFile) {
+        const uploadFd = new FormData();
+        uploadFd.append('upload', formData.avatarFile);
+        
+        const finalUploadUrl = `${URL_API}api/upload/image`;
+
+        const uploadRes = await fetchData(finalUploadUrl, "POST", uploadFd, {
+          "Content-Type": "multipart/form-data",
+        });
+        responseAvatar = uploadRes.url;
+      }
+
       const finalData = {
         ...formData,
-        thumbnail: responseThumbnail
+        thumbnail: responseThumbnail,
+        authorAvatar: responseAvatar
       };
       delete finalData.thumbnailFile;
+      delete finalData.avatarFile;
 
       if (selectedBlog) {
         await updateBlogMutation.mutateAsync({ id: selectedBlog.id, ...finalData });
