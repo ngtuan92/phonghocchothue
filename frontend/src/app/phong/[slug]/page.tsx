@@ -21,7 +21,9 @@ import ProductCard from "@/components/ProductCard";
 import parse from "html-react-parser";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
-import RichTextRenderer from "@/components/RichTextRenderer";
+import dynamic from "next/dynamic";
+
+const RichTextRenderer = dynamic(() => import("@/components/RichTextRenderer"), { ssr: false });
 
 const URL_API =
   process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";

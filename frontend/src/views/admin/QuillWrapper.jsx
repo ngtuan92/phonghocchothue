@@ -7,11 +7,22 @@ import { Input, Button } from "@material-tailwind/react";
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 const SIZE_MAP = {
-  "Small": "0.85rem",
-  "Normal": "1.05rem",
-  "Large": "2rem",
-  "Huge": "5rem",
-  "Super Huge": "19vw"
+  "8": "8px",
+  "9": "9px",
+  "10": "10px",
+  "11": "11px",
+  "12": "12px",
+  "14": "14px",
+  "16": "16px",
+  "18": "18px",
+  "20": "20px",
+  "24": "24px",
+  "30": "30px",
+  "36": "36px",
+  "48": "48px",
+  "60": "60px",
+  "72": "72px",
+  "96": "96px"
 };
 
 let cachedFonts = null;
@@ -142,7 +153,7 @@ if (typeof window !== "undefined" && Quill) {
   
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
-    SizeStyle.whitelist = undefined;
+    SizeStyle.canAdd = () => true; 
     Quill.register(SizeStyle, true);
   }
   const AlignStyle = Quill.import("attributors/style/align");
@@ -236,14 +247,40 @@ const QuillWrapper = forwardRef((props, ref) => {
       updateCaptions();
     };
 
+    const updateSizePickerLabel = () => {
+      const format = quill.getFormat();
+      const size = format.size;
+      const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+      sizePickers.forEach(picker => {
+        const label = picker.querySelector('.ql-picker-label');
+        if (!label) return;
+        if (size) {
+          const sizeVal = Array.isArray(size) ? size[0] : size;
+          if (typeof sizeVal === 'string') {
+            label.setAttribute('data-value', sizeVal);
+            label.setAttribute('data-display-value', sizeVal.replace('px', ''));
+          }
+        } else {
+          label.removeAttribute('data-value');
+          label.removeAttribute('data-display-value');
+        }
+      });
+    };
+
     quill.root.addEventListener('scroll', handleUpdate);
     window.addEventListener('resize', handleUpdate);
     
     const resizeObserver = new ResizeObserver(handleUpdate);
     resizeObserver.observe(quill.root);
 
+    quill.on('selection-change', updateSizePickerLabel);
+    quill.on('text-change', updateSizePickerLabel);
+
     // Initial trigger
-    setTimeout(handleUpdate, 100);
+    setTimeout(() => {
+      handleUpdate();
+      updateSizePickerLabel();
+    }, 100);
 
     return () => {
       if (quill?.root) {
@@ -251,6 +288,8 @@ const QuillWrapper = forwardRef((props, ref) => {
       }
       window.removeEventListener('resize', handleUpdate);
       resizeObserver.disconnect();
+      quill.off('selection-change', updateSizePickerLabel);
+      quill.off('text-change', updateSizePickerLabel);
     };
   }, [isReady, updateCaptions]);
 
@@ -488,6 +527,143 @@ const QuillWrapper = forwardRef((props, ref) => {
       setIsReady(true);
     }
   }, [dynamicFonts]);
+
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
+
+    const initSizeInput = () => {
+      const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+      sizePickers.forEach(picker => {
+        const label = picker.querySelector('.ql-picker-label');
+        if (!label || label.getAttribute('data-input-initialized')) return;
+        label.setAttribute('data-input-initialized', 'true');
+
+        // Watch for changes on data-value attribute to extract numbers
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-value') {
+              const quill = editorRef.current?.getEditor();
+              if (quill) {
+                const format = quill.getFormat();
+                const size = format.size;
+                if (size) {
+                  const sizeVal = Array.isArray(size) ? size[0] : size;
+                  if (typeof sizeVal === 'string') {
+                    const cleanSize = sizeVal.replace('px', '');
+                    observer.disconnect();
+                    label.setAttribute('data-value', sizeVal);
+                    label.setAttribute('data-display-value', cleanSize);
+                    observer.observe(label, { attributes: true, attributeFilter: ['data-value'] });
+                    return;
+                  }
+                }
+              }
+              const val = label.getAttribute('data-value');
+              if (val) {
+                label.setAttribute('data-display-value', val.replace('px', ''));
+              } else {
+                label.removeAttribute('data-display-value');
+              }
+            }
+          });
+        });
+        
+        const quill = editorRef.current?.getEditor();
+        let initialVal = label.getAttribute('data-value');
+        if (quill) {
+          const format = quill.getFormat();
+          if (format.size) {
+            const sizeVal = Array.isArray(format.size) ? format.size[0] : format.size;
+            if (typeof sizeVal === 'string') {
+              initialVal = sizeVal;
+            }
+          }
+        }
+        if (initialVal) {
+          label.setAttribute('data-value', initialVal);
+          label.setAttribute('data-display-value', initialVal.replace('px', ''));
+        }
+        observer.observe(label, { attributes: true, attributeFilter: ['data-value'] });
+
+        const handleDblClick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const quill = editorRef.current?.getEditor();
+          if (!quill) return;
+
+          let input = picker.querySelector('.ql-custom-size-input');
+          if (input) return;
+
+          input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'ql-custom-size-input';
+          input.style.width = '42px';
+          input.style.height = '20px';
+          input.style.border = '1px solid #1A94FF';
+          input.style.borderRadius = '4px';
+          input.style.fontSize = '12px';
+          input.style.textAlign = 'center';
+          input.style.outline = 'none';
+          input.style.padding = '0';
+          input.style.boxSizing = 'border-box';
+          input.style.margin = '0 2px';
+          input.style.fontFamily = 'sans-serif';
+          input.style.color = '#333';
+
+          const currentFormat = quill.getFormat();
+          let currentSizeVal = '16';
+          if (currentFormat && currentFormat.size) {
+            currentSizeVal = currentFormat.size.replace('px', '');
+          }
+          input.value = currentSizeVal;
+
+          label.style.display = 'none';
+          picker.insertBefore(input, label);
+
+          input.focus();
+          input.select();
+
+          const applySizeAndClose = () => {
+            let val = input.value.trim();
+            if (val) {
+              // Hỗ trợ cả số nguyên và số thập phân tự động thêm px (ví dụ: 15 hoặc 15.5)
+              if (/^\d+(\.\d+)?$/.test(val)) {
+                val = `${val}px`;
+              }
+              quill.format('size', val);
+            }
+            input.remove();
+            label.style.display = '';
+          };
+
+          input.onkeydown = (ev) => {
+            ev.stopPropagation();
+            if (ev.key === 'Enter') {
+              ev.preventDefault();
+              applySizeAndClose();
+            } else if (ev.key === 'Escape') {
+              ev.preventDefault();
+              input.remove();
+              label.style.display = '';
+            }
+          };
+
+          input.onblur = () => {
+            applySizeAndClose();
+          };
+
+          input.onclick = (ev) => ev.stopPropagation();
+          input.onmousedown = (ev) => ev.stopPropagation();
+        };
+
+        label.addEventListener('dblclick', handleDblClick);
+      });
+    };
+
+    const interval = setInterval(initSizeInput, 1000);
+    return () => clearInterval(interval);
+  }, [isReady]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ alt: "", title: "", caption: "", width: "", borderRadius: "" });
@@ -1269,6 +1445,10 @@ const QuillWrapper = forwardRef((props, ref) => {
         .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"] {
           display: block !important;
         }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: 'Heading 1' !important; }
+        .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+        .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: 'Heading 2' !important; }
         .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
         .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'Heading 3' !important; }
         .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
@@ -1301,7 +1481,11 @@ const QuillWrapper = forwardRef((props, ref) => {
           }
         `).join('\n')}
         .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
-        .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Normal' !important; }
+        .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Mặc định' !important; }
+        
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-display-value]::before {
+          content: attr(data-display-value) !important;
+        }
         
         ${Object.entries(SIZE_MAP).map(([label, value]) => `
           .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="${value}"]::before,

@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useMemo } from "react";
-import DOMPurify from "isomorphic-dompurify";
+
+const getDOMPurify = () => {
+  if (typeof window !== "undefined") {
+    const mod = require("isomorphic-dompurify");
+    return mod.default || mod;
+  }
+  return null;
+};
 
 interface RichTextRendererProps {
   html: string | null | undefined;
@@ -17,14 +24,25 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const cleanHtml = useMemo(() => {
     if (!html) return "";
     
-    const sanitized = DOMPurify.sanitize(html, {
-      ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius', 'data-wrap', 'data-caption'],
-      ADD_TAGS: ['iframe'],
-    });
+    const domPurify = getDOMPurify();
+    const sanitized = domPurify
+      ? domPurify.sanitize(html, {
+          ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius', 'data-wrap', 'data-caption'],
+          ADD_TAGS: ['iframe'],
+        })
+      : html;
     
     let processedHtml = sanitized.replace(/&nbsp;/g, " ");
 
-    processedHtml = processedHtml.replace(/<img([^>]*?)\/?>\s*/gi, (match, attributes) => {
+    // Add IDs to h2 and h3 elements for table of contents smooth scrolling
+    let headingIndex = 0;
+    processedHtml = processedHtml.replace(/<(h[23])([^>]*?)>(.*?)<\/\1>/gi, (match: string, tag: string, attributes: string, contentText: string) => {
+      if (/id=["']/i.test(attributes)) return match;
+      const id = `heading-${headingIndex++}`;
+      return `<${tag} id="${id}"${attributes}>${contentText}</${tag}>`;
+    });
+
+    processedHtml = processedHtml.replace(/<img([^>]*?)\/?>\s*/gi, (match: string, attributes: string) => {
       const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
       const captionMatch = attributes.match(/data-caption=["']([^"']*)["']/i);
       const wrapMatch = attributes.match(/data-wrap=["']([^"']*)["']/i);
@@ -93,7 +111,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
         .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
           margin-top: 20px !important;
-          margin-bottom: 0 !important;
+          margin-bottom: 16px !important;
         }
         .rich-text-renderer .image-wrapper img {
           width: 100% !important;
@@ -125,7 +143,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           margin-left: auto !important;
           margin-right: auto !important;
           margin-top: 20px !important;
-          margin-bottom: 0 !important;
+          margin-bottom: 10px !important;
         }
         /* Image wrapper wrapping support */
         .rich-text-renderer .image-wrap-left {
@@ -170,14 +188,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             margin-bottom: 16px !important;
           }
           .rich-text-renderer img[data-wrap="none"] {
-            margin-bottom: 20px !important;
+            margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
-            margin-bottom: 20px !important;
+            margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-caption {
             font-size: 12px !important;
-            margin-bottom: 20px !important;
+            margin-bottom: 10px !important;
           }
         }
         
