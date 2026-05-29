@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Card from "../card";
@@ -27,17 +27,24 @@ export default function BlogTable() {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const isFirstRender = useRef(true);
 
   // Scroll to the top of the management card when page changes
   useEffect(() => {
-    if (isInitialLoad) {
-      setIsInitialLoad(false);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
+    const scrollContainer = document.querySelector(".overflow-y-auto");
     const element = document.querySelector(".bg-white.rounded-2xl");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (scrollContainer && element) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const targetRect = element.getBoundingClientRect();
+      const relativeTop = targetRect.top - containerRect.top + scrollContainer.scrollTop;
+      scrollContainer.scrollTo({
+        top: relativeTop,
+        behavior: "smooth"
+      });
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }

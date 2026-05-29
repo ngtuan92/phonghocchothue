@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import classNames from "classnames";
 import { useBlogs, type Blog, type BlogCategory } from "@/hooks/api/useBlog";
 import { FaCalendarAlt, FaUserEdit, FaBookOpen, FaSeedling, FaArrowRight } from "react-icons/fa";
@@ -214,12 +214,12 @@ export default function Blog({
   const [hasMore, setHasMore] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [limit, setLimit] = useState(isHomePage ? 3 : 6);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const isFirstRender = useRef(true);
 
-  // Automatically scroll up to the start of the blog section when page or category changes
+  // Automatically scroll up to the start of the blog section when blogs or page changes
   useEffect(() => {
-    if (isInitialLoad) {
-      setIsInitialLoad(false);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
 
@@ -228,11 +228,21 @@ export default function Blog({
       return;
     }
 
-    const element = document.getElementById("blog-list-start");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    const scrollContainer = document.querySelector(".overflow-y-auto");
+    const target = document.getElementById("blog-list-start");
+    if (scrollContainer && target) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      // Calculate absolute scroll position within the nested container
+      const relativeTop = targetRect.top - containerRect.top + scrollContainer.scrollTop;
+      scrollContainer.scrollTo({
+        top: relativeTop,
+        behavior: "smooth"
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [page, activeTab, isMobile]);
+  }, [blogs, isMobile, page]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
