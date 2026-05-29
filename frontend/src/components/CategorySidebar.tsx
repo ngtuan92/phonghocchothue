@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import classNames from "classnames";
 import { FaChevronRight } from "react-icons/fa";
+import useConfigContentByKey from "@/hooks/useConfigContentByKey";
+import RichTextRenderer from "@/components/RichTextRenderer";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -14,15 +16,16 @@ interface Category {
 
 interface CategorySidebarProps {
   currentCategory?: string;
-  showSupport?: boolean;
   onCategoryChange?: (category: string) => void;
 }
 
 export default function CategorySidebar({ 
   currentCategory = "all", 
-  showSupport = false,
   onCategoryChange 
 }: CategorySidebarProps) {
+  const sidebarBlogTitle = useConfigContentByKey("sidebar-blog-title");
+  const sidebarBlogDescription = useConfigContentByKey("sidebar-blog-description");
+
   const [categories, setCategories] = useState<Category[]>([
     { key: "all", label: "Tất cả bài viết" },
   ]);
@@ -85,33 +88,24 @@ export default function CategorySidebar({
         </ul>
       </div>
 
-      {showSupport ? (
-        <div className="bg-[#fdf6f5] p-8 rounded-2xl border border-[#799f85]/10">
-          <h4 className="text-lg font-bold text-[#563c39] mb-3">Bạn cần hỗ trợ?</h4>
-          <p className="text-xs text-gray-500 leading-relaxed mb-6 raleway">
-            Đừng ngần ngại liên hệ với chúng tôi để được tư vấn không gian phù hợp nhất.
-          </p>
-          <Link
-            href="/#contact"
-            className="inline-block w-full text-center py-3 bg-[#563c39] hover:bg-[#e57f7f] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300"
-          >
-            Liên hệ ngay
-          </Link>
+      <div className="bg-[#fdf6f5] p-8 rounded-2xl border border-[#799f85]/10">
+        <h4 className="text-lg font-bold text-[#563c39] mb-3">
+          {sidebarBlogTitle || "Về Blog"}
+        </h4>
+        <div className="text-xs text-gray-700 leading-relaxed raleway mb-6">
+          {sidebarBlogDescription ? (
+            <RichTextRenderer html={sidebarBlogDescription} />
+          ) : (
+            "Nơi chia sẻ những bí quyết tối ưu không gian học tập và làm việc hiệu quả nhất."
+          )}
         </div>
-      ) : (
-        <div className="bg-[#fdf6f5] p-8 rounded-2xl border border-[#799f85]/10">
-          <h4 className="text-lg font-bold text-[#563c39] mb-3">Về Blog</h4>
-          <p className="text-xs text-gray-700 leading-relaxed raleway mb-6">
-            Nơi chia sẻ những bí quyết tối ưu không gian học tập và làm việc hiệu quả nhất.
-          </p>
-          <Link
-            href="/#contact"
-            className="inline-block w-full text-center py-3 bg-[#563c39] hover:bg-[#e57f7f] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-sm"
-          >
-            Liên hệ ngay
-          </Link>
-        </div>
-      )}
+        <Link
+          href="/#contact"
+          className="inline-block w-full text-center py-3 bg-[#563c39] hover:bg-[#e57f7f] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-sm"
+        >
+          Liên hệ ngay
+        </Link>
+      </div>
     </div>
   );
 }
