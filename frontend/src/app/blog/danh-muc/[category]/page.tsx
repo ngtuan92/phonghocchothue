@@ -129,9 +129,10 @@ export default function BlogCategoryPage() {
             </div>
 
             <div className="main-container pt-0 pb-4 sm:pt-0 sm:pb-8">
+              {/* Mobile View: Scrollable Tags with Right Fade Gradient / Sticky Grid Icon */}
               <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-2 bg-transparent mb-2">
-                <div className="relative w-full">
-                  <div className="flex overflow-x-auto gap-2 pb-1.5 hide-scrollbar whitespace-nowrap scroll-smooth">
+                <div className="relative w-full flex items-center">
+                  <div className="flex overflow-x-auto gap-2 pb-1.5 hide-scrollbar whitespace-nowrap scroll-smooth flex-1">
                     {categories.map((cat) => (
                       <Link
                         key={cat.key}
@@ -147,15 +148,30 @@ export default function BlogCategoryPage() {
                       </Link>
                     ))}
                     {/* Spacer at the end to allow scrolling past the gradient */}
-                    <div className="w-8 flex-shrink-0" />
+                    <div className={classNames("flex-shrink-0", categories.length > 6 ? "w-14" : "w-8")} />
                   </div>
+
                   {/* Dynamic Fade-out Gradient Overlay on the right */}
                   <div 
-                    className="absolute right-0 top-0 bottom-1.5 w-8 pointer-events-none z-10"
+                    className={classNames(
+                      "absolute right-0 top-0 bottom-1.5 pointer-events-none z-10 transition-all duration-300",
+                      categories.length > 6 ? "w-14" : "w-8"
+                    )}
                     style={{
-                      background: `linear-gradient(to left, ${colorBg || '#faf8f5'} 20%, transparent)`
+                      background: `linear-gradient(to left, ${colorBg || '#faf8f5'} 40%, transparent)`
                     }}
                   />
+
+                  {/* Sticky Grid Button for 6+ categories */}
+                  {categories.length > 6 && (
+                    <button
+                      onClick={() => setIsDrawerOpen(true)}
+                      className="absolute right-0 top-1/2 -translate-y-[calc(50%+1px)] z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[#563c39]/10 text-[#563c39] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
+                      aria-label="Tất cả danh mục"
+                    >
+                      <FaThLarge size={13} className="text-[#563c39]" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -176,6 +192,69 @@ export default function BlogCategoryPage() {
           <Footer />
         </div>
       </div>
+
+      {/* Bottom Sheet Drawer for Mobile Categories */}
+      {categories.length > 6 && (
+        <>
+          {/* Backdrop */}
+          <div
+            className={classNames(
+              "fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] transition-opacity duration-300 ease-in-out lg:hidden",
+              isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            )}
+            onClick={() => setIsDrawerOpen(false)}
+          />
+
+          {/* Bottom Sheet Panel */}
+          <div
+            className={classNames(
+              "fixed bottom-0 left-0 right-0 max-h-[85vh] rounded-t-[24px] shadow-[0_-8px_30px_rgb(0,0,0,0.2)] z-[1000] flex flex-col transition-transform duration-300 ease-out transform lg:hidden",
+              isDrawerOpen ? "translate-y-0" : "translate-y-full"
+            )}
+            style={{
+              backgroundColor: colorBg || "#faf8f5",
+            }}
+          >
+            {/* Drag Handle */}
+            <div className="w-12 h-1 bg-[#563c39]/20 rounded-full mx-auto my-3 flex-shrink-0" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pb-4 border-b border-[#563c39]/10">
+              <h2 className="text-base font-bold text-[#563c39] raleway flex items-center gap-2">
+                <FaThLarge size={14} className="text-[#e57f7f]" />
+                <span>Danh mục bài viết</span>
+              </h2>
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-[#563c39]/5 text-[#563c39] hover:bg-[#563c39]/10 active:scale-90 transition-all duration-200"
+              >
+                <FaTimes size={12} />
+              </button>
+            </div>
+
+            {/* Grid Content */}
+            <div className="overflow-y-auto px-6 py-6 hide-scrollbar flex-1 max-h-[60vh]">
+              <div className="grid grid-cols-2 gap-3 pb-8">
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.key}
+                    href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={classNames(
+                      "w-full px-3 py-3.5 rounded-xl text-center text-[12px] font-semibold transition-all duration-300 border flex items-center justify-center min-h-[48px] shadow-sm leading-tight raleway",
+                      category === cat.key
+                        ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20"
+                        : "bg-white/80 backdrop-blur-md text-gray-700 border-[#799f85]/20 hover:bg-[#fdf6f5]"
+                    )}
+                  >
+                    {cat.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
