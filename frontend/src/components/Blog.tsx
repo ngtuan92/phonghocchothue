@@ -216,39 +216,10 @@ export default function Blog({
   const [limit, setLimit] = useState(isHomePage ? 3 : 6);
   const isFirstRender = useRef(true);
 
-  // Automatically scroll up to the start of the blog section when blogs or page changes
+  // Initialize first render flag on mount
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
-    // Skip scrolling on mobile when loading additional pages (load more)
-    if (isMobile && page > 1) {
-      return;
-    }
-
-    const scrollContainer = document.getElementById("main-scroll-container");
-    const target = document.getElementById("blog-list-start");
-    if (scrollContainer && target) {
-      try {
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        if (containerRect && targetRect) {
-          // Calculate absolute scroll position within the nested container
-          const relativeTop = targetRect.top - containerRect.top + (scrollContainer.scrollTop || 0);
-          scrollContainer.scrollTo({
-            top: relativeTop,
-            behavior: "smooth"
-          });
-        }
-      } catch (err) {
-        console.error("Scroll error:", err);
-      }
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [blogs, isMobile, page]);
+    isFirstRender.current = false;
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -279,6 +250,14 @@ export default function Blog({
     setActiveTab(currentCategory);
     setPage(1);
     setBlogs([]);
+
+    // Scroll to top of blog section on category change (if not initial render)
+    if (!isFirstRender.current) {
+      const element = document.getElementById("blog");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
   }, [currentCategory]);
 
   const getCategoryLabel = (cat: string) => {
@@ -328,6 +307,10 @@ export default function Blog({
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+    const element = document.getElementById("blog");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const totalPages = data?.pagination?.totalPages || 1;
@@ -412,6 +395,7 @@ export default function Blog({
             hasMore && blogs.length > 0 && (
               <div className="flex justify-center mt-4 sm:mt-8">
                 <button
+                  type="button"
                   onClick={handleLoadMore}
                   disabled={isFetching}
                   className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -425,6 +409,7 @@ export default function Blog({
             totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12">
                 <button
+                  type="button"
                   onClick={() => handlePageChange(Math.max(1, page - 1))}
                   disabled={page === 1 || isFetching}
                   className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
@@ -436,6 +421,7 @@ export default function Blog({
                   {Array.from({ length: totalPages }).map((_, i) => (
                     <button
                       key={i + 1}
+                      type="button"
                       onClick={() => handlePageChange(i + 1)}
                       disabled={isFetching}
                       className={classNames(
@@ -451,6 +437,7 @@ export default function Blog({
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages || isFetching}
                   className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
