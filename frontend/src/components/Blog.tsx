@@ -214,6 +214,25 @@ export default function Blog({
   const [hasMore, setHasMore] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [limit, setLimit] = useState(isHomePage ? 3 : 6);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Automatically scroll up to the start of the blog section when page or category changes
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      return;
+    }
+
+    // Skip scrolling on mobile when loading additional pages (load more)
+    if (isMobile && page > 1) {
+      return;
+    }
+
+    const element = document.getElementById("blog-list-start");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [page, activeTab, isMobile]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -280,12 +299,6 @@ export default function Blog({
         }
       } else {
         setBlogs(data.data);
-        if (page > 1) {
-          const element = document.getElementById("blog-list-start");
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        }
       }
 
       const totalPages = data.pagination?.totalPages || 0;

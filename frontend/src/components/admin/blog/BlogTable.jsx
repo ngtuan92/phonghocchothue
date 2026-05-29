@@ -27,6 +27,21 @@ export default function BlogTable() {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Scroll to the top of the management card when page changes
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      return;
+    }
+    const element = document.querySelector(".bg-white.rounded-2xl");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [page]);
 
   const { data: blogData, isLoading, refetch, isFetching } = useBlogs({
     page,
