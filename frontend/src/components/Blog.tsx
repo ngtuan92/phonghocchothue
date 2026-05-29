@@ -228,17 +228,23 @@ export default function Blog({
       return;
     }
 
-    const scrollContainer = document.querySelector(".overflow-y-auto");
+    const scrollContainer = document.getElementById("main-scroll-container");
     const target = document.getElementById("blog-list-start");
     if (scrollContainer && target) {
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      // Calculate absolute scroll position within the nested container
-      const relativeTop = targetRect.top - containerRect.top + scrollContainer.scrollTop;
-      scrollContainer.scrollTo({
-        top: relativeTop,
-        behavior: "smooth"
-      });
+      try {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        if (containerRect && targetRect) {
+          // Calculate absolute scroll position within the nested container
+          const relativeTop = targetRect.top - containerRect.top + (scrollContainer.scrollTop || 0);
+          scrollContainer.scrollTo({
+            top: relativeTop,
+            behavior: "smooth"
+          });
+        }
+      } catch (err) {
+        console.error("Scroll error:", err);
+      }
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
