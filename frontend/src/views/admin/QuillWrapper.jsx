@@ -1099,9 +1099,40 @@ const QuillWrapper = forwardRef((props, ref) => {
       quill.update('user');
     }
     setImageWrapMode(mode);
-    // Re-calculate resizer position after layout change
     setTimeout(() => updateResizerRect(), 50);
   }, [updateResizerRect]);
+
+  const handleDeleteImage = useCallback(() => {
+    const img = selectedImageRef.current;
+    if (!img) return;
+    const quill = editorRef.current?.getEditor();
+    if (!quill) return;
+    const blot = Quill.find(img);
+    if (blot) {
+      const index = quill.getIndex(blot);
+      quill.deleteText(index, 1, 'user');
+      selectedImageRef.current = null;
+      setSelectedImage(null);
+      setImageWrapMode('none');
+      setTimeout(updateCaptions, 50);
+    }
+  }, [updateCaptions]);
+
+  useEffect(() => {
+    if (!selectedImage) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        handleDeleteImage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [selectedImage, handleDeleteImage]);
 
   const renderModals = () => {
     if (!isMounted) return null;
@@ -1557,6 +1588,19 @@ const QuillWrapper = forwardRef((props, ref) => {
           border-color: #3b82f6;
           color: #1d4ed8;
         }
+        .wrap-btn.delete-btn {
+          color: #ef4444;
+        }
+        .wrap-btn.delete-btn:hover {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+        .wrap-divider {
+          width: 1px;
+          background: #e2e8f0;
+          margin: 4px 2px;
+          align-self: stretch;
+        }
         .wrap-btn svg {
           width: 18px;
           height: 18px;
@@ -1671,6 +1715,20 @@ const QuillWrapper = forwardRef((props, ref) => {
                 <line x1="3" y1="8" x2="10" y2="8"/>
                 <line x1="3" y1="14" x2="21" y2="14"/>
                 <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <div className="wrap-divider"></div>
+            <button
+              type="button"
+              className="wrap-btn delete-btn"
+              title="Xóa hình ảnh"
+              onClick={(e) => { e.stopPropagation(); handleDeleteImage(); }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
             </button>
           </div>
