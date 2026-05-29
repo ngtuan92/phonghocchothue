@@ -148,30 +148,25 @@ export default function BlogPage() {
                       </button>
                     ))}
                     {/* Spacer at the end to allow scrolling past the gradient */}
-                    <div className={classNames("flex-shrink-0", categories.length > 6 ? "w-14" : "w-8")} />
+                    <div className="flex-shrink-0 w-14" />
                   </div>
 
                   {/* Dynamic Fade-out Gradient Overlay on the right */}
                   <div 
-                    className={classNames(
-                      "absolute right-0 top-0 bottom-1.5 pointer-events-none z-10 transition-all duration-300",
-                      categories.length > 6 ? "w-14" : "w-8"
-                    )}
+                    className="absolute right-0 top-0 bottom-1.5 pointer-events-none z-10 w-14 transition-all duration-300"
                     style={{
                       background: `linear-gradient(to left, ${colorBg || '#faf8f5'} 40%, transparent)`
                     }}
                   />
 
-                  {/* Sticky Grid Button for 6+ categories */}
-                  {categories.length > 6 && (
-                    <button
-                      onClick={() => setIsDrawerOpen(true)}
-                      className="absolute right-0 top-1/2 -translate-y-[calc(50%+1px)] z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[#563c39]/10 text-[#563c39] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
-                      aria-label="Tất cả danh mục"
-                    >
-                      <FaThLarge size={13} className="text-[#563c39]" />
-                    </button>
-                  )}
+                  {/* Sticky Grid Button */}
+                  <button
+                    onClick={() => setIsDrawerOpen(true)}
+                    className="absolute right-0 top-1/2 -translate-y-[calc(50%+1px)] z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[#563c39]/10 text-[#563c39] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
+                    aria-label="Tất cả danh mục"
+                  >
+                    <FaThLarge size={13} className="text-[#563c39]" />
+                  </button>
                 </div>
               </div>
 
@@ -203,7 +198,7 @@ export default function BlogPage() {
       </div>
 
       {/* Bottom Sheet Drawer for Mobile Categories */}
-      {categories.length > 6 && (
+      {categories.length > 0 && (
         <>
           {/* Backdrop */}
           <div
