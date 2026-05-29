@@ -20,7 +20,7 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 export default function BlogCategoryPage() {
   const params = useParams();
   const category = decodeURIComponent(params.category as string);
-  
+
   const colorBg = useConfigContentByKey("color-bg");
   const background = useConfigContentByKey("background");
   const logo = useConfigContentByKey("logo");
@@ -130,72 +130,32 @@ export default function BlogCategoryPage() {
 
             <div className="main-container pt-0 pb-4 sm:pt-0 sm:pb-8">
               <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-2 bg-transparent mb-2">
-                <div className="flex flex-wrap gap-2">
-                  {categories.length <= 5 ? (
-                    categories.map((cat) => (
-                      <Link 
+                <div className="relative w-full">
+                  <div className="flex overflow-x-auto gap-2 pb-1.5 hide-scrollbar whitespace-nowrap scroll-smooth">
+                    {categories.map((cat) => (
+                      <Link
                         key={cat.key}
                         href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
                         className={classNames(
-                          "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
-                          category === cat.key 
-                            ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20" 
+                          "whitespace-nowrap px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-300 border",
+                          category === cat.key
+                            ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20"
                             : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                         )}
                       >
                         {cat.label}
                       </Link>
-                    ))
-                  ) : (
-                    <>
-                      <div className="flex flex-wrap gap-2 w-full">
-                        {categories.slice(0, 3).map((cat) => (
-                          <Link 
-                            key={cat.key}
-                            href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
-                            className={classNames(
-                              "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border",
-                              category === cat.key 
-                                ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20" 
-                                : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
-                            )}
-                          >
-                            {cat.label}
-                          </Link>
-                        ))}
-                        <button 
-                          onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                          className={classNames(
-                            "whitespace-nowrap flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-300 border bg-white/80 backdrop-blur-md text-[#563c39] border-[#799f85]/20 shadow-sm",
-                            isDrawerOpen && "bg-[#563c39] !text-white border-[#563c39]"
-                          )}
-                        >
-                          <FaThLarge size={11} />
-                          <span>{isDrawerOpen ? "Thu gọn" : `Thêm (${categories.length - 3})`}</span>
-                        </button>
-                      </div>
-
-                      {isDrawerOpen && (
-                        <div className="w-full mt-3 grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                          {categories.slice(3).map((cat) => (
-                            <Link 
-                              key={cat.key}
-                              href={cat.key === "all" ? "/blog" : `/blog/danh-muc/${encodeURIComponent(cat.key)}`}
-                              onClick={() => setIsDrawerOpen(false)}
-                              className={classNames(
-                                "px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-md border text-center text-[13px] font-semibold shadow-sm active:scale-95 transition-all",
-                                category === cat.key
-                                  ? "bg-[#563c39] text-white border-[#563c39]"
-                                  : "text-[#563c39] border-[#799f85]/10"
-                              )}
-                            >
-                              {cat.label}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
+                    ))}
+                    {/* Spacer at the end to allow scrolling past the gradient */}
+                    <div className="w-8 flex-shrink-0" />
+                  </div>
+                  {/* Dynamic Fade-out Gradient Overlay on the right */}
+                  <div 
+                    className="absolute right-0 top-0 bottom-1.5 w-8 pointer-events-none z-10"
+                    style={{
+                      background: `linear-gradient(to left, ${colorBg || '#faf8f5'} 20%, transparent)`
+                    }}
+                  />
                 </div>
               </div>
 
