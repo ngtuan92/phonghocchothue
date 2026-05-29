@@ -174,7 +174,6 @@ export default function BlogPage() {
                 <aside className="hidden lg:block lg:w-[20%]">
                   <CategorySidebar
                     currentCategory={activeCategory}
-                    showSupport={false}
                     onCategoryChange={setActiveCategory}
                   />
                 </aside>

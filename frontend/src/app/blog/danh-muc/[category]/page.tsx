@@ -174,7 +174,7 @@ export default function BlogCategoryPage() {
               <div className="flex flex-col lg:flex-row gap-16">
                 {/* Sidebar - Hidden on Mobile, Visible on Desktop (lg+) */}
                 <aside className="hidden lg:block lg:w-[20%]">
-                  <CategorySidebar currentCategory={category} showSupport={false} />
+                  <CategorySidebar currentCategory={category} />
                 </aside>
 
                 <div className="w-full lg:w-[80%]">

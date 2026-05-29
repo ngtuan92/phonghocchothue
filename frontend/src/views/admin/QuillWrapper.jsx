@@ -1343,7 +1343,7 @@ const QuillWrapper = forwardRef((props, ref) => {
         }
         .quill-wrapper-container:focus-within,
         .quill-wrapper-container:has(.ql-expanded) {
-          z-index: 50 !important;
+          z-index: 25 !important;
         }
         
         /* Default toolbar options behavior (desktop, width > 900px) */
@@ -1447,7 +1447,7 @@ const QuillWrapper = forwardRef((props, ref) => {
         }
         .ql-toolbar.ql-snow:focus-within,
         .ql-toolbar.ql-snow:has(.ql-expanded) {
-          z-index: 50 !important;
+          z-index: 25 !important;
         }
         .ql-container.ql-snow {
           border: none !important;
