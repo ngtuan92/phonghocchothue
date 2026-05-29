@@ -162,7 +162,7 @@ export default function BlogPage() {
                   {/* Sticky Grid Button */}
                   <button
                     onClick={() => setIsDrawerOpen(true)}
-                    className="absolute right-0 top-1/2 -translate-y-[calc(50%+1px)] z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[#563c39]/10 text-[#563c39] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
+                    className="absolute right-0 top-0 bottom-1.5 my-auto z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[#563c39]/10 text-[#563c39] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
                     aria-label="Tất cả danh mục"
                   >
                     <FaThLarge size={13} className="text-[#563c39]" />
