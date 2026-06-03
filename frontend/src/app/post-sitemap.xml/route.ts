@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-
+export const runtime = 'edge';
 const BASE_URL = "https://phonghocchothue.com";
 const API_BASE = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
 
