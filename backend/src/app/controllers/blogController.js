@@ -4,6 +4,12 @@ const { redis, getOrSetCache } = require('../../util/cacheUtil');
 const { sequelize, Sequelize } = require('../../config/db');
 const { Op } = Sequelize;
 
+const sanitizePath = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    const match = url.match(/(\/assets\/.*)/);
+    return match ? match[1] : url;
+};
+
 class BlogController {
     async index(req, res) {
         try {
@@ -76,7 +82,7 @@ class BlogController {
 
     async store(req, res) {
         try {
-            const { title, content, thumbnail, category, authorName, status, excerpt } = req.body;
+            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt } = req.body;
             const slug = await createUniqueSlug(title, async (s) => {
                 return await BlogModel.findOne({ where: { slug: s } });
             });
@@ -85,9 +91,10 @@ class BlogController {
                 title,
                 slug,
                 content,
-                thumbnail,
+                thumbnail: sanitizePath(thumbnail),
                 category,
                 authorName,
+                authorAvatar: sanitizePath(authorAvatar),
                 status: status || 1,
                 excerpt,
                 publishedAt: new Date()
@@ -104,14 +111,23 @@ class BlogController {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { title, content, thumbnail, category, authorName, status, excerpt } = req.body;
+            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt } = req.body;
 
             const blog = await BlogModel.findByPk(id);
             if (!blog) {
                 return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
             }
 
-            const updateData = { title, content, thumbnail, category, authorName, status, excerpt };
+            const updateData = { 
+                title, 
+                content, 
+                thumbnail: sanitizePath(thumbnail), 
+                category, 
+                authorName, 
+                authorAvatar: sanitizePath(authorAvatar),
+                status, 
+                excerpt 
+            };
             
             if (title && title !== blog.title) {
                 updateData.slug = await createUniqueSlug(title, async (s) => {

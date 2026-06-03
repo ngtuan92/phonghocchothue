@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/generate-sitemap.js && next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
@@ -21,7 +20,6 @@
     "@material-tailwind/react": "^2.1.10",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-table": "^8.20.6",
-    "@tinymce/tinymce-react": "^6.3.0",
     "apexcharts": "^5.3.3",
     "axios": "^1.7.9",
     "canvas-confetti": "^1.9.3",
@@ -58,7 +56,6 @@
     "tailwind-scrollbar-hide": "^2.0.0"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.16",
     "@tailwindcss/typography": "^0.5.15",
     "@types/js-cookie": "^3.0.6",
     "@types/lodash": "^4.17.13",

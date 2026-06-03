@@ -14,61 +14,72 @@ import "swiper/css/navigation";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
+const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: string }> = ({ data, keyPrefix, borderRadius }) => {
+  if (data.length === 0) {
+    return (
+      <div className="w-full h-full bg-gray-50 rounded-[12px] flex items-center justify-center border-2 border-dashed border-gray-200">
+        <p className="text-gray-400 font-medium italic">Tiện ích đang được cập nhật...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="relative w-full aspect-[16/10] group shadow-sm border border-[#799f851a] overflow-hidden transition-all duration-300"
+      style={{ borderRadius }}
+    >
+      <Swiper
+        modules={[Autoplay, EffectFade, Navigation]}
+        effect="fade"
+        fadeEffect={{ crossFade: true }}
+        slidesPerView={1}
+        loop={true}
+        autoplay={{
+          delay: 4000,
+          disableOnInteraction: false,
+        }}
+        className="w-full h-full bg-gray-50"
+      >
+        {data.map((item: any, index: number) => (
+          <SwiperSlide key={`${keyPrefix}-${index}`}>
+            <div className="relative w-full h-full overflow-hidden" style={{ borderRadius }}>
+              <img
+                src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
+                alt={`Tiện ích ${index + 1}`}
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 block"
+                style={{ borderRadius }}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+              <div className="absolute inset-0 z-20 bg-black/5 pointer-events-none" />
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  );
+};
+
 const Amenities: React.FC = () => {
   const amenitiesHeading = useConfigContentByKey("amenities-content");
   const amenitiesDescription = useConfigContentByKey("amenities-description");
+  const amenitiesSliderRadius = useConfigContentByKey("amenities-slider-radius");
   const { data: sliderData = [] } = useSliders("services");
 
   if (!amenitiesHeading && !amenitiesDescription) return null;
 
-  const renderSlider = (data: any[], keyPrefix: string) => {
-    if (data.length === 0) {
-      return (
-        <div className="w-full h-full bg-gray-50 rounded-[12px] flex items-center justify-center border-2 border-dashed border-gray-200">
-          <p className="text-gray-400 font-medium italic">Tiện ích đang được cập nhật...</p>
-        </div>
-      );
-    }
+  const sliderRadius = amenitiesSliderRadius ? `${amenitiesSliderRadius}px` : '0px';
 
-    return (
-      <div className="relative w-full aspect-[16/10] group shadow-sm border border-[#799f851a] rounded-[10px] overflow-hidden">
-        <Swiper
-          modules={[Autoplay, EffectFade, Navigation]}
-          effect="fade"
-          fadeEffect={{ crossFade: true }}
-          slidesPerView={1}
-          loop={true}
-          autoplay={{
-            delay: 4000,
-            disableOnInteraction: false,
-          }}
-          className="w-full h-full bg-gray-50"
-        >
-          {data.map((item: any, index: number) => (
-            <SwiperSlide key={`${keyPrefix}-${index}`}>
-              <div className="relative w-full h-full overflow-hidden">
-                <img
-                  src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
-                  alt={`Tiện ích ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 block"
-                  loading={index === 0 ? "eager" : "lazy"}
-                />
-                <div className="absolute inset-0 z-20 bg-black/5 pointer-events-none" />
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    );
+  const renderSlider = (data: any[], keyPrefix: string) => {
+    return <AmenitySlider data={data} keyPrefix={keyPrefix} borderRadius={sliderRadius} />;
   };
 
   return (
-    <section id="amenities" className="mt-10 lg:mt-16 mb-12 sm:mb-24 overflow-hidden">
+    <section id="amenities" className="mt-10 sm:mt-36 lg:mt-36 mb-10 sm:mb-20 overflow-hidden">
       <div className="container mx-auto main-container">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center">
 
           <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left">
-            <div className="space-y-8 w-full">
+            <div className="space-y-4 md:space-y-5 w-full">
               <div className="describe-h2-wrapper">
                 <RichTextRenderer
                   html={amenitiesHeading}
@@ -82,7 +93,7 @@ const Amenities: React.FC = () => {
               </div>
 
               {/* Slider cho Mobile - Nằm giữa H2 và Text */}
-              <div className="block lg:hidden w-full relative">
+              <div className="block md:hidden w-full relative">
                 {renderSlider(sliderData, "mobile")}
               </div>
 

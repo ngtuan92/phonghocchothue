@@ -38,32 +38,65 @@ const SECTIONS = [
   { id: "gallery", label: "Không gian", icon: MdPhotoLibrary },
   { id: "blog", label: "Blog & Tin tức", icon: MdRssFeed },
   { id: "faq", label: "FAQ", icon: MdQuestionAnswer },
-  { id: "product_detail", label: "Chi tiết phòng", icon: MdArticle },
   { id: "general", label: "Cấu hình chung", icon: MdSettings },
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "describe-h2", "bgTitle", "textDecription"],
-  services: ["amenities-description"],
-  gallery: ["gallery-heading", "room-heading"],
+  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "bgTitle", "describe-frame-image", "describe-frame-image-mobile", "textDecription"],
+  services: ["amenities-content", "amenities-description"],
+  gallery: ["describe-h2", "describe-h2-image", "describe-h2-image-mobile", "gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
+  blog: [
+    "blog-heading",
+    "blog-decoration",
+    "blog-page-title",
+    "blog-page-description",
+    "sidebar-blog-title",
+    "sidebar-blog-description"
+  ],
 };
 
 const KEY_LABEL_MAP = {
   "describe-heading": "Tiêu đề nghệ thuật chính (H1)",
   "describe-bg-text": "Chữ nền nghệ thuật (Ví dụ: HOAHOCTRO)",
   "seo-h1-main": "Phòng Học Cho Thuê / Tiêu đề SEO (H1)",
-  "describe-h2": "Tiêu đề phụ dưới ảnh Đừng tìm đâu xa (H2)",
+  "describe-h2": "Tiêu đề chính phần Giải pháp (H2)",
+  "describe-h2-image": "Ảnh tiện ích / dịch vụ dưới tiêu đề Giải pháp (Desktop)",
+  "describe-h2-image-mobile": "Ảnh tiện ích / dịch vụ dưới tiêu đề Giải pháp (Mobile)",
   textDecription: "Nội dung bài viết Giới thiệu",
   "room-heading": "Tiêu đề khu vực phòng học",
   "amenities-content": "Tiêu đề khu vực tiện ích",
   "amenities-description": "Đoạn văn mô tả tiện ích chi tiết",
   "gallery-heading": "Tiêu đề bộ sưu tập ảnh",
-  "blog-heading": "Tiêu đề chuyên mục tin tức",
+  "blog-heading": "Tiêu đề chuyên mục tin tức (Home)",
+  "blog-decoration": "Ảnh trang trí tiêu đề chuyên mục blog (Home)",
+  "blog-page-title": "Tiêu đề trang danh sách Blog",
+  "blog-page-description": "Nội dung mô tả trang danh sách Blog",
+  "sidebar-blog-title": "Tiêu đề thẻ giới thiệu Blog ở Sidebar",
+  "sidebar-blog-description": "Mô tả thẻ giới thiệu Blog ở Sidebar",
   "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
   "faq_list": "Danh sách câu hỏi thường gặp (FAQ)",
   bgTitle: "Ảnh trang trí nghệ thuật",
+  "describe-frame-image": "Khung ảnh nền (sau HOAHOCTRO) (Desktop)",
+  "describe-frame-image-mobile": "Khung ảnh nền (sau HOAHOCTRO) (Mobile)",
   "describe-phone": "Số điện thoại phần giới thiệu (Hero)",
+  "amenities-slider-radius": "Bo góc slider tiện ích (px)",
+  "gallery-slider-radius": "Bo góc slider không gian (px)",
+};
+
+const IMAGE_RECOMMENDATIONS = {
+  "logo": "Khuyên dùng: 200x200px (Tỉ lệ 1:1, dạng vuông/tròn)",
+  "logo-page-detail": "Khuyên dùng: 200x200px (Tỉ lệ 1:1, dạng vuông/tròn)",
+  "icon-goc": "Khuyên dùng: 64x64px hoặc 128x128px (Dạng icon)",
+  "bgTitle": "Khuyên dùng: 500x150px (Ảnh ngang trang trí)",
+  "describe-frame-image": "Khuyên dùng: 1200x800px hoặc 800x1200px (Desktop)",
+  "describe-frame-image-mobile": "Khuyên dùng: 400x600px (Tỉ lệ đứng ~ 2:3, Mobile)",
+  "nurseryImg": "Khuyên dùng: 1920x450px hoặc 1920x600px (Ảnh banner rộng)",
+  "background": "Khuyên dùng: 1920x1080px (Ảnh nền trang web)",
+  "imgContact": "Khuyên dùng: 1920x800px (Ảnh banner liên hệ)",
+  "describe-h2-image": "Khuyên dùng: 1100x405px (Khung giải pháp trên Desktop)",
+  "describe-h2-image-mobile": "Khuyên dùng: 600x300px hoặc tỉ lệ 16:9 (Khung giải pháp trên Mobile)",
+  "blog-decoration": "Khuyên dùng: 300x100px (Ảnh nhỏ trang trí tiêu đề blog)",
 };
 
 const TYPE_OPTIONS = [
@@ -75,6 +108,13 @@ const TYPE_OPTIONS = [
 
 const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "" };
 
+const getRadiusStyle = (val) => {
+  if (!val) return "0px";
+  const cleanVal = String(val).trim();
+  if (!cleanVal) return "0px";
+  return /^[0-9]+$/.test(cleanVal) ? `${cleanVal}px` : cleanVal;
+};
+
 export default function CMS() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -83,10 +123,8 @@ export default function CMS() {
   const [openAdd, setOpenAdd] = useState(false);
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
   const [savingKey, setSavingKey] = useState(null);
-  const [products, setProducts] = useState([]);
   const [sliders, setSliders] = useState([]);
   const [amenitySliders, setAmenitySliders] = useState([]);
-  const [savingProductId, setSavingProductId] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
 
   const FONT_STYLES = `
@@ -95,20 +133,24 @@ export default function CMS() {
     .ql-size-small { font-size: 0.85rem !important; }
     .ql-size-large { font-size: 2rem !important; }
     .ql-size-huge { font-size: 5rem !important; }
-    .ql-size-super-huge { font-size: 15vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
-
-    .ql-editor {
-      font-family: 'Inter', sans-serif;
+    .ql-size-super-huge { font-size: 19vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
+    
+    .quill-wrapper-container {
+      position: relative !important;
+      overflow: visible !important;
+    }
+    .quill-wrapper-container:focus-within,
+    .quill-wrapper-container:has(.ql-expanded) {
+      z-index: 25 !important;
+    }
+    .ql-toolbar.ql-snow {
+      overflow: visible !important;
+    }
+    .ql-toolbar.ql-snow:focus-within,
+    .ql-toolbar.ql-snow:has(.ql-expanded) {
+      z-index: 25 !important;
     }
 
-    .ql-editor h1 {
-      font-size: 2.5rem !important;
-      color: #563c39 !important;
-    }
-    .ql-editor h2 {
-      font-size: 2rem !important;
-      color: #563c39 !important;
-    }
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;
     }
@@ -117,8 +159,22 @@ export default function CMS() {
       overflow-y: auto;
     }
     .ql-snow .ql-picker.ql-header {
-      width: 100px !important;
+      width: 120px !important;
     }
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"],
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"],
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"],
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"] {
+      display: block !important;
+    }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'Heading 3' !important; }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: 'Heading 4' !important; }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before { content: 'Heading 5' !important; }
+    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]::before,
+    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before { content: 'Heading 6' !important; }
     .ql-snow .ql-picker.ql-size {
       width: 130px !important;
     }
@@ -185,9 +241,6 @@ export default function CMS() {
   };
 
   useEffect(() => {
-    if (activeSection === "product_detail") {
-      loadProducts();
-    }
     if (activeSection === "gallery") {
       loadSliders("spaces");
     }
@@ -277,21 +330,7 @@ export default function CMS() {
     }
   };
 
-  const loadProducts = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetchData(`${URL_API}api/product`, "GET");
-      const productsWithDefault = (res.data || []).map(p => ({
-        ...p,
-        name_rich: p.name_rich || `<h2>${p.name}</h2>`
-      }));
-      setProducts(productsWithDefault);
-    } catch (error) {
-      showToastError("Không thể tải danh sách phòng");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const loadSliders = async (type = "gallery") => {
     setIsLoading(true);
@@ -362,6 +401,22 @@ export default function CMS() {
     }
   };
 
+  const handleUpdateSliderRadius = async (id, borderRadius, type = "spaces") => {
+    setIsLoading(true);
+    try {
+      const data = {
+        borderRadius: borderRadius || ""
+      };
+      await fetchData(`${URL_API}api/slider/update/${id}`, "PUT", data);
+      showToastSuccess("Đã cập nhật bo góc thành công");
+      loadSliders(type);
+    } catch (error) {
+      showToastError("Cập nhật bo góc thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const onDragStart = (e, index, type) => {
     e.dataTransfer.setData("draggedIndex", index);
     e.dataTransfer.setData("draggedType", type);
@@ -403,12 +458,18 @@ export default function CMS() {
   const saveConfig = async (config) => {
     setSavingKey(config.key);
     const fd = new FormData();
-    fd.append("content", config.content ?? "");
+    if (config.type === "image" && config._file) {
+      fd.set("content", config._file);
+    } else {
+      fd.set("content", config.content ?? "");
+    }
     fd.append("type", config.type);
     fd.append("section", config.section || activeSection);
-    if (config.type === "image" && config._file) fd.append("content", config._file);
+    fd.append("borderRadius", config.borderRadius || "");
     try {
-      await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd);
+      await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd, {
+        "Content-Type": "multipart/form-data",
+      });
       showToastSuccess(`Đã lưu "${KEY_LABEL_MAP[config.key] || config.key}"`);
       loadConfigs();
     } catch {
@@ -446,33 +507,18 @@ export default function CMS() {
       showToastError("Tạo mới thất bại");
     }
   };
-  const updateProductRichName = (id, value) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, name_rich: value } : p)));
-  };
 
-  const saveProductRichName = async (product) => {
-    setSavingProductId(product.id);
-    const data = {
-      name_rich: product.name_rich || "",
-      name: product.name,
-    };
-
-    try {
-      await fetchData(`${URL_API}api/product/update/${product.id}`, "PUT", data);
-      showToastSuccess(`Đã lưu tiêu đề cho "${product.name}"`);
-      loadProducts();
-    } catch {
-      showToastError("Lưu thất bại");
-    } finally {
-      setSavingProductId(null);
-    }
-  };
 
   const getSectionConfigs = () => {
     const sectionKeys = SECTION_KEY_MAP[activeSection];
     const filtered = configs.filter((c) => {
       // Loại bỏ faq_list và home-h1 khỏi Cấu hình chung vì đã có chỗ quản lý riêng
       if (activeSection === "general" && (c.key === "faq_list" || c.key === "home-h1")) {
+        return false;
+      }
+
+      // Loại bỏ các cấu hình bo góc khỏi danh sách thẻ riêng biệt vì đã được hiển thị inline trực tiếp ở tiêu đề bộ sưu tập
+      if (c.key === "amenities-slider-radius" || c.key === "gallery-slider-radius") {
         return false;
       }
 
@@ -530,9 +576,9 @@ export default function CMS() {
       };
 
       return (
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-visible">
           {faqData.map((item, index) => (
-            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4">
+            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4 overflow-visible">
               <button
                 onClick={() => deleteFAQ(index)}
                 className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
@@ -541,12 +587,13 @@ export default function CMS() {
                 <MdDelete size={20} />
               </button>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4 overflow-visible">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
-                  <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                  <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
                     <style>{`
-                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; }
+                      .faq-quill { overflow: visible !important; }
+                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; overflow: visible !important; }
                       .faq-quill .ql-container.ql-snow { border: none !important; }
                     `}</style>
                     <QuillWrapper
@@ -561,7 +608,7 @@ export default function CMS() {
 
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu trả lời {index + 1}</label>
-                  <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+                  <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
                     <QuillWrapper
                       theme="snow"
                       className="faq-quill"
@@ -618,7 +665,7 @@ export default function CMS() {
             }}
             theme="snow"
             value={config.content || ""}
-            onChange={(val) => updateField(config.key, val)}
+            onChange={onContentChange}
             className={`quill-editor-${config.key}`}
           />
           <style jsx global>{`
@@ -634,30 +681,58 @@ export default function CMS() {
 
     if (config.type === "image") {
       return (
-        <div className="flex flex-col sm:flex-row gap-6 items-start">
-          <div className="flex-1 space-y-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setConfigs((prev) =>
-                  prev.map((c) => (c.key === config.key ? { ...c, _file: file, content: URL.createObjectURL(file) } : c))
-                );
-              }}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-lightPrimary file:text-primary hover:file:bg-green-100 transition-all cursor-pointer"
-            />
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Chấp nhận: .jpg, .png, .gif, .webp</p>
+        <div className="flex flex-col sm:flex-row gap-6 items-start w-full">
+          <div className="flex-1 space-y-4">
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setConfigs((prev) =>
+                    prev.map((c) => (c.key === config.key ? { ...c, _file: file, content: URL.createObjectURL(file) } : c))
+                  );
+                }}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-lightPrimary file:text-primary hover:file:bg-green-100 transition-all cursor-pointer"
+              />
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Chấp nhận: .jpg, .png, .gif, .webp</p>
+              {IMAGE_RECOMMENDATIONS[config.key] && (
+                <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider mt-1">
+                  💡 {IMAGE_RECOMMENDATIONS[config.key]}
+                </p>
+              )}
+            </div>
+            
+            <div className="max-w-[200px]">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bo góc (px)</label>
+              <Input
+                type="text"
+                placeholder="Ví dụ: 8, 12, 20"
+                value={config.borderRadius || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setConfigs((prev) =>
+                    prev.map((c) => (c.key === config.key ? { ...c, borderRadius: val } : c))
+                  );
+                }}
+                className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700"
+                labelProps={{ className: "hidden" }}
+              />
+            </div>
           </div>
           {config.content && (
-            <div className="relative group shrink-0">
+            <div 
+              className="relative group shrink-0 overflow-hidden border border-gray-100 shadow-sm"
+              style={{ borderRadius: getRadiusStyle(config.borderRadius) }}
+            >
               <img
                 src={config._file ? config.content : `${URL_API}${config.content.replace(/\\/g, "/")}`}
                 alt="preview"
-                className="h-28 w-auto object-contain rounded-xl border border-gray-100 shadow-sm"
+                className="h-28 w-auto object-contain block"
+                style={{ borderRadius: getRadiusStyle(config.borderRadius) }}
               />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="text-white text-[10px] font-bold uppercase">Hiện tại</span>
               </div>
             </div>
@@ -674,6 +749,18 @@ export default function CMS() {
       );
     }
 
+    if (config.type === "text") {
+      return (
+        <Input
+          type="text"
+          value={config.content || ""}
+          onChange={(e) => onContentChange(e.target.value)}
+          className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700 bg-white"
+          labelProps={{ className: "hidden" }}
+        />
+      );
+    }
+
     return (
       <Textarea
         value={config.content || ""}
@@ -686,6 +773,12 @@ export default function CMS() {
   };
 
   const sectionConfigs = getSectionConfigs();
+
+  const gallerySliderRadiusConfig = configs.find(c => c.key === "gallery-slider-radius");
+  const gallerySliderRadius = gallerySliderRadiusConfig ? getRadiusStyle(gallerySliderRadiusConfig.content) : "0px";
+
+  const amenitiesSliderRadiusConfig = configs.find(c => c.key === "amenities-slider-radius");
+  const amenitiesSliderRadius = amenitiesSliderRadiusConfig ? getRadiusStyle(amenitiesSliderRadiusConfig.content) : "0px";
 
   return (
     <div className="h-full w-full p-2 md:p-4">
@@ -720,147 +813,146 @@ export default function CMS() {
             <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-sm border border-gray-50">
               <Loading />
             </div>
-          ) : (sectionConfigs.length === 0 && activeSection !== "product_detail" && activeSection !== "gallery" && activeSection !== "services") ? (
+          ) : (sectionConfigs.length === 0 && activeSection !== "gallery" && activeSection !== "services") ? (
             <div className="flex flex-col items-center justify-center h-80 bg-white rounded-2xl border-2 border-dashed border-gray-200">
               <MdSettings className="h-16 w-16 text-gray-100 mb-4" />
               <p className="text-gray-400 font-bold">Mục này chưa có nội dung cấu hình</p>
             </div>
           ) : (
             <div className="space-y-6">
-              {activeSection === "product_detail" ? (
-                products.map((product) => (
-                  <div
-                    key={`product-${product.id}`}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
-                  >
-                    <div className="flex items-center justify-between px-6 py-4 bg-gray-50/10 border-b border-gray-50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-orange-400 rounded-full" />
-                        <div>
-                          <p className="text-sm font-bold text-navy-700">
-                            {product.name}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      {renderEditor(
-                        { key: `product-rich-name-${product.id}`, type: "richtext", content: product.name_rich },
-                        (val) => updateProductRichName(product.id, val)
-                      )}
-                      <div className="flex justify-end mt-4">
-                        <button
-                          onClick={() => saveProductRichName(product)}
-                          disabled={savingProductId === product.id}
-                          className="flex items-center justify-center gap-2 px-14 py-3 min-w-[200px] bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
-                        >
-                          {savingProductId === product.id ? (
-                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <MdSave className="h-5 w-5" />
-                          )}
-                          {savingProductId === product.id ? "Đang lưu..." : "Lưu dữ liệu"}
-                        </button>
+              {sectionConfigs.map((config) => (
+                <div
+                  key={config.key}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
+                >
+                  <div className="flex items-center justify-between px-6 py-4 bg-gray-50/10 border-b border-gray-50">
+                    <div className="flex items-center gap-4">
+                      <div className="w-1 h-8 bg-primary rounded-full" />
+                      <div>
+                        <p className="text-sm font-bold text-navy-700">
+                          {KEY_LABEL_MAP[config.key] || config.key}
+                        </p>
                       </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                sectionConfigs.map((config) => (
-                  <div
-                    key={config.key}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
-                  >
-                    <div className="flex items-center justify-between px-6 py-4 bg-gray-50/10 border-b border-gray-50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-primary rounded-full" />
-                        <div>
-                          <p className="text-sm font-bold text-navy-700">
-                            {KEY_LABEL_MAP[config.key] || config.key}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="p-6">
-                      {renderEditor(config, (val) => updateField(config.key, val))}
-                      <div className="flex justify-end mt-4">
-                        <button
-                          onClick={() => saveConfig(config)}
-                          disabled={savingKey === config.key}
-                          className="flex items-center justify-center gap-2 px-14 py-3 min-w-[200px] bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
-                        >
-                          {savingKey === config.key ? (
-                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <MdSave className="h-5 w-5" />
-                          )}
-                          {savingKey === config.key ? "Đang lưu..." : "Lưu dữ liệu"}
-                        </button>
-                      </div>
+                  <div className="p-6">
+                    {renderEditor(config, (val) => updateField(config.key, val))}
+                    <div className="flex justify-end mt-4">
+                      <button
+                        onClick={() => saveConfig(config)}
+                        disabled={savingKey === config.key}
+                        className="flex items-center justify-center gap-2 px-14 py-3 min-w-[200px] bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
+                      >
+                        {savingKey === config.key ? (
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <MdSave className="h-5 w-5" />
+                        )}
+                        {savingKey === config.key ? "Đang lưu..." : "Lưu dữ liệu"}
+                      </button>
                     </div>
                   </div>
-                ))
-              )}
+                </div>
+              ))}
+
 
               {activeSection === "gallery" && (
                 <div className="mt-10 pt-10 border-t border-gray-100">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                       <h3 className="text-sm font-bold text-navy-700">Bộ sưu tập hình ảnh không gian phòng học</h3>
                       <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Slider hiển thị tại trang chủ</p>
                     </div>
-                    <label className="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
-                      <MdPhotoLibrary size={20} />
-                      <span>Thêm ảnh mới</span>
-                      <input
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handleUploadSliders(e, "spaces")}
-                        accept="image/*"
-                      />
-                    </label>
+                    
+                    <div className="flex flex-wrap items-center gap-4">
+                      {gallerySliderRadiusConfig && (
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
+                          <span className="text-[11px] font-bold text-gray-500 whitespace-nowrap">Bo góc ảnh:</span>
+                          <input
+                            type="text"
+                            placeholder="0"
+                            value={gallerySliderRadiusConfig.content || ""}
+                            onChange={(e) => updateField("gallery-slider-radius", e.target.value)}
+                            className="w-14 h-8 text-center text-xs font-bold text-navy-700 border border-gray-200 rounded-lg focus:outline-none focus:border-primary"
+                          />
+                          <span className="text-[11px] font-bold text-gray-500">px</span>
+                          <button
+                            onClick={() => saveConfig(gallerySliderRadiusConfig)}
+                            disabled={savingKey === "gallery-slider-radius"}
+                            className="bg-primary text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-1 min-w-[50px] justify-center"
+                          >
+                            {savingKey === "gallery-slider-radius" ? (
+                              <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <span>Lưu</span>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col items-end gap-1">
+                        <label className="cursor-pointer bg-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                          <MdPhotoLibrary size={18} />
+                          <span>Thêm ảnh mới</span>
+                          <input
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleUploadSliders(e, "spaces")}
+                            accept="image/*"
+                          />
+                        </label>
+                        <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">💡 Khuyên dùng: 1200x800px (Tỉ lệ 3:2)</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {sliders.map((slider, index) => (
                       <div
                         key={slider.id}
-                        draggable
-                        onDragStart={(e) => onDragStart(e, index, "spaces")}
-                        onDragOver={onDragOver}
-                        onDrop={(e) => onDrop(e, index, "spaces")}
-                        className="group relative aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 bg-gray-50 shadow-sm cursor-move hover:border-primary/30 transition-all duration-300"
+                        className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+                        style={{ borderRadius: gallerySliderRadius }}
                       >
-                        <img
-                          src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
-                          alt={slider.name}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
+                        <div
+                          draggable
+                          onDragStart={(e) => onDragStart(e, index, "spaces")}
+                          onDragOver={onDragOver}
+                          onDrop={(e) => onDrop(e, index, "spaces")}
+                          className="group relative aspect-video border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
+                          style={{ borderRadius: gallerySliderRadius }}
+                        >
+                          <img
+                            src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                            alt={slider.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            style={{ borderRadius: gallerySliderRadius }}
+                          />
 
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                          <label className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all transform hover:scale-110 cursor-pointer shadow-lg" title="Thay đổi ảnh">
-                            <MdEdit size={20} />
-                            <input
-                              type="file"
-                              className="hidden"
-                              onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "spaces")}
-                              accept="image/*"
-                            />
-                          </label>
-                          <button
-                            onClick={() => handleDeleteSlider(slider.id, "spaces")}
-                            className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all transform hover:scale-110 shadow-lg"
-                            title="Xóa ảnh"
-                          >
-                            <MdDelete size={20} />
-                          </button>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                            <label className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all transform hover:scale-110 cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                              <MdEdit size={20} />
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "spaces")}
+                                accept="image/*"
+                              />
+                            </label>
+                            <button
+                              onClick={() => handleDeleteSlider(slider.id, "spaces")}
+                              className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all transform hover:scale-110 shadow-lg"
+                              title="Xóa ảnh"
+                            >
+                              <MdDelete size={20} />
+                            </button>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-lg text-gray-600 shadow-sm">
+                            #{index + 1}
+                          </div>
                         </div>
-                        <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-lg text-gray-600 shadow-sm">
-                          #{index + 1}
-                        </div>
+
                       </div>
                     ))}
                     {sliders.length === 0 && (
@@ -876,7 +968,7 @@ export default function CMS() {
               {activeSection === "services" && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-md transition-shadow duration-300 mt-6">
                   <div className="px-6 py-4 bg-gray-50/10 border-b border-gray-50">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <div className="w-1 h-8 bg-primary rounded-full" />
                         <div>
@@ -884,17 +976,48 @@ export default function CMS() {
                           <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Hiển thị slider tại mục tiện ích</p>
                         </div>
                       </div>
-                      <label className="cursor-pointer bg-primary text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
-                        <MdPhotoLibrary size={16} />
-                        <span>Thêm ảnh mới</span>
-                        <input
-                          type="file"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => handleUploadSliders(e, "services")}
-                          accept="image/*"
-                        />
-                      </label>
+                      
+                      <div className="flex flex-wrap items-center gap-4">
+                        {amenitiesSliderRadiusConfig && (
+                          <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
+                            <span className="text-[11px] font-bold text-gray-500 whitespace-nowrap">Bo góc ảnh:</span>
+                            <input
+                              type="text"
+                              placeholder="0"
+                              value={amenitiesSliderRadiusConfig.content || ""}
+                              onChange={(e) => updateField("amenities-slider-radius", e.target.value)}
+                              className="w-14 h-8 text-center text-xs font-bold text-navy-700 border border-gray-200 rounded-lg focus:outline-none focus:border-primary"
+                            />
+                            <span className="text-[11px] font-bold text-gray-500">px</span>
+                            <button
+                              onClick={() => saveConfig(amenitiesSliderRadiusConfig)}
+                              disabled={savingKey === "amenities-slider-radius"}
+                              className="bg-primary text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-1 min-w-[50px] justify-center"
+                            >
+                              {savingKey === "amenities-slider-radius" ? (
+                                <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <span>Lưu</span>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col items-end gap-1">
+                          <label className="cursor-pointer bg-primary text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                            <MdPhotoLibrary size={16} />
+                            <span>Thêm ảnh mới</span>
+                            <input
+                              type="file"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => handleUploadSliders(e, "services")}
+                              accept="image/*"
+                            />
+                          </label>
+                          <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">💡 Khuyên dùng: 1280x800px (Tỉ lệ 16:10)</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -903,39 +1026,47 @@ export default function CMS() {
                       {amenitySliders.map((slider, index) => (
                         <div
                           key={slider.id}
-                          draggable
-                          onDragStart={(e) => onDragStart(e, index, "services")}
-                          onDragOver={onDragOver}
-                          onDrop={(e) => onDrop(e, index, "services")}
-                          className="group relative aspect-video rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 cursor-move hover:border-primary/30 transition-all duration-300"
+                          className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+                          style={{ borderRadius: amenitiesSliderRadius }}
                         >
-                          <img
-                            src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
-                            alt={slider.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
+                          <div
+                            draggable
+                            onDragStart={(e) => onDragStart(e, index, "services")}
+                            onDragOver={onDragOver}
+                            onDrop={(e) => onDrop(e, index, "services")}
+                            className="group relative aspect-video border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
+                            style={{ borderRadius: amenitiesSliderRadius }}
+                          >
+                            <img
+                              src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                              alt={slider.name}
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              style={{ borderRadius: amenitiesSliderRadius }}
+                            />
 
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <label className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all cursor-pointer shadow-lg" title="Thay đổi ảnh">
-                              <MdEdit size={16} />
-                              <input
-                                type="file"
-                                className="hidden"
-                                onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "services")}
-                                accept="image/*"
-                              />
-                            </label>
-                            <button
-                              onClick={() => handleDeleteSlider(slider.id, "services")}
-                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all shadow-lg"
-                              title="Xóa ảnh"
-                            >
-                              <MdDelete size={16} />
-                            </button>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <label className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                                <MdEdit size={16} />
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "services")}
+                                  accept="image/*"
+                                />
+                              </label>
+                              <button
+                                onClick={() => handleDeleteSlider(slider.id, "services")}
+                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all shadow-lg"
+                                title="Xóa ảnh"
+                              >
+                                <MdDelete size={16} />
+                              </button>
+                            </div>
+                            <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-gray-600">
+                              #{index + 1}
+                            </div>
                           </div>
-                          <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-gray-600">
-                            #{index + 1}
-                          </div>
+
                         </div>
                       ))}
                       {amenitySliders.length === 0 && (

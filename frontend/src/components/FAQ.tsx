@@ -37,11 +37,11 @@ const FAQ = () => {
   }
 
   return (
-    <section className="py-8 max-w-5xl mx-auto main-container mt-8 sm:mt-24 md:mt-32 mb-8 sm:mb-24">
+    <section className="pt-10 pb-8 sm:pt-0 sm:pb-0 max-w-5xl mx-auto main-container mt-10 sm:mt-36 md:mt-36 mb-10 sm:mb-36">
       <RichTextRenderer
         html={faqHeading}
-        className="text-center mb-6"
-        fallback={<h2 className="text-center text-2xl sm:text-7xl mb-6 text-[#563c39] font-cursive">Bạn hỏi - Hoa Học Trò đáp</h2>}
+        className="text-center mb-4 md:mb-5"
+        fallback={<h2 className="text-center text-2xl sm:text-7xl mb-4 md:mb-5 text-[#563c39] font-cursive">Bạn hỏi - Hoa Học Trò đáp</h2>}
       />
 
       <div 

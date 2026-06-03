@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Card from "../card";
@@ -27,6 +27,28 @@ export default function BlogTable() {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Scroll to the top of the management card when page changes
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const scrollContainer = document.querySelector(".overflow-y-auto");
+    const element = document.querySelector(".bg-white.rounded-2xl");
+    if (scrollContainer && element) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const targetRect = element.getBoundingClientRect();
+      const relativeTop = targetRect.top - containerRect.top + scrollContainer.scrollTop;
+      scrollContainer.scrollTo({
+        top: relativeTop,
+        behavior: "smooth"
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [page]);
 
   const { data: blogData, isLoading, refetch, isFetching } = useBlogs({
     page,
@@ -77,11 +99,26 @@ export default function BlogTable() {
         responseThumbnail = uploadRes.url;
       }
 
+      let responseAvatar = formData.authorAvatar;
+      if (formData.avatarFile) {
+        const uploadFd = new FormData();
+        uploadFd.append('upload', formData.avatarFile);
+        
+        const finalUploadUrl = `${URL_API}api/upload/image`;
+
+        const uploadRes = await fetchData(finalUploadUrl, "POST", uploadFd, {
+          "Content-Type": "multipart/form-data",
+        });
+        responseAvatar = uploadRes.url;
+      }
+
       const finalData = {
         ...formData,
-        thumbnail: responseThumbnail
+        thumbnail: responseThumbnail,
+        authorAvatar: responseAvatar
       };
       delete finalData.thumbnailFile;
+      delete finalData.avatarFile;
 
       if (selectedBlog) {
         await updateBlogMutation.mutateAsync({ id: selectedBlog.id, ...finalData });
@@ -286,7 +323,7 @@ export default function BlogTable() {
       {openForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpenForm(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-6xl shadow-2xl z-10 overflow-hidden border border-gray-100">
+          <div className="relative bg-white rounded-2xl w-full max-w-[95vw] xl:max-w-[1350px] shadow-2xl z-10 overflow-hidden border border-gray-100">
             <div className="flex justify-between items-center px-8 py-4 border-b border-gray-50">
               <h2 className="text-lg font-bold text-foreground">
                 {selectedBlog ? "Chỉnh sửa bài viết" : "Soạn thảo bài viết mới"}

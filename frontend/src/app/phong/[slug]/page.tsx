@@ -1,7 +1,6 @@
 "use client";
 
-export const runtime = "edge";
-
+export const runtime = 'edge'
 import Image from "next/image";
 import { Button, Modal, Textarea, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -22,6 +21,9 @@ import ProductCard from "@/components/ProductCard";
 import parse from "html-react-parser";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
+import dynamic from "next/dynamic";
+
+const RichTextRenderer = dynamic(() => import("@/components/RichTextRenderer"), { ssr: false });
 
 const URL_API =
   process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -41,9 +43,9 @@ interface ProductData {
     name_rich?: string;
     images: any[];
     image: string;
-    contains: number;
-    equipment: string;
-    price: number;
+    contains: any;
+    equipment: any;
+    price: any;
     content: string;
   };
 }
@@ -580,9 +582,10 @@ export default function DetailPage() {
             <div className="flex-1 p-4 rounded-lg text-left">
               <div className="title-product-detail mb-4">
                 {productData.product.name_rich ? (
-                  <div className="ckeditor-content">
-                    {parse(processedName)}
-                  </div>
+                  <RichTextRenderer
+                    html={processedName}
+                    className="title-product-detail-rich"
+                  />
                 ) : (
                   <h1 className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
                     {productData.product.name}
@@ -593,14 +596,30 @@ export default function DetailPage() {
                 Mô tả :
               </h3>
               <ul className="list-disc pl-6 text-xs sm:text-base py-4 border-t-2 border-b-2 border-[#ccc]">
-                <li className="">
-                  Sức chứa: {formatNumber(get(productData, "product.contains", 0))}
+                <li className="flex items-center gap-1 flex-wrap">
+                  <span>Sức chứa:</span>{" "}
+                  {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
+                    <RichTextRenderer html={productData.product.contains} className="inline-rich-text" />
+                  ) : (
+                    formatNumber(toNumber(productData.product.contains) || 0)
+                  )}
                 </li>
-                <li className="">Trang bị: {get(productData, "product.equipment")}</li>
+                <li className="flex items-center gap-1 flex-wrap">
+                  <span>Trang bị:</span>{" "}
+                  {typeof productData.product.equipment === "string" && productData.product.equipment.includes("<") ? (
+                    <RichTextRenderer html={productData.product.equipment} className="inline-rich-text" />
+                  ) : (
+                    productData.product.equipment
+                  )}
+                </li>
               </ul>
-              <h2 className="text-xs sm:text-base font-bold text-red-600 my-4">
+              <h2 className="text-xs sm:text-base font-bold text-red-600 my-4 flex items-center gap-1 flex-wrap">
                 <span className="text-stone-800 text-base">Giá:</span>{" "}
-                {`${formatNumber(get(productData, "product.price"))}` || "Liên hệ"}
+                {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
+                  <RichTextRenderer html={productData.product.price} className="inline-rich-text !text-red-600 !font-bold" />
+                ) : (
+                  `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
+                )}
               </h2>
               <Button
                 className="!w-auto !h-[40px] !bg-[#b8c7b0] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
@@ -779,6 +798,12 @@ export default function DetailPage() {
                           (existingStyles as any)[camelKey] = value.trim();
                         }
                       });
+                    }
+
+                    // Map data-border-radius to borderRadius if not already present
+                    const borderRadiusAttr = domNode.attribs["data-border-radius"];
+                    if (borderRadiusAttr && !existingStyles.borderRadius) {
+                      existingStyles.borderRadius = borderRadiusAttr;
                     }
 
                     return (

@@ -35,10 +35,10 @@ export default function Home() {
 
   const seoTitle =
     useConfigContentByKey("seo-title-home") ||
-    "Thuê phòng học & phòng sự kiện linh hoạt tại Đà Nẵng";
+    "Cho thuê phòng dạy học tại Đà Nẵng | Phòng học đầy đủ tiện nghi.";
   const seoDescription =
     useConfigContentByKey("seo-description-home") ||
-    "Hệ thống phòng học, phòng họp tiêu chuẩn với trang thiết bị đầy đủ, đặt nhanh theo giờ hoặc theo buổi cùng nhiều ưu đãi.";
+    "Cho thuê phòng dạy học theo giờ, buổi, dài hạn tại Đà Nẵng. Phòng học sạch sẽ, wifi mạnh, máy chiếu, bàn ghế tiêu chuẩn. Liên hệ đặt phòng nhanh chóng.";
   const seoKeywords =
     useConfigContentByKey("seo-keywords-home") ||
     "thuê phòng học Đà Nẵng, thuê phòng họp, phòng đào tạo, phòng sự kiện";
@@ -182,9 +182,10 @@ export default function Home() {
         </div>
       )}
 
-      <div className="relative sm:absolute sm:inset-0 flex items-center justify-center p-2 sm:p-6 md:p-6 lg:p-[40px] xl:p-[50px]">
+      <div className="absolute inset-0 flex items-center justify-center px-[34px] py-[30px] sm:p-[70px] 1400px:p-[70px] 1700px:p-[85px]">
         <div
-          className="w-full min-h-screen sm:min-h-0 sm:h-full rounded-[10px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar"
+          id="main-scroll-container"
+          className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar scroll-smooth"
           style={pageStyle}
         >
           <Header />
@@ -201,7 +202,7 @@ export default function Home() {
             <Gallery />
           </div>
           <div id="blog">
-            <Blog />
+            <Blog isHomePage={true} hideTabs={true} />
           </div>
           <div id="faq">
             <FAQ />

@@ -31,8 +31,25 @@ async function fetchBlogs() {
   }
 }
 
+async function fetchCategories() {
+  try {
+    const res = await fetch(`${API_BASE}api/blog/categories?status=1`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json?.data) ? json.data : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function GET() {
-  const [products, blogs] = await Promise.all([fetchProducts(), fetchBlogs()]);
+  const [products, blogs, categories] = await Promise.all([
+    fetchProducts(),
+    fetchBlogs(),
+    fetchCategories()
+  ]);
   const currentDate = new Date().toISOString();
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -64,6 +81,19 @@ export async function GET() {
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>`;
+    }
+  });
+
+  // Add categories
+  categories.forEach((cat: string) => {
+    if (cat) {
+      xml += `
+  <url>
+    <loc>${BASE_URL}/blog/danh-muc/${cat}</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>`;
     }
   });

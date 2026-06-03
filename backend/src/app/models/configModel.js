@@ -7,7 +7,8 @@ const ConfigModel = db.sequelize.define("configs", {
     type: { type: DataTypes.STRING, maxLength: 255 },
     section: { type: DataTypes.STRING, maxLength: 100, defaultValue: 'general' },
     content: { type: DataTypes.TEXT},
-    musicName: {type: DataTypes.CHAR, allowNull: true}
+    musicName: {type: DataTypes.CHAR, allowNull: true},
+    borderRadius: { type: DataTypes.STRING(50), field: 'border_radius', allowNull: true }
 }, {
     timestamps: true,
 });

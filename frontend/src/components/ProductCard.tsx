@@ -21,10 +21,24 @@ interface Product {
   _id?: string | number;
   slug?: string;
   name: string;
+  name_rich?: string;
   image: string;
   equipment?: string;
   contains?: string;
 }
+
+const stripHtml = (val: string) => {
+  if (!val) return "";
+  return val
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+};
 
 const ProductCard = ({ product }: { product?: Product }) => {
   const router = useRouter();
@@ -38,7 +52,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
     return (
       <Link
         href={getProductUrl(product)}
-        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block w-full p-0 border-0 bg-transparent"
+        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block w-full p-0 border-0 bg-transparent text-left"
       >
         <Image
           src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
@@ -49,6 +63,25 @@ const ProductCard = ({ product }: { product?: Product }) => {
           quality={85}
           loading="lazy"
         />
+        <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
+          {product.name_rich ? (
+            <RichTextRenderer
+              html={product.name_rich}
+              className="text-lg font-bold uppercase hover-product-title-rich w-full"
+            />
+          ) : (
+            <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+          )}
+          <ul className="list-disc ml-5 text-base mt-2 space-y-1">
+            {product.equipment && <li>{stripHtml(product.equipment)}</li>}
+            {product.contains && <li>{stripHtml(product.contains)}</li>}
+          </ul>
+          <span
+            className="my-4 inline-block w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
+          >
+            Xem thêm
+          </span>
+        </div>
       </Link>
     );
   }
@@ -56,11 +89,11 @@ const ProductCard = ({ product }: { product?: Product }) => {
   const roomHeading = useConfigContentByKey("room-heading");
 
   return (
-    <div className="w-full mx-auto main-container relative my-30 sm:my-36">
+    <div className="w-full mx-auto main-container relative my-10 sm:mt-36 sm:mb-36">
       <div className="describe-h2-wrapper">
         <RichTextRenderer
           html={roomHeading}
-          className="text-center mb-6"
+          className="text-center mb-4 md:mb-5"
         />
       </div>
       <Swiper
@@ -101,6 +134,25 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 quality={85}
                 loading="lazy"
               />
+              <div className="absolute inset-0 bg-gray-950 bg-opacity-70 flex-col items-start px-4 py-2 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden lg:flex text-left">
+                {product.name_rich ? (
+                  <RichTextRenderer
+                    html={product.name_rich}
+                    className="text-lg font-bold uppercase hover-product-title-rich w-full"
+                  />
+                ) : (
+                  <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+                )}
+                <ul className="list-disc ml-5 text-base mt-2 space-y-1">
+                  {product.equipment && <li>{stripHtml(product.equipment)}</li>}
+                  {product.contains && <li>{stripHtml(product.contains)}</li>}
+                </ul>
+                <span
+                  className="my-4 inline-block w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
+                >
+                  Xem thêm
+                </span>
+              </div>
             </Link>
           </SwiperSlide>
         ))}
