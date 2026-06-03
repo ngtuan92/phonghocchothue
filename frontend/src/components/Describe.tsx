@@ -68,12 +68,11 @@ const Describe = () => {
                     </div>
 
                     <div className="w-full flex flex-col items-center gap-2 lg:gap-3 mb-2 lg:mb-4">
-                        <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] border-t border-b border-[#563c39]/10 py-1.5 px-4 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
-                            <RichTextRenderer
-                                html={h1Text}
-                                className="text-center"
-                            />
-                        </div>
+                        <RichTextRenderer
+                            html={h1Text}
+                            as="h1"
+                            className="title-sub-text text-[10px] md:text-xs lg:text-[14px] border-t border-b border-[#563c39]/10 py-1.5 px-4 inline-block w-full max-w-[95%] md:max-w-[1100px] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
+                        />
 
                         <div className="w-full max-w-[1100px] flex flex-row justify-between items-center px-16">
                             <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap">
@@ -117,12 +116,11 @@ const Describe = () => {
                     </div>
 
                     <div className="w-full text-center mb-2">
-                        <div className="title-sub-text text-[clamp(7px,2.4vw,11px)] border-t border-b border-[#563c39]/10 py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
-                            <RichTextRenderer
-                                html={h1Text}
-                                className="text-center"
-                            />
-                        </div>
+                        <RichTextRenderer
+                            html={h1Text}
+                            as="h1"
+                            className="title-sub-text text-[clamp(7px,2.4vw,11px)] border-t border-b border-[#563c39]/10 py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center"
+                        />
                     </div>
 
                     <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-0">

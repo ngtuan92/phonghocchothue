@@ -145,6 +145,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={useConfigContentByKey("linkfb") || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Trang Facebook của chúng tôi"
         >
           <FontAwesomeIcon
             icon={faFacebook}
@@ -155,6 +156,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={useConfigContentByKey("linkMess") || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Nhắn tin với chúng tôi qua Messenger"
         >
           <FontAwesomeIcon
             icon={faFacebookMessenger}
@@ -165,6 +167,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={useConfigContentByKey("linkYoutube") || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Kênh Youtube của chúng tôi"
         >
           <FontAwesomeIcon
             icon={faYoutube}
@@ -175,6 +178,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={useConfigContentByKey("phone") || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Gọi điện thoại hotline"
         >
           <FontAwesomeIcon
             icon={faPhone}
@@ -235,7 +239,8 @@ const Header = ({ icon }: HeaderProps) => {
       <div className="flex items-center">
         <button
           onClick={toggleMenu}
-          className="relative focus:outline-none "
+          className="relative focus:outline-none"
+          aria-label="Mở menu điều hướng"
         >
           <FontAwesomeIcon
             icon={isOpen ? faTimes : faBars}

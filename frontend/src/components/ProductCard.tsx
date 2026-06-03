@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { useRouter } from "next/navigation";
@@ -35,10 +36,9 @@ const ProductCard = ({ product }: { product?: Product }) => {
 
   if (product) {
     return (
-      <button
-        type="button"
-        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer w-full p-0 border-0 bg-transparent"
-        onClick={handleDetailProduct(product)}
+      <Link
+        href={getProductUrl(product)}
+        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block w-full p-0 border-0 bg-transparent"
       >
         <Image
           src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
@@ -49,7 +49,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
           quality={85}
           loading="lazy"
         />
-      </button>
+      </Link>
     );
   }
 
@@ -88,39 +88,39 @@ const ProductCard = ({ product }: { product?: Product }) => {
       >
         {products.map((product: any) => (
           <SwiperSlide key={product.id || product._id}>
-            <div 
-              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer"
-              onClick={handleDetailProduct(product)}
+            <Link 
+              href={getProductUrl(product)}
+              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block"
             >
               <Image
                 src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
-                alt={product.name || "ảnh"}
+                alt={product.name || "ảnh phòng"}
                 fill
                 className="object-contain"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
                 quality={85}
                 loading="lazy"
               />
-            </div>
+            </Link>
           </SwiperSlide>
         ))}
       </Swiper>
-      <div className="swiper-button-next-custom rounded-[50%]">
+      <div className="swiper-button-next-custom rounded-[50%]" role="button" aria-label="Hình ảnh kế tiếp">
         <Image
           className="w-full h-full rounded-[50%]"
           src="/assets/images/next-new.jpg"
-          alt="next"
+          alt="Nút chuyển ảnh sau"
           fill
           sizes="50px"
           quality={75}
           loading="lazy"
         />
       </div>
-      <div className="swiper-button-prev-custom rounded-[50%]">
+      <div className="swiper-button-prev-custom rounded-[50%]" role="button" aria-label="Hình ảnh trước đó">
         <Image
           className="w-full h-full rounded-[50%]"
           src="/assets/images/pre-new.jpg"
-          alt="pre"
+          alt="Nút chuyển ảnh trước"
           fill
           sizes="50px"
           quality={75}

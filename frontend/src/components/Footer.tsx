@@ -65,6 +65,7 @@ const Footer = () => {
           <div className=" w-full flex justify-center">
             <iframe
               src={googleMap}
+              title="Bản đồ chỉ đường đến PhongHocChoThue"
               className="w-full h-52 rounded-xl "
               loading="lazy"
               allowFullScreen

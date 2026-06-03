@@ -71,6 +71,7 @@ const Contact = () => {
             <input
               type="text"
               placeholder="Họ và tên"
+              aria-label="Họ và tên"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -81,6 +82,7 @@ const Contact = () => {
             <input
               type="email"
               placeholder="Email"
+              aria-label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -91,6 +93,7 @@ const Contact = () => {
             <input
               type="tel"
               placeholder="Số điện thoại"
+              aria-label="Số điện thoại"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
@@ -100,6 +103,7 @@ const Contact = () => {
           <label className="block mb-2">
             <textarea
               placeholder="Nội dung"
+              aria-label="Nội dung lời nhắn"
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
