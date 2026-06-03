@@ -978,7 +978,7 @@ const QuillWrapper = forwardRef((props, ref) => {
         const range = quill.getSelection(true);
         openAltModal({ alt: "", title: "", caption: "", borderRadius: "" }, (newData) => {
           quill.insertEmbed(range.index, "image", {
-            src: result.url,
+            src: result.url.startsWith("/") ? `${URL_API}${result.url.substring(1)}` : result.url,
             alt: newData.alt,
             title: newData.title,
             caption: newData.caption,
@@ -1236,6 +1236,21 @@ const QuillWrapper = forwardRef((props, ref) => {
     );
   };
 
+  const handleOnChange = useCallback((content, delta, source, editor) => {
+    if (props.onChange) {
+      const escapedUrlApi = URL_API.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
+      let relativeContent = content.replace(regex, 'src="/$1"');
+      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
+      props.onChange(relativeContent, delta, source, editor);
+    }
+  }, [props.onChange]);
+
+  const absoluteValue = useMemo(() => {
+    if (!props.value || typeof props.value !== 'string') return props.value;
+    return props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+  }, [props.value]);
+
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
@@ -1261,6 +1276,8 @@ const QuillWrapper = forwardRef((props, ref) => {
           key={dynamicFonts.map(f => f.name).join(',')}
           ref={editorRef}
           {...props}
+          value={absoluteValue}
+          onChange={handleOnChange}
           modules={customModules}
           formats={props.formats || FORMATS}
         />

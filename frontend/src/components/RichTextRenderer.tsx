@@ -10,6 +10,8 @@ const getDOMPurify = () => {
   return null;
 };
 
+const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/").replace(/\/$/, "") + "/";
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   className?: string;
@@ -35,6 +37,41 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       : html;
     
     let processedHtml = sanitized.replace(/&nbsp;/g, " ");
+
+    processedHtml = processedHtml.replace(/<img([^>]*?)src=["']([^"']+?)["']/gi, (match: string, attributes: string, src: string) => {
+      let resolvedSrc = src;
+      if (resolvedSrc.includes("localhost:8080/")) {
+        resolvedSrc = resolvedSrc.replace(/https?:\/\/localhost:8080\//gi, URL_API);
+      } else if (resolvedSrc.startsWith("/")) {
+        resolvedSrc = `${URL_API}${resolvedSrc.substring(1)}`;
+      } else if (
+        !resolvedSrc.startsWith("http://") &&
+        !resolvedSrc.startsWith("https://") &&
+        !resolvedSrc.startsWith("blob:") &&
+        !resolvedSrc.startsWith("data:")
+      ) {
+        resolvedSrc = `${URL_API}${resolvedSrc}`;
+      }
+      return `<img${attributes}src="${resolvedSrc}"`;
+    });
+
+    // Process iframe src URLs
+    processedHtml = processedHtml.replace(/<iframe([^>]*?)src=["']([^"']+?)["']/gi, (match: string, attributes: string, src: string) => {
+      let resolvedSrc = src;
+      if (resolvedSrc.includes("localhost:8080/")) {
+        resolvedSrc = resolvedSrc.replace(/https?:\/\/localhost:8080\//gi, URL_API);
+      } else if (resolvedSrc.startsWith("/")) {
+        resolvedSrc = `${URL_API}${resolvedSrc.substring(1)}`;
+      } else if (
+        !resolvedSrc.startsWith("http://") &&
+        !resolvedSrc.startsWith("https://") &&
+        !resolvedSrc.startsWith("blob:") &&
+        !resolvedSrc.startsWith("data:")
+      ) {
+        resolvedSrc = `${URL_API}${resolvedSrc}`;
+      }
+      return `<iframe${attributes}src="${resolvedSrc}"`;
+    });
 
     // Add IDs to h2 and h3 elements for table of contents smooth scrolling
     let headingIndex = 0;
