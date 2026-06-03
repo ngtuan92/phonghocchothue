@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { useRouter } from "next/navigation";
@@ -49,10 +50,9 @@ const ProductCard = ({ product }: { product?: Product }) => {
 
   if (product) {
     return (
-      <button
-        type="button"
-        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer w-full p-0 border-0 bg-transparent text-left"
-        onClick={handleDetailProduct(product)}
+      <Link
+        href={getProductUrl(product)}
+        className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block w-full p-0 border-0 bg-transparent text-left"
       >
         <Image
           src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
@@ -76,17 +76,13 @@ const ProductCard = ({ product }: { product?: Product }) => {
             {product.equipment && <li>{stripHtml(product.equipment)}</li>}
             {product.contains && <li>{stripHtml(product.contains)}</li>}
           </ul>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDetailProduct(product)();
-            }}
-            className="my-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
+          <span
+            className="my-4 inline-block w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
           >
             Xem thêm
-          </button>
+          </span>
         </div>
-      </button>
+      </Link>
     );
   }
 
@@ -125,13 +121,13 @@ const ProductCard = ({ product }: { product?: Product }) => {
       >
         {products.map((product: any) => (
           <SwiperSlide key={product.id || product._id}>
-            <div 
-              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative cursor-pointer"
-              onClick={handleDetailProduct(product)}
+            <Link 
+              href={getProductUrl(product)}
+              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block"
             >
               <Image
                 src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
-                alt={product.name || "ảnh"}
+                alt={product.name || "ảnh phòng"}
                 fill
                 className="object-contain"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
@@ -151,36 +147,32 @@ const ProductCard = ({ product }: { product?: Product }) => {
                   {product.equipment && <li>{stripHtml(product.equipment)}</li>}
                   {product.contains && <li>{stripHtml(product.contains)}</li>}
                 </ul>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDetailProduct(product)();
-                  }}
-                  className="my-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
+                <span
+                  className="my-4 inline-block w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl rounded-br-xl py-[5px] hover:bg-[#e57f7f]"
                 >
                   Xem thêm
-                </button>
+                </span>
               </div>
-            </div>
+            </Link>
           </SwiperSlide>
         ))}
       </Swiper>
-      <div className="swiper-button-next-custom rounded-[50%]">
+      <div className="swiper-button-next-custom rounded-[50%]" role="button" aria-label="Hình ảnh kế tiếp">
         <Image
           className="w-full h-full rounded-[50%]"
           src="/assets/images/next-new.jpg"
-          alt="next"
+          alt="Nút chuyển ảnh sau"
           fill
           sizes="50px"
           quality={75}
           loading="lazy"
         />
       </div>
-      <div className="swiper-button-prev-custom rounded-[50%]">
+      <div className="swiper-button-prev-custom rounded-[50%]" role="button" aria-label="Hình ảnh trước đó">
         <Image
           className="w-full h-full rounded-[50%]"
           src="/assets/images/pre-new.jpg"
-          alt="pre"
+          alt="Nút chuyển ảnh trước"
           fill
           sizes="50px"
           quality={75}

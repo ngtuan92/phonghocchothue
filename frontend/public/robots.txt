@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin
 
-Sitemap: https://phonghocchothue.com/sitemap.xml
+Sitemap: https://phonghocchothue.com/sitemap_index.xml

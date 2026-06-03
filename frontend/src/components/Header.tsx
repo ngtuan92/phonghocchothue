@@ -168,6 +168,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={linkFb || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Trang Facebook của chúng tôi"
         >
           <FontAwesomeIcon
             icon={faFacebook}
@@ -178,6 +179,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={linkMess || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Nhắn tin với chúng tôi qua Messenger"
         >
           <FontAwesomeIcon
             icon={faFacebookMessenger}
@@ -188,6 +190,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={linkYoutube || "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Kênh Youtube của chúng tôi"
         >
           <FontAwesomeIcon
             icon={faYoutube}
@@ -198,6 +201,7 @@ const Header = ({ icon }: HeaderProps) => {
           href={phone ? `tel:${phone}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Gọi điện thoại hotline"
         >
           <FontAwesomeIcon
             icon={faPhone}
@@ -250,6 +254,7 @@ const Header = ({ icon }: HeaderProps) => {
             <button
               onClick={toggleMenu}
               className="relative focus:outline-none z-[9999]"
+              aria-label="Mở menu điều hướng"
             >
               <FontAwesomeIcon
                 icon={isOpen ? faTimes : faBars}

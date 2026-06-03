@@ -32,42 +32,17 @@ const fetchProducts = () => {
 };
 
 const generateSitemap = async () => {
-  console.log('Generating sitemap.xml...');
-  const products = await fetchProducts();
-  
-  const staticRoutes = [
-    { url: BASE_URL, priority: 1.0, changefreq: 'daily' }
-  ];
-
-  const dynamicRoutes = products
-    .filter((product) => product?.slug)
-    .map((product) => ({
-      url: `${BASE_URL}/phong/${product.slug}`,
-      priority: 0.8,
-      changefreq: 'weekly',
-      lastmod: product.updated_at ? new Date(product.updated_at).toISOString() : new Date().toISOString()
-    }));
-
-  const allRoutes = [...staticRoutes, ...dynamicRoutes];
-
-  const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${allRoutes.map(route => `
-  <url>
-    <loc>${route.url}</loc>
-    ${route.lastmod ? `<lastmod>${route.lastmod}</lastmod>` : ''}
-    <changefreq>${route.changefreq}</changefreq>
-    <priority>${route.priority}</priority>
-  </url>`).join('')}
-</urlset>`;
-
   const publicDir = path.join(__dirname, '..', 'public');
   if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), sitemapContent.trim());
-  console.log(`Generated sitemap.xml with ${allRoutes.length} URLs.`);
+  // Delete static sitemap.xml if it exists to avoid conflicts with dynamic route
+  const staticSitemapPath = path.join(publicDir, 'sitemap.xml');
+  if (fs.existsSync(staticSitemapPath)) {
+    fs.unlinkSync(staticSitemapPath);
+    console.log('Cleaned up static sitemap.xml');
+  }
 
   console.log('Generating robots.txt...');
   const robotsContent = `User-agent: *
@@ -75,7 +50,7 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin
 
-Sitemap: ${BASE_URL}/sitemap.xml
+Sitemap: ${BASE_URL}/sitemap_index.xml
 `;
   fs.writeFileSync(path.join(publicDir, 'robots.txt'), robotsContent.trim());
   console.log('Generated robots.txt.');

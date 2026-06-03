@@ -14,12 +14,14 @@ interface RichTextRendererProps {
   html: string | null | undefined;
   className?: string;
   fallback?: React.ReactNode;
+  as?: React.ElementType;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   html,
   className = "",
   fallback = null,
+  as: Component = "div",
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -79,11 +81,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     return processedHtml;
   }, [html]);
 
-  if (!html) return fallback ? <div className={`rich-text-renderer ${className}`}>{fallback}</div> : null;
+  if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`}>{fallback}</Component> : null;
 
   return (
     <>
-      <div
+      <Component
         className={`rich-text-renderer ${className}`}
         style={{
           wordBreak: "normal",
