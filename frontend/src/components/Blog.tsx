@@ -218,11 +218,6 @@ export default function Blog({
   const [limit, setLimit] = useState(isHomePage ? 3 : 6);
   const isFirstRender = useRef(true);
 
-  // Initialize first render flag on mount
-  useEffect(() => {
-    isFirstRender.current = false;
-  }, []);
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const handleResize = () => {
@@ -249,16 +244,19 @@ export default function Blog({
   });
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     setActiveTab(currentCategory);
     setPage(1);
     setBlogs([]);
 
     // Scroll to top of blog section on category change (if not initial render)
-    if (!isFirstRender.current) {
-      const element = document.getElementById("blog");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+    const element = document.getElementById("blog");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [currentCategory]);
 
