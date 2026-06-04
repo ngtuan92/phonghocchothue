@@ -81,9 +81,7 @@ const Header = ({ icon }: HeaderProps) => {
       const container = document.getElementById('main-scroll-container');
       const headerOffset = 80;
 
-      const isMobile = window.innerWidth < 640;
-
-      if (isMobile || !container) {
+      if (!container) {
         const elementPosition = target.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
