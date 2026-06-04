@@ -164,10 +164,19 @@ if (typeof window !== "undefined" && Quill) {
       const BorderRadiusAttributor = new StyleClass('border-radius', 'borderRadius');
 
       Quill.register(AltAttributor, true);
+      Quill.register('formats/alt', AltAttributor, true);
+
       Quill.register(TitleAttributor, true);
+      Quill.register('formats/title', TitleAttributor, true);
+
       Quill.register(CaptionAttributor, true);
+      Quill.register('formats/caption', CaptionAttributor, true);
+
       Quill.register(WrapAttributor, true);
+      Quill.register('formats/wrap', WrapAttributor, true);
+
       Quill.register(BorderRadiusAttributor, true);
+      Quill.register('formats/borderRadius', BorderRadiusAttributor, true);
     }
   } catch (e) {
     console.error("Failed to register custom attributors:", e);
