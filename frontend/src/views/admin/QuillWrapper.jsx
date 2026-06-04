@@ -262,7 +262,21 @@ const QuillWrapper = forwardRef((props, ref) => {
         });
       }
     });
-    setCaptions(list);
+    // Only update state if the captions array has actually changed (elements, values, or positions)
+    setCaptions(prev => {
+      if (prev.length !== list.length) return list;
+      const isDifferent = prev.some((item, index) => {
+        const next = list[index];
+        return (
+          item.id !== next.id ||
+          item.text !== next.text ||
+          Math.abs(item.top - next.top) > 0.5 ||
+          Math.abs(item.left - next.left) > 0.5 ||
+          Math.abs(item.width - next.width) > 0.5
+        );
+      });
+      return isDifferent ? list : prev;
+    });
   }, []);
 
   useEffect(() => {
@@ -581,7 +595,11 @@ const QuillWrapper = forwardRef((props, ref) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-value') {
               const quill = editorRef.current?.getEditor();
               if (quill) {
-                const format = quill.getFormat();
+                let format = {};
+                try {
+                  const sel = quill.getSelection();
+                  format = sel ? quill.getFormat(sel) : {};
+                } catch (e) {}
                 const size = format.size;
                 if (size) {
                   const sizeVal = Array.isArray(size) ? size[0] : size;
@@ -608,7 +626,11 @@ const QuillWrapper = forwardRef((props, ref) => {
         const quill = editorRef.current?.getEditor();
         let initialVal = label.getAttribute('data-value');
         if (quill) {
-          const format = quill.getFormat();
+          let format = {};
+          try {
+            const sel = quill.getSelection();
+            format = sel ? quill.getFormat(sel) : {};
+          } catch (e) {}
           if (format.size) {
             const sizeVal = Array.isArray(format.size) ? format.size[0] : format.size;
             if (typeof sizeVal === 'string') {
@@ -648,7 +670,11 @@ const QuillWrapper = forwardRef((props, ref) => {
           input.style.fontFamily = 'sans-serif';
           input.style.color = '#333';
 
-          const currentFormat = quill.getFormat();
+          let currentFormat = {};
+          try {
+            const sel = quill.getSelection();
+            currentFormat = sel ? quill.getFormat(sel) : {};
+          } catch (e) {}
           let currentSizeVal = '16';
           if (currentFormat && currentFormat.size) {
             currentSizeVal = currentFormat.size.replace('px', '');
