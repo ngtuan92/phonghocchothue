@@ -153,8 +153,8 @@ if (typeof window !== "undefined" && Quill) {
 
   try {
     const Parchment = Quill.import("parchment");
-    const AttributeClass = Parchment.Attributor?.Attribute || Parchment.Attribute;
-    const StyleClass = Parchment.Attributor?.Style || Parchment.Style;
+    const AttributeClass = Parchment.Attributor;
+    const StyleClass = Parchment.StyleAttributor || Parchment.Attributor?.Style || Parchment.Style;
     
     if (AttributeClass && StyleClass) {
       const AltAttributor = new AttributeClass('alt', 'alt');
