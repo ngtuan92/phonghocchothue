@@ -150,6 +150,28 @@ if (typeof window !== "undefined" && Quill) {
   CustomImageBlot.blotName = "image";
   CustomImageBlot.tagName = "img";
   Quill.register(CustomImageBlot, true);
+
+  try {
+    const Parchment = Quill.import("parchment");
+    const AttributeClass = Parchment.Attributor?.Attribute || Parchment.Attribute;
+    const StyleClass = Parchment.Attributor?.Style || Parchment.Style;
+    
+    if (AttributeClass && StyleClass) {
+      const AltAttributor = new AttributeClass('alt', 'alt');
+      const TitleAttributor = new AttributeClass('title', 'title');
+      const CaptionAttributor = new AttributeClass('data-caption', 'caption');
+      const WrapAttributor = new AttributeClass('data-wrap', 'wrap');
+      const BorderRadiusAttributor = new StyleClass('border-radius', 'borderRadius');
+
+      Quill.register(AltAttributor, true);
+      Quill.register(TitleAttributor, true);
+      Quill.register(CaptionAttributor, true);
+      Quill.register(WrapAttributor, true);
+      Quill.register(BorderRadiusAttributor, true);
+    }
+  } catch (e) {
+    console.error("Failed to register custom attributors:", e);
+  }
   
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
@@ -248,7 +270,13 @@ const QuillWrapper = forwardRef((props, ref) => {
     };
 
     const updateSizePickerLabel = () => {
-      const format = quill.getFormat();
+      let format = {};
+      try {
+        const selection = quill.getSelection();
+        format = selection ? quill.getFormat(selection) : {};
+      } catch (e) {
+        // Selection or Quill API not fully ready
+      }
       const size = format.size;
       const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
       sizePickers.forEach(picker => {
