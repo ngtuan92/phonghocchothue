@@ -124,9 +124,10 @@ const Describe = () => {
                         </div>
 
                         <div className="w-full text-center mb-1 md:mb-2 lg:mb-2 relative z-10">
-                            <h1 className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
-                                {stripHtml(h1Text)}
-                            </h1>
+                            <h1
+                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
+                                dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
+                            />
                         </div>
 
                         <div className="w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
@@ -187,9 +188,10 @@ const Describe = () => {
                         </div>
 
                         <div className="w-full text-center mb-0 relative z-10">
-                            <p className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center">
-                                {stripHtml(h1Text)}
-                            </p>
+                            <p
+                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center"
+                                dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
+                            />
                         </div>
 
                         <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-[-2px] relative z-10">
