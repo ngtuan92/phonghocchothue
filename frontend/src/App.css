@@ -139,15 +139,14 @@
 }
 
 .custom-quill .ql-editor img {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   display: block;
   margin: 10px auto;
 }
 
 .content-img p img {
-  max-width: 100%;
-  height: auto;
+  width: 100%;
 }
 
 .poppins-bold {
