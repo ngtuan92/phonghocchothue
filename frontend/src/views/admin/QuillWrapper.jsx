@@ -151,36 +151,6 @@ if (typeof window !== "undefined" && Quill) {
   CustomImageBlot.tagName = "img";
   Quill.register(CustomImageBlot, true);
 
-  try {
-    const Parchment = Quill.import("parchment");
-    const AttributeClass = Parchment.Attributor;
-    const StyleClass = Parchment.StyleAttributor || Parchment.Attributor?.Style || Parchment.Style;
-    
-    if (AttributeClass && StyleClass) {
-      const AltAttributor = new AttributeClass('alt', 'alt');
-      const TitleAttributor = new AttributeClass('title', 'title');
-      const CaptionAttributor = new AttributeClass('data-caption', 'caption');
-      const WrapAttributor = new AttributeClass('data-wrap', 'wrap');
-      const BorderRadiusAttributor = new StyleClass('border-radius', 'borderRadius');
-
-      Quill.register(AltAttributor, true);
-      Quill.register('formats/alt', AltAttributor, true);
-
-      Quill.register(TitleAttributor, true);
-      Quill.register('formats/title', TitleAttributor, true);
-
-      Quill.register(CaptionAttributor, true);
-      Quill.register('formats/caption', CaptionAttributor, true);
-
-      Quill.register(WrapAttributor, true);
-      Quill.register('formats/wrap', WrapAttributor, true);
-
-      Quill.register(BorderRadiusAttributor, true);
-      Quill.register('formats/borderRadius', BorderRadiusAttributor, true);
-    }
-  } catch (e) {
-    console.error("Failed to register custom attributors:", e);
-  }
   
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
@@ -1690,14 +1660,14 @@ const QuillWrapper = forwardRef((props, ref) => {
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 6px !important;
+          margin-top: 18px !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="right"] {
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 6px !important;
+          margin-top: 18px !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="none"] {

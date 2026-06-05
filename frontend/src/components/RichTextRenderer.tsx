@@ -162,7 +162,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 6px !important;
+          margin-top: 18px !important;
           margin-left: 0 !important;
           display: inline !important;
         }
@@ -171,7 +171,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 6px !important;
+          margin-top: 18px !important;
           margin-right: 0 !important;
           display: inline !important;
         }
@@ -189,14 +189,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 6px !important;
+          margin-top: 18px !important;
           display: inline-block !important;
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 6px !important;
+          margin-top: 18px !important;
           display: inline-block !important;
         }
         .rich-text-renderer .image-wrap-left img,
@@ -215,7 +215,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
           .rich-text-renderer img[data-wrap="left"],
-          .rich-text-renderer img[data-wrap="right"],
+          .rich-text-renderer img[data-wrap="right"] {
+            float: none !important;
+            display: block !important;
+            width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: 16px !important;
+            margin-bottom: 0px !important;
+          }
           .rich-text-renderer .image-wrapper.image-wrap-left,
           .rich-text-renderer .image-wrapper.image-wrap-right {
             float: none !important;
@@ -226,14 +234,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             margin-top: 16px !important;
             margin-bottom: 16px !important;
           }
-          .rich-text-renderer img[data-wrap="none"] {
-            margin-bottom: 10px !important;
+          /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
+          .rich-text-renderer img[data-wrap="none"],
+          .rich-text-renderer img:not([data-wrap]) {
+            width: 100% !important;
+            height: auto !important;
+            margin-bottom: 0px !important;
           }
           .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+            width: 100% !important;
             margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-caption {
             font-size: 12px !important;
+            margin-top: 4px !important;
             margin-bottom: 10px !important;
           }
         }

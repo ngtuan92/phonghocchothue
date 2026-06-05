@@ -223,7 +223,8 @@ export default function DetailPage() {
   const processedName = useMemo(() => {
     const name = productData.product.name_rich || productData.product.name;
     if (!name || typeof name !== "string") return "";
-    return name;
+    // Replace any heading tags (h1-h6) with p tags to prevent having headings before the main H1
+    return name.replace(/<h[1-6]([^>]*?)>/gi, "<p$1>").replace(/<\/h[1-6]>/gi, "</p>");
   }, [productData]);
 
 
@@ -587,14 +588,14 @@ export default function DetailPage() {
                     className="title-product-detail-rich"
                   />
                 ) : (
-                  <h1 className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
+                  <p className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
                     {productData.product.name}
-                  </h1>
+                  </p>
                 )}
               </div>
-              <h3 className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-2">
+              <p className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-2">
                 Mô tả :
-              </h3>
+              </p>
               <ul className="list-disc pl-6 text-xs sm:text-base py-4 border-t-2 border-b-2 border-[#ccc]">
                 <li className="flex items-center gap-1 flex-wrap">
                   <span>Sức chứa:</span>{" "}
@@ -613,14 +614,14 @@ export default function DetailPage() {
                   )}
                 </li>
               </ul>
-              <h2 className="text-xs sm:text-base font-bold text-red-600 my-4 flex items-center gap-1 flex-wrap">
+              <p className="text-xs sm:text-base font-bold text-red-600 my-4 flex items-center gap-1 flex-wrap">
                 <span className="text-stone-800 text-base">Giá:</span>{" "}
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                   <RichTextRenderer html={productData.product.price} className="inline-rich-text !text-red-600 !font-bold" />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
                 )}
-              </h2>
+              </p>
               <Button
                 className="!w-auto !h-[40px] !bg-[#b8c7b0] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
                 onClick={open}
