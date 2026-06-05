@@ -159,9 +159,9 @@ if (typeof window !== "undefined" && Quill) {
     if (AttributeClass && StyleClass) {
       const AltAttributor = new AttributeClass('alt', 'alt');
       const TitleAttributor = new AttributeClass('title', 'title');
-      const CaptionAttributor = new AttributeClass('data-caption', 'caption');
-      const WrapAttributor = new AttributeClass('data-wrap', 'wrap');
-      const BorderRadiusAttributor = new StyleClass('border-radius', 'borderRadius');
+      const CaptionAttributor = new AttributeClass('caption', 'data-caption');
+      const WrapAttributor = new AttributeClass('wrap', 'data-wrap');
+      const BorderRadiusAttributor = new StyleClass('borderRadius', 'border-radius');
 
       Quill.register(AltAttributor, true);
       Quill.register('formats/alt', AltAttributor, true);
@@ -262,7 +262,6 @@ const QuillWrapper = forwardRef((props, ref) => {
         });
       }
     });
-    // Only update state if the captions array has actually changed (elements, values, or positions)
     setCaptions(prev => {
       if (prev.length !== list.length) return list;
       const isDifferent = prev.some((item, index) => {
@@ -301,7 +300,8 @@ const QuillWrapper = forwardRef((props, ref) => {
         // Selection or Quill API not fully ready
       }
       const size = format.size;
-      const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+      const sizePickers = containerRef.current?.querySelectorAll('.ql-size.ql-picker');
+      if (!sizePickers) return;
       sizePickers.forEach(picker => {
         const label = picker.querySelector('.ql-picker-label');
         if (!label) return;
@@ -400,7 +400,7 @@ const QuillWrapper = forwardRef((props, ref) => {
     if (!isReady || !containerRef.current) return;
 
     const initDropdown = () => {
-      const toolbar = containerRef.current.querySelector('.ql-toolbar');
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
       if (!toolbar) return;
 
       const formats = Array.from(toolbar.children).filter(el => el.classList.contains('ql-formats'));
@@ -583,7 +583,8 @@ const QuillWrapper = forwardRef((props, ref) => {
     if (!isReady || !containerRef.current) return;
 
     const initSizeInput = () => {
-      const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+      const sizePickers = containerRef.current?.querySelectorAll('.ql-size.ql-picker');
+      if (!sizePickers) return;
       sizePickers.forEach(picker => {
         const label = picker.querySelector('.ql-picker-label');
         if (!label || label.getAttribute('data-input-initialized')) return;
@@ -1703,10 +1704,23 @@ const QuillWrapper = forwardRef((props, ref) => {
         .ql-editor img[data-wrap="none"] {
           float: none !important;
           display: block !important;
-          margin-left: auto !important;
+          margin-left: ${props.isProduct ? '0' : 'auto'} !important;
           margin-right: auto !important;
           margin-top: 20px !important;
         }
+        ${props.isProduct ? `
+          .ql-editor img,
+          .ql-editor img[data-wrap="left"],
+          .ql-editor img[data-wrap="right"],
+          .ql-editor img[data-wrap="none"] {
+            float: none !important;
+            display: block !important;
+            margin-left: 0 !important;
+            margin-right: auto !important;
+            margin-top: 20px !important;
+            margin-bottom: 20px !important;
+          }
+        ` : ''}
         .ql-editor img[data-wrap="left"] + br,
         .ql-editor img[data-wrap="right"] + br {
           clear: both !important;
@@ -1757,47 +1771,51 @@ const QuillWrapper = forwardRef((props, ref) => {
         >
           {/* Text Wrapping Toolbar */}
           <div className="wrap-toolbar" onMouseDown={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className={`wrap-btn${imageWrapMode === 'left' ? ' active' : ''}`}
-              title="Chữ bao quanh - Trái"
-              onClick={(e) => { e.stopPropagation(); handleImageWrap('left'); }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                <line x1="14" y1="4" x2="21" y2="4"/>
-                <line x1="14" y1="8" x2="21" y2="8"/>
-                <line x1="3" y1="14" x2="21" y2="14"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={`wrap-btn${imageWrapMode === 'none' ? ' active' : ''}`}
-              title="Căn giữa - Không bao quanh"
-              onClick={(e) => { e.stopPropagation(); handleImageWrap('none'); }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="3" y1="4" x2="21" y2="4"/>
-                <rect x="7" y="8" width="10" height="7" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                <line x1="3" y1="19" x2="21" y2="19"/>
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={`wrap-btn${imageWrapMode === 'right' ? ' active' : ''}`}
-              title="Chữ bao quanh - Phải"
-              onClick={(e) => { e.stopPropagation(); handleImageWrap('right'); }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                <line x1="3" y1="4" x2="10" y2="4"/>
-                <line x1="3" y1="8" x2="10" y2="8"/>
-                <line x1="3" y1="14" x2="21" y2="14"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
-            <div className="wrap-divider"></div>
+            {!props.isProduct && (
+              <>
+                <button
+                  type="button"
+                  className={`wrap-btn${imageWrapMode === 'left' ? ' active' : ''}`}
+                  title="Chữ bao quanh - Trái"
+                  onClick={(e) => { e.stopPropagation(); handleImageWrap('left'); }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+                    <line x1="14" y1="4" x2="21" y2="4"/>
+                    <line x1="14" y1="8" x2="21" y2="8"/>
+                    <line x1="3" y1="14" x2="21" y2="14"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className={`wrap-btn${imageWrapMode === 'none' ? ' active' : ''}`}
+                  title="Căn giữa - Không bao quanh"
+                  onClick={(e) => { e.stopPropagation(); handleImageWrap('none'); }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="3" y1="4" x2="21" y2="4"/>
+                    <rect x="7" y="8" width="10" height="7" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+                    <line x1="3" y1="19" x2="21" y2="19"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className={`wrap-btn${imageWrapMode === 'right' ? ' active' : ''}`}
+                  title="Chữ bao quanh - Phải"
+                  onClick={(e) => { e.stopPropagation(); handleImageWrap('right'); }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+                    <line x1="3" y1="4" x2="10" y2="4"/>
+                    <line x1="3" y1="8" x2="10" y2="8"/>
+                    <line x1="3" y1="14" x2="21" y2="14"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                  </svg>
+                </button>
+                <div className="wrap-divider"></div>
+              </>
+            )}
             <button
               type="button"
               className="wrap-btn delete-btn"

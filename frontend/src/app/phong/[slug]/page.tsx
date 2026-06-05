@@ -182,22 +182,21 @@ export default function DetailPage() {
 
   const availability = product?.status === 1 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock";
 
-  // Xử lý content từ CKEditor để hiển thị đúng
-  const processedContent = useMemo(() => {
-    const content = get(productData, "product.content", "");
-    if (!content || typeof content !== "string") return "";
 
-    // Convert relative image URLs thành absolute URLs
-    let processed = content.replace(
+  const processedContent = useMemo(() => {
+    let processed = productData.product.content || "";
+
+    // Convert relative URLs to absolute URLs
+    processed = processed.replace(
       /<img([^>]*?)src=["']([^"']+?)["']/gi,
       (match, attributes, src) => {
-        // Nếu URL đã là absolute (http/https/blob/data), giữ nguyên
-        if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("blob:") || src.startsWith("data:")) {
+        if (
+          src.startsWith("http://") ||
+          src.startsWith("https://") ||
+          src.startsWith("blob:") ||
+          src.startsWith("data:")
+        ) {
           return match;
-        }
-        // Nếu URL bắt đầu bằng /, thêm base URL
-        if (src.startsWith("/")) {
-          return `<img${attributes}src="${URL_API}${src.substring(1)}"`;
         }
         // Nếu là relative path, thêm base URL
         const absoluteUrl = buildAbsoluteUrl(src);
@@ -223,6 +222,11 @@ export default function DetailPage() {
   const processedName = useMemo(() => {
     const name = productData.product.name_rich || productData.product.name;
     if (!name || typeof name !== "string") return "";
+
+    const hasHeading = /<h[1-6][^>]*>/i.test(name);
+    if (hasHeading) {
+      return name.replace(/<h[1-6]([^>]*?)>/gi, '<p$1>').replace(/<\/h[1-6]>/gi, '</p>');
+    }
     return name;
   }, [productData]);
 
@@ -587,14 +591,14 @@ export default function DetailPage() {
                     className="title-product-detail-rich"
                   />
                 ) : (
-                  <h1 className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
+                  <p className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
                     {productData.product.name}
-                  </h1>
+                  </p>
                 )}
               </div>
-              <h3 className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-2">
+              <p className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-2">
                 Mô tả :
-              </h3>
+              </p>
               <ul className="list-disc pl-6 text-xs sm:text-base py-4 border-t-2 border-b-2 border-[#ccc]">
                 <li className="flex items-center gap-1 flex-wrap">
                   <span>Sức chứa:</span>{" "}
@@ -613,14 +617,14 @@ export default function DetailPage() {
                   )}
                 </li>
               </ul>
-              <h2 className="text-xs sm:text-base font-bold text-red-600 my-4 flex items-center gap-1 flex-wrap">
+              <p className="text-xs sm:text-base font-bold text-red-600 my-4 flex items-center gap-1 flex-wrap">
                 <span className="text-stone-800 text-base">Giá:</span>{" "}
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                   <RichTextRenderer html={productData.product.price} className="inline-rich-text !text-red-600 !font-bold" />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
                 )}
-              </h2>
+              </p>
               <Button
                 className="!w-auto !h-[40px] !bg-[#b8c7b0] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
                 onClick={open}
@@ -766,9 +770,6 @@ export default function DetailPage() {
                   .ckeditor-content table {
                     font-size: 0.85rem !important;
                   }
-                  .ckeditor-content img {
-                    height: auto !important;
-                  }
                 }
               `
             }} />
@@ -814,10 +815,13 @@ export default function DetailPage() {
                         className={className}
                         style={{
                           maxWidth: "100%",
-                          display: "block",
                           width: width ? `${width}${width.includes('%') ? '' : 'px'}` : (existingStyles.width || "100%"),
                           height: height ? `${height}${height.includes('%') ? '' : 'px'}` : (existingStyles.height || "auto"),
                           ...existingStyles,
+                          display: "block",
+                          float: "none",
+                          marginLeft: "0",
+                          marginRight: "auto",
                         }}
                         loading="lazy"
                       />

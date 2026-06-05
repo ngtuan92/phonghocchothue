@@ -219,7 +219,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
       />
 
       {/* Dialog Content */}
-      <Card className="relative w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col bg-white rounded-lg overflow-hidden">
+      <Card className="relative w-full max-w-[95vw] xl:max-w-[1350px] shadow-2xl max-h-[90vh] flex flex-col bg-white rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-200">
           <DialogHeader className="flex flex-col items-start p-0">
@@ -271,6 +271,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-name-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomNameRich}
+                    isProduct={true}
                     onChange={(val) => {
                       setRoomNameRich(val);
                       
@@ -339,6 +340,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-price-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomPrice}
+                    isProduct={true}
                     onChange={setRoomPrice}
                     placeholder="Ví dụ: 80.000 đ/h..."
                   />
@@ -355,6 +357,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-equipment-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomEquipment}
+                    isProduct={true}
                     onChange={setRoomEquipment}
                     placeholder="Ví dụ: Máy chiếu, điều hòa, bảng trắng..."
                   />
@@ -371,6 +374,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-contains-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomContains}
+                    isProduct={true}
                     onChange={setRoomContains}
                     placeholder="Ví dụ: Sức chứa 45 chỗ ngồi..."
                   />
@@ -506,6 +510,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   key={`quill-description-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomDescription}
+                  isProduct={true}
                   onChange={setRoomDescription}
                   placeholder="Nhập mô tả ngắn về phòng..."
                 />
@@ -521,6 +526,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   key={`quill-content-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomContent}
+                  isProduct={true}
                   onChange={setRoomContent}
                   placeholder="Nhập mô tả chi tiết về phòng..."
                 />
