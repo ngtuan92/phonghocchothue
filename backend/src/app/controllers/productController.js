@@ -6,6 +6,16 @@ const { createUniqueSlug } = require("../../util/slug");
 const { getOrSetCache, redis } = require("../../util/cacheUtil");
 
 const { uploadFile } = require("../../util/upload-file");
+
+function formatProductRichName(nameRich) {
+  if (!nameRich || typeof nameRich !== 'string') return nameRich;
+  return nameRich
+    .replace(/<h[1-6](\s[^>]*?)?>/gi, (match, attrs) => {
+      return `<div class="product-title-heading"${attrs || ''}>`;
+    })
+    .replace(/<\/h[1-6]>/gi, '</div>');
+}
+
 class ProductController {
   async index(req, res) {
     try {
@@ -23,9 +33,17 @@ class ProductController {
           limit: limit ? parseInt(limit) : undefined,
           order: [['id', 'DESC']]
         });
+
+        const formattedProducts = mutipleConvertToObject(productData).map(p => {
+          if (p.name_rich) {
+            p.name_rich = formatProductRichName(p.name_rich);
+          }
+          return p;
+        });
+
         return {
           success: true,
-          data: mutipleConvertToObject(productData)
+          data: formattedProducts
         };
       });
 
@@ -119,10 +137,22 @@ class ProductController {
           limit: 4,
         });
 
+        const formattedProduct = { ...product.dataValues };
+        if (formattedProduct.name_rich) {
+          formattedProduct.name_rich = formatProductRichName(formattedProduct.name_rich);
+        }
+
+        const formattedOthers = mutipleConvertToObject(otherProducts).map(p => {
+          if (p.name_rich) {
+            p.name_rich = formatProductRichName(p.name_rich);
+          }
+          return p;
+        });
+
         return {
           success: true,
-          data: product.dataValues,
-          related: mutipleConvertToObject(otherProducts)
+          data: formattedProduct,
+          related: formattedOthers
         };
       });
 
@@ -182,7 +212,7 @@ class ProductController {
       // Chỉ cập nhật những trường được gửi lên (tránh ghi đè undefined)
       const updateFields = {
         name,
-        name_rich,
+        name_rich: name_rich !== undefined ? formatProductRichName(name_rich) : undefined,
         slug: productSlug || product.slug,
         content,
         description,
@@ -273,7 +303,7 @@ class ProductController {
 
       const product = await productModel.create({
         name: name,
-        name_rich: name_rich,
+        name_rich: formatProductRichName(name_rich),
         slug: productSlug,
         content: content,
         description: description,

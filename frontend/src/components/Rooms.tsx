@@ -67,7 +67,7 @@ const Rooms = () => {
                   className="text-lg font-bold uppercase hover-product-title-rich w-full"
                 />
               ) : (
-                <h2 className="text-lg font-bold uppercase">{product.name}</h2>
+                <div className="text-lg font-bold uppercase product-title-heading">{product.name}</div>
               )}
               <ul className="list-disc ml-5 text-base mt-2 space-y-1">
                 {product.equipment && <li>{stripHtml(product.equipment)}</li>}

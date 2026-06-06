@@ -5,6 +5,62 @@ const { uploadFile } = require('../../util/upload-file')
 const { mutipleConvertToObject } = require('../../util/convert');
 const { getOrSetCache, redis } = require('../../util/cacheUtil');
 
+function processConfigs(plainConfigs) {
+    const faqListConfig = plainConfigs.find(c => c.key === 'faq_list');
+    if (faqListConfig && faqListConfig.content) {
+        try {
+            let faqList = [];
+            if (typeof faqListConfig.content === 'string') {
+                faqList = JSON.parse(faqListConfig.content);
+            } else if (Array.isArray(faqListConfig.content)) {
+                faqList = faqListConfig.content;
+            }
+            
+            if (Array.isArray(faqList) && faqList.length > 0) {
+                const stripHtml = (val) => {
+                    if (!val) return "";
+                    return val
+                        .replace(/<[^>]*>/g, "")
+                        .replace(/&nbsp;/g, " ")
+                        .replace(/&amp;/g, "&")
+                        .replace(/&lt;/g, "<")
+                        .replace(/&gt;/g, ">")
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#39;/g, "'")
+                        .replace(/\s+/g, " ")
+                        .trim();
+                };
+
+                const faqSchema = {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": faqList.map(item => ({
+                        "@type": "Question",
+                        "name": stripHtml(item.question),
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": stripHtml(item.answer)
+                        }
+                    }))
+                };
+
+                plainConfigs.push({
+                    id: 99999,
+                    key: 'faq-schema-ld-json',
+                    content: JSON.stringify(faqSchema),
+                    type: 'jsonld',
+                    section: 'faq',
+                    musicName: null,
+                    borderRadius: null
+                });
+            }
+        } catch (e) {
+            console.error("Lỗi khi parse faq_list cho JSON-LD:", e);
+        }
+    }
+    return plainConfigs;
+}
+
 class ConfigController {
 
     async index(req, res, next) {
@@ -15,10 +71,11 @@ class ConfigController {
                 const configData = await configModel.findAll({
                     attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius'],
                 });
+                const plainConfigs = mutipleConvertToObject(configData);
                 return res.status(200).json({
                     success: true,
                     message: 'Lấy data trực tiếp từ DB!',
-                    data: mutipleConvertToObject(configData)
+                    data: processConfigs(plainConfigs)
                 });
             }
 
@@ -26,10 +83,11 @@ class ConfigController {
                 const configData = await configModel.findAll({
                     attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius'],
                 });
+                const plainConfigs = mutipleConvertToObject(configData);
                 return {
                     success: true,
                     message: 'Lấy data thành công!',
-                    data: mutipleConvertToObject(configData)
+                    data: processConfigs(plainConfigs)
                 };
             });
 

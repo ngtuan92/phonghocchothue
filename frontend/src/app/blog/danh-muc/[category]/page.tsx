@@ -56,7 +56,7 @@ export default function BlogCategoryPage() {
 
   useSEO({
     title: `${displayCategory} - Blog | ChoThuePhongHoc.com`,
-    description: `Danh sách bài viết thuộc danh mục ${displayCategory}. Kiến thức và kinh nghiệm thuê phòng dạy học tại Đà Nẵng.`,
+    description: `Danh sách bài viết thuộc danh mục ${displayCategory}. Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.`,
     ogType: "website",
   });
 

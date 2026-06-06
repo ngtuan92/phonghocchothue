@@ -43,7 +43,7 @@ export default function BlogDetail() {
   }, [imgIcon]);
 
   const seoTitle = blog ? `${blog.title} | Blog` : "Blog";
-  const seoDescription = blog?.excerpt || "Kiến thức và kinh nghiệm thuê phòng dạy học tại Đà Nẵng.";
+  const seoDescription = blog?.excerpt || "Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.";
   const seoImage = blog?.thumbnail ? (blog.thumbnail.startsWith("http") ? blog.thumbnail : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`) : undefined;
 
   useSEO({

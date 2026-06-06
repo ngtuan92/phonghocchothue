@@ -65,42 +65,58 @@ export default function Home() {
   const address = useConfigContentByKey("address");
   const nameBrand = useConfigContentByKey("nameBrand");
   const logoUrl = buildAbsoluteUrl(logo);
+  const faqSchema = useConfigContentByKey("faq-schema-ld-json");
 
   const homeStructuredData = useMemo(
-    () => [
-      {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "@id": "https://phonghocchothue.com/#webpage",
-        name: seoTitle,
-        url: "https://phonghocchothue.com",
-        description: seoDescription,
-        primaryImageOfPage: seoImageUrl,
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        "@id": "https://phonghocchothue.com/#localbusiness",
-        name: nameBrand || "Cho thuê phòng dạy học tại Đà Nẵng",
-        url: "https://phonghocchothue.com",
-        image: seoImageUrl || logoUrl || "/favicon.png",
-        telephone: phone || "0905 000 000",
-        priceRange: "$$",
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: address || "Đà Nẵng",
-          addressLocality: "Đà Nẵng",
-          addressRegion: "Đà Nẵng",
-          addressCountry: "VN",
+    () => {
+      const baseStructured = [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "@id": "https://phonghocchothue.com/#webpage",
+          name: seoTitle,
+          url: "https://phonghocchothue.com",
+          description: seoDescription,
+          primaryImageOfPage: seoImageUrl,
         },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: 16.0544,
-          longitude: 108.2022,
-        },
+        {
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "@id": "https://phonghocchothue.com/#localbusiness",
+          name: nameBrand || "Cho thuê phòng dạy học tại Đà Nẵng",
+          url: "https://phonghocchothue.com",
+          image: seoImageUrl || logoUrl || "/favicon.png",
+          telephone: phone || "0905 000 000",
+          priceRange: "$$",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: address || "Đà Nẵng",
+            addressLocality: "Đà Nẵng",
+            addressRegion: "Đà Nẵng",
+            addressCountry: "VN",
+          },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: 16.0544,
+            longitude: 108.2022,
+          },
+        }
+      ];
+
+      if (faqSchema) {
+        try {
+          const parsed = typeof faqSchema === "string" ? JSON.parse(faqSchema) : faqSchema;
+          if (parsed && typeof parsed === "object") {
+            baseStructured.push(parsed);
+          }
+        } catch (e) {
+          console.error("Lỗi parse FAQ schema:", e);
+        }
       }
-    ],
-    [seoTitle, seoDescription, seoImageUrl, nameBrand, logoUrl, phone, address]
+
+      return baseStructured;
+    },
+    [seoTitle, seoDescription, seoImageUrl, nameBrand, logoUrl, phone, address, faqSchema]
   );
 
   const homeStructuredDataPayload = useMemo(
