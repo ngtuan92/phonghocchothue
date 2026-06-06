@@ -93,7 +93,7 @@ const Gallery: React.FC = () => {
         )}
 
         {hasSpacesSection && (
-          <div className="w-full flex flex-col items-center mt-20 sm:mt-40">
+          <div className="w-full flex flex-col items-center mt-[4.5rem] sm:mt-40">
             <div className="mb-3 sm:mb-6 text-center w-full">
               <RichTextRenderer
                 html={galleryHeading}
