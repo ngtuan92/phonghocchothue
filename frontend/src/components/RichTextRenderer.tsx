@@ -100,12 +100,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         
         let inlineWidth = "";
         if (widthMatch) {
-          inlineWidth = widthMatch[1];
+          const wVal = widthMatch[1].trim();
+          inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
         } else if (styleMatch) {
           const styleStr = styleMatch[1];
           const widthStyle = styleStr.match(/width:\s*([^;]+)/i);
           if (widthStyle) {
-            inlineWidth = widthStyle[1].trim();
+            const wVal = widthStyle[1].trim();
+            inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
           }
         }
         
@@ -162,7 +164,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 18px !important;
+          margin-top: 12px !important;
           margin-left: 0 !important;
           display: inline !important;
         }
@@ -171,7 +173,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 18px !important;
+          margin-top: 12px !important;
           margin-right: 0 !important;
           display: inline !important;
         }
@@ -189,14 +191,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 18px !important;
+          margin-top: 12px !important;
           display: inline-block !important;
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 18px !important;
+          margin-top: 12px !important;
           display: inline-block !important;
         }
         .rich-text-renderer .image-wrap-left img,
@@ -204,6 +206,23 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           display: block !important;
           float: none !important;
           margin: 0 !important;
+        }
+        /* Collapse the parent block or preceding empty block of a floated image/wrapper */
+        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right),
+        .rich-text-renderer > *:has(+ .image-wrap-left, + .image-wrap-right, + .image-wrapper) {
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          border: none !important;
+        }
+        /* Reset margin-top of text block adjacent to floated images */
+        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) + *,
+        .rich-text-renderer > .image-wrap-left + *,
+        .rich-text-renderer > .image-wrap-right + *,
+        .rich-text-renderer > .image-wrapper + * {
+          margin-top: 0 !important;
         }
         /* Clearfix for content after floated images */
         .rich-text-renderer::after {

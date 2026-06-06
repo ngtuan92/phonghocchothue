@@ -1660,14 +1660,14 @@ const QuillWrapper = forwardRef((props, ref) => {
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 18px !important;
+          margin-top: 12px !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="right"] {
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 18px !important;
+          margin-top: 12px !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="none"] {
@@ -1680,6 +1680,18 @@ const QuillWrapper = forwardRef((props, ref) => {
         .ql-editor img[data-wrap="left"] + br,
         .ql-editor img[data-wrap="right"] + br {
           clear: both !important;
+        }
+        /* Align top edge of text adjacent to floated images in editor */
+        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) {
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          border: none !important;
+        }
+        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + * {
+          margin-top: 0 !important;
         }
         /* Image Caption styling in editor */
         .ql-editor img[data-caption]:not([data-caption=""]):not([data-caption=" "]) {

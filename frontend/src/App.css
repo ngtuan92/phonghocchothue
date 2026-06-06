@@ -391,33 +391,38 @@
   margin-right: auto !important;
   display: block;
 }
+
 .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
   margin-top: 20px !important;
   margin-bottom: 16px !important;
 }
+
 .rich-text-renderer .image-wrapper img {
   width: 100% !important;
   display: block !important;
   margin: 0 !important;
 }
+
 /* Text wrapping: float left */
 .rich-text-renderer img[data-wrap="left"] {
   float: left !important;
   margin-right: 20px !important;
   margin-bottom: 16px !important;
-  margin-top: 18px !important;
+  margin-top: 12px !important;
   margin-left: 0 !important;
   display: inline !important;
 }
+
 /* Text wrapping: float right */
 .rich-text-renderer img[data-wrap="right"] {
   float: right !important;
   margin-left: 20px !important;
   margin-bottom: 16px !important;
-  margin-top: 18px !important;
+  margin-top: 12px !important;
   margin-right: 0 !important;
   display: inline !important;
 }
+
 /* Text wrapping: center/none */
 .rich-text-renderer img[data-wrap="none"] {
   float: none !important;
@@ -427,27 +432,50 @@
   margin-top: 20px !important;
   margin-bottom: 20px !important;
 }
+
 /* Image wrapper wrapping support */
 .rich-text-renderer .image-wrap-left {
   float: left !important;
   margin-right: 20px !important;
   margin-bottom: 16px !important;
-  margin-top: 18px !important;
+  margin-top: 12px !important;
   display: inline-block !important;
 }
+
 .rich-text-renderer .image-wrap-right {
   float: right !important;
   margin-left: 20px !important;
   margin-bottom: 16px !important;
-  margin-top: 18px !important;
+  margin-top: 12px !important;
   display: inline-block !important;
 }
+
 .rich-text-renderer .image-wrap-left img,
 .rich-text-renderer .image-wrap-right img {
   display: block !important;
   float: none !important;
   margin: 0 !important;
 }
+
+/* Collapse the parent block or preceding empty block of a floated image/wrapper */
+.rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right),
+.rich-text-renderer > *:has(+ .image-wrap-left, + .image-wrap-right, + .image-wrapper) {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  line-height: 0 !important;
+  border: none !important;
+}
+
+/* Reset margin-top of text block adjacent to floated images */
+.rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) + *,
+.rich-text-renderer > .image-wrap-left + *,
+.rich-text-renderer > .image-wrap-right + *,
+.rich-text-renderer > .image-wrapper + * {
+  margin-top: 0 !important;
+}
+
 /* Clearfix for content after floated images */
 .rich-text-renderer::after {
   content: '' !important;
@@ -457,6 +485,7 @@
 
 /* Responsive Mobile styles to stack wrapped images nicely */
 @media (max-width: 767px) {
+
   .rich-text-renderer img[data-wrap="left"],
   .rich-text-renderer img[data-wrap="right"] {
     float: none !important;
@@ -467,6 +496,7 @@
     margin-top: 16px !important;
     margin-bottom: 0px !important;
   }
+
   .rich-text-renderer .image-wrapper.image-wrap-left,
   .rich-text-renderer .image-wrapper.image-wrap-right {
     float: none !important;
@@ -477,6 +507,7 @@
     margin-top: 16px !important;
     margin-bottom: 16px !important;
   }
+
   /* Ảnh không wrap (căn giữa hoặc mặc định): tự động mở rộng 100% chiều rộng container */
   .rich-text-renderer img[data-wrap="none"],
   .rich-text-renderer img:not([data-wrap]) {
@@ -484,10 +515,12 @@
     height: auto !important;
     margin-bottom: 0px !important;
   }
+
   .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
     width: 100% !important;
     margin-bottom: 10px !important;
   }
+
   .rich-text-renderer .image-caption {
     font-size: 12px !important;
     margin-top: 4px !important;
@@ -1141,25 +1174,104 @@
 }
 
 /* --- QUILL FONT SLUG MAPPINGS TO GOOGLE FONTS --- */
-@font-face { font-family: "alex-brush"; src: local("Alex Brush"); }
-@font-face { font-family: "amatic-sc"; src: local("Amatic SC"); }
-@font-face { font-family: "bebas-neue"; src: local("Bebas Neue"), url("https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW4.ttf") format("truetype"); }
-@font-face { font-family: "caveat"; src: local("Caveat"); }
-@font-face { font-family: "dancing-script"; src: local("Dancing Script"); }
-@font-face { font-family: "great-vibes"; src: local("Great Vibes"); }
-@font-face { font-family: "pinyon-script"; src: local("Pinyon Script"); }
-@font-face { font-family: "playfair-display"; src: local("Playfair Display"); }
-@font-face { font-family: "syncopate"; src: local("Syncopate"); }
+@font-face {
+  font-family: "alex-brush";
+  src: local("Alex Brush");
+}
 
-[style*="font-family: alex-brush"], [style*="font-family:alex-brush"], [style*="font-family: 'alex-brush'"] { font-family: "Alex Brush", cursive !important; }
-[style*="font-family: amatic-sc"], [style*="font-family:amatic-sc"], [style*="font-family: 'amatic-sc'"] { font-family: "Amatic SC", cursive !important; }
-[style*="font-family: bebas-neue"], [style*="font-family:bebas-neue"], [style*="font-family: 'bebas-neue'"] { font-family: "Bebas Neue", sans-serif !important; }
-[style*="font-family: caveat"], [style*="font-family:caveat"], [style*="font-family: 'caveat'"] { font-family: "Caveat", cursive !important; }
-[style*="font-family: dancing-script"], [style*="font-family:dancing-script"], [style*="font-family: 'dancing-script'"] { font-family: "Dancing Script", cursive !important; }
-[style*="font-family: great-vibes"], [style*="font-family:great-vibes"], [style*="font-family: 'great-vibes'"] { font-family: "Great Vibes", cursive !important; }
-[style*="font-family: pinyon-script"], [style*="font-family:pinyon-script"], [style*="font-family: 'pinyon-script'"] { font-family: "Pinyon Script", cursive !important; }
-[style*="font-family: playfair-display"], [style*="font-family:playfair-display"], [style*="font-family: 'playfair-display'"] { font-family: "Playfair Display", serif !important; }
-[style*="font-family: syncopate"], [style*="font-family:syncopate"], [style*="font-family: 'syncopate'"] { font-family: "Syncopate", sans-serif !important; }
+@font-face {
+  font-family: "amatic-sc";
+  src: local("Amatic SC");
+}
+
+@font-face {
+  font-family: "bebas-neue";
+  src: local("Bebas Neue"), url("https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW4.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "caveat";
+  src: local("Caveat");
+}
+
+@font-face {
+  font-family: "dancing-script";
+  src: local("Dancing Script");
+}
+
+@font-face {
+  font-family: "great-vibes";
+  src: local("Great Vibes");
+}
+
+@font-face {
+  font-family: "pinyon-script";
+  src: local("Pinyon Script");
+}
+
+@font-face {
+  font-family: "playfair-display";
+  src: local("Playfair Display");
+}
+
+@font-face {
+  font-family: "syncopate";
+  src: local("Syncopate");
+}
+
+[style*="font-family: alex-brush"],
+[style*="font-family:alex-brush"],
+[style*="font-family: 'alex-brush'"] {
+  font-family: "Alex Brush", cursive !important;
+}
+
+[style*="font-family: amatic-sc"],
+[style*="font-family:amatic-sc"],
+[style*="font-family: 'amatic-sc'"] {
+  font-family: "Amatic SC", cursive !important;
+}
+
+[style*="font-family: bebas-neue"],
+[style*="font-family:bebas-neue"],
+[style*="font-family: 'bebas-neue'"] {
+  font-family: "Bebas Neue", sans-serif !important;
+}
+
+[style*="font-family: caveat"],
+[style*="font-family:caveat"],
+[style*="font-family: 'caveat'"] {
+  font-family: "Caveat", cursive !important;
+}
+
+[style*="font-family: dancing-script"],
+[style*="font-family:dancing-script"],
+[style*="font-family: 'dancing-script'"] {
+  font-family: "Dancing Script", cursive !important;
+}
+
+[style*="font-family: great-vibes"],
+[style*="font-family:great-vibes"],
+[style*="font-family: 'great-vibes'"] {
+  font-family: "Great Vibes", cursive !important;
+}
+
+[style*="font-family: pinyon-script"],
+[style*="font-family:pinyon-script"],
+[style*="font-family: 'pinyon-script'"] {
+  font-family: "Pinyon Script", cursive !important;
+}
+
+[style*="font-family: playfair-display"],
+[style*="font-family:playfair-display"],
+[style*="font-family: 'playfair-display'"] {
+  font-family: "Playfair Display", serif !important;
+}
+
+[style*="font-family: syncopate"],
+[style*="font-family:syncopate"],
+[style*="font-family: 'syncopate'"] {
+  font-family: "Syncopate", sans-serif !important;
+}
 
 .gallery-swiper-slide-container {
   border-radius: var(--mobile-radius) !important;
