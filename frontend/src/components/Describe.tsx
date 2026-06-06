@@ -70,9 +70,16 @@ const Describe = () => {
             .replace(/<\/h1>/gi, `</${newTag}>`);
     };
 
+    const stripHtml = (html: string | undefined) => {
+        if (!html) return "";
+        return html
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;/g, " ")
+            .trim();
+    };
 
     return (
-        <div className="mb-10 sm:mb-36 main-container overflow-x-hidden">
+        <div className="mb-14 sm:mb-36 main-container overflow-x-hidden">
             <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-start z-10 pt-[60px] md:pt-[85px] lg:pt-[30px] pb-0">
                     <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center">
@@ -116,13 +123,11 @@ const Describe = () => {
                             </div>
                         </div>
 
-                        <div className="w-full text-center mb-1 md:mb-2 lg:mb-2 relative z-10">
-                            <div className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center">
-                                <RichTextRenderer
-                                    html={h1Text}
-                                    className="text-center"
-                                />
-                            </div>
+                        <div className="w-full text-center mb-1 md:mb-2 lg:mb-2 md:mt-5 lg:mt-7 relative z-10">
+                            <h1
+                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
+                                dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
+                            />
                         </div>
 
                         <div className="w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
@@ -183,15 +188,13 @@ const Describe = () => {
                         </div>
 
                         <div className="w-full text-center mb-0 relative z-10">
-                            <div className="title-sub-text text-[clamp(6px,2.2vw,10px)] py-1.5 px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap">
-                                <RichTextRenderer
-                                    html={replaceTagName(h1Text, "div")}
-                                    className="text-center"
-                                />
-                            </div>
+                            <p
+                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] pt-1.5 pb-[3px] px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center"
+                                dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
+                            />
                         </div>
 
-                        <div className="w-full flex flex-row justify-between items-center px-2 gap-1 mt-[-2px] relative z-10">
+                        <div className="w-full flex flex-row justify-between items-center px-0 gap-1 mt-[-2px] relative z-10">
                             <div className="flex-shrink-0">
                                 <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
                                     <RichTextRenderer

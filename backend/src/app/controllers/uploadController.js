@@ -16,9 +16,7 @@ const uploadImage = async (req, res) => {
         const fileName = `${Date.now()}_${file.name}`;
         const imagePath = await uploadFile(file, 'ckeditor', fileName);
 
-        // Return URL that CKEditor expects
-        const baseUrl = process.env.URL_API || 'http://localhost:8080/';
-        const imageUrl = `${baseUrl}${imagePath.replace(/\\/g, '/')}`;
+        const imageUrl = `/${imagePath.replace(/\\/g, '/')}`;
 
         res.json({
             uploaded: 1,

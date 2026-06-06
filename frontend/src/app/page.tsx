@@ -59,18 +59,48 @@ export default function Home() {
     typeof globalThis !== "undefined" && globalThis.location
       ? globalThis.location.origin
       : "";
-  const canonicalUrl = origin || "/";
+  const canonicalUrl = origin || "https://phonghocchothue.com";
+
+  const phone = useConfigContentByKey("phone");
+  const address = useConfigContentByKey("address");
+  const nameBrand = useConfigContentByKey("nameBrand");
+  const logoUrl = buildAbsoluteUrl(logo);
 
   const homeStructuredData = useMemo(
-    () => ({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: seoTitle,
-      url: canonicalUrl,
-      description: seoDescription,
-      primaryImageOfPage: seoImageUrl,
-    }),
-    [canonicalUrl, seoDescription, seoImageUrl, seoTitle]
+    () => [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": "https://phonghocchothue.com/#webpage",
+        name: seoTitle,
+        url: "https://phonghocchothue.com",
+        description: seoDescription,
+        primaryImageOfPage: seoImageUrl,
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "@id": "https://phonghocchothue.com/#localbusiness",
+        name: nameBrand || "Cho thuê phòng dạy học tại Đà Nẵng",
+        url: "https://phonghocchothue.com",
+        image: seoImageUrl || logoUrl || "/favicon.png",
+        telephone: phone || "0905 000 000",
+        priceRange: "$$",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: address || "Đà Nẵng",
+          addressLocality: "Đà Nẵng",
+          addressRegion: "Đà Nẵng",
+          addressCountry: "VN",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: 16.0544,
+          longitude: 108.2022,
+        },
+      }
+    ],
+    [seoTitle, seoDescription, seoImageUrl, nameBrand, logoUrl, phone, address]
   );
 
   const homeStructuredDataPayload = useMemo(

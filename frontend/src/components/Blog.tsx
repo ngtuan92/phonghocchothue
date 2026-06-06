@@ -106,7 +106,9 @@ function BlogCard({ blog }: { blog: Blog }) {
         </p>
 
         <h3 className="text-xs sm:text-base font-bold text-[#563c39] line-clamp-2 mb-1.5 leading-snug">
-          {blog.title}
+          <Link href={`/blog/${blog.slug}`} className="hover:text-[#e57f7f] transition-colors">
+            {blog.title}
+          </Link>
         </h3>
 
         <p className="text-[11px] sm:text-base text-gray-700 raleway !font-normal line-clamp-3 flex-1">
@@ -216,11 +218,6 @@ export default function Blog({
   const [limit, setLimit] = useState(isHomePage ? 3 : 6);
   const isFirstRender = useRef(true);
 
-  // Initialize first render flag on mount
-  useEffect(() => {
-    isFirstRender.current = false;
-  }, []);
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const handleResize = () => {
@@ -247,16 +244,19 @@ export default function Blog({
   });
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     setActiveTab(currentCategory);
     setPage(1);
     setBlogs([]);
 
     // Scroll to top of blog section on category change (if not initial render)
-    if (!isFirstRender.current) {
-      const element = document.getElementById("blog");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+    const element = document.getElementById("blog");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [currentCategory]);
 

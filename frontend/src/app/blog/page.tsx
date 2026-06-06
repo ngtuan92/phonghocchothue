@@ -130,7 +130,7 @@ export default function BlogPage() {
             </div>
 
             <div className="main-container pt-0 pb-4 sm:pt-0 sm:pb-8">
-              <div className="lg:hidden sticky top-0 z-[40] -mx-4 px-4 py-2 bg-transparent mb-2">
+              <div className="lg:hidden sticky top-[36px] sm:top-0 z-[40] -mx-4 px-4 py-2 bg-transparent mb-2">
                 <div className="relative w-full flex items-center">
                   <div className="flex overflow-x-auto gap-2 pb-1.5 hide-scrollbar whitespace-nowrap scroll-smooth flex-1">
                     {categories.map((cat) => (

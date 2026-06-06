@@ -41,7 +41,7 @@ const Gallery: React.FC = () => {
   if (!hasDescribeSection && !hasSpacesSection) return null;
 
   return (
-    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden pt-10 pb-0 sm:pt-20 sm:pb-20">
+    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden pt-6 pb-0 sm:pt-20 sm:pb-20">
       <div className="w-full main-container flex flex-col items-center h-full max-w-[1200px] px-4 md:px-0">
 
         {/* Section 1: Giải pháp tiện ích */}
@@ -93,7 +93,7 @@ const Gallery: React.FC = () => {
         )}
 
         {hasSpacesSection && (
-          <div className="w-full flex flex-col items-center mt-20 sm:mt-40">
+          <div className="w-full flex flex-col items-center mt-[4.5rem] sm:mt-40">
             <div className="mb-3 sm:mb-6 text-center w-full">
               <RichTextRenderer
                 html={galleryHeading}

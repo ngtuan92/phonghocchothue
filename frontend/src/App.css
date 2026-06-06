@@ -470,7 +470,15 @@
 /* Responsive Mobile styles to stack wrapped images nicely */
 @media (max-width: 767px) {
   .rich-text-renderer img[data-wrap="left"],
-  .rich-text-renderer img[data-wrap="right"],
+  .rich-text-renderer img[data-wrap="right"] {
+    float: none !important;
+    display: block !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 16px !important;
+    margin-bottom: 0px !important;
+  }
   .rich-text-renderer .image-wrapper.image-wrap-left,
   .rich-text-renderer .image-wrapper.image-wrap-right {
     float: none !important;
@@ -481,14 +489,20 @@
     margin-top: 16px !important;
     margin-bottom: 16px !important;
   }
-  .rich-text-renderer img[data-wrap="none"] {
-    margin-bottom: 10px !important;
+  /* Ảnh không wrap (căn giữa hoặc mặc định): tự động mở rộng 100% chiều rộng container */
+  .rich-text-renderer img[data-wrap="none"],
+  .rich-text-renderer img:not([data-wrap]) {
+    width: 100% !important;
+    height: auto !important;
+    margin-bottom: 0px !important;
   }
   .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+    width: 100% !important;
     margin-bottom: 10px !important;
   }
   .rich-text-renderer .image-caption {
     font-size: 12px !important;
+    margin-top: 4px !important;
     margin-bottom: 10px !important;
   }
 }
@@ -516,15 +530,15 @@
 }
 
 .rich-text-renderer h2 {
-  font-size: 2rem !important;
+  font-size: 2rem;
 }
 
 .rich-text-renderer h3 {
-  font-size: 1.5rem !important;
+  font-size: 1.5rem;
 }
 
 .rich-text-renderer h4 {
-  font-size: 1.5rem !important;
+  font-size: 1.5rem;
 }
 
 .rich-text-renderer p {
@@ -654,8 +668,8 @@
 
   .blog-content h2,
   .blog-content h3 {
-    margin-top: 28px !important;
-    margin-bottom: 12px !important;
+    margin-top: 18px !important;
+    margin-bottom: 8px !important;
   }
 }
 

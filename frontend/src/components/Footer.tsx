@@ -18,7 +18,7 @@ const Footer = () => {
 
   return (
     <footer
-      className="mx-auto text-white  rounded-b-[15px] p-4"
+      className="mx-auto text-white rounded-b-[15px] p-4"
       style={{ backgroundColor: bgFt }}
     >
       <div className=" grid grid-cols-1 md:grid-cols-3 gap-10 lg:mx-14 place-items-center place-content-center">
@@ -65,6 +65,7 @@ const Footer = () => {
           <div className=" w-full flex justify-center">
             <iframe
               src={googleMap}
+              title="Bản đồ chỉ đường đến PhongHocChoThue"
               className="w-full h-52 rounded-xl "
               loading="lazy"
               allowFullScreen

@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useRef, useState, useCallback } from "react";
+import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import Modal from "@/components/admin/Modal";
@@ -150,6 +150,7 @@ if (typeof window !== "undefined" && Quill) {
   CustomImageBlot.blotName = "image";
   CustomImageBlot.tagName = "img";
   Quill.register(CustomImageBlot, true);
+
   
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
@@ -231,7 +232,21 @@ const QuillWrapper = forwardRef((props, ref) => {
         });
       }
     });
-    setCaptions(list);
+    // Only update state if the captions array has actually changed (elements, values, or positions)
+    setCaptions(prev => {
+      if (prev.length !== list.length) return list;
+      const isDifferent = prev.some((item, index) => {
+        const next = list[index];
+        return (
+          item.id !== next.id ||
+          item.text !== next.text ||
+          Math.abs(item.top - next.top) > 0.5 ||
+          Math.abs(item.left - next.left) > 0.5 ||
+          Math.abs(item.width - next.width) > 0.5
+        );
+      });
+      return isDifferent ? list : prev;
+    });
   }, []);
 
   useEffect(() => {
@@ -248,7 +263,13 @@ const QuillWrapper = forwardRef((props, ref) => {
     };
 
     const updateSizePickerLabel = () => {
-      const format = quill.getFormat();
+      let format = {};
+      try {
+        const selection = quill.getSelection();
+        format = selection ? quill.getFormat(selection) : {};
+      } catch (e) {
+        // Selection or Quill API not fully ready
+      }
       const size = format.size;
       const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
       sizePickers.forEach(picker => {
@@ -544,7 +565,11 @@ const QuillWrapper = forwardRef((props, ref) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-value') {
               const quill = editorRef.current?.getEditor();
               if (quill) {
-                const format = quill.getFormat();
+                let format = {};
+                try {
+                  const sel = quill.getSelection();
+                  format = sel ? quill.getFormat(sel) : {};
+                } catch (e) {}
                 const size = format.size;
                 if (size) {
                   const sizeVal = Array.isArray(size) ? size[0] : size;
@@ -571,7 +596,11 @@ const QuillWrapper = forwardRef((props, ref) => {
         const quill = editorRef.current?.getEditor();
         let initialVal = label.getAttribute('data-value');
         if (quill) {
-          const format = quill.getFormat();
+          let format = {};
+          try {
+            const sel = quill.getSelection();
+            format = sel ? quill.getFormat(sel) : {};
+          } catch (e) {}
           if (format.size) {
             const sizeVal = Array.isArray(format.size) ? format.size[0] : format.size;
             if (typeof sizeVal === 'string') {
@@ -611,7 +640,11 @@ const QuillWrapper = forwardRef((props, ref) => {
           input.style.fontFamily = 'sans-serif';
           input.style.color = '#333';
 
-          const currentFormat = quill.getFormat();
+          let currentFormat = {};
+          try {
+            const sel = quill.getSelection();
+            currentFormat = sel ? quill.getFormat(sel) : {};
+          } catch (e) {}
           let currentSizeVal = '16';
           if (currentFormat && currentFormat.size) {
             currentSizeVal = currentFormat.size.replace('px', '');
@@ -978,7 +1011,7 @@ const QuillWrapper = forwardRef((props, ref) => {
         const range = quill.getSelection(true);
         openAltModal({ alt: "", title: "", caption: "", borderRadius: "" }, (newData) => {
           quill.insertEmbed(range.index, "image", {
-            src: result.url,
+            src: result.url.startsWith("/") ? `${URL_API}${result.url.substring(1)}` : result.url,
             alt: newData.alt,
             title: newData.title,
             caption: newData.caption,
@@ -1236,6 +1269,21 @@ const QuillWrapper = forwardRef((props, ref) => {
     );
   };
 
+  const handleOnChange = useCallback((content, delta, source, editor) => {
+    if (props.onChange) {
+      const escapedUrlApi = URL_API.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
+      let relativeContent = content.replace(regex, 'src="/$1"');
+      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
+      props.onChange(relativeContent, delta, source, editor);
+    }
+  }, [props.onChange]);
+
+  const absoluteValue = useMemo(() => {
+    if (!props.value || typeof props.value !== 'string') return props.value;
+    return props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+  }, [props.value]);
+
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
@@ -1261,6 +1309,8 @@ const QuillWrapper = forwardRef((props, ref) => {
           key={dynamicFonts.map(f => f.name).join(',')}
           ref={editorRef}
           {...props}
+          value={absoluteValue}
+          onChange={handleOnChange}
           modules={customModules}
           formats={props.formats || FORMATS}
         />

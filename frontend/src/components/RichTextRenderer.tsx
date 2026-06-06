@@ -10,16 +10,20 @@ const getDOMPurify = () => {
   return null;
 };
 
+const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/").replace(/\/$/, "") + "/";
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   className?: string;
   fallback?: React.ReactNode;
+  as?: React.ElementType;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   html,
   className = "",
   fallback = null,
+  as: Component = "div",
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -33,6 +37,41 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       : html;
     
     let processedHtml = sanitized.replace(/&nbsp;/g, " ");
+
+    processedHtml = processedHtml.replace(/<img([^>]*?)src=["']([^"']+?)["']/gi, (match: string, attributes: string, src: string) => {
+      let resolvedSrc = src;
+      if (resolvedSrc.includes("localhost:8080/")) {
+        resolvedSrc = resolvedSrc.replace(/https?:\/\/localhost:8080\//gi, URL_API);
+      } else if (resolvedSrc.startsWith("/")) {
+        resolvedSrc = `${URL_API}${resolvedSrc.substring(1)}`;
+      } else if (
+        !resolvedSrc.startsWith("http://") &&
+        !resolvedSrc.startsWith("https://") &&
+        !resolvedSrc.startsWith("blob:") &&
+        !resolvedSrc.startsWith("data:")
+      ) {
+        resolvedSrc = `${URL_API}${resolvedSrc}`;
+      }
+      return `<img${attributes}src="${resolvedSrc}"`;
+    });
+
+    // Process iframe src URLs
+    processedHtml = processedHtml.replace(/<iframe([^>]*?)src=["']([^"']+?)["']/gi, (match: string, attributes: string, src: string) => {
+      let resolvedSrc = src;
+      if (resolvedSrc.includes("localhost:8080/")) {
+        resolvedSrc = resolvedSrc.replace(/https?:\/\/localhost:8080\//gi, URL_API);
+      } else if (resolvedSrc.startsWith("/")) {
+        resolvedSrc = `${URL_API}${resolvedSrc.substring(1)}`;
+      } else if (
+        !resolvedSrc.startsWith("http://") &&
+        !resolvedSrc.startsWith("https://") &&
+        !resolvedSrc.startsWith("blob:") &&
+        !resolvedSrc.startsWith("data:")
+      ) {
+        resolvedSrc = `${URL_API}${resolvedSrc}`;
+      }
+      return `<iframe${attributes}src="${resolvedSrc}"`;
+    });
 
     // Add IDs to h2 and h3 elements for table of contents smooth scrolling
     let headingIndex = 0;
@@ -81,11 +120,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     return processedHtml;
   }, [html]);
 
-  if (!html) return fallback ? <div className={`rich-text-renderer ${className}`}>{fallback}</div> : null;
+  if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`}>{fallback}</Component> : null;
 
   return (
     <>
-      <div
+      <Component
         className={`rich-text-renderer ${className}`}
         style={{
           wordBreak: "normal",
@@ -190,7 +229,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
           .rich-text-renderer img[data-wrap="left"],
-          .rich-text-renderer img[data-wrap="right"],
+          .rich-text-renderer img[data-wrap="right"] {
+            float: none !important;
+            display: block !important;
+            width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: 16px !important;
+            margin-bottom: 0px !important;
+          }
           .rich-text-renderer .image-wrapper.image-wrap-left,
           .rich-text-renderer .image-wrapper.image-wrap-right {
             float: none !important;
@@ -201,14 +248,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             margin-top: 16px !important;
             margin-bottom: 16px !important;
           }
-          .rich-text-renderer img[data-wrap="none"] {
-            margin-bottom: 10px !important;
+          /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
+          .rich-text-renderer img[data-wrap="none"],
+          .rich-text-renderer img:not([data-wrap]) {
+            width: 100% !important;
+            height: auto !important;
+            margin-bottom: 0px !important;
           }
           .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+            width: 100% !important;
             margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-caption {
             font-size: 12px !important;
+            margin-top: 4px !important;
             margin-bottom: 10px !important;
           }
         }

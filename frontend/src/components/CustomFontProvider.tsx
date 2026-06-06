@@ -59,7 +59,7 @@ export default async function CustomFontProvider() {
 
     const globalFontCSS = defaultFont ? `
         body, h1, h2, h3, h4, h5, h6, p, span, a, div {
-            font-family: '${defaultFont}', sans-serif !important;
+            font-family: '${defaultFont}', sans-serif;
         }
     ` : '';
 
