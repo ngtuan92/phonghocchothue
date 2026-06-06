@@ -1660,14 +1660,14 @@ const QuillWrapper = forwardRef((props, ref) => {
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 11px !important;
+          margin-top: 12px !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="right"] {
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 11px !important;
+          margin-top: 12px !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="none"] {

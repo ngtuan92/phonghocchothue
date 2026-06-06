@@ -164,7 +164,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 11px !important;
+          margin-top: 12px !important;
           margin-left: 0 !important;
           display: inline !important;
         }
@@ -173,7 +173,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 11px !important;
+          margin-top: 12px !important;
           margin-right: 0 !important;
           display: inline !important;
         }
@@ -191,14 +191,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 11px !important;
+          margin-top: 12px !important;
           display: inline-block !important;
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 11px !important;
+          margin-top: 12px !important;
           display: inline-block !important;
         }
         .rich-text-renderer .image-wrap-left img,
@@ -207,8 +207,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           float: none !important;
           margin: 0 !important;
         }
-        /* Align top edge of text adjacent to floated images */
-        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) {
+        /* Collapse the parent block or preceding empty block of a floated image/wrapper */
+        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right),
+        .rich-text-renderer > *:has(+ .image-wrap-left, + .image-wrap-right, + .image-wrapper) {
           margin: 0 !important;
           padding: 0 !important;
           height: 0 !important;
@@ -216,7 +217,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           line-height: 0 !important;
           border: none !important;
         }
-        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) + * {
+        /* Reset margin-top of text block adjacent to floated images */
+        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) + *,
+        .rich-text-renderer > .image-wrap-left + *,
+        .rich-text-renderer > .image-wrap-right + *,
+        .rich-text-renderer > .image-wrapper + * {
           margin-top: 0 !important;
         }
         /* Clearfix for content after floated images */
