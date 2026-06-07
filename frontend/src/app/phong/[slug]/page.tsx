@@ -21,6 +21,7 @@ import ProductCard from "@/components/ProductCard";
 import parse from "html-react-parser";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 import dynamic from "next/dynamic";
 
 const RichTextRenderer = dynamic(() => import("@/components/RichTextRenderer"), { ssr: false });
@@ -161,14 +162,14 @@ export default function DetailPage() {
   // SEO
   const seoTitle = useMemo(() => {
     const customTitle = product?.seoTitle?.trim();
-    if (customTitle) return customTitle;
-    return product?.name ? `${product.name} - Cho Thuê Phòng Học` : "Chi tiết phòng học";
+    if (customTitle) return stripHtmlAndCss(customTitle);
+    return product?.name ? `${stripHtmlAndCss(product.name)} - Cho Thuê Phòng Học` : "Chi tiết phòng học";
   }, [product]);
 
   const seoDescription = useMemo(() => {
     const customDescription = product?.seoDescription?.trim();
-    if (customDescription) return customDescription;
-    return product?.description || "";
+    if (customDescription) return stripHtmlAndCss(customDescription);
+    return stripHtmlAndCss(product?.description || "");
   }, [product]);
 
   const seoImage = useMemo(() => {
@@ -178,7 +179,7 @@ export default function DetailPage() {
     return images[0] || buildAbsoluteUrl(bgConfig) || "";
   }, [product, images, buildAbsoluteUrl, bgConfig]);
 
-  const seoKeywords = useMemo(() => product?.seoKeywords?.trim() || "", [product]);
+  const seoKeywords = useMemo(() => stripHtmlAndCss(product?.seoKeywords?.trim() || ""), [product]);
 
   const availability = product?.status === 1 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock";
 
@@ -249,108 +250,134 @@ export default function DetailPage() {
         ? globalThis.window.location.href
         : "",
     structuredData: {
-      data: {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: product?.name || "",
-        description: seoDescription,
-        image: seoImage ? [seoImage] : undefined,
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: "4.9",
-          reviewCount: "287",
-          bestRating: "5",
-          worstRating: "1"
-        },
-        review: [
-          {
-            "@type": "Review",
-            "author": {
-              "@type": "Person",
-              "name": "Nguyễn Minh"
-            },
-            "reviewBody": "Phòng học rất sạch sẽ, trang bị đầy đủ, giá hợp lý. Tôi đã thuê nhiều lần và rất hài lòng.",
-            "reviewRating": {
-              "@type": "Rating",
-              "ratingValue": "5",
-              "bestRating": "5",
-              "worstRating": "1"
-            }
+      data: [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: stripHtmlAndCss(product?.name || ""),
+          description: seoDescription,
+          image: seoImage ? [seoImage] : undefined,
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.9",
+            reviewCount: "287",
+            bestRating: "5",
+            worstRating: "1"
           },
-          {
-            "@type": "Review",
-            "author": {
-              "@type": "Person",
-              "name": "Lan Anh"
-            },
-            "reviewBody": "Máy chiếu rõ nét, bàn ghế thoải mái, phòng mát mẻ. Dịch vụ hỗ trợ nhanh chóng.",
-            "reviewRating": {
-              "@type": "Rating",
-              "ratingValue": "5",
-              "bestRating": "5",
-              "worstRating": "1"
-            }
-          },
-          {
-            "@type": "Review",
-            "author": {
-              "@type": "Person",
-              "name": "Trần Phúc"
-            },
-            "reviewBody": "Chất lượng phòng rất tốt, nhân viên nhiệt tình. Sẽ tiếp tục sử dụng cho các khóa học sau.",
-            "reviewRating": {
-              "@type": "Rating",
-              "ratingValue": "4",
-              "bestRating": "5",
-              "worstRating": "1"
-            }
-          }
-        ],
-        offers: {
-          "@type": "Offer",
-          priceCurrency: "VND",
-          price: extractPrice(product?.price),
-          priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-          availability,
-          shippingDetails: {
-            "@type": "OfferShippingDetails",
-            shippingRate: {
-              "@type": "MonetaryAmount",
-              value: "0",
-              currency: "VND"
-            },
-            shippingDestination: {
-              "@type": "DefinedRegion",
-              addressCountry: "VN"
-            },
-            deliveryTime: {
-              "@type": "ShippingDeliveryTime",
-              handlingTime: {
-                "@type": "QuantitativeValue",
-                minValue: 1,
-                maxValue: 2,
-                unitCode: "DAY"
+          review: [
+            {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": "Nguyễn Minh"
               },
-              transitTime: {
-                "@type": "QuantitativeValue",
-                minValue: 2,
-                maxValue: 5,
-                unitCode: "DAY"
+              "reviewBody": "Phòng học rất sạch sẽ, trang bị đầy đủ, giá hợp lý. Tôi đã thuê nhiều lần và rất hài lòng.",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5",
+                "worstRating": "1"
+              }
+            },
+            {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": "Lan Anh"
+              },
+              "reviewBody": "Máy chiếu rõ nét, bàn ghế thoải mái, phòng mát mẻ. Dịch vụ hỗ trợ nhanh chóng.",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5",
+                "worstRating": "1"
+              }
+            },
+            {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": "Trần Phúc"
+              },
+              "reviewBody": "Chất lượng phòng rất tốt, nhân viên nhiệt tình. Sẽ tiếp tục sử dụng cho các khóa học sau.",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "4",
+                "bestRating": "5",
+                "worstRating": "1"
               }
             }
+          ],
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "VND",
+            price: extractPrice(product?.price),
+            priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+            availability,
+            shippingDetails: {
+              "@type": "OfferShippingDetails",
+              shippingRate: {
+                "@type": "MonetaryAmount",
+                value: "0",
+                currency: "VND"
+              },
+              shippingDestination: {
+                "@type": "DefinedRegion",
+                addressCountry: "VN"
+              },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 1,
+                  maxValue: 2,
+                  unitCode: "DAY"
+                },
+                transitTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 2,
+                  maxValue: 5,
+                  unitCode: "DAY"
+                }
+              }
+            },
+            hasMerchantReturnPolicy: {
+              "@type": "MerchantReturnPolicy",
+              applicableCountry: "VN",
+              returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+              merchantReturnDays: 7,
+              returnMethod: "ReturnByMail",
+              returnFees: "FreeReturn"
+            }
           },
-          hasMerchantReturnPolicy: {
-            "@type": "MerchantReturnPolicy",
-            applicableCountry: "VN",
-            returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
-            merchantReturnDays: 7,
-            returnMethod: "ReturnByMail",
-            returnFees: "FreeReturn"
-          }
         },
-      }
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Trang chủ",
+              "item": "https://phonghocchothue.com"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Phòng học",
+              "item": "https://phonghocchothue.com/#room"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": stripHtmlAndCss(product?.name || "Chi tiết phòng học"),
+              "item": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/phong/${slug}`
+            }
+          ]
+        }
+      ]
     },
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 export const runtime = 'edge'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NurseryHeader from "@/components/NurseryHeader";
@@ -9,6 +9,7 @@ import Blog from "@/components/Blog";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
 import Image from "next/image";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 import Link from "next/link";
 import CategorySidebar from "@/components/CategorySidebar";
 import { FaHome, FaThLarge, FaTimes } from "react-icons/fa";
@@ -51,10 +52,45 @@ export default function BlogPage() {
     ? "Blog"
     : (categories.find(c => c.key === activeCategory)?.label || decodeURIComponent(activeCategory));
 
+  const cleanCategoryName = stripHtmlAndCss(displayCategory);
+  
+  const breadcrumbElements = useMemo(() => {
+    const list = [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "https://phonghocchothue.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://phonghocchothue.com/blog"
+      }
+    ];
+    if (activeCategory !== "all" && cleanCategoryName !== "Blog") {
+      list.push({
+        "@type": "ListItem",
+        "position": 3,
+        "name": cleanCategoryName,
+        "item": `https://phonghocchothue.com/blog/danh-muc/${activeCategory}`
+      });
+    }
+    return list;
+  }, [activeCategory, cleanCategoryName]);
+
   useSEO({
-    title: `${displayCategory === "Blog" ? "Blog Kiến Thức & Kinh Nghiệm" : displayCategory} | ChoThuePhongHoc.com`,
+    title: `${cleanCategoryName === "Blog" ? "Blog Kiến Thức & Kinh Nghiệm" : cleanCategoryName} | ChoThuePhongHoc.com`,
     description: "Tổng hợp kiến thức, kinh nghiệm và mẹo hay khi thuê phòng dạy học, phòng họp tại Đà Nẵng. Cập nhật những xu hướng giáo dục mới nhất.",
     ogType: "website",
+    structuredData: {
+      data: {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbElements
+      }
+    }
   });
 
   return (

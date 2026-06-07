@@ -18,6 +18,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useSEO from "@/hooks/useSEO";
 import { useCountVisit } from "@/hooks/api/useVisits";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 
 const URL_API =
   process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -69,30 +70,37 @@ export default function Home() {
 
   const homeStructuredData = useMemo(
     () => {
-      const baseStructured = [
+      const cleanTitle = stripHtmlAndCss(seoTitle);
+      const cleanDescription = stripHtmlAndCss(seoDescription);
+      const cleanNameBrand = stripHtmlAndCss(nameBrand) || "Hoa Học Trò - Cho thuê phòng dạy học Đà Nẵng";
+      const cleanAddress = stripHtmlAndCss(address) || "15 Bùi Cửu, Hòa Minh, Liên Chiểu, Đà Nẵng";
+      const cleanPhone = stripHtmlAndCss(phone) || "0905 000 000";
+
+      const baseStructured: any[] = [
         {
           "@context": "https://schema.org",
           "@type": "WebPage",
           "@id": "https://phonghocchothue.com/#webpage",
-          name: seoTitle,
+          name: cleanTitle,
           url: "https://phonghocchothue.com",
-          description: seoDescription,
+          description: cleanDescription,
           primaryImageOfPage: seoImageUrl,
         },
         {
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
           "@id": "https://phonghocchothue.com/#localbusiness",
-          name: nameBrand || "Cho thuê phòng dạy học tại Đà Nẵng",
+          name: cleanNameBrand,
           url: "https://phonghocchothue.com",
-          image: seoImageUrl || logoUrl || "/favicon.png",
-          telephone: phone || "0905 000 000",
+          image: seoImageUrl || logoUrl || "https://phonghocchothue.com/favicon.png",
+          telephone: cleanPhone,
           priceRange: "$$",
           address: {
             "@type": "PostalAddress",
-            streetAddress: address || "Đà Nẵng",
+            streetAddress: cleanAddress,
             addressLocality: "Đà Nẵng",
             addressRegion: "Đà Nẵng",
+            postalCode: "50000",
             addressCountry: "VN",
           },
           geo: {
@@ -100,6 +108,68 @@ export default function Home() {
             latitude: 16.0544,
             longitude: 108.2022,
           },
+          areaServed: [
+            {
+              "@type": "AdministrativeArea",
+              name: "Đà Nẵng",
+            },
+            {
+              "@type": "AdministrativeArea",
+              name: "Liên Chiểu",
+            },
+            {
+              "@type": "AdministrativeArea",
+              name: "Hải Châu",
+            },
+            {
+              "@type": "AdministrativeArea",
+              name: "Thanh Khê",
+            }
+          ],
+          openingHoursSpecification: [
+            {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+              ],
+              opens: "07:00",
+              closes: "22:00"
+            }
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "@id": "https://phonghocchothue.com/#service",
+          name: "Cho thuê phòng dạy học Đà Nẵng",
+          provider: {
+            "@type": "LocalBusiness",
+            "@id": "https://phonghocchothue.com/#localbusiness"
+          },
+          serviceType: "Cho thuê phòng học, phòng dạy học, phòng họp theo giờ",
+          areaServed: {
+            "@type": "AdministrativeArea",
+            name: "Đà Nẵng"
+          },
+          description: cleanDescription || "Dịch vụ cho thuê phòng học, phòng dạy học chất lượng cao, đầy đủ tiện nghi thiết bị tại Đà Nẵng."
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Trang chủ",
+              "item": "https://phonghocchothue.com"
+            }
+          ]
         }
       ];
 
@@ -107,6 +177,16 @@ export default function Home() {
         try {
           const parsed = typeof faqSchema === "string" ? JSON.parse(faqSchema) : faqSchema;
           if (parsed && typeof parsed === "object") {
+            if (parsed.mainEntity && Array.isArray(parsed.mainEntity)) {
+              parsed.mainEntity = parsed.mainEntity.map((item: any) => ({
+                ...item,
+                name: stripHtmlAndCss(item.name),
+                acceptedAnswer: item.acceptedAnswer ? {
+                  ...item.acceptedAnswer,
+                  text: stripHtmlAndCss(item.acceptedAnswer.text)
+                } : undefined
+              }));
+            }
             baseStructured.push(parsed);
           }
         } catch (e) {
