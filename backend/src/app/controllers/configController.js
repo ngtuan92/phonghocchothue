@@ -20,6 +20,8 @@ function processConfigs(plainConfigs) {
                 const stripHtml = (val) => {
                     if (!val) return "";
                     return val
+                        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+                        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
                         .replace(/<[^>]*>/g, "")
                         .replace(/&nbsp;/g, " ")
                         .replace(/&amp;/g, "&")

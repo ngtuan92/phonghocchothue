@@ -45,8 +45,6 @@ const FAQ = () => {
       />
 
       <div 
-        itemScope 
-        itemType="https://schema.org/FAQPage" 
         className="faq-container bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-[30px] p-5 sm:p-10 shadow-default border-[1px] border-[#799f85]"
       >
         <div className="space-y-4">
@@ -54,16 +52,13 @@ const FAQ = () => {
             <details
               key={index}
               className="group border-b border-[#799f85]/30 pb-4 last:border-b-0 last:pb-0"
-              itemScope
-              itemProp="mainEntity"
-              itemType="https://schema.org/Question"
               open={openIndex === index}
             >
               <summary 
                 className="list-none cursor-pointer flex justify-between items-center font-semibold text-base sm:text-lg text-[#563c39] hover:text-[#e57f7f] transition-colors duration-300 py-2"
                 onClick={handleToggle(index)}
               >
-                <div itemProp="name" className="pr-4 leading-relaxed font-bold raleway w-full">
+                <div className="pr-4 leading-relaxed font-bold raleway w-full">
                   <RichTextRenderer html={item.question} />
                 </div>
                 <span className="transition-transform duration-300 group-open:rotate-180 flex-shrink-0 text-[#799f85] font-bold text-xl">
@@ -73,11 +68,8 @@ const FAQ = () => {
 
               <div
                 className="mt-4 text-[#323232] leading-relaxed relative pl-4 border-l-2 border-[#e57f7f]"
-                itemScope
-                itemProp="acceptedAnswer"
-                itemType="https://schema.org/Answer"
               >
-                <div itemProp="text" className="raleway">
+                <div className="raleway">
                   <RichTextRenderer html={item.answer} />
                 </div>
               </div>

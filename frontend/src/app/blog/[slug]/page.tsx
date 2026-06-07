@@ -16,6 +16,7 @@ import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 
 const RichTextRenderer = dynamic(() => import("@/components/RichTextRenderer"), { ssr: false });
 import useSEO from "@/hooks/useSEO";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 import Loading from "@/components/admin/loading";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -42,8 +43,10 @@ export default function BlogDetail() {
     return null;
   }, [imgIcon]);
 
-  const seoTitle = blog ? `${blog.title} | Blog` : "Blog";
-  const seoDescription = blog?.excerpt || "Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.";
+  const cleanTitle = stripHtmlAndCss(blog?.title || "Blog Detail");
+  const cleanExcerpt = stripHtmlAndCss(blog?.excerpt || "Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.");
+  const seoTitle = blog ? `${cleanTitle} | Blog` : "Blog";
+  const seoDescription = cleanExcerpt;
   const seoImage = blog?.thumbnail ? (blog.thumbnail.startsWith("http") ? blog.thumbnail : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`) : undefined;
 
   useSEO({
@@ -52,6 +55,58 @@ export default function BlogDetail() {
     ogType: "article",
     ogImage: seoImage,
     ogUrl: typeof window !== "undefined" ? window.location.href : "",
+    structuredData: {
+      data: [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Trang chủ",
+              "item": "https://phonghocchothue.com"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Blog",
+              "item": "https://phonghocchothue.com/blog"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": cleanTitle,
+              "item": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/${slug}`
+            }
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": cleanTitle,
+          "description": cleanExcerpt,
+          "image": seoImage || "https://phonghocchothue.com/favicon.png",
+          "datePublished": blog?.publishedAt || new Date().toISOString(),
+          "author": {
+            "@type": "Person",
+            "name": blog?.authorName || "Admin"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Hoa Học Trò",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://phonghocchothue.com/favicon.png"
+            }
+          },
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/${slug}`
+          }
+        }
+      ]
+    }
   });
 
   if (isLoading) {
