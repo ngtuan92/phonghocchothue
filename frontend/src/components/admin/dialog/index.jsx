@@ -219,7 +219,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
       />
 
       {/* Dialog Content */}
-      <Card className="relative w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col bg-white rounded-lg overflow-hidden">
+      <Card className="relative w-full max-w-[95vw] xl:max-w-[1350px] shadow-2xl max-h-[90vh] flex flex-col bg-white rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-200">
           <DialogHeader className="flex flex-col items-start p-0">

@@ -127,7 +127,7 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
                 paddingLeft: `${slidesGap}px`,
               }}
             >
-              <div className="flex-1 relative aspect-[9/10] sm:aspect-[9/10] rounded-lg overflow-hidden bg-white">
+              <div className="flex-1 relative aspect-[9/10] sm:aspect-[9/10] rounded-lg overflow-hidden bg-transparent">
                 <Image
                   className="rounded-lg object-contain w-full h-full"
                   src={`${URL_API}${item?.image_detail?.replaceAll("\\", "/") || ""}`}

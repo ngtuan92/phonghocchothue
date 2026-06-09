@@ -151,9 +151,38 @@ if (typeof window !== "undefined" && Quill) {
   CustomImageBlot.tagName = "img";
   Quill.register(CustomImageBlot, true);
 
+  const Parchment = Quill.import("parchment");
+  if (Parchment) {
+    const AttributeAttributor = Parchment.Attributor;
+    const StyleAttributor = Parchment.StyleAttributor;
+
+    const altAttributor = new AttributeAttributor("alt", "alt", {
+      scope: Parchment.Scope.INLINE
+    });
+    const titleAttributor = new AttributeAttributor("title", "title", {
+      scope: Parchment.Scope.INLINE
+    });
+    const captionAttributor = new AttributeAttributor("caption", "data-caption", {
+      scope: Parchment.Scope.INLINE
+    });
+    const wrapAttributor = new AttributeAttributor("wrap", "data-wrap", {
+      scope: Parchment.Scope.INLINE
+    });
+    const borderRadiusAttributor = new StyleAttributor("borderRadius", "border-radius", {
+      scope: Parchment.Scope.INLINE
+    });
+
+    Quill.register(altAttributor, true);
+    Quill.register(titleAttributor, true);
+    Quill.register(captionAttributor, true);
+    Quill.register(wrapAttributor, true);
+    Quill.register(borderRadiusAttributor, true);
+  }
+
   
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
+    SizeStyle.whitelist = null;
     SizeStyle.canAdd = () => true; 
     Quill.register(SizeStyle, true);
   }
@@ -258,6 +287,29 @@ const QuillWrapper = forwardRef((props, ref) => {
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
 
+    // Patch toolbar update to maintain format display even when editor is blurred/unfocused
+    const toolbar = quill.getModule('toolbar');
+    if (toolbar && !toolbar.__patched) {
+      const originalUpdate = toolbar.update.bind(toolbar);
+      toolbar.update = function (range) {
+        if (range == null && quill.getLength() > 0) {
+          range = { index: 0, length: 0 };
+        }
+        originalUpdate(range);
+      };
+      toolbar.__patched = true;
+
+      quill.on('text-change', () => {
+        if (!quill.hasFocus()) {
+          setTimeout(() => {
+            try {
+              toolbar.update(null);
+            } catch (e) {}
+          }, 10);
+        }
+      });
+    }
+
     const handleUpdate = () => {
       updateCaptions();
     };
@@ -265,7 +317,10 @@ const QuillWrapper = forwardRef((props, ref) => {
     const updateSizePickerLabel = () => {
       let format = {};
       try {
-        const selection = quill.getSelection();
+        let selection = quill.getSelection();
+        if (!selection && quill.getLength() > 0) {
+          selection = { index: 0, length: 0 };
+        }
         format = selection ? quill.getFormat(selection) : {};
       } catch (e) {
         // Selection or Quill API not fully ready
@@ -301,6 +356,11 @@ const QuillWrapper = forwardRef((props, ref) => {
     setTimeout(() => {
       handleUpdate();
       updateSizePickerLabel();
+      if (toolbar) {
+        try {
+          toolbar.update(null);
+        } catch (e) {}
+      }
     }, 100);
 
     return () => {

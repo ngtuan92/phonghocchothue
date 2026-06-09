@@ -8,12 +8,7 @@ const { getOrSetCache, redis } = require("../../util/cacheUtil");
 const { uploadFile } = require("../../util/upload-file");
 
 function formatProductRichName(nameRich) {
-  if (!nameRich || typeof nameRich !== 'string') return nameRich;
-  return nameRich
-    .replace(/<h[1-6](\s[^>]*?)?>/gi, (match, attrs) => {
-      return `<div class="product-title-heading"${attrs || ''}>`;
-    })
-    .replace(/<\/h[1-6]>/gi, '</div>');
+  return nameRich;
 }
 
 class ProductController {
