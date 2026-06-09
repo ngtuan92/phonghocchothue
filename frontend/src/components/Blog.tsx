@@ -253,10 +253,12 @@ export default function Blog({
     setPage(1);
     setBlogs([]);
 
-    // Scroll to top of blog section on category change (if not initial render)
-    const element = document.getElementById("blog");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Scroll to top of blog section on category change (if not initial render and not home page)
+    if (!isHomePage) {
+      const element = document.getElementById("blog");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
   }, [currentCategory]);
 
