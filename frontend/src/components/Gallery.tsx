@@ -41,10 +41,9 @@ const Gallery: React.FC = () => {
   if (!hasDescribeSection && !hasSpacesSection) return null;
 
   return (
-    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden pt-6 pb-0 sm:pt-20 sm:pb-20">
+    <section id="gallery" className="w-full flex flex-col items-center justify-center bg-[#fdf8e9] overflow-hidden pt-[10px] pb-0 sm:pt-12 lg:pt-16 sm:pb-12 lg:pb-16 scroll-mt-20">
       <div className="w-full main-container flex flex-col items-center h-full max-w-[1200px] px-4 md:px-0">
 
-        {/* Section 1: Giải pháp tiện ích */}
         {hasDescribeSection && (
           <div className="w-full flex flex-col items-center">
             {describeH2 && (
@@ -60,7 +59,7 @@ const Gallery: React.FC = () => {
               <div className="w-full mt-2 md:mt-3">
                 {/* Desktop Image */}
                 {describeH2Image && (
-                  <div 
+                  <div
                     className="relative w-full max-w-[1100px] mx-auto hidden md:block overflow-hidden shadow-md border border-[#799f851a] hover:shadow-lg transition-all duration-300"
                     style={{ borderRadius: imageBorderRadius }}
                   >
@@ -75,7 +74,7 @@ const Gallery: React.FC = () => {
 
                 {/* Mobile Image */}
                 {(describeH2ImageMobile || describeH2Image) && (
-                  <div 
+                  <div
                     className="relative w-full mx-auto block md:hidden overflow-hidden shadow-md border border-[#799f851a] hover:shadow-lg transition-all duration-300"
                     style={{ borderRadius: mobileImageBorderRadius }}
                   >
@@ -93,20 +92,16 @@ const Gallery: React.FC = () => {
         )}
 
         {hasSpacesSection && (
-          <div className="w-full flex flex-col items-center mt-[4.5rem] sm:mt-40">
-            <div className="mb-3 sm:mb-6 text-center w-full">
+          <div className="w-full max-w-[920px] flex flex-col items-center mt-[60px] sm:mt-36 lg:mt-36 mx-auto">
+            <div className="mb-2 sm:mb-4 text-center w-full">
               <RichTextRenderer
                 html={galleryHeading}
                 className="text-center text-[#563c39]"
-                fallback={
-                  <h2 className="text-center text-4xl sm:text-5xl lg:text-6xl text-[#563c39] font-cursive leading-tight">
-                    Không gian phòng học qua từng khung hình
-                  </h2>
-                }
+
               />
             </div>
 
-            <div className="relative group/gallery w-full h-[180px] sm:h-[300px] md:h-[450px] lg:h-[550px]">
+            <div className="relative group/gallery w-full h-[180px] sm:h-[260px] md:h-[340px] lg:h-[400px]">
               <Swiper
                 modules={[Navigation, Pagination, Autoplay, Grid]}
                 grid={{
@@ -133,9 +128,9 @@ const Gallery: React.FC = () => {
               >
                 {sliderData.map((item: any, index: number) => (
                   <SwiperSlide key={index} className="h-full lg:!h-[calc((100%-20px)/2)]">
-                    <div 
+                    <div
                       className="relative w-full h-full overflow-hidden group/item shadow-md border border-[#799f851a] md:border-2 md:border-white/50 hover:shadow-lg transition-all duration-300 md:duration-500 gallery-swiper-slide-container"
-                      style={{ 
+                      style={{
                         ['--mobile-radius' as any]: mobileImageBorderRadius,
                         ['--desktop-radius' as any]: galleryRadius,
                       }}

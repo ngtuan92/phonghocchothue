@@ -48,6 +48,20 @@ export default function BlogPage() {
       .catch((err) => console.error("Lỗi tải danh mục:", err));
   }, []);
 
+  useEffect(() => {
+    const container = document.getElementById("main-scroll-container");
+    if (container) {
+      container.scrollTop = 0;
+    }
+    const timer = setTimeout(() => {
+      const container2 = document.getElementById("main-scroll-container");
+      if (container2) {
+        container2.scrollTop = 0;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   const displayCategory = activeCategory === "all"
     ? "Blog"
     : (categories.find(c => c.key === activeCategory)?.label || decodeURIComponent(activeCategory));

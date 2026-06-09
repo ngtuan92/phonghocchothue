@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button, Modal, Textarea, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { toNumber, get } from "lodash";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { showToastSuccess, showToastError } from "@/helpers/toast";
 import "swiper/css";
@@ -454,6 +454,20 @@ export default function DetailPage() {
     }
   }, [formData, product, slug, createBooking, handleCloseModal]);
 
+  useEffect(() => {
+    const container = document.getElementById("detail-scroll-container");
+    if (container) {
+      container.scrollTop = 0;
+    }
+    const timer = setTimeout(() => {
+      const container2 = document.getElementById("detail-scroll-container");
+      if (container2) {
+        container2.scrollTop = 0;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [slug]);
+
   // Loading state
   if (isLoadingProduct) {
     return (
@@ -487,6 +501,7 @@ export default function DetailPage() {
       )}
       <div className="absolute inset-0 flex items-center justify-center p-[30px] sm:p-[70px] 1400px:p-[70px] 1700px:p-[85px]">
         <div
+          id="detail-scroll-container"
           className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar"
           style={pageStyle}
         >

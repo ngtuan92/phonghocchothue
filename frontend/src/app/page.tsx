@@ -222,6 +222,20 @@ export default function Home() {
     countVisit.mutate();
   }, []);
 
+  useEffect(() => {
+    const container = document.getElementById("main-scroll-container");
+    if (container) {
+      container.scrollTop = 0;
+    }
+    const timer = setTimeout(() => {
+      const container2 = document.getElementById("main-scroll-container");
+      if (container2) {
+        container2.scrollTop = 0;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="overflow-hidden">
       {background.backgroundImage && (
