@@ -316,7 +316,7 @@ export default function Blog({
   const totalPages = data?.pagination?.totalPages || 1;
 
   return (
-    <section id="blog" className={classNames("mb-10 sm:mb-36", !noContainer && "main-container", isHomePage ? "mt-20 sm:mt-20 md:mt-20" : "mt-0")}>
+    <section id="blog" className={classNames("mb-10 sm:mb-36", !noContainer && "main-container", isHomePage ? "mt-[58px] sm:mt-20 md:mt-20" : "mt-0")}>
       <div id="blog-list-start" className="absolute -translate-y-32" />
       
       {isHomePage && (

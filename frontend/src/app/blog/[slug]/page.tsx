@@ -1,7 +1,7 @@
 "use client";
 
 export const runtime = 'edge'
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -108,6 +108,20 @@ export default function BlogDetail() {
       ]
     }
   });
+
+  useEffect(() => {
+    const container = document.getElementById("blog-detail-scroll-container");
+    if (container) {
+      container.scrollTop = 0;
+    }
+    const timer = setTimeout(() => {
+      const container2 = document.getElementById("blog-detail-scroll-container");
+      if (container2) {
+        container2.scrollTop = 0;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [slug]);
 
   if (isLoading) {
     return (

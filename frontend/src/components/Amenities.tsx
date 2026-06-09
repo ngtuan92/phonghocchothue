@@ -84,15 +84,10 @@ const Amenities: React.FC = () => {
                 <RichTextRenderer
                   html={amenitiesHeading}
                   className="text-[#563c39] mx-auto md:mx-0"
-                  fallback={
-                    <h2 className="text-sm sm:text-lg lg:text-4xl font-bold text-[#563c39]">
-                      Đầy đủ các tiện nghi sẵn sàng cho mỗi buổi học
-                    </h2>
-                  }
+                 
                 />
               </div>
 
-              {/* Slider cho Mobile - Nằm giữa H2 và Text */}
               <div className="block md:hidden w-full relative">
                 {renderSlider(sliderData, "mobile")}
               </div>
@@ -105,7 +100,6 @@ const Amenities: React.FC = () => {
             </div>
           </div>
 
-          {/* Slider cho Desktop - Nằm bên phải */}
           <div className="hidden md:block md:col-span-6 w-full relative">
             {renderSlider(sliderData, "desktop")}
           </div>
