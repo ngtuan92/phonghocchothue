@@ -60,6 +60,7 @@ const Rooms = () => {
               src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
               alt={product.name}
             />
+
           </div>
           <div className="text-base sm:text-lg  text-center font-sans font-bold text-black">
             {product.name}

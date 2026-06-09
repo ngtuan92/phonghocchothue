@@ -620,35 +620,35 @@ export default function DetailPage() {
                   </p>
                 )}
               </div>
-              <p className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-2">
+              <p className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-0">
                 Mô tả :
               </p>
-              <ul className="list-disc pl-6 text-xs sm:text-base py-4 border-t-2 border-b-2 border-[#ccc]">
-                <li className="flex items-center gap-1 flex-wrap">
-                  <span>Sức chứa:</span>{" "}
+              <ul className="list-none pl-3 sm:pl-4 text-xs sm:text-base mt-1 pt-0 pb-1">
+                <li className="mb-1 sm:mb-1.5">
+                  <span className="font-bold mr-1">Sức chứa:</span>
                   {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
-                    <RichTextRenderer html={productData.product.contains} className="inline-rich-text" />
+                    <RichTextRenderer html={productData.product.contains} className="inline-rich-text" as="span" />
                   ) : (
                     formatNumber(toNumber(productData.product.contains) || 0)
                   )}
                 </li>
-                <li className="flex items-center gap-1 flex-wrap">
-                  <span>Trang bị:</span>{" "}
+                <li className="mb-1 sm:mb-1.5">
+                  <span className="font-bold mr-1">Trang bị:</span>
                   {typeof productData.product.equipment === "string" && productData.product.equipment.includes("<") ? (
-                    <RichTextRenderer html={productData.product.equipment} className="inline-rich-text" />
+                    <RichTextRenderer html={productData.product.equipment} className="inline-rich-text" as="span" />
                   ) : (
                     productData.product.equipment
                   )}
                 </li>
               </ul>
-              <p className="text-xs sm:text-base font-bold text-red-600 my-4 flex items-center gap-1 flex-wrap">
-                <span className="text-stone-800 text-base">Giá:</span>{" "}
+              <div className="text-xs sm:text-base mt-2 mb-4">
+                <span className="font-bold mr-1 text-stone-800">Giá:</span>
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
-                  <RichTextRenderer html={productData.product.price} className="inline-rich-text !text-red-600 !font-bold" />
+                  <RichTextRenderer html={productData.product.price} className="inline-rich-text" as="span" />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
                 )}
-              </p>
+              </div>
               <Button
                 className="!w-auto !h-[40px] !bg-[#b8c7b0] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
                 onClick={open}

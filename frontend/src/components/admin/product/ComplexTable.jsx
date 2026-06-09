@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Card from "../card";
 const Dialog = dynamic(() => import("../dialog"), { ssr: false });
 const Confirm = dynamic(() => import("../confirm"), { ssr: false });
@@ -25,6 +26,7 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 // const columns = columnsDataCheck;
 export default function ComplexTable() {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = useState([]);
@@ -125,6 +127,7 @@ export default function ComplexTable() {
         });
 
         showToastSuccess("Cập nhật phòng thành công");
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch (error) {
         if (error.response.data.message === "Invalid token") {
           handleInvalidToken(router);
@@ -141,6 +144,7 @@ export default function ComplexTable() {
         });
 
         showToastSuccess("Thêm phòng thành công");
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch (error) {
         if (error.response.data.message === "Invalid token") {
           handleInvalidToken(router);

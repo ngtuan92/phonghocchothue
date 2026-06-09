@@ -63,6 +63,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
           quality={85}
           loading="lazy"
         />
+
       </Link>
     );
   }
@@ -115,6 +116,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
                 quality={85}
                 loading="lazy"
               />
+
             </Link>
           </SwiperSlide>
         ))}

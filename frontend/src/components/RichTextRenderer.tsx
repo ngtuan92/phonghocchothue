@@ -132,7 +132,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           wordWrap: "break-word",
           whiteSpace: "normal",
           maxWidth: "100%",
-          display: "block",
+          display: Component === "span" ? "inline" : "block",
         }}
         dangerouslySetInnerHTML={{ __html: cleanHtml }}
       />
@@ -292,13 +292,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           text-decoration: none;
         }
         .inline-rich-text,
-        .inline-rich-text p {
+        .inline-rich-text *,
+        .inline-rich-text p,
+        .inline-rich-text span,
+        .inline-rich-text div {
           display: inline !important;
           margin: 0 !important;
           padding: 0 !important;
-          font-size: inherit !important;
-          font-weight: inherit !important;
-          color: inherit !important;
         }
       `}} />
     </>
