@@ -82,10 +82,10 @@ const Describe = () => {
         <div className="mb-14 sm:mb-36 main-container overflow-x-hidden">
             <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
-                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[35px] md:-translate-y-[45px] lg:-translate-y-[55px]">
+                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[28px] md:-translate-y-[38px] lg:-translate-y-[43px]">
                         {describeFrameImage && (
                             <div 
-                                className="absolute z-[-1] top-[54px] md:top-[66px] lg:top-[82px] bottom-[-23px] md:bottom-[-30px] lg:bottom-[-38px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
+                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] bottom-[-8px] md:bottom-[-10px] lg:bottom-[-12px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
                                 <img
@@ -123,7 +123,7 @@ const Describe = () => {
                             </div>
                         </div>
 
-                        <div className="w-full text-center mb-1 md:mb-2 lg:mb-2 md:mt-5 lg:mt-7 relative z-10">
+                        <div className="w-full text-center mb-2 md:mb-2 lg:mb-3 md:mt-7 lg:mt-10 relative z-10">
                             <h1
                                 className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
                                 dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
