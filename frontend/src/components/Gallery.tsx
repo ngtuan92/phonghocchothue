@@ -47,7 +47,7 @@ const Gallery: React.FC = () => {
         {hasDescribeSection && (
           <div className="w-full flex flex-col items-center">
             {describeH2 && (
-              <div className="describe-h2-wrapper w-full max-w-none text-center mb-2 md:mb-3">
+              <div className="describe-h2-wrapper w-full max-w-none text-center mb-0 md:mb-3">
                 <RichTextRenderer
                   html={describeH2}
                   className="text-center text-[#563c39]"
@@ -56,7 +56,7 @@ const Gallery: React.FC = () => {
             )}
 
             {(describeH2Image || describeH2ImageMobile) && (
-              <div className="w-full mt-2 md:mt-3">
+              <div className="w-full mt-0 md:mt-3">
                 {/* Desktop Image */}
                 {describeH2Image && (
                   <div
