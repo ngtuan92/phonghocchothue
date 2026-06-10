@@ -957,7 +957,7 @@
   }
 
   .decoration-image-wrapper {
-    margin-bottom: 0px !important;
+    margin-bottom: -16px !important;
   }
 
   .decoration-image-wrapper img {
