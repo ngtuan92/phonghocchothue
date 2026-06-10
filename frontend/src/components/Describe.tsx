@@ -38,7 +38,7 @@ const Describe = () => {
     const watermarkText = useConfigContentByKey("describe-bg-text");
     const watermarkHtml = cleanWatermarkHtml(watermarkText) || "HOAHOCTRO";
     const describePhone = useConfigContentByKey("describe-phone");
-        const describeFrameImage = useConfigContentByKey("describe-frame-image");
+    const describeFrameImage = useConfigContentByKey("describe-frame-image");
     const describeFrameImageRadius = useConfigContentByKey("describe-frame-image", "borderRadius");
     const frameBorderRadius = describeFrameImageRadius ? `${describeFrameImageRadius}px` : '0px';
     const describeFrameImageMobile = useConfigContentByKey("describe-frame-image-mobile");
@@ -84,7 +84,7 @@ const Describe = () => {
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
                     <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[28px] md:-translate-y-[38px] lg:-translate-y-[43px]">
                         {describeFrameImage && (
-                            <div 
+                            <div
                                 className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] bottom-[-8px] md:bottom-[-10px] lg:bottom-[-12px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
@@ -148,7 +148,7 @@ const Describe = () => {
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-10">
                     <div className="relative w-full flex flex-col items-center">
                         {activeMobileFrameImage && (
-                            <div 
+                            <div
                                 className="absolute z-[-1] top-[40px] bottom-[-20px] left-1/2 -translate-x-1/2 w-[calc(100%+2.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
@@ -215,7 +215,7 @@ const Describe = () => {
             <div className="container mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-10 lg:gap-20 items-center mt-0 sm:mt-4 lg:mt-6">
                     <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left mb-0 md:mb-0">
-                        <div className="space-y-1.5 md:space-y-2 w-full">
+                        <div className="space-y-4 md:space-y-5 w-full">
                             {bgTitle && (
                                 <div className="w-full flex justify-center decoration-image-wrapper">
                                     <Image
@@ -239,7 +239,7 @@ const Describe = () => {
                     </div>
 
                     <div className="md:col-span-6 w-full flex justify-center relative">
-                        <div 
+                        <div
                             className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden shadow-sm"
                             style={{ borderRadius: galleryRadius }}
                         >

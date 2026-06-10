@@ -936,6 +936,10 @@
   opacity: 1 !important;
 }
 
+.decoration-image-wrapper {
+  margin-bottom: -16px !important;
+}
+
 @media (max-width: 767px) {
 
   .describe-h2-wrapper h1,
@@ -957,7 +961,7 @@
   }
 
   .decoration-image-wrapper {
-    margin-bottom: -16px !important;
+    margin-bottom: -6px !important;
   }
 
   .decoration-image-wrapper img {
@@ -1227,4 +1231,3 @@
     border-radius: var(--desktop-radius) !important;
   }
 }
-
