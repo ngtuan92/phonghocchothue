@@ -452,8 +452,7 @@
 }
 
 /* Collapse the parent block or preceding empty block of a floated image/wrapper */
-.rich-text-renderer>*:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right),
-.rich-text-renderer>*:has(+ .image-wrap-left, + .image-wrap-right, + .image-wrapper) {
+.rich-text-renderer>*:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
   margin: 0 !important;
   padding: 0 !important;
   height: 0 !important;
