@@ -10,6 +10,7 @@ import NurseryHeader from "@/components/NurseryHeader";
 import Blog from "@/components/Blog";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 import Image from "next/image";
 import Link from "next/link";
 import CategorySidebar from "@/components/CategorySidebar";
@@ -53,11 +54,54 @@ export default function BlogCategoryPage() {
   }, []);
 
   const displayCategory = getCategoryLabel(category);
+  const cleanCategory = stripHtmlAndCss(displayCategory);
 
   useSEO({
-    title: `${displayCategory} - Blog | ChoThuePhongHoc.com`,
-    description: `Danh sách bài viết thuộc danh mục ${displayCategory}. Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.`,
+    title: `${cleanCategory} - Blog | ChoThuePhongHoc.com`,
+    description: `Danh sách bài viết thuộc danh mục ${cleanCategory}. Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.`,
     ogType: "website",
+    structuredData: {
+      data: {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "@id": typeof window !== "undefined" ? `${window.location.href}#breadcrumb` : `https://phonghocchothue.com/blog/danh-muc/${category}#breadcrumb`,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Trang chủ",
+            "item": {
+              "@type": "WebPage",
+              "@id": "https://phonghocchothue.com/",
+              "url": "https://phonghocchothue.com/",
+              "name": "Trang chủ"
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Blog",
+            "item": {
+              "@type": "WebPage",
+              "@id": "https://phonghocchothue.com/blog",
+              "url": "https://phonghocchothue.com/blog",
+              "name": "Blog"
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": cleanCategory,
+            "item": {
+              "@type": "WebPage",
+              "@id": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/danh-muc/${category}`,
+              "url": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/danh-muc/${category}`,
+              "name": cleanCategory
+            }
+          }
+        ]
+      }
+    }
   });
 
   return (

@@ -356,24 +356,40 @@ export default function DetailPage() {
         {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
+          "@id": typeof window !== "undefined" ? `${window.location.href}#breadcrumb` : `https://phonghocchothue.com/phong/${slug}#breadcrumb`,
           "itemListElement": [
             {
               "@type": "ListItem",
               "position": 1,
               "name": "Trang chủ",
-              "item": "https://phonghocchothue.com"
+              "item": {
+                "@type": "WebPage",
+                "@id": "https://phonghocchothue.com/",
+                "url": "https://phonghocchothue.com/",
+                "name": "Trang chủ"
+              }
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "Phòng học",
-              "item": "https://phonghocchothue.com/#room"
+              "item": {
+                "@type": "WebPage",
+                "@id": "https://phonghocchothue.com/#room",
+                "url": "https://phonghocchothue.com/#room",
+                "name": "Phòng học"
+              }
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": stripHtmlAndCss(product?.name || "Chi tiết phòng học"),
-              "item": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/phong/${slug}`
+              "item": {
+                "@type": "WebPage",
+                "@id": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/phong/${slug}`,
+                "url": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/phong/${slug}`,
+                "name": stripHtmlAndCss(product?.name || "Chi tiết phòng học")
+              }
             }
           ]
         }

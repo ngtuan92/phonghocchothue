@@ -60,24 +60,40 @@ export default function BlogDetail() {
         {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
+          "@id": typeof window !== "undefined" ? `${window.location.href}#breadcrumb` : `https://phonghocchothue.com/blog/${slug}#breadcrumb`,
           "itemListElement": [
             {
               "@type": "ListItem",
               "position": 1,
               "name": "Trang chủ",
-              "item": "https://phonghocchothue.com"
+              "item": {
+                "@type": "WebPage",
+                "@id": "https://phonghocchothue.com/",
+                "url": "https://phonghocchothue.com/",
+                "name": "Trang chủ"
+              }
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "Blog",
-              "item": "https://phonghocchothue.com/blog"
+              "item": {
+                "@type": "WebPage",
+                "@id": "https://phonghocchothue.com/blog",
+                "url": "https://phonghocchothue.com/blog",
+                "name": "Blog"
+              }
             },
             {
               "@type": "ListItem",
               "position": 3,
               "name": cleanTitle,
-              "item": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/${slug}`
+              "item": {
+                "@type": "WebPage",
+                "@id": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/${slug}`,
+                "url": typeof window !== "undefined" ? window.location.href : `https://phonghocchothue.com/blog/${slug}`,
+                "name": cleanTitle
+              }
             }
           ]
         },
