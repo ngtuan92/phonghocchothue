@@ -904,6 +904,42 @@
   }
 }
 
+/* Custom navigation buttons for Spaces Gallery section to keep them completely outside the image grid */
+.gallery-prev {
+  left: 2px !important;
+}
+
+.gallery-next {
+  right: 2px !important;
+}
+
+@media (min-width: 1024px) {
+  .gallery-prev {
+    left: -35px !important;
+  }
+  .gallery-next {
+    right: -35px !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .gallery-prev {
+    left: -42px !important;
+  }
+  .gallery-next {
+    right: -42px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .gallery-prev {
+    left: -60px !important;
+  }
+  .gallery-next {
+    right: -60px !important;
+  }
+}
+
 .amenities-swiper {
   width: 100%;
   overflow: visible !important;
@@ -937,7 +973,7 @@
 }
 
 .decoration-image-wrapper {
-  margin-bottom: -16px !important;
+  margin-bottom: -20px !important;
 }
 
 @media (max-width: 767px) {
@@ -961,7 +997,7 @@
   }
 
   .decoration-image-wrapper {
-    margin-bottom: -6px !important;
+    margin-bottom: -10px !important;
   }
 
   .decoration-image-wrapper img {

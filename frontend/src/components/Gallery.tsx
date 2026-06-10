@@ -92,7 +92,7 @@ const Gallery: React.FC = () => {
         )}
 
         {hasSpacesSection && (
-          <div className="w-full max-w-[920px] flex flex-col items-center mt-[60px] sm:mt-36 lg:mt-36 mx-auto">
+          <div className="w-full max-w-[1100px] flex flex-col items-center mt-[60px] sm:mt-36 lg:mt-36 mx-auto">
             <div className="mb-2 sm:mb-4 text-center w-full">
               <RichTextRenderer
                 html={galleryHeading}
@@ -101,7 +101,7 @@ const Gallery: React.FC = () => {
               />
             </div>
 
-            <div className="relative group/gallery w-full h-[180px] sm:h-[260px] md:h-[340px] lg:h-[400px]">
+            <div className="relative group/gallery w-full md:px-10 lg:px-0 h-[180px] sm:h-[260px] md:h-[340px] lg:h-[400px]">
               <Swiper
                 modules={[Navigation, Pagination, Autoplay, Grid]}
                 grid={{
@@ -149,7 +149,7 @@ const Gallery: React.FC = () => {
                 ))}
               </Swiper>
 
-              <div className="gallery-prev swiper-button-prev-custom hidden md:flex !-left-2 sm:!-left-8 lg:!-left-12 !z-20">
+              <div className="gallery-prev swiper-button-prev-custom hidden md:flex !z-20">
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/pre-new.jpg"
@@ -158,7 +158,7 @@ const Gallery: React.FC = () => {
                   sizes="50px"
                 />
               </div>
-              <div className="gallery-next swiper-button-next-custom hidden md:flex !-right-2 sm:!-right-8 lg:!-right-12 !z-20">
+              <div className="gallery-next swiper-button-next-custom hidden md:flex !z-20">
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/next-new.jpg"

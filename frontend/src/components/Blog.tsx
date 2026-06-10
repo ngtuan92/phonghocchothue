@@ -93,8 +93,8 @@ function BlogCard({ blog }: { blog: Blog }) {
         </span>
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
-        <p className="flex items-center gap-3 text-[11px] text-[#563c39]/60 italic mb-2">
+      <div className="p-4 flex flex-col flex-1">
+        <p className="flex items-center gap-3 text-[11px] text-[#563c39]/60 italic mb-1.5">
           <span className="flex items-center gap-1">
             <FaCalendarAlt size={9} />
             {formatDate(blog.publishedAt)}
@@ -105,19 +105,19 @@ function BlogCard({ blog }: { blog: Blog }) {
           </span>
         </p>
 
-        <h3 className="text-xs sm:text-base font-bold text-[#563c39] line-clamp-2 mb-1.5 leading-snug">
+        <h3 className="text-xs sm:text-[14px] font-bold text-[#563c39] line-clamp-2 mb-1 leading-snug">
           <Link href={`/blog/${blog.slug}`} className="hover:text-[#e57f7f] transition-colors">
             {blog.title}
           </Link>
         </h3>
 
-        <p className="text-[11px] sm:text-base text-gray-700 raleway !font-normal line-clamp-3 flex-1">
+        <p className="text-[11px] sm:text-[13px] text-gray-700 raleway !font-normal line-clamp-2 flex-1 mb-2">
           {blog.excerpt}
         </p>
 
         <Link
           href={`/blog/${blog.slug}`}
-          className="mt-4 self-start inline-flex items-center gap-2 text-xs sm:text-sm text-white bg-[#b8c7b0] hover:bg-[#e57f7f] px-4 py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
+          className="mt-2 self-start inline-flex items-center gap-2 text-xs sm:text-xs text-white bg-[#b8c7b0] hover:bg-[#e57f7f] px-3.5 py-1.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
         >
           Đọc tiếp
           <FaArrowRight size={10} />
@@ -318,139 +318,141 @@ export default function Blog({
   const totalPages = data?.pagination?.totalPages || 1;
 
   return (
-    <section id="blog" className={classNames("mb-10 sm:mb-36", !noContainer && "main-container", isHomePage ? "mt-[58px] sm:mt-20 md:mt-20" : "mt-0")}>
+    <section id="blog" className={classNames("pb-0 sm:pb-16 scroll-mt-20", !noContainer && "main-container", isHomePage ? "pt-[42px] sm:pt-10 md:pt-10" : "pt-0")}>
       <div id="blog-list-start" className="absolute -translate-y-32" />
       
-      {isHomePage && (
-        <div className="mb-2 sm:mb-6 text-center blog-hero-title">
-          <RichTextRenderer
-            html={blogHeading}
-            className="text-center"
-          />
-          {blogDecoration && (
-            <div className="w-full mt-[-10px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
-              <div className="w-[320px] h-[40px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
-                <Image
-                  src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
-                  alt="Decoration"
-                  fill
-                  className="object-contain"
-                  quality={100}
-                />
+      <div className="w-full max-w-[1100px] mx-auto">
+        {isHomePage && (
+          <div className="mb-2 sm:mb-6 text-center blog-hero-title">
+            <RichTextRenderer
+              html={blogHeading}
+              className="text-center"
+            />
+            {blogDecoration && (
+              <div className="w-full mt-[-10px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
+                <div className="w-[320px] h-[40px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
+                  <Image
+                    src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
+                    alt="Decoration"
+                    fill
+                    className="object-contain"
+                    quality={100}
+                  />
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {!hideTabs && (
-        <div className="flex items-center sm:justify-center gap-2 sm:gap-3 mb-8 overflow-x-auto hide-scrollbar px-2 sm:px-0 whitespace-nowrap">
-          {categories.map((tab) => (
-            <Link
-              key={tab.key}
-              href={tab.key === "all" ? "/blog" : `/blog/danh-muc/${tab.key}`}
-              className={classNames(
-                "text-xs sm:text-sm px-4 py-1.5 transition-all duration-300 border",
-                activeTab === tab.key
-                  ? "bg-[#e57f7f] border-[#e57f7f] text-white rounded-tl-xl rounded-br-xl"
-                  : "bg-transparent border-[#799f85]/40 text-[#563c39] rounded-tl-xl rounded-br-xl hover:border-[#e57f7f] hover:text-[#e57f7f]"
-              )}
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      <div className="flex flex-col">
-        {showFeatured && page === 1 && blogs.length > 0 && (
-          <FeaturedBlogCard blog={blogs[0]} />
+            )}
+          </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
-          {(showFeatured && page === 1 && !isMobile ? blogs.slice(1) : blogs).map((blog) => (
-            <BlogCard key={blog.id} blog={blog} />
-          ))}
-          {(isLoading || isFetching) && Array.from({ length: isMobile ? 1 : 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
-        </div>
-      </div>
+        {!hideTabs && (
+          <div className="flex items-center sm:justify-center gap-2 sm:gap-3 mb-8 overflow-x-auto hide-scrollbar px-2 sm:px-0 whitespace-nowrap">
+            {categories.map((tab) => (
+              <Link
+                key={tab.key}
+                href={tab.key === "all" ? "/blog" : `/blog/danh-muc/${tab.key}`}
+                className={classNames(
+                  "text-xs sm:text-sm px-4 py-1.5 transition-all duration-300 border",
+                  activeTab === tab.key
+                    ? "bg-[#e57f7f] border-[#e57f7f] text-white rounded-tl-xl rounded-br-xl"
+                    : "bg-transparent border-[#799f85]/40 text-[#563c39] rounded-tl-xl rounded-br-xl hover:border-[#e57f7f] hover:text-[#e57f7f]"
+                )}
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </div>
+        )}
 
-      {!isLoading && !isFetching && blogs.length === 0 && (
-        <p className="text-center raleway text-sm text-[#563c39]/60 italic mt-8">
-          Chưa có bài viết nào trong danh mục này.
-        </p>
-      )}
-
-      {isHomePage ? (
-        <div className="flex justify-center mt-4 sm:mt-8">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
-          >
-            Xem thêm
-            <FaArrowRight size={10} />
-          </Link>
-        </div>
-      ) : (
-        <>
-          {isMobile ? (
-            hasMore && blogs.length > 0 && (
-              <div className="flex justify-center mt-4 sm:mt-8">
-                <button
-                  type="button"
-                  onClick={handleLoadMore}
-                  disabled={isFetching}
-                  className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isFetching ? "Đang tải..." : "Xem thêm"}
-                  {!isFetching && <FaArrowRight size={10} />}
-                </button>
-              </div>
-            )
-          ) : (
-            totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-12">
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(Math.max(1, page - 1))}
-                  disabled={page === 1 || isFetching}
-                  className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
-                >
-                  <FaArrowRight size={12} className="rotate-180" />
-                </button>
-                
-                <div className="flex gap-2">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i + 1}
-                      type="button"
-                      onClick={() => handlePageChange(i + 1)}
-                      disabled={isFetching}
-                      className={classNames(
-                        "w-10 h-10 rounded-lg text-sm font-bold transition-all",
-                        page === i + 1
-                          ? "bg-[#563c39] text-white shadow-lg"
-                          : "bg-white border border-gray-100 text-[#563c39] hover:border-[#e57f7f]"
-                      )}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages || isFetching}
-                  className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
-                >
-                  <FaArrowRight size={12} />
-                </button>
-              </div>
-            )
+        <div className={classNames("flex flex-col", isHomePage && "md:-mt-15 lg:-mt-6")}>
+          {showFeatured && page === 1 && blogs.length > 0 && (
+            <FeaturedBlogCard blog={blogs[0]} />
           )}
-        </>
-      )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
+            {(showFeatured && page === 1 && !isMobile ? blogs.slice(1) : blogs).map((blog) => (
+              <BlogCard key={blog.id} blog={blog} />
+            ))}
+            {(isLoading || isFetching) && Array.from({ length: isMobile ? 1 : 3 }).map((_, i) => <BlogCardSkeleton key={i} />)}
+          </div>
+        </div>
+
+        {!isLoading && !isFetching && blogs.length === 0 && (
+          <p className="text-center raleway text-sm text-[#563c39]/60 italic mt-8">
+            Chưa có bài viết nào trong danh mục này.
+          </p>
+        )}
+
+        {isHomePage ? (
+          <div className="flex justify-center mt-4 sm:mt-8 md:mt-4">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
+            >
+              Xem thêm
+              <FaArrowRight size={10} />
+            </Link>
+          </div>
+        ) : (
+          <>
+            {isMobile ? (
+              hasMore && blogs.length > 0 && (
+                <div className="flex justify-center mt-4 sm:mt-8">
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={isFetching}
+                    className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isFetching ? "Đang tải..." : "Xem thêm"}
+                    {!isFetching && <FaArrowRight size={10} />}
+                  </button>
+                </div>
+              )
+            ) : (
+              totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-12">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(Math.max(1, page - 1))}
+                    disabled={page === 1 || isFetching}
+                    className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
+                  >
+                    <FaArrowRight size={12} className="rotate-180" />
+                  </button>
+                  
+                  <div className="flex gap-2">
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <button
+                        key={i + 1}
+                        type="button"
+                        onClick={() => handlePageChange(i + 1)}
+                        disabled={isFetching}
+                        className={classNames(
+                          "w-10 h-10 rounded-lg text-sm font-bold transition-all",
+                          page === i + 1
+                            ? "bg-[#563c39] text-white shadow-lg"
+                            : "bg-white border border-gray-100 text-[#563c39] hover:border-[#e57f7f]"
+                        )}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages || isFetching}
+                    className="p-2 rounded-lg border border-gray-200 hover:bg-[#fdf6f5] disabled:opacity-30 transition-colors"
+                  >
+                    <FaArrowRight size={12} />
+                  </button>
+                </div>
+              )
+            )}
+          </>
+        )}
+      </div>
     </section>
   );
 }
