@@ -79,7 +79,7 @@ const Header = ({ icon }: HeaderProps) => {
     const target = document.querySelector(targetId) as HTMLElement | null;
     if (target) {
       const container = document.getElementById('main-scroll-container');
-      const headerOffset = 80;
+      const headerOffset = targetId === "#blog" ? 0 : 80;
 
       if (!container) {
         const elementPosition = target.getBoundingClientRect().top;
