@@ -67,14 +67,27 @@ export default function Home() {
   const nameBrand = useConfigContentByKey("nameBrand");
   const logoUrl = buildAbsoluteUrl(logo);
   const faqSchema = useConfigContentByKey("faq-schema-ld-json");
+  const email = useConfigContentByKey("email");
+  const linkfb = useConfigContentByKey("linkfb");
+  const linkYoutube = useConfigContentByKey("linkYoutube");
+  const googleMap = useConfigContentByKey("googleMap");
 
   const homeStructuredData = useMemo(
     () => {
       const cleanTitle = stripHtmlAndCss(seoTitle);
       const cleanDescription = stripHtmlAndCss(seoDescription);
       const cleanNameBrand = stripHtmlAndCss(nameBrand) || "Hoa Học Trò - Cho thuê phòng dạy học Đà Nẵng";
-      const cleanAddress = stripHtmlAndCss(address) || "15 Bùi Cửu, Hòa Minh, Liên Chiểu, Đà Nẵng";
-      const cleanPhone = stripHtmlAndCss(phone) || "0905 000 000";
+      const cleanAddress = stripHtmlAndCss(address) || "54 Lê Đình Lý, Thạc Gián, Thanh Khê, Đà Nẵng";
+      const cleanPhone = stripHtmlAndCss(phone) || "0905.803.954";
+      const cleanEmail = stripHtmlAndCss(email) || "hoahoctro.dn@gmail.com";
+      const cleanGoogleMap = googleMap || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.1373977532296!2d108.2120015!3d16.0598858!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314219b4cfb1b11b%3A0xe54d241775a2f5ab!2zNTQgTMOqIMSQw6xuaCBMw70sIFRo4bqhYyBHacOhbiwgVGhhbmggS2jDqSwgxJDDoCBO4bq5bmcgNTUwMDAwLCBWaWV0bmFt!5e0!3m2!1sen!2s!4v1717326880000!5m2!1sen!2s";
+
+      const sameAsLinks = [];
+      if (linkfb) sameAsLinks.push(linkfb);
+      if (linkYoutube) sameAsLinks.push(linkYoutube);
+      if (sameAsLinks.length === 0) {
+        sameAsLinks.push("https://www.facebook.com/phonghocchothuedanang");
+      }
 
       const baseStructured: any[] = [
         {
@@ -91,22 +104,34 @@ export default function Home() {
           "@type": "LocalBusiness",
           "@id": "https://phonghocchothue.com/#localbusiness",
           name: cleanNameBrand,
+          legalName: "Hoa Học Trò - Phòng Học Cho Thuê Đà Nẵng",
           url: "https://phonghocchothue.com",
+          logo: logoUrl || "https://phonghocchothue.com/favicon.png",
           image: seoImageUrl || logoUrl || "https://phonghocchothue.com/favicon.png",
           telephone: cleanPhone,
-          priceRange: "$$",
+          email: cleanEmail,
+          priceRange: "VND",
+          sameAs: sameAsLinks,
+          hasMap: cleanGoogleMap,
+          contactPoint: {
+            "@type": "ContactPoint",
+            telephone: cleanPhone,
+            contactType: "customer service",
+            areaServed: "VN",
+            availableLanguage: ["vi", "en"]
+          },
           address: {
             "@type": "PostalAddress",
             streetAddress: cleanAddress,
             addressLocality: "Đà Nẵng",
             addressRegion: "Đà Nẵng",
-            postalCode: "50000",
+            postalCode: "550000",
             addressCountry: "VN",
           },
           geo: {
             "@type": "GeoCoordinates",
-            latitude: 16.0544,
-            longitude: 108.2022,
+            latitude: 16.0598858,
+            longitude: 108.2120015,
           },
           areaServed: [
             {
@@ -115,15 +140,11 @@ export default function Home() {
             },
             {
               "@type": "AdministrativeArea",
-              name: "Liên Chiểu",
+              name: "Thanh Khê",
             },
             {
               "@type": "AdministrativeArea",
               name: "Hải Châu",
-            },
-            {
-              "@type": "AdministrativeArea",
-              name: "Thanh Khê",
             }
           ],
           openingHoursSpecification: [
@@ -162,12 +183,18 @@ export default function Home() {
         {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
+          "@id": "https://phonghocchothue.com/#breadcrumb",
           "itemListElement": [
             {
               "@type": "ListItem",
               "position": 1,
               "name": "Trang chủ",
-              "item": "https://phonghocchothue.com"
+              "item": {
+                "@type": "WebPage",
+                "@id": "https://phonghocchothue.com/",
+                "url": "https://phonghocchothue.com/",
+                "name": "Trang chủ"
+              }
             }
           ]
         }
@@ -196,7 +223,7 @@ export default function Home() {
 
       return baseStructured;
     },
-    [seoTitle, seoDescription, seoImageUrl, nameBrand, logoUrl, phone, address, faqSchema]
+    [seoTitle, seoDescription, seoImageUrl, nameBrand, logoUrl, phone, address, faqSchema, email, linkfb, linkYoutube, googleMap]
   );
 
   const homeStructuredDataPayload = useMemo(

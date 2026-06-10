@@ -74,13 +74,23 @@ export default function BlogPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Trang chủ",
-        "item": "https://phonghocchothue.com"
+        "item": {
+          "@type": "WebPage",
+          "@id": "https://phonghocchothue.com/",
+          "url": "https://phonghocchothue.com/",
+          "name": "Trang chủ"
+        }
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Blog",
-        "item": "https://phonghocchothue.com/blog"
+        "item": {
+          "@type": "WebPage",
+          "@id": "https://phonghocchothue.com/blog",
+          "url": "https://phonghocchothue.com/blog",
+          "name": "Blog"
+        }
       }
     ];
     if (activeCategory !== "all" && cleanCategoryName !== "Blog") {
@@ -88,7 +98,12 @@ export default function BlogPage() {
         "@type": "ListItem",
         "position": 3,
         "name": cleanCategoryName,
-        "item": `https://phonghocchothue.com/blog/danh-muc/${activeCategory}`
+        "item": {
+          "@type": "WebPage",
+          "@id": `https://phonghocchothue.com/blog/danh-muc/${activeCategory}`,
+          "url": `https://phonghocchothue.com/blog/danh-muc/${activeCategory}`,
+          "name": cleanCategoryName
+        }
       });
     }
     return list;
@@ -102,6 +117,7 @@ export default function BlogPage() {
       data: {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
+        "@id": "https://phonghocchothue.com/blog/#breadcrumb",
         "itemListElement": breadcrumbElements
       }
     }
