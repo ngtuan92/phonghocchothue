@@ -901,7 +901,7 @@ export default function DetailPage() {
               })}
             </div>
           </>
-          <div id="room" className="">
+          <div id="room" className="mb-[60px] sm:mb-0">
             <ProductCard />
           </div>
           <Footer />
