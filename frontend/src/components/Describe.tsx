@@ -82,7 +82,7 @@ const Describe = () => {
         <div className="mb-[56px] sm:mb-36 main-container overflow-x-hidden">
             <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
-                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[28px] md:-translate-y-[38px] lg:-translate-y-[43px]">
+                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[4px] md:-translate-y-[5px] lg:-translate-y-[6px]">
                         {describeFrameImage && (
                             <div
                                 className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] bottom-[-8px] md:bottom-[-10px] lg:bottom-[-12px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
