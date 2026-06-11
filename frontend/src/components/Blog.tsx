@@ -318,7 +318,7 @@ export default function Blog({
   const totalPages = data?.pagination?.totalPages || 1;
 
   return (
-    <section id="blog" className={classNames("pb-0 sm:pb-16 scroll-mt-20", !noContainer && "main-container", isHomePage ? "pt-[58px] sm:pt-10 md:pt-10" : "pt-0")}>
+    <section id="blog" className={classNames("pb-0 sm:pb-16 scroll-mt-20", !noContainer && "main-container", isHomePage ? "pt-[72px] sm:pt-10 md:pt-10" : "pt-0")}>
       <div id="blog-list-start" className="absolute -translate-y-32" />
       
       <div className="w-full max-w-[1100px] mx-auto">
@@ -363,7 +363,7 @@ export default function Blog({
           </div>
         )}
 
-        <div className={classNames("flex flex-col", isHomePage && "md:-mt-15 lg:-mt-6")}>
+        <div className={classNames("flex flex-col", isHomePage && "-mt-2 md:-mt-15 lg:-mt-6")}>
           {showFeatured && page === 1 && blogs.length > 0 && (
             <FeaturedBlogCard blog={blogs[0]} />
           )}
