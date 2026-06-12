@@ -1497,40 +1497,84 @@ const QuillWrapper = forwardRef(({
             </div>
 
             <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">👀 Live Preview</span>
+              <span className="block text-[10px] font-extrabold uppercase tracking-widest" style={{ color: '#1f2937' }}>👀 Live Preview</span>
               
               <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop ({lineHeight ? `${lineHeight}px` : 'Mặc định'})</span>
+                  <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop{lineHeight ? ` (${lineHeight}px)` : ''}</span>
                 </div>
-                <div className="bg-white rounded border border-gray-100 p-2.5 overflow-hidden" style={{ minHeight: '40px' }}>
+                <div 
+                  className="bg-white rounded overflow-hidden" 
+                  style={{ 
+                    width: '288px', 
+                    height: '162px', 
+                    border: '1.5px solid #94a3b8', 
+                    margin: '0 auto',
+                    position: 'relative'
+                  }}
+                >
                   <div 
-                    className="ql-editor ql-preview-editor"
-                    style={{ 
-                      lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6',
-                      color: '#1f2937',
-                      padding: 0
+                    style={{
+                      width: '960px',
+                      height: '540px',
+                      transform: 'scale(0.3)',
+                      transformOrigin: 'top left',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      pointerEvents: 'none'
                     }}
-                    dangerouslySetInnerHTML={{ __html: previewHtml }}
-                  />
+                  >
+                    <div 
+                      className="ql-editor ql-preview-editor"
+                      style={{ 
+                        lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6',
+                        color: '#1f2937',
+                        padding: '24px'
+                      }}
+                      dangerouslySetInnerHTML={{ __html: previewHtml }}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Mobile Live Preview */}
               <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile ({lineHeightMobile ? `${lineHeightMobile}px` : 'Mặc định'})</span>
+                  <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile{lineHeightMobile ? ` (${lineHeightMobile}px)` : ''}</span>
                 </div>
-                <div className="bg-white rounded border border-gray-100 p-2.5 overflow-hidden mx-auto" style={{ width: '240px', minHeight: '54px' }}>
+                <div 
+                  className="bg-white rounded overflow-hidden" 
+                  style={{ 
+                    width: '216px', 
+                    height: '324px', 
+                    border: '1.5px solid #94a3b8', 
+                    margin: '0 auto',
+                    position: 'relative'
+                  }}
+                >
                   <div 
-                    className="ql-editor ql-preview-editor"
-                    style={{ 
-                      lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6',
-                      color: '#1f2937',
-                      padding: 0
+                    style={{
+                      width: '360px',
+                      height: '540px',
+                      transform: 'scale(0.6)',
+                      transformOrigin: 'top left',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      pointerEvents: 'none'
                     }}
-                    dangerouslySetInnerHTML={{ __html: previewHtml }}
-                  />
+                  >
+                    <div 
+                      className="ql-editor ql-preview-editor"
+                      style={{ 
+                        lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6',
+                        color: '#1f2937',
+                        padding: '16px'
+                      }}
+                      dangerouslySetInnerHTML={{ __html: previewHtml }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
