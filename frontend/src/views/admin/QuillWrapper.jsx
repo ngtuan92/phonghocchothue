@@ -238,6 +238,7 @@ const QuillWrapper = forwardRef((props, ref) => {
   const resizerOverlayRef = useRef(null);
   const containerClickRef = useRef(null);
   const [captions, setCaptions] = useState([]);
+  const savedSelectionRef = useRef(null); // lưu selection khi toolbar được click
 
   const updateCaptions = useCallback(() => {
     const imgContainer = containerRef.current;
@@ -286,6 +287,55 @@ const QuillWrapper = forwardRef((props, ref) => {
     if (!isReady || !containerRef.current) return;
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
+
+    // ── Giữ highlight selection khi click toolbar (như Word/Google Docs) ──
+    const container = containerRef.current;
+
+    const handleMousedown = (e) => {
+      const toolbar = container.querySelector('.ql-toolbar');
+      if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
+        // Không block các input/textarea bên trong toolbar (search font, size input...)
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        // Cho phép cuộn các danh sách dropdown khi kéo thanh cuộn
+        const isScrollbarClick = e.target.scrollHeight > e.target.clientHeight && e.offsetX > e.target.clientWidth;
+        if (isScrollbarClick) return;
+
+        const quillInstance = editorRef.current?.getEditor();
+        if (quillInstance) {
+          const sel = quillInstance.getSelection();
+          if (sel) {
+            savedSelectionRef.current = sel;
+          }
+        }
+        // Ngăn editor mất focus khi click toolbar
+        e.preventDefault();
+      }
+    };
+
+    const handleMouseup = (e) => {
+      const toolbar = container.querySelector('.ql-toolbar');
+      if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        const quillInstance = editorRef.current?.getEditor();
+        if (quillInstance) {
+          const saved = savedSelectionRef.current;
+          if (saved) {
+            // Đợi Quill xử lý format xong rồi mới restore
+            setTimeout(() => {
+              try {
+                quillInstance.focus();
+                quillInstance.setSelection(saved.index, saved.length);
+              } catch (e2) {}
+            }, 0);
+          }
+        }
+      }
+    };
+
+    container.addEventListener('mousedown', handleMousedown, true);
+    container.addEventListener('mouseup', handleMouseup, true);
 
     // Patch toolbar update to maintain format display even when editor is blurred/unfocused
     const toolbar = quill.getModule('toolbar');
@@ -364,6 +414,8 @@ const QuillWrapper = forwardRef((props, ref) => {
     }, 100);
 
     return () => {
+      container.removeEventListener('mousedown', handleMousedown, true);
+      container.removeEventListener('mouseup', handleMouseup, true);
       if (quill?.root) {
         quill.root.removeEventListener('scroll', handleUpdate);
       }
@@ -1441,6 +1493,17 @@ const QuillWrapper = forwardRef((props, ref) => {
           line-height: 1.6;
           padding: 24px !important;
           min-height: inherit;
+        }
+        /* Giữ màu highlight selection khi editor mất focus tạm thời (click toolbar) */
+        .ql-editor::selection,
+        .ql-editor *::selection {
+          background-color: #b3d4fc !important;
+          color: inherit !important;
+        }
+        .ql-editor::-moz-selection,
+        .ql-editor *::-moz-selection {
+          background-color: #b3d4fc !important;
+          color: inherit !important;
         }
         .ql-editor p {
           margin-bottom: 0.5rem;
