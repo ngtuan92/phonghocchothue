@@ -1426,13 +1426,6 @@ const QuillWrapper = forwardRef(({
     return props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
   }, [props.value]);
 
-  const previewHtml = useMemo(() => {
-    if (!props.value || typeof props.value !== 'string') return "<p>Văn bản mẫu</p>";
-    let clean = props.value.replace(/<img[^>]*>/gi, '');
-    clean = clean.replace(/<p><br><\/p>/gi, '');
-    return clean.trim() || "<p>Văn bản mẫu</p>";
-  }, [props.value]);
-
   useEffect(() => {
     if (!showSpacingPopup) return;
     const handleOutsideClick = (e) => {
@@ -1457,13 +1450,13 @@ const QuillWrapper = forwardRef(({
           className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
             top: popupPosition.top + 5,
-            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 380)),
-            width: '360px'
+            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            width: '200px'
           }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình giãn dòng (px)</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình giãn dòng</span>
             <button 
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -1474,7 +1467,7 @@ const QuillWrapper = forwardRef(({
           </div>
           <div className="space-y-3">
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>🖥️ Desktop</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
               <input
                 type="text"
                 placeholder="Mặc định. VD: 32"
@@ -1485,7 +1478,7 @@ const QuillWrapper = forwardRef(({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>📱 Mobile</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
               <input
                 type="text"
                 placeholder="Mặc định. VD: 24"
@@ -1494,89 +1487,6 @@ const QuillWrapper = forwardRef(({
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
-            </div>
-
-            <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-              <span className="block text-[10px] font-extrabold uppercase tracking-widest" style={{ color: '#1f2937' }}>👀 Live Preview</span>
-              
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop{lineHeight ? ` (${lineHeight}px)` : ''}</span>
-                </div>
-                <div 
-                  className="bg-white rounded overflow-hidden" 
-                  style={{ 
-                    width: '288px', 
-                    height: '162px', 
-                    border: '1.5px solid #94a3b8', 
-                    margin: '0 auto',
-                    position: 'relative'
-                  }}
-                >
-                  <div 
-                    style={{
-                      width: '960px',
-                      height: '540px',
-                      transform: 'scale(0.3)',
-                      transformOrigin: 'top left',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      pointerEvents: 'none'
-                    }}
-                  >
-                    <div 
-                      className="ql-editor ql-preview-editor"
-                      style={{ 
-                        lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6',
-                        color: '#1f2937',
-                        padding: '24px'
-                      }}
-                      dangerouslySetInnerHTML={{ __html: previewHtml }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile{lineHeightMobile ? ` (${lineHeightMobile}px)` : ''}</span>
-                </div>
-                <div 
-                  className="bg-white rounded overflow-hidden" 
-                  style={{ 
-                    width: '216px', 
-                    height: '324px', 
-                    border: '1.5px solid #94a3b8', 
-                    margin: '0 auto',
-                    position: 'relative'
-                  }}
-                >
-                  <div 
-                    style={{
-                      width: '360px',
-                      height: '540px',
-                      transform: 'scale(0.6)',
-                      transformOrigin: 'top left',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      pointerEvents: 'none'
-                    }}
-                  >
-                    <div 
-                      className="ql-editor ql-preview-editor"
-                      style={{ 
-                        lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6',
-                        color: '#1f2937',
-                        padding: '16px'
-                      }}
-                      dangerouslySetInnerHTML={{ __html: previewHtml }}
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
@@ -1618,47 +1528,6 @@ const QuillWrapper = forwardRef(({
         />
       )}
       <style dangerouslySetInnerHTML={{ __html: `
-        /* Line Height Live Preview overrides */
-        .ql-preview-editor {
-          overflow: hidden !important;
-          overflow-x: hidden !important;
-          overflow-y: hidden !important;
-        }
-        .ql-preview-editor::-webkit-scrollbar {
-          display: none !important;
-          width: 0 !important;
-          height: 0 !important;
-        }
-        .ql-preview-editor,
-        .ql-preview-editor * {
-          font-size: 15px !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: none !important;
-          border: none !important;
-          line-height: inherit !important;
-          word-break: break-word !important;
-          word-wrap: break-word !important;
-          overflow-wrap: break-word !important;
-          white-space: normal !important;
-          overflow: hidden !important;
-        }
-        .ql-preview-editor p,
-        .ql-preview-editor h1,
-        .ql-preview-editor h2,
-        .ql-preview-editor h3,
-        .ql-preview-editor h4,
-        .ql-preview-editor h5,
-        .ql-preview-editor h6 {
-          font-size: 15px !important;
-          margin: 0 0 6px 0 !important;
-          padding: 0 !important;
-          line-height: inherit !important;
-          word-break: break-word !important;
-          word-wrap: break-word !important;
-          overflow-wrap: break-word !important;
-          white-space: normal !important;
-        }
 
         /* Custom Color Picker dropdown overrides */
         .ql-snow .ql-picker-options {
