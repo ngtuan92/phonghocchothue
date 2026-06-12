@@ -1426,6 +1426,13 @@ const QuillWrapper = forwardRef(({
     return props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
   }, [props.value]);
 
+  const previewHtml = useMemo(() => {
+    if (!props.value || typeof props.value !== 'string') return "<p>Văn bản mẫu</p>";
+    let clean = props.value.replace(/<img[^>]*>/gi, '');
+    clean = clean.replace(/<p><br><\/p>/gi, '');
+    return clean.trim() || "<p>Văn bản mẫu</p>";
+  }, [props.value]);
+
   useEffect(() => {
     if (!showSpacingPopup) return;
     const handleOutsideClick = (e) => {
@@ -1494,32 +1501,63 @@ const QuillWrapper = forwardRef(({
               <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">👀 Live Preview</span>
               
               {/* Desktop Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '90px' }}>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop ({lineHeight ? `${lineHeight}px` : 'Mặc định'})</span>
                 </div>
+                {/* Scaled Desktop Container */}
                 <div 
-                  className="bg-white rounded border border-gray-100 p-2 overflow-hidden text-center text-xs"
-                  style={{ color: '#1f2937' }}
+                  style={{
+                    width: '920px',
+                    height: '240px',
+                    transform: 'scale(0.25)',
+                    transformOrigin: 'top left',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #f1f5f9',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    overflowY: 'auto'
+                  }}
                 >
-                  <div style={{ lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6' }}>
-                    Giải pháp cho thuê phòng dạy học linh hoạt tại Đà Nẵng
-                  </div>
+                  <div 
+                    className="ql-editor"
+                    style={{ 
+                      lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6',
+                      color: '#1f2937'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  />
                 </div>
               </div>
 
               {/* Mobile Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '120px' }}>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile ({lineHeightMobile ? `${lineHeightMobile}px` : 'Mặc định'})</span>
                 </div>
+                {/* Scaled Mobile Container */}
                 <div 
-                  className="bg-white rounded border border-gray-100 p-2 overflow-hidden mx-auto text-center text-xs"
-                  style={{ color: '#1f2937', width: '180px' }}
+                  style={{
+                    width: '375px',
+                    height: '150px',
+                    transform: 'scale(0.6)',
+                    transformOrigin: 'top left',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #f1f5f9',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    overflowY: 'auto',
+                    margin: '0'
+                  }}
                 >
-                  <div style={{ lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6' }}>
-                    Giải pháp cho thuê phòng dạy học linh hoạt tại Đà Nẵng
-                  </div>
+                  <div 
+                    className="ql-editor"
+                    style={{ 
+                      lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6',
+                      color: '#1f2937'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  />
                 </div>
               </div>
             </div>
