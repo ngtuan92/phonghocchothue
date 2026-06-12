@@ -1516,7 +1516,7 @@ const QuillWrapper = forwardRef(({
                     border: '1px solid #f1f5f9',
                     borderRadius: '8px',
                     padding: '16px',
-                    overflowY: 'auto'
+                    overflow: 'hidden'
                   }}
                 >
                   <div 
@@ -1546,7 +1546,7 @@ const QuillWrapper = forwardRef(({
                     border: '1px solid #f1f5f9',
                     borderRadius: '8px',
                     padding: '12px',
-                    overflowY: 'auto',
+                    overflow: 'hidden',
                     margin: '0'
                   }}
                 >
