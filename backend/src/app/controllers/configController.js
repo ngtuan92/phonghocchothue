@@ -53,7 +53,9 @@ function processConfigs(plainConfigs) {
                     type: 'jsonld',
                     section: 'faq',
                     musicName: null,
-                    borderRadius: null
+                    borderRadius: null,
+                    lineHeight: null,
+                    lineHeightMobile: null
                 });
             }
         } catch (e) {
@@ -71,7 +73,7 @@ class ConfigController {
             
             if (noCache) {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile'],
                 });
                 const plainConfigs = mutipleConvertToObject(configData);
                 return res.status(200).json({
@@ -83,7 +85,7 @@ class ConfigController {
 
             const configJson = await getOrSetCache('configs:v2', async () => {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile'],
                 });
                 const plainConfigs = mutipleConvertToObject(configData);
                 return {
@@ -105,7 +107,7 @@ class ConfigController {
     }
 
     async store(req, res, next) {
-        const { key, content, type, section, musicName, borderRadius } = req.body;
+        const { key, content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -122,7 +124,9 @@ class ConfigController {
                 type,
                 section,
                 musicName,
-                borderRadius
+                borderRadius,
+                lineHeight,
+                lineHeightMobile
             });
 
             await redis.del('configs:v2');
@@ -142,7 +146,7 @@ class ConfigController {
 
     async update(req, res, next) {
         const { key } = req.params  
-        const { content, type, section, musicName, borderRadius } = req.body;
+        const { content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -171,7 +175,9 @@ class ConfigController {
                 type: type || config.type,
                 section: section || config.section,
                 musicName: musicName || config.musicName,
-                borderRadius: borderRadius !== undefined ? borderRadius : config.borderRadius
+                borderRadius: borderRadius !== undefined ? borderRadius : config.borderRadius,
+                lineHeight: lineHeight !== undefined ? lineHeight : config.lineHeight,
+                lineHeightMobile: lineHeightMobile !== undefined ? lineHeightMobile : config.lineHeightMobile
             });
 
             await redis.del('configs:v2');

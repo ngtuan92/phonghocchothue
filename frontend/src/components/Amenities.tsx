@@ -83,8 +83,8 @@ const Amenities: React.FC = () => {
               <div className="describe-h2-wrapper">
                 <RichTextRenderer
                   html={amenitiesHeading}
+                  configKey="amenities-content"
                   className="text-[#563c39] mx-auto md:mx-0"
-                 
                 />
               </div>
 
@@ -94,7 +94,7 @@ const Amenities: React.FC = () => {
 
               {amenitiesDescription && (
                 <div className="prose prose-sm sm:prose-lg max-w-3xl describe-description-wrapper mx-auto md:mx-0">
-                  <RichTextRenderer html={amenitiesDescription} className="text-center md:text-left" />
+                  <RichTextRenderer html={amenitiesDescription} configKey="amenities-description" className="text-center md:text-left" />
                 </div>
               )}
             </div>

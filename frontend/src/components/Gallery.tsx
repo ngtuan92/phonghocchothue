@@ -50,13 +50,14 @@ const Gallery: React.FC = () => {
               <div className="describe-h2-wrapper w-full max-w-none text-center mb-0 md:mb-3">
                 <RichTextRenderer
                   html={describeH2}
+                  configKey="describe-h2"
                   className="text-center text-[#563c39]"
                 />
               </div>
             )}
 
             {(describeH2Image || describeH2ImageMobile) && (
-              <div className="w-full mt-0 md:mt-3">
+              <div className="w-full mt-0">
                 {/* Desktop Image */}
                 {describeH2Image && (
                   <div
@@ -96,8 +97,8 @@ const Gallery: React.FC = () => {
             <div className="mb-2 sm:mb-4 text-center w-full">
               <RichTextRenderer
                 html={galleryHeading}
+                configKey="gallery-heading"
                 className="text-center text-[#563c39]"
-
               />
             </div>
 

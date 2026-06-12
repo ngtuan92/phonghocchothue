@@ -40,6 +40,7 @@ const FAQ = () => {
     <section className="pt-0 pb-0 sm:pt-0 sm:pb-0 max-w-5xl mx-auto main-container mt-[70px] sm:mt-36 md:mt-36 mb-10 sm:mb-36">
       <RichTextRenderer
         html={faqHeading}
+        configKey="faq-heading"
         className="text-center mb-4 md:mb-5"
       />
 

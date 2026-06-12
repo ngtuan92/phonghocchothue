@@ -75,6 +75,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
       <div className="describe-h2-wrapper">
         <RichTextRenderer
           html={roomHeading}
+          configKey="room-heading"
           className="text-center mb-4 md:mb-5"
         />
       </div>

@@ -196,7 +196,7 @@ const TYPE_OPTIONS = [
   { value: "color", label: "Màu sắc" },
 ];
 
-const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "" };
+const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "" };
 
 const getRadiusStyle = (val) => {
   if (!val) return "0px";
@@ -556,6 +556,8 @@ export default function CMS() {
     fd.append("type", config.type);
     fd.append("section", config.section || activeSection);
     fd.append("borderRadius", config.borderRadius || "");
+    fd.append("lineHeight", config.lineHeight || "");
+    fd.append("lineHeightMobile", config.lineHeightMobile || "");
     try {
       await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd, {
         "Content-Type": "multipart/form-data",
@@ -631,6 +633,8 @@ export default function CMS() {
     }
     return filtered;
   };
+
+
 
   const renderEditor = (config, onContentChange) => {
     const keyLower = config.key.toLowerCase();
@@ -756,6 +760,18 @@ export default function CMS() {
             theme="snow"
             value={config.content || ""}
             onChange={onContentChange}
+            lineHeight={config.lineHeight}
+            lineHeightMobile={config.lineHeightMobile}
+            onChangeLineHeight={(val) => {
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, lineHeight: val } : c))
+              );
+            }}
+            onChangeLineHeightMobile={(val) => {
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, lineHeightMobile: val } : c))
+              );
+            }}
             className={`quill-editor-${config.key}`}
           />
           <style jsx global>{`
