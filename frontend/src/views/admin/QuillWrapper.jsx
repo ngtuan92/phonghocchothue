@@ -1498,20 +1498,19 @@ const QuillWrapper = forwardRef(({
 
             {/* Live Preview section */}
             <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-              <span className="block text-[9px] font-bold uppercase tracking-widest" style={{ color: '#4b5563' }}>👀 Live Preview</span>
+              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">👀 Live Preview</span>
               
               {/* Desktop Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '90px' }}>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '70px' }}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-bold uppercase" style={{ color: '#4b5563' }}>Desktop ({lineHeight ? `${lineHeight}px` : 'Mặc định'})</span>
+                  <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop ({lineHeight ? `${lineHeight}px` : 'Mặc định'})</span>
                 </div>
                 {/* Scaled Desktop Container */}
                 <div 
-                  className="ql-snow"
                   style={{
-                    width: '920px',
+                    width: '1200px',
                     height: '240px',
-                    transform: 'scale(0.25)',
+                    transform: 'scale(0.18)',
                     transformOrigin: 'top left',
                     backgroundColor: '#ffffff',
                     border: '1px solid #f1f5f9',
@@ -1524,8 +1523,7 @@ const QuillWrapper = forwardRef(({
                     className="ql-editor"
                     style={{ 
                       lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6',
-                      color: '#111827',
-                      WebkitFontSmoothing: 'antialiased'
+                      color: '#1f2937'
                     }}
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                   />
@@ -1533,17 +1531,16 @@ const QuillWrapper = forwardRef(({
               </div>
 
               {/* Mobile Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '120px' }}>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '85px' }}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-bold uppercase" style={{ color: '#4b5563' }}>Mobile ({lineHeightMobile ? `${lineHeightMobile}px` : 'Mặc định'})</span>
+                  <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile ({lineHeightMobile ? `${lineHeightMobile}px` : 'Mặc định'})</span>
                 </div>
                 {/* Scaled Mobile Container */}
                 <div 
-                  className="ql-snow"
                   style={{
                     width: '375px',
-                    height: '150px',
-                    transform: 'scale(0.6)',
+                    height: '140px',
+                    transform: 'scale(0.4)',
                     transformOrigin: 'top left',
                     backgroundColor: '#ffffff',
                     border: '1px solid #f1f5f9',
@@ -1557,8 +1554,7 @@ const QuillWrapper = forwardRef(({
                     className="ql-editor"
                     style={{ 
                       lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6',
-                      color: '#111827',
-                      WebkitFontSmoothing: 'antialiased'
+                      color: '#1f2937'
                     }}
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                   />
