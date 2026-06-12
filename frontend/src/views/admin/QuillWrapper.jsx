@@ -47,7 +47,7 @@ const createModules = (fontList) => ({
     [{ color: COLORS }, { background: COLORS }],
     [{ list: "ordered" }, { list: "bullet" }],
     [{ align: [] }],
-    ["link", "image"],
+    ["link", "image", "line-height"],
     ["clean"],
     ["more"],
   ],
@@ -213,6 +213,11 @@ if (typeof window !== "undefined" && Quill) {
         <path fill="currentColor" d="M6 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
       </svg>
     `;
+    icons['line-height'] = `
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M10 5h12v2H10V5zm0 6h12v2H10v-2zm0 6h12v2H10v-2zM4 4.5l-3 3h2v9H1v3h6v-3H5v-9h2l-3-3z"/>
+      </svg>
+    `;
   }
 }
 
@@ -224,10 +229,18 @@ const FORMATS = [
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
 
-const QuillWrapper = forwardRef((props, ref) => {
+const QuillWrapper = forwardRef(({
+  lineHeight,
+  lineHeightMobile,
+  onChangeLineHeight,
+  onChangeLineHeightMobile,
+  ...props
+}, ref) => {
   const editorRef = useRef(null);
   const containerRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const [showSpacingPopup, setShowSpacingPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -238,6 +251,7 @@ const QuillWrapper = forwardRef((props, ref) => {
   const resizerOverlayRef = useRef(null);
   const containerClickRef = useRef(null);
   const [captions, setCaptions] = useState([]);
+  const savedSelectionRef = useRef(null);
 
   const updateCaptions = useCallback(() => {
     const imgContainer = containerRef.current;
@@ -286,6 +300,55 @@ const QuillWrapper = forwardRef((props, ref) => {
     if (!isReady || !containerRef.current) return;
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
+
+    // ── Giữ highlight selection khi click toolbar (như Word/Google Docs) ──
+    const container = containerRef.current;
+
+    const handleMousedown = (e) => {
+      const toolbar = container.querySelector('.ql-toolbar');
+      if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
+        // Không block các input/textarea bên trong toolbar (search font, size input...)
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        // Cho phép cuộn các danh sách dropdown khi kéo thanh cuộn
+        const isScrollbarClick = e.target.scrollHeight > e.target.clientHeight && e.offsetX > e.target.clientWidth;
+        if (isScrollbarClick) return;
+
+        const quillInstance = editorRef.current?.getEditor();
+        if (quillInstance) {
+          const sel = quillInstance.getSelection();
+          if (sel) {
+            savedSelectionRef.current = sel;
+          }
+        }
+        // Ngăn editor mất focus khi click toolbar
+        e.preventDefault();
+      }
+    };
+
+    const handleMouseup = (e) => {
+      const toolbar = container.querySelector('.ql-toolbar');
+      if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        const quillInstance = editorRef.current?.getEditor();
+        if (quillInstance) {
+          const saved = savedSelectionRef.current;
+          if (saved) {
+            // Đợi Quill xử lý format xong rồi mới restore
+            setTimeout(() => {
+              try {
+                quillInstance.focus();
+                quillInstance.setSelection(saved.index, saved.length);
+              } catch (e2) {}
+            }, 0);
+          }
+        }
+      }
+    };
+
+    container.addEventListener('mousedown', handleMousedown, true);
+    container.addEventListener('mouseup', handleMouseup, true);
 
     // Patch toolbar update to maintain format display even when editor is blurred/unfocused
     const toolbar = quill.getModule('toolbar');
@@ -364,6 +427,8 @@ const QuillWrapper = forwardRef((props, ref) => {
     }, 100);
 
     return () => {
+      container.removeEventListener('mousedown', handleMousedown, true);
+      container.removeEventListener('mouseup', handleMouseup, true);
       if (quill?.root) {
         quill.root.removeEventListener('scroll', handleUpdate);
       }
@@ -910,13 +975,30 @@ const QuillWrapper = forwardRef((props, ref) => {
     const mods = { ...modules };
     if (mods.toolbar && Array.isArray(mods.toolbar)) {
       const imageGroup = mods.toolbar.find(group => Array.isArray(group) && group.includes('image'));
-      if (imageGroup && !imageGroup.includes('image-settings')) {
-        imageGroup.push('image-settings');
+      if (imageGroup) {
+        if (!imageGroup.includes('image-settings')) {
+          imageGroup.push('image-settings');
+        }
+        if (!imageGroup.includes('line-height')) {
+          imageGroup.push('line-height');
+        }
       }
     }
     mods.toolbar = {
       container: modules.toolbar,
       handlers: {
+        'line-height': function () {
+          const button = containerRef.current?.querySelector('.ql-line-height');
+          if (button) {
+            const rect = button.getBoundingClientRect();
+            const parentRect = containerRef.current.getBoundingClientRect();
+            setPopupPosition({
+              top: rect.bottom - parentRect.top + containerRef.current.scrollTop,
+              left: rect.left - parentRect.left
+            });
+            setShowSpacingPopup(prev => !prev);
+          }
+        },
         more: function () {
           const toolbarEl = this.container || this.quill.root.parentNode.querySelector('.ql-toolbar');
           if (toolbarEl) {
@@ -1344,11 +1426,81 @@ const QuillWrapper = forwardRef((props, ref) => {
     return props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
   }, [props.value]);
 
+  useEffect(() => {
+    if (!showSpacingPopup) return;
+    const handleOutsideClick = (e) => {
+      const popup = containerRef.current?.querySelector('.ql-line-height-popup');
+      const button = containerRef.current?.querySelector('.ql-line-height');
+      if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
+        setShowSpacingPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showSpacingPopup]);
+
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
     <div className="quill-wrapper-container relative" ref={containerRef}>
       {renderModals()}
+      
+      {showSpacingPopup && (
+        <div 
+          className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          style={{
+            top: popupPosition.top + 5,
+            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            width: '200px'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình giãn dòng</span>
+            <button 
+              type="button"
+              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              onClick={() => setShowSpacingPopup(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
+              <input
+                type="text"
+                placeholder="Mặc định. VD: 32"
+                value={lineHeight || ""}
+                onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
+                style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
+              <input
+                type="text"
+                placeholder="Mặc định. VD: 24"
+                value={lineHeightMobile || ""}
+                onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
+                style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
+                onClick={() => setShowSpacingPopup(false)}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <input
         type="file"
@@ -1376,6 +1528,7 @@ const QuillWrapper = forwardRef((props, ref) => {
         />
       )}
       <style dangerouslySetInnerHTML={{ __html: `
+
         /* Custom Color Picker dropdown overrides */
         .ql-snow .ql-picker-options {
           z-index: 100 !important;
@@ -1441,6 +1594,17 @@ const QuillWrapper = forwardRef((props, ref) => {
           line-height: 1.6;
           padding: 24px !important;
           min-height: inherit;
+        }
+        /* Giữ màu highlight selection khi editor mất focus tạm thời (click toolbar) */
+        .ql-editor::selection,
+        .ql-editor *::selection {
+          background-color: #b3d4fc !important;
+          color: inherit !important;
+        }
+        .ql-editor::-moz-selection,
+        .ql-editor *::-moz-selection {
+          background-color: #b3d4fc !important;
+          color: inherit !important;
         }
         .ql-editor p {
           margin-bottom: 0.5rem;

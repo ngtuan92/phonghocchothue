@@ -111,6 +111,7 @@ const Describe = () => {
                             <div className="absolute -top-16 -bottom-16 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
+                                    configKey="describe-bg-text"
                                     className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
                                 />
                             </div>
@@ -118,6 +119,7 @@ const Describe = () => {
                             <div className="relative z-10">
                                 <RichTextRenderer
                                     html={replaceTagName(describeHeading, "div")}
+                                    configKey="describe-heading"
                                     className="title-main-text text-center"
                                 />
                             </div>
@@ -134,6 +136,7 @@ const Describe = () => {
                             <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap">
                                 <RichTextRenderer
                                     html={describePhone}
+                                    configKey="describe-phone"
                                     className="inline-block [&_*]:inline hero-phone-text"
                                 />
                             </span>
@@ -175,6 +178,7 @@ const Describe = () => {
                             <div className="absolute -top-12 -bottom-12 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
+                                    configKey="describe-bg-text"
                                     className="mobile-watermark-text"
                                 />
                             </div>
@@ -182,6 +186,7 @@ const Describe = () => {
                             <div className="relative z-10 -translate-y-1">
                                 <RichTextRenderer
                                     html={replaceTagName(describeHeading, "div")}
+                                    configKey="describe-heading"
                                     className="title-main-text text-center"
                                 />
                             </div>
@@ -199,6 +204,7 @@ const Describe = () => {
                                 <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
                                     <RichTextRenderer
                                         html={describePhone}
+                                        configKey="describe-phone"
                                         className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
                                     />
                                 </span>
@@ -232,7 +238,7 @@ const Describe = () => {
 
                             {description && (
                                 <div className="text-sm md:text-base text-[#323232] raleway font-normal leading-relaxed opacity-90 w-full max-w-3xl describe-description-wrapper text-center md:text-left">
-                                    <RichTextRenderer html={description} className="text-center md:text-left" />
+                                    <RichTextRenderer html={description} configKey="textDecription" className="text-center md:text-left" />
                                 </div>
                             )}
                         </div>
