@@ -1450,8 +1450,8 @@ const QuillWrapper = forwardRef(({
           className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
             top: popupPosition.top + 5,
-            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 260)),
-            width: '240px'
+            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 295)),
+            width: '275px'
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -1488,6 +1488,42 @@ const QuillWrapper = forwardRef(({
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
             </div>
+
+            {/* Live Preview section */}
+            <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">👀 Live Preview</span>
+              
+              {/* Desktop Live Preview */}
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop ({lineHeight ? `${lineHeight}px` : 'Mặc định'})</span>
+                </div>
+                <div 
+                  className="bg-white rounded border border-gray-100 p-2 overflow-hidden text-center text-xs"
+                  style={{ color: '#1f2937' }}
+                >
+                  <div style={{ lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6' }}>
+                    Giải pháp cho thuê phòng dạy học linh hoạt tại Đà Nẵng
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Live Preview */}
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile ({lineHeightMobile ? `${lineHeightMobile}px` : 'Mặc định'})</span>
+                </div>
+                <div 
+                  className="bg-white rounded border border-gray-100 p-2 overflow-hidden mx-auto text-center text-xs"
+                  style={{ color: '#1f2937', width: '180px' }}
+                >
+                  <div style={{ lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6' }}>
+                    Giải pháp cho thuê phòng dạy học linh hoạt tại Đà Nẵng
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-1">
               <button
                 type="button"
