@@ -1457,8 +1457,8 @@ const QuillWrapper = forwardRef(({
           className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
             top: popupPosition.top + 5,
-            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 295)),
-            width: '275px'
+            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 260)),
+            width: '240px'
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -1501,29 +1501,17 @@ const QuillWrapper = forwardRef(({
               <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">👀 Live Preview</span>
               
               {/* Desktop Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '70px' }}>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[8px] font-bold text-gray-500 uppercase">Desktop ({lineHeight ? `${lineHeight}px` : 'Mặc định'})</span>
                 </div>
-                {/* Scaled Desktop Container */}
-                <div 
-                  style={{
-                    width: '1200px',
-                    height: '240px',
-                    transform: 'scale(0.18)',
-                    transformOrigin: 'top left',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #f1f5f9',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    overflow: 'hidden'
-                  }}
-                >
+                <div className="bg-white rounded border border-gray-100 p-2 overflow-hidden" style={{ minHeight: '38px' }}>
                   <div 
-                    className="ql-editor"
+                    className="ql-editor ql-preview-editor"
                     style={{ 
                       lineHeight: lineHeight ? (/^\d+$/.test(lineHeight.trim()) ? `${lineHeight.trim()}px` : lineHeight) : '1.6',
-                      color: '#1f2937'
+                      color: '#1f2937',
+                      padding: 0
                     }}
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                   />
@@ -1531,30 +1519,17 @@ const QuillWrapper = forwardRef(({
               </div>
 
               {/* Mobile Live Preview */}
-              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 overflow-hidden" style={{ height: '85px' }}>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[8px] font-bold text-gray-500 uppercase">Mobile ({lineHeightMobile ? `${lineHeightMobile}px` : 'Mặc định'})</span>
                 </div>
-                {/* Scaled Mobile Container */}
-                <div 
-                  style={{
-                    width: '375px',
-                    height: '140px',
-                    transform: 'scale(0.4)',
-                    transformOrigin: 'top left',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #f1f5f9',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    overflow: 'hidden',
-                    margin: '0'
-                  }}
-                >
+                <div className="bg-white rounded border border-gray-100 p-2 overflow-hidden mx-auto" style={{ width: '160px', minHeight: '42px' }}>
                   <div 
-                    className="ql-editor"
+                    className="ql-editor ql-preview-editor"
                     style={{ 
                       lineHeight: lineHeightMobile ? (/^\d+$/.test(lineHeightMobile.trim()) ? `${lineHeightMobile.trim()}px` : lineHeightMobile) : '1.6',
-                      color: '#1f2937'
+                      color: '#1f2937',
+                      padding: 0
                     }}
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                   />
@@ -1601,6 +1576,29 @@ const QuillWrapper = forwardRef(({
         />
       )}
       <style dangerouslySetInnerHTML={{ __html: `
+        /* Line Height Live Preview overrides */
+        .ql-preview-editor,
+        .ql-preview-editor * {
+          font-size: 13px !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: none !important;
+          border: none !important;
+          line-height: inherit !important;
+        }
+        .ql-preview-editor p,
+        .ql-preview-editor h1,
+        .ql-preview-editor h2,
+        .ql-preview-editor h3,
+        .ql-preview-editor h4,
+        .ql-preview-editor h5,
+        .ql-preview-editor h6 {
+          font-size: 13px !important;
+          margin: 0 0 4px 0 !important;
+          padding: 0 !important;
+          line-height: inherit !important;
+        }
+
         /* Custom Color Picker dropdown overrides */
         .ql-snow .ql-picker-options {
           z-index: 100 !important;
