@@ -104,6 +104,17 @@ export default function DetailPage() {
     return `${URL_API}${value.replaceAll("\\", "/")}`;
   }, []);
 
+  const canonicalUrl = "https://phonghocchothue.com";
+
+  const buildCanonicalAssetUrl = useCallback((value: string | undefined): string | null => {
+    if (!value || typeof value !== "string") return null;
+    if (value.startsWith("http")) {
+      return value.replace(/https?:\/\/localhost:\d+/gi, canonicalUrl).replace(/https?:\/\/api\.phonghocchothue\.com/gi, canonicalUrl);
+    }
+    const cleanPath = value.replaceAll("\\", "/").replace(/^\//, "");
+    return `${canonicalUrl}/${cleanPath}`;
+  }, []);
+
   const iconHeader = useMemo(() => {
     if (typeof imgIcon === "string" && imgIcon.trim() !== "") {
       return `${URL_API}${imgIcon.replaceAll("\\", "/")}`;
@@ -174,10 +185,11 @@ export default function DetailPage() {
 
   const seoImage = useMemo(() => {
     if (product?.seoImage) {
-      return buildAbsoluteUrl(product.seoImage) || "";
+      return buildCanonicalAssetUrl(product.seoImage) || "";
     }
-    return images[0] || buildAbsoluteUrl(bgConfig) || "";
-  }, [product, images, buildAbsoluteUrl, bgConfig]);
+    const rawImage = product?.images?.[0] ? (typeof product.images[0] === "string" ? product.images[0] : (product.images[0]?.image_detail || product.images[0]?.image)) : null;
+    return buildCanonicalAssetUrl(rawImage || bgConfig) || "";
+  }, [product, bgConfig, buildCanonicalAssetUrl]);
 
   const seoKeywords = useMemo(() => stripHtmlAndCss(product?.seoKeywords?.trim() || ""), [product]);
 
@@ -257,6 +269,11 @@ export default function DetailPage() {
           name: stripHtmlAndCss(product?.name || ""),
           description: seoDescription,
           image: seoImage ? [seoImage] : undefined,
+          brand: {
+            "@type": "Brand",
+            "name": "Hoa Học Trò",
+            "@id": "https://phonghocchothue.com/#localbusiness"
+          },
           aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: "4.9",
@@ -316,6 +333,11 @@ export default function DetailPage() {
               .toISOString()
               .split("T")[0],
             availability,
+            seller: {
+              "@type": "TutoringCenter",
+              "@id": "https://phonghocchothue.com/#localbusiness",
+              "name": "Hoa Học Trò"
+            },
             shippingDetails: {
               "@type": "OfferShippingDetails",
               shippingRate: {

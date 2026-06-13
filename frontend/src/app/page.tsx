@@ -49,23 +49,32 @@ export default function Home() {
   const notificationLink = useConfigContentByKey("linkNotication");
   const logo = useConfigContentByKey("logo");
 
-  const buildAbsoluteUrl = (value: string | undefined) => {
-    if (!value || typeof value !== "string") return undefined;
-    if (value.startsWith("http")) return value;
-    return `${URL_API}${value.replaceAll("\\", "/")}`;
-  };
-
-  const seoImageUrl = buildAbsoluteUrl(seoImage);
   const origin =
     typeof globalThis !== "undefined" && globalThis.location
       ? globalThis.location.origin
       : "";
   const canonicalUrl = origin || "https://phonghocchothue.com";
 
+  const buildAbsoluteUrl = (value: string | undefined) => {
+    if (!value || typeof value !== "string") return undefined;
+    if (value.startsWith("http")) return value;
+    return `${URL_API}${value.replaceAll("\\", "/")}`;
+  };
+
+  const buildCanonicalAssetUrl = (value: string | undefined) => {
+    if (!value || typeof value !== "string") return undefined;
+    if (value.startsWith("http")) {
+      return value.replace(/https?:\/\/localhost:\d+/gi, canonicalUrl).replace(/https?:\/\/api\.phonghocchothue\.com/gi, canonicalUrl);
+    }
+    const cleanPath = value.replaceAll("\\", "/").replace(/^\//, "");
+    return `${canonicalUrl}/${cleanPath}`;
+  };
+
+  const seoImageUrl = buildCanonicalAssetUrl(seoImage);
   const phone = useConfigContentByKey("phone");
   const address = useConfigContentByKey("address");
   const nameBrand = useConfigContentByKey("nameBrand");
-  const logoUrl = buildAbsoluteUrl(logo);
+  const logoUrl = buildCanonicalAssetUrl(logo);
   const faqSchema = useConfigContentByKey("faq-schema-ld-json");
   const email = useConfigContentByKey("email");
   const linkfb = useConfigContentByKey("linkfb");
@@ -76,8 +85,8 @@ export default function Home() {
     () => {
       const cleanTitle = stripHtmlAndCss(seoTitle);
       const cleanDescription = stripHtmlAndCss(seoDescription);
-      const cleanNameBrand = stripHtmlAndCss(nameBrand) || "Hoa Học Trò - Cho thuê phòng dạy học Đà Nẵng";
-      const cleanAddress = stripHtmlAndCss(address) || "54 Lê Đình Lý, Thạc Gián, Thanh Khê, Đà Nẵng";
+      const cleanNameBrand = stripHtmlAndCss(nameBrand) || "Hoa Học Trò";
+      const cleanAddress = stripHtmlAndCss(address) || "54 Lê Đình Lý, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng";
       const cleanPhone = stripHtmlAndCss(phone) || "0905.803.954";
       const cleanEmail = stripHtmlAndCss(email) || "hoahoctro.dn@gmail.com";
       const cleanGoogleMap = googleMap || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.1373977532296!2d108.2120015!3d16.0598858!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314219b4cfb1b11b%3A0xe54d241775a2f5ab!2zNTQgTMOqIMSQw6xuaCBMw70sIFRo4bqhYyBHacOhbiwgVGhhbmggS2jDqSwgxJDDoCBO4bq5bmcgNTUwMDAwLCBWaWV0bmFt!5e0!3m2!1sen!2s!4v1717326880000!5m2!1sen!2s";
@@ -92,65 +101,84 @@ export default function Home() {
       const baseStructured: any[] = [
         {
           "@context": "https://schema.org",
-          "@type": "WebPage",
-          "@id": "https://phonghocchothue.com/#webpage",
-          name: cleanTitle,
-          url: "https://phonghocchothue.com",
-          description: cleanDescription,
-          primaryImageOfPage: seoImageUrl,
+          "@type": "WebSite",
+          "@id": "https://phonghocchothue.com/#website",
+          "url": "https://phonghocchothue.com",
+          "name": "Hoa Học Trò",
+          "publisher": {
+            "@id": "https://phonghocchothue.com/#localbusiness"
+          }
         },
         {
           "@context": "https://schema.org",
-          "@type": "LocalBusiness",
+          "@type": "WebPage",
+          "@id": "https://phonghocchothue.com/#webpage",
+          "url": "https://phonghocchothue.com",
+          "name": cleanTitle,
+          "description": cleanDescription,
+          "isPartOf": {
+            "@id": "https://phonghocchothue.com/#website"
+          },
+          "about": {
+            "@id": "https://phonghocchothue.com/#localbusiness"
+          },
+          "publisher": {
+            "@id": "https://phonghocchothue.com/#localbusiness"
+          },
+          "primaryImageOfPage": seoImageUrl,
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "TutoringCenter",
           "@id": "https://phonghocchothue.com/#localbusiness",
-          name: cleanNameBrand,
-          legalName: "Hoa Học Trò - Phòng Học Cho Thuê Đà Nẵng",
-          url: "https://phonghocchothue.com",
-          logo: logoUrl || "https://phonghocchothue.com/favicon.png",
-          image: seoImageUrl || logoUrl || "https://phonghocchothue.com/favicon.png",
-          telephone: cleanPhone,
-          email: cleanEmail,
-          priceRange: "VND",
-          sameAs: sameAsLinks,
-          hasMap: cleanGoogleMap,
-          contactPoint: {
+          "name": cleanNameBrand,
+          "legalName": "Hoa Học Trò - Phòng Học Cho Thuê Đà Nẵng",
+          "url": "https://phonghocchothue.com",
+          "logo": logoUrl || "https://phonghocchothue.com/favicon.png",
+          "image": seoImageUrl || logoUrl || "https://phonghocchothue.com/favicon.png",
+          "telephone": cleanPhone,
+          "email": cleanEmail,
+          "priceRange": "VND",
+          "sameAs": sameAsLinks,
+          "hasMap": cleanGoogleMap,
+          "contactPoint": {
             "@type": "ContactPoint",
-            telephone: cleanPhone,
-            contactType: "customer service",
-            areaServed: "VN",
-            availableLanguage: ["vi", "en"]
+            "telephone": cleanPhone,
+            "contactType": "customer service",
+            "areaServed": "VN",
+            "availableLanguage": ["vi", "en"]
           },
-          address: {
+          "address": {
             "@type": "PostalAddress",
-            streetAddress: cleanAddress,
-            addressLocality: "Đà Nẵng",
-            addressRegion: "Đà Nẵng",
-            postalCode: "550000",
-            addressCountry: "VN",
+            "streetAddress": cleanAddress,
+            "addressLocality": "Đà Nẵng",
+            "addressRegion": "Đà Nẵng",
+            "postalCode": "550000",
+            "addressCountry": "VN",
           },
-          geo: {
+          "geo": {
             "@type": "GeoCoordinates",
-            latitude: 16.0598858,
-            longitude: 108.2120015,
+            "latitude": 16.0598858,
+            "longitude": 108.2120015,
           },
-          areaServed: [
+          "areaServed": [
             {
               "@type": "AdministrativeArea",
-              name: "Đà Nẵng",
+              "name": "Đà Nẵng",
             },
             {
               "@type": "AdministrativeArea",
-              name: "Thanh Khê",
+              "name": "Thanh Khê",
             },
             {
               "@type": "AdministrativeArea",
-              name: "Hải Châu",
+              "name": "Hải Châu",
             }
           ],
-          openingHoursSpecification: [
+          "openingHoursSpecification": [
             {
               "@type": "OpeningHoursSpecification",
-              dayOfWeek: [
+              "dayOfWeek": [
                 "Monday",
                 "Tuesday",
                 "Wednesday",
@@ -159,8 +187,8 @@ export default function Home() {
                 "Saturday",
                 "Sunday"
               ],
-              opens: "07:00",
-              closes: "22:00"
+              "opens": "07:00",
+              "closes": "22:00"
             }
           ]
         },
@@ -168,17 +196,17 @@ export default function Home() {
           "@context": "https://schema.org",
           "@type": "Service",
           "@id": "https://phonghocchothue.com/#service",
-          name: "Cho thuê phòng dạy học Đà Nẵng",
-          provider: {
-            "@type": "LocalBusiness",
+          "name": "Cho thuê phòng dạy học Đà Nẵng",
+          "provider": {
+            "@type": "TutoringCenter",
             "@id": "https://phonghocchothue.com/#localbusiness"
           },
-          serviceType: "Cho thuê phòng học, phòng dạy học, phòng họp theo giờ",
-          areaServed: {
+          "serviceType": "Cho thuê phòng học, phòng dạy học, phòng họp theo giờ",
+          "areaServed": {
             "@type": "AdministrativeArea",
-            name: "Đà Nẵng"
+            "name": "Đà Nẵng"
           },
-          description: cleanDescription || "Dịch vụ cho thuê phòng học, phòng dạy học chất lượng cao, đầy đủ tiện nghi thiết bị tại Đà Nẵng."
+          "description": cleanDescription || "Dịch vụ cho thuê phòng học, phòng dạy học chất lượng cao, đầy đủ tiện nghi thiết bị tại Đà Nẵng."
         },
         {
           "@context": "https://schema.org",
@@ -214,6 +242,9 @@ export default function Home() {
                 } : undefined
               }));
             }
+            parsed["@id"] = "https://phonghocchothue.com/#faq";
+            parsed["isPartOf"] = { "@id": "https://phonghocchothue.com/#webpage" };
+            parsed["about"] = { "@id": "https://phonghocchothue.com/#localbusiness" };
             baseStructured.push(parsed);
           }
         } catch (e) {

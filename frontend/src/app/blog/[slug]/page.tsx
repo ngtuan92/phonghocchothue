@@ -43,11 +43,23 @@ export default function BlogDetail() {
     return null;
   }, [imgIcon]);
 
+  const canonicalUrl = "https://phonghocchothue.com";
+  const buildCanonicalAssetUrl = useCallback((value: string | undefined): string | null => {
+    if (!value || typeof value !== "string") return null;
+    if (value.startsWith("http")) {
+      return value.replace(/https?:\/\/localhost:\d+/gi, canonicalUrl).replace(/https?:\/\/api\.phonghocchothue\.com/gi, canonicalUrl);
+    }
+    const cleanPath = value.replaceAll("\\", "/").replace(/^\//, "");
+    return `${canonicalUrl}/${cleanPath}`;
+  }, []);
+
   const cleanTitle = stripHtmlAndCss(blog?.title || "Blog Detail");
   const cleanExcerpt = stripHtmlAndCss(blog?.excerpt || "Ký ức thanh xuân và kinh nghiệm học đường tại Đà Nẵng.");
   const seoTitle = blog ? `${cleanTitle} | Blog` : "Blog";
   const seoDescription = cleanExcerpt;
-  const seoImage = blog?.thumbnail ? (blog.thumbnail.startsWith("http") ? blog.thumbnail : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`) : undefined;
+  const seoImage = useMemo(() => {
+    return buildCanonicalAssetUrl(blog?.thumbnail) || "https://phonghocchothue.com/favicon.png";
+  }, [blog?.thumbnail, buildCanonicalAssetUrl]);
 
   useSEO({
     title: seoTitle,
@@ -109,7 +121,8 @@ export default function BlogDetail() {
             "name": blog?.authorName || "Admin"
           },
           "publisher": {
-            "@type": "Organization",
+            "@type": "TutoringCenter",
+            "@id": "https://phonghocchothue.com/#localbusiness",
             "name": "Hoa Học Trò",
             "logo": {
               "@type": "ImageObject",
