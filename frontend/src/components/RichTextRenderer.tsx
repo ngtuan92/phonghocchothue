@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 
 const getDOMPurify = () => {
   if (typeof window !== "undefined") {
@@ -14,16 +15,22 @@ const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/").re
 
 interface RichTextRendererProps {
   html: string | null | undefined;
+  configKey?: string;
   className?: string;
   fallback?: React.ReactNode;
   as?: React.ElementType;
+  lineHeight?: string;
+  lineHeightMobile?: string;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   html,
+  configKey,
   className = "",
   fallback = null,
   as: Component = "div",
+  lineHeight,
+  lineHeightMobile,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -123,20 +130,37 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     return processedHtml;
   }, [html]);
 
-  if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`}>{fallback}</Component> : null;
+  const contextLineHeight = useConfigContentByKey(configKey || "", "lineHeight");
+  const contextLineHeightMobile = useConfigContentByKey(configKey || "", "lineHeightMobile");
+
+  const activeLineHeight = lineHeight || contextLineHeight;
+  const activeLineHeightMobile = lineHeightMobile || contextLineHeightMobile;
+
+  const customStyles = useMemo(() => {
+    const styles: React.CSSProperties & Record<string, any> = {
+      wordBreak: "normal",
+      overflowWrap: "break-word",
+      wordWrap: "break-word",
+      whiteSpace: "normal",
+      maxWidth: "100%",
+      display: Component === "span" ? "inline" : "block",
+    };
+    if (activeLineHeight) {
+      styles['--custom-line-height' as any] = /^\d+$/.test(activeLineHeight.trim()) ? `${activeLineHeight.trim()}px` : activeLineHeight;
+    }
+    if (activeLineHeightMobile) {
+      styles['--custom-line-height-mobile' as any] = /^\d+$/.test(activeLineHeightMobile.trim()) ? `${activeLineHeightMobile.trim()}px` : activeLineHeightMobile;
+    }
+    return styles;
+  }, [Component, activeLineHeight, activeLineHeightMobile]);
+
+  if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`} style={customStyles}>{fallback}</Component> : null;
 
   return (
     <>
       <Component
         className={`rich-text-renderer ${className}`}
-        style={{
-          wordBreak: "normal",
-          overflowWrap: "break-word",
-          wordWrap: "break-word",
-          whiteSpace: "normal",
-          maxWidth: "100%",
-          display: Component === "span" ? "inline" : "block",
-        }}
+        style={customStyles}
         dangerouslySetInnerHTML={{ __html: cleanHtml }}
       />
       <style dangerouslySetInnerHTML={{ __html: `
@@ -301,6 +325,32 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           display: inline !important;
           margin: 0 !important;
           padding: 0 !important;
+        }
+
+        .rich-text-renderer[style*="--custom-line-height"] *,
+        .rich-text-renderer[style*="--custom-line-height"] p,
+        .rich-text-renderer[style*="--custom-line-height"] span,
+        .rich-text-renderer[style*="--custom-line-height"] h1,
+        .rich-text-renderer[style*="--custom-line-height"] h2,
+        .rich-text-renderer[style*="--custom-line-height"] h3,
+        .rich-text-renderer[style*="--custom-line-height"] h4,
+        .rich-text-renderer[style*="--custom-line-height"] h5,
+        .rich-text-renderer[style*="--custom-line-height"] h6 {
+          line-height: var(--custom-line-height) !important;
+        }
+
+        @media (max-width: 767px) {
+          .rich-text-renderer[style*="--custom-line-height-mobile"] *,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] p,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] span,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] h1,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] h2,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] h3,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] h4,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] h5,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] h6 {
+            line-height: var(--custom-line-height-mobile) !important;
+          }
         }
       `}} />
     </>

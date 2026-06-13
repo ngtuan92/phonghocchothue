@@ -71,10 +71,11 @@ const ProductCard = ({ product }: { product?: Product }) => {
   const roomHeading = useConfigContentByKey("room-heading");
 
   return (
-    <div className="w-full mx-auto main-container relative mt-[42px] mb-10 sm:mt-36 sm:mb-36">
+    <div className="w-full mx-auto main-container relative mt-[60px] mb-0 sm:mt-36 sm:mb-36">
       <div className="describe-h2-wrapper">
         <RichTextRenderer
           html={roomHeading}
+          configKey="room-heading"
           className="text-center mb-4 md:mb-5"
         />
       </div>

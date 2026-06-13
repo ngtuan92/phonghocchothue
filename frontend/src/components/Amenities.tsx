@@ -74,7 +74,7 @@ const Amenities: React.FC = () => {
   };
 
   return (
-    <section id="amenities" className="mt-10 sm:mt-36 lg:mt-36 mb-10 sm:mb-20 overflow-hidden">
+    <section id="amenities" className="mt-[54px] sm:mt-36 lg:mt-36 mb-[44px] sm:mb-20 overflow-hidden">
       <div className="container mx-auto main-container">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-20 items-center">
 
@@ -83,8 +83,8 @@ const Amenities: React.FC = () => {
               <div className="describe-h2-wrapper">
                 <RichTextRenderer
                   html={amenitiesHeading}
+                  configKey="amenities-content"
                   className="text-[#563c39] mx-auto md:mx-0"
-                 
                 />
               </div>
 
@@ -94,7 +94,7 @@ const Amenities: React.FC = () => {
 
               {amenitiesDescription && (
                 <div className="prose prose-sm sm:prose-lg max-w-3xl describe-description-wrapper mx-auto md:mx-0">
-                  <RichTextRenderer html={amenitiesDescription} className="text-center md:text-left" />
+                  <RichTextRenderer html={amenitiesDescription} configKey="amenities-description" className="text-center md:text-left" />
                 </div>
               )}
             </div>
