@@ -7,6 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useConfigContentByKey from "../hooks/useConfigContentByKey";
+import RichTextRenderer from "./RichTextRenderer";
 
 const Footer = () => {
   const bgFt = useConfigContentByKey("color-bg-footer");
@@ -22,9 +23,9 @@ const Footer = () => {
       style={{ backgroundColor: bgFt }}
     >
       <div className=" grid grid-cols-1 md:grid-cols-3 gap-10 lg:mx-14 place-items-center place-content-center">
-        <p className=" text-2xl sm:text-3xl title-footer-custom max-sm:mt-4">
-          {nameBrand}
-        </p>
+        <div className=" text-2xl sm:text-3xl title-footer-custom max-sm:mt-4">
+          <RichTextRenderer html={nameBrand} />
+        </div>
         <div className="">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 underline">
             LIÊN HỆ
@@ -33,19 +34,18 @@ const Footer = () => {
             <div className="flex items-center my-3 ">
               <FontAwesomeIcon
                 icon={faLocationDot}
-                className="mr-4 text-center"
+                className="mr-4 text-center flex-shrink-0"
               />
-              <div>
-                {address.split(",").map((line: any, index: number) => (
-                  <p key={index}>{line}</p>
-                ))} 
-              </div>
+              <RichTextRenderer html={address} className="flex-1" />
             </div>
           )}
           {phone && (
             <div className="flex items-center mb-2">
-              <FontAwesomeIcon icon={faPhone} className="mr-3 text-center" />
-              <p>Phone: {phone}</p>
+              <FontAwesomeIcon icon={faPhone} className="mr-3 text-center flex-shrink-0" />
+              <div className="flex items-center gap-1">
+                <span>Phone: </span>
+                <RichTextRenderer html={phone} as="span" className="inline-rich-text" />
+              </div>
             </div>
           )}
           {email && (

@@ -292,12 +292,13 @@ export default function BlogForm({ data, onSave, onCancel }) {
           <Typography variant="small" className="text-navy-700 font-bold uppercase tracking-wider text-[11px] ml-1">
             Nội dung bài viết chi tiết
           </Typography>
-          <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5">
+          <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
             <QuillWrapper
               theme="snow"
               value={formData.content}
               onChange={(val) => setFormData({ ...formData, content: val })}
               className="min-h-[500px]"
+              isSticky={true}
             />
           </div>
         </div>

@@ -529,6 +529,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   onChange={setRoomContent}
                   placeholder="Nhập mô tả chi tiết về phòng..."
                   disableImageWrap={true}
+                  isSticky={true}
                 />
               </div>
             </div>
@@ -689,9 +690,16 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
             box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
             z-index: 100 !important;
           }
-          .product-dialog-quill .ql-toolbar.ql-snow {
+           .product-dialog-quill .ql-toolbar.ql-snow {
             position: relative !important;
             overflow: visible !important;
+          }
+          .product-dialog-quill .quill-wrapper-container.is-sticky .ql-toolbar.ql-snow {
+            position: sticky !important;
+            top: var(--quill-toolbar-top, 0px) !important;
+            z-index: 2010 !important;
+            overflow: visible !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
           }
           .product-dialog-quill .ql-toolbar.ql-snow:has(.ql-expanded) {
             /* Keep it visible and responsive */

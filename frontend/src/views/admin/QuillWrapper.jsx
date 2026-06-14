@@ -235,6 +235,8 @@ const QuillWrapper = forwardRef(({
   onChangeLineHeight,
   onChangeLineHeightMobile,
   disableImageWrap = false,
+  toolbarTop = "0px",
+  isSticky = false,
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -290,6 +292,47 @@ const QuillWrapper = forwardRef(({
         );
       });
       return isDifferent ? list : prev;
+    });
+  }, []);
+
+  const updateSizePickerLabel = useCallback(() => {
+    const quill = editorRef.current?.getEditor();
+    if (!quill || !containerRef.current) return;
+
+    let format = {};
+    try {
+      let selection = quill.getSelection();
+      if (!selection && quill.getLength() > 0) {
+        selection = { index: 0, length: 0 };
+      }
+      format = selection ? quill.getFormat(selection) : {};
+    } catch (e) {}
+
+    const size = format.size;
+    const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+    sizePickers.forEach(picker => {
+      const label = picker.querySelector('.ql-picker-label');
+      if (!label) return;
+
+      const dropdownInput = picker.querySelector('.custom-size-dropdown-input');
+
+      if (size) {
+        const sizeVal = Array.isArray(size) ? size[0] : size;
+        if (typeof sizeVal === 'string') {
+          const cleanSize = sizeVal.replace('px', '');
+          label.setAttribute('data-value', sizeVal);
+          label.setAttribute('data-display-value', cleanSize);
+          if (dropdownInput && document.activeElement !== dropdownInput) {
+            dropdownInput.value = cleanSize;
+          }
+        }
+      } else {
+        label.removeAttribute('data-value');
+        label.removeAttribute('data-display-value');
+        if (dropdownInput && document.activeElement !== dropdownInput) {
+          dropdownInput.value = '';
+        }
+      }
     });
   }, []);
 
@@ -378,35 +421,6 @@ const QuillWrapper = forwardRef(({
       updateCaptions();
     };
 
-    const updateSizePickerLabel = () => {
-      let format = {};
-      try {
-        let selection = quill.getSelection();
-        if (!selection && quill.getLength() > 0) {
-          selection = { index: 0, length: 0 };
-        }
-        format = selection ? quill.getFormat(selection) : {};
-      } catch (e) {
-        // Selection or Quill API not fully ready
-      }
-      const size = format.size;
-      const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
-      sizePickers.forEach(picker => {
-        const label = picker.querySelector('.ql-picker-label');
-        if (!label) return;
-        if (size) {
-          const sizeVal = Array.isArray(size) ? size[0] : size;
-          if (typeof sizeVal === 'string') {
-            label.setAttribute('data-value', sizeVal);
-            label.setAttribute('data-display-value', sizeVal.replace('px', ''));
-          }
-        } else {
-          label.removeAttribute('data-value');
-          label.removeAttribute('data-display-value');
-        }
-      });
-    };
-
     quill.root.addEventListener('scroll', handleUpdate);
     window.addEventListener('resize', handleUpdate);
     
@@ -438,7 +452,7 @@ const QuillWrapper = forwardRef(({
       quill.off('selection-change', updateSizePickerLabel);
       quill.off('text-change', updateSizePickerLabel);
     };
-  }, [isReady, updateCaptions]);
+  }, [isReady, updateCaptions, updateSizePickerLabel]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -817,12 +831,95 @@ const QuillWrapper = forwardRef(({
         };
 
         label.addEventListener('dblclick', handleDblClick);
+
+        // Inject custom size input into the size dropdown options list
+        const optionsContainer = picker.querySelector('.ql-picker-options');
+        if (optionsContainer && !optionsContainer.querySelector('.custom-size-dropdown-wrapper')) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'custom-size-dropdown-wrapper';
+          wrapper.style.order = '-1';
+          wrapper.style.position = 'sticky';
+          wrapper.style.top = '0';
+          wrapper.style.backgroundColor = '#fff';
+          wrapper.style.zIndex = '10';
+          wrapper.style.borderBottom = '1px solid #e2e8f0';
+          wrapper.style.padding = '6px';
+          wrapper.style.boxSizing = 'border-box';
+          wrapper.style.width = '100%';
+
+          wrapper.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
+              <input type="text" placeholder="Nhập cỡ..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; height: 26px; line-height: 26px; color: #333; background: #fff;" />
+              <span class="custom-size-dropdown-apply-btn" style="width: 26px; height: 26px; min-width: 26px; flex-shrink: 0; background: #799f85; color: #fff; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; line-height: 26px; text-align: center; font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s;" title="Áp dụng">✓</span>
+            </div>
+          `;
+
+          const input = wrapper.querySelector('.custom-size-dropdown-input');
+          const applyBtn = wrapper.querySelector('.custom-size-dropdown-apply-btn');
+
+          const stopPropagation = (e) => e.stopPropagation();
+          input.addEventListener('click', stopPropagation);
+          input.addEventListener('mousedown', stopPropagation);
+          input.addEventListener('mouseup', stopPropagation);
+          input.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleApply();
+            }
+          });
+
+          applyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleApply();
+          });
+          applyBtn.addEventListener('mousedown', stopPropagation);
+
+          const handleApply = () => {
+            const quillInstance = editorRef.current?.getEditor();
+            if (!quillInstance) return;
+
+            let val = input.value.trim();
+            if (val) {
+              if (/^\d+(\.\d+)?$/.test(val)) {
+                val = `${val}px`;
+              }
+
+              const savedSel = savedSelectionRef.current;
+              if (savedSel) {
+                quillInstance.focus();
+                quillInstance.setSelection(savedSel.index, savedSel.length);
+              }
+
+              quillInstance.format('size', val);
+              picker.classList.remove('ql-expanded');
+              updateSizePickerLabel();
+            }
+          };
+
+          // Populate initial value in dropdown input if available
+          let currentFormat = {};
+          try {
+            const currentQuill = editorRef.current?.getEditor();
+            if (currentQuill) {
+              const sel = currentQuill.getSelection();
+              currentFormat = sel ? currentQuill.getFormat(sel) : {};
+            }
+          } catch (e) {}
+          if (currentFormat && currentFormat.size) {
+            const cleanSize = typeof currentFormat.size === 'string' ? currentFormat.size.replace('px', '') : '';
+            input.value = cleanSize;
+          }
+
+          optionsContainer.insertBefore(wrapper, optionsContainer.firstChild);
+        }
       });
     };
 
     const interval = setInterval(initSizeInput, 1000);
     return () => clearInterval(interval);
-  }, [isReady]);
+  }, [isReady, updateSizePickerLabel]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ alt: "", title: "", caption: "", width: "", borderRadius: "" });
@@ -1466,7 +1563,13 @@ const QuillWrapper = forwardRef(({
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
-    <div className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}`} ref={containerRef}>
+    <div 
+      className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}`} 
+      ref={containerRef}
+      style={{
+        '--quill-toolbar-top': toolbarTop
+      }}
+    >
       {renderModals()}
       
       {showSpacingPopup && (
@@ -1743,6 +1846,12 @@ const QuillWrapper = forwardRef(({
           z-index: 10 !important;
           overflow: visible !important;
         }
+        .quill-wrapper-container.is-sticky .ql-toolbar.ql-snow {
+          position: sticky !important;
+          top: var(--quill-toolbar-top, 0px) !important;
+          z-index: 2010 !important;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+        }
         .ql-toolbar.ql-snow:focus-within,
         .ql-toolbar.ql-snow:has(.ql-expanded) {
           z-index: 25 !important;
@@ -1814,6 +1923,26 @@ const QuillWrapper = forwardRef(({
         
         .ql-snow .ql-picker.ql-size .ql-picker-label[data-display-value]::before {
           content: attr(data-display-value) !important;
+        }
+
+        .ql-snow .ql-picker.ql-size.ql-expanded .ql-picker-options {
+          width: 160px !important;
+          max-height: 250px !important;
+          overflow-y: auto !important;
+          padding-top: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-options .ql-picker-item {
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        .custom-size-dropdown-apply-btn svg {
+          width: 14px !important;
+          height: 14px !important;
+          float: none !important;
+          display: block !important;
+          margin: 0 !important;
         }
         
         ${Object.entries(SIZE_MAP).map(([label, value]) => `

@@ -9,26 +9,12 @@ import {
   CardBody,
 } from "@material-tailwind/react";
 
-import Slider from "../../components/admin/slider";
-import Other from "../../components/admin/other";
 import FontsManager from "../../components/admin/FontsManager";
 import FontManagement from "../../components/admin/FontManagement";
 
 export default function Config() {
-  const [activeTab, setActiveTab] = React.useState("slider");
+  const [activeTab, setActiveTab] = React.useState("fonts");
   const data = [
-    {
-      label: "Slider",
-      value: "slider",
-      icon: "🖼️",
-      desc: <Slider />,
-    },
-    {
-      label: "Khác",
-      value: "other",
-      icon: "⚙️",
-      desc: <Other />,
-    },
     {
       label: "Font Google",
       value: "fonts",

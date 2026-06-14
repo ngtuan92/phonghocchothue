@@ -298,6 +298,25 @@ export default function CMS() {
       height: auto !important;
       min-height: 35px;
     }
+    .ql-snow .ql-picker.ql-size.ql-expanded .ql-picker-options {
+      width: 160px !important;
+      max-height: 250px !important;
+      overflow-y: auto !important;
+      padding-top: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .ql-snow .ql-picker.ql-size .ql-picker-options .ql-picker-item {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .custom-size-dropdown-apply-btn svg {
+      width: 14px !important;
+      height: 14px !important;
+      float: none !important;
+      display: block !important;
+      margin: 0 !important;
+    }
   `;
 
   useEffect(() => {
@@ -548,7 +567,7 @@ export default function CMS() {
   const saveConfig = async (config) => {
     setSavingKey(config.key);
     const fd = new FormData();
-    if (config.type === "image" && config._file) {
+    if ((config.type === "image" || config.type === "music") && config._file) {
       fd.set("content", config._file);
     } else {
       fd.set("content", config.content ?? "");
@@ -558,6 +577,9 @@ export default function CMS() {
     fd.append("borderRadius", config.borderRadius || "");
     fd.append("lineHeight", config.lineHeight || "");
     fd.append("lineHeightMobile", config.lineHeightMobile || "");
+    if (config.type === "music") {
+      fd.append("musicName", config.musicName || "");
+    }
     try {
       await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd, {
         "Content-Type": "multipart/form-data",
@@ -612,6 +634,13 @@ export default function CMS() {
       // Loại bỏ các cấu hình bo góc khỏi danh sách thẻ riêng biệt vì đã được hiển thị inline trực tiếp ở tiêu đề bộ sưu tập
       if (c.key === "amenities-slider-radius" || c.key === "gallery-slider-radius") {
         return false;
+      }
+
+      if (activeSection === "general") {
+        const allMappedKeys = Object.values(SECTION_KEY_MAP).flat();
+        if (allMappedKeys.includes(c.key)) {
+          return false;
+        }
       }
 
       if (c.section && c.section !== "general" && c.section !== "default") {
@@ -850,6 +879,60 @@ export default function CMS() {
               </div>
             );
           })()}
+        </div>
+      );
+    }
+
+    if (config.type === "music") {
+      return (
+        <div className="flex flex-col gap-6 w-full">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tên bài hát</label>
+              <Input
+                type="text"
+                placeholder="Nhập tên bài hát..."
+                value={config.musicName || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setConfigs((prev) =>
+                    prev.map((c) => (c.key === config.key ? { ...c, musicName: val } : c))
+                  );
+                }}
+                className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700 bg-white"
+                labelProps={{ className: "hidden" }}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">File nhạc (.mp3)</label>
+              <input
+                type="file"
+                accept="audio/mp3,audio/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setConfigs((prev) =>
+                    prev.map((c) => (c.key === config.key ? { ...c, _file: file, content: URL.createObjectURL(file) } : c))
+                  );
+                }}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-lightPrimary file:text-primary hover:file:bg-green-100 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+          {config.content && (
+            <div className="space-y-2 mt-2">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Nghe thử nhạc nền</label>
+              <div className="relative w-full max-w-xl bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-3">
+                <audio
+                  controls
+                  src={config._file ? config.content : `${URL_API}${config.content.replace(/\\/g, "/")}`}
+                  className="w-full h-8"
+                >
+                  <track kind="captions" />
+                </audio>
+              </div>
+            </div>
+          )}
         </div>
       );
     }

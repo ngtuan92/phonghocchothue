@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import classNames from "classnames";
 import { FaPlay, FaPause } from "react-icons/fa";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 
 const getAudioSrc = (pathStr: any) => {
   if (typeof pathStr !== "string") return "";
@@ -64,6 +65,7 @@ const Header = ({ icon }: HeaderProps) => {
   const linkMess = useConfigContentByKey("linkMess");
   const linkYoutube = useConfigContentByKey("linkYoutube");
   const phone = useConfigContentByKey("phone");
+  const cleanPhoneLink = phone ? stripHtmlAndCss(phone).replace(/\s+/g, "") : "";
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -196,7 +198,7 @@ const Header = ({ icon }: HeaderProps) => {
           />
         </a>
         <a
-          href={phone ? `tel:${phone}` : "#"}
+          href={cleanPhoneLink ? `tel:${cleanPhoneLink}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Gọi điện thoại hotline"
