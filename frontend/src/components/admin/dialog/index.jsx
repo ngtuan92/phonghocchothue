@@ -530,6 +530,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   placeholder="Nhập mô tả chi tiết về phòng..."
                   disableImageWrap={true}
                   isSticky={true}
+                  maxHeight="500px"
                 />
               </div>
             </div>

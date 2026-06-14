@@ -297,8 +297,9 @@ export default function BlogForm({ data, onSave, onCancel }) {
               theme="snow"
               value={formData.content}
               onChange={(val) => setFormData({ ...formData, content: val })}
-              className="min-h-[500px]"
+              className="min-h-[400px]"
               isSticky={true}
+              maxHeight="500px"
             />
           </div>
         </div>

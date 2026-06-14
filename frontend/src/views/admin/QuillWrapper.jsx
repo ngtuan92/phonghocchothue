@@ -237,6 +237,7 @@ const QuillWrapper = forwardRef(({
   disableImageWrap = false,
   toolbarTop = "0px",
   isSticky = false,
+  maxHeight = "none",
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -1567,7 +1568,8 @@ const QuillWrapper = forwardRef(({
       className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}`} 
       ref={containerRef}
       style={{
-        '--quill-toolbar-top': toolbarTop
+        '--quill-toolbar-top': toolbarTop,
+        '--quill-editor-max-height': maxHeight
       }}
     >
       {renderModals()}
@@ -1721,6 +1723,8 @@ const QuillWrapper = forwardRef(({
           line-height: 1.6;
           padding: 24px !important;
           min-height: inherit;
+          max-height: var(--quill-editor-max-height, none) !important;
+          overflow-y: auto !important;
         }
         /* Giữ màu highlight selection khi editor mất focus tạm thời (click toolbar) */
         .ql-editor::selection,
