@@ -234,6 +234,7 @@ const QuillWrapper = forwardRef(({
   lineHeightMobile,
   onChangeLineHeight,
   onChangeLineHeightMobile,
+  disableImageWrap = false,
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -932,6 +933,7 @@ const QuillWrapper = forwardRef(({
     };
 
     const handleContainerDblClick = (ev) => {
+      if (disableImageWrap) return; // Do not open image info pop-up on double click for rooms!
       const img = ev.target.closest && ev.target.closest('img');
       const quill = editorRef.current?.getEditor();
       if (!quill || !img || !quill.root.contains(img)) return;
@@ -966,7 +968,7 @@ const QuillWrapper = forwardRef(({
       container.removeEventListener('click', handleContainerClick);
       container.removeEventListener('dblclick', handleContainerDblClick);
     };
-  }, [isReady]);
+  }, [isReady, disableImageWrap]);
 
   const fileInputRef = useRef(null);
 
@@ -976,7 +978,7 @@ const QuillWrapper = forwardRef(({
     if (mods.toolbar && Array.isArray(mods.toolbar)) {
       const imageGroup = mods.toolbar.find(group => Array.isArray(group) && group.includes('image'));
       if (imageGroup) {
-        if (!imageGroup.includes('image-settings')) {
+        if (!disableImageWrap && !imageGroup.includes('image-settings')) {
           imageGroup.push('image-settings');
         }
         if (!imageGroup.includes('line-height')) {
@@ -1134,7 +1136,7 @@ const QuillWrapper = forwardRef(({
       }
     };
     return mods;
-  }, [modules]);
+  }, [modules, disableImageWrap]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -1151,16 +1153,29 @@ const QuillWrapper = forwardRef(({
       const result = await response.json();
       if (result.uploaded) {
         const range = quill.getSelection(true);
-        openAltModal({ alt: "", title: "", caption: "", borderRadius: "" }, (newData) => {
+        const imageSrc = result.url.startsWith("/") ? `${URL_API}${result.url.substring(1)}` : result.url;
+        if (disableImageWrap) {
           quill.insertEmbed(range.index, "image", {
-            src: result.url.startsWith("/") ? `${URL_API}${result.url.substring(1)}` : result.url,
-            alt: newData.alt,
-            title: newData.title,
-            caption: newData.caption,
-            borderRadius: newData.borderRadius
+            src: imageSrc,
+            alt: "",
+            title: "",
+            caption: "",
+            borderRadius: "",
+            wrap: "none"
           }, "user");
           quill.setSelection(range.index + 1);
-        });
+        } else {
+          openAltModal({ alt: "", title: "", caption: "", borderRadius: "" }, (newData) => {
+            quill.insertEmbed(range.index, "image", {
+              src: imageSrc,
+              alt: newData.alt,
+              title: newData.title,
+              caption: newData.caption,
+              borderRadius: newData.borderRadius
+            }, "user");
+            quill.setSelection(range.index + 1);
+          });
+        }
       } else {
         showAlert("Lỗi tải ảnh");
       }
@@ -1266,11 +1281,20 @@ const QuillWrapper = forwardRef(({
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
 
+    // Directly set DOM attribute to ensure visual style updates immediately
+    img.setAttribute('data-wrap', mode || 'none');
+
     // Apply wrap style via the blot
     const blot = Quill.find(img);
     if (blot) {
-      const index = quill.getIndex(blot);
-      quill.formatText(index, 1, 'wrap', mode, 'user');
+      if (typeof blot.format === 'function') {
+        blot.format('wrap', mode);
+      } else {
+        const index = quill.getIndex(blot);
+        quill.formatText(index, 1, 'wrap', mode, 'user');
+      }
+      quill.update('user');
+    } else {
       quill.update('user');
     }
     setImageWrapMode(mode);
@@ -1442,7 +1466,7 @@ const QuillWrapper = forwardRef(({
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
-    <div className="quill-wrapper-container relative" ref={containerRef}>
+    <div className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}`} ref={containerRef}>
       {renderModals()}
       
       {showSpacingPopup && (
@@ -1942,6 +1966,12 @@ const QuillWrapper = forwardRef(({
           -webkit-line-clamp: 2 !important;
           -webkit-box-orient: vertical !important;
         }
+        .quill-wrapper-container.disable-image-wrap .ql-editor img {
+          display: block !important;
+          margin-left: 0 !important;
+          margin-right: auto !important;
+          float: none !important;
+        }
       `}} />
 
       {resizerRect && (
@@ -1963,47 +1993,51 @@ const QuillWrapper = forwardRef(({
         >
           {/* Text Wrapping Toolbar */}
           <div className="wrap-toolbar" onMouseDown={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className={`wrap-btn${imageWrapMode === 'left' ? ' active' : ''}`}
-              title="Chữ bao quanh - Trái"
-              onClick={(e) => { e.stopPropagation(); handleImageWrap('left'); }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                <line x1="14" y1="4" x2="21" y2="4"/>
-                <line x1="14" y1="8" x2="21" y2="8"/>
-                <line x1="3" y1="14" x2="21" y2="14"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={`wrap-btn${imageWrapMode === 'none' ? ' active' : ''}`}
-              title="Căn giữa - Không bao quanh"
-              onClick={(e) => { e.stopPropagation(); handleImageWrap('none'); }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="3" y1="4" x2="21" y2="4"/>
-                <rect x="7" y="8" width="10" height="7" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                <line x1="3" y1="19" x2="21" y2="19"/>
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={`wrap-btn${imageWrapMode === 'right' ? ' active' : ''}`}
-              title="Chữ bao quanh - Phải"
-              onClick={(e) => { e.stopPropagation(); handleImageWrap('right'); }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                <line x1="3" y1="4" x2="10" y2="4"/>
-                <line x1="3" y1="8" x2="10" y2="8"/>
-                <line x1="3" y1="14" x2="21" y2="14"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
-            <div className="wrap-divider"></div>
+            {!disableImageWrap && (
+              <>
+                <button
+                  type="button"
+                  className={`wrap-btn${imageWrapMode === 'left' ? ' active' : ''}`}
+                  title="Chữ bao quanh - Trái"
+                  onClick={(e) => { e.stopPropagation(); handleImageWrap('left'); }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+                    <line x1="14" y1="4" x2="21" y2="4"/>
+                    <line x1="14" y1="8" x2="21" y2="8"/>
+                    <line x1="3" y1="14" x2="21" y2="14"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className={`wrap-btn${imageWrapMode === 'none' ? ' active' : ''}`}
+                  title="Căn giữa - Không bao quanh"
+                  onClick={(e) => { e.stopPropagation(); handleImageWrap('none'); }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="3" y1="4" x2="21" y2="4"/>
+                    <rect x="7" y="8" width="10" height="7" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+                    <line x1="3" y1="19" x2="21" y2="19"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className={`wrap-btn${imageWrapMode === 'right' ? ' active' : ''}`}
+                  title="Chữ bao quanh - Phải"
+                  onClick={(e) => { e.stopPropagation(); handleImageWrap('right'); }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+                    <line x1="3" y1="4" x2="10" y2="4"/>
+                    <line x1="3" y1="8" x2="10" y2="8"/>
+                    <line x1="3" y1="14" x2="21" y2="14"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                  </svg>
+                </button>
+                <div className="wrap-divider"></div>
+              </>
+            )}
             <button
               type="button"
               className="wrap-btn delete-btn"

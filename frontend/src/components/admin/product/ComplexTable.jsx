@@ -301,6 +301,7 @@ export default function ComplexTable() {
           <button
             onClick={() => handleOpen(null)}
             className="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            suppressHydrationWarning={true}
           >
             Thêm phòng
           </button>
@@ -311,10 +312,12 @@ export default function ComplexTable() {
               <input
                 className="bg-white w-full pr-11 h-10 pl-3 py-2 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md"
                 placeholder="Search for invoice..."
+                suppressHydrationWarning={true}
               />
               <button
                 className="absolute h-8 w-8 right-1 top-1 my-auto px-2 flex items-center bg-white rounded "
                 type="button"
+                suppressHydrationWarning={true}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

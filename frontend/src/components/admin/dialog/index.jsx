@@ -271,6 +271,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-name-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomNameRich}
+                    disableImageWrap={true}
                     onChange={(val) => {
                       setRoomNameRich(val);
                       
@@ -341,6 +342,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomPrice}
                     onChange={setRoomPrice}
                     placeholder="Ví dụ: 80.000 đ/h..."
+                    disableImageWrap={true}
                   />
                 </div>
               </div>
@@ -357,6 +359,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomEquipment}
                     onChange={setRoomEquipment}
                     placeholder="Ví dụ: Máy chiếu, điều hòa, bảng trắng..."
+                    disableImageWrap={true}
                   />
                 </div>
               </div>
@@ -373,6 +376,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomContains}
                     onChange={setRoomContains}
                     placeholder="Ví dụ: Sức chứa 45 chỗ ngồi..."
+                    disableImageWrap={true}
                   />
                 </div>
               </div>
@@ -508,6 +512,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   value={roomDescription}
                   onChange={setRoomDescription}
                   placeholder="Nhập mô tả ngắn về phòng..."
+                  disableImageWrap={true}
                 />
               </div>
             </div>
@@ -523,6 +528,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   value={roomContent}
                   onChange={setRoomContent}
                   placeholder="Nhập mô tả chi tiết về phòng..."
+                  disableImageWrap={true}
                 />
               </div>
             </div>

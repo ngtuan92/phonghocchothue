@@ -18,7 +18,6 @@ import { formatNumber } from "@/utils/helpers";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ProductCard from "@/components/ProductCard";
-import parse from "html-react-parser";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import useSEO from "@/hooks/useSEO";
 import { stripHtmlAndCss } from "@/utils/seoHelpers";
@@ -847,8 +846,20 @@ export default function DetailPage() {
                   .ckeditor-content table {
                     font-size: 0.85rem !important;
                   }
-                  .ckeditor-content img {
+                   .ckeditor-content img {
                     height: auto !important;
+                  }
+                  .room-detail-content img {
+                    display: block !important;
+                    margin-left: 0 !important;
+                    margin-right: auto !important;
+                    float: none !important;
+                  }
+                  .room-detail-content .image-wrapper {
+                    margin-left: 0 !important;
+                    margin-right: auto !important;
+                    display: block !important;
+                    float: none !important;
                   }
                 }
               `
@@ -861,82 +872,7 @@ export default function DetailPage() {
                 letterSpacing: "0.01em",
               }}
             >
-              {parse(processedContent, {
-                replace: (domNode: any) => {
-                  if (!domNode || typeof domNode !== "object" || !domNode.name) return domNode;
-
-                  // Xử lý thẻ img để đảm bảo responsive
-                  if (domNode.name === "img" && domNode.attribs) {
-                    const { width, height, style, alt, class: className, src } = domNode.attribs;
-
-                    // Parse existing styles if any
-                    const existingStyles: React.CSSProperties = {};
-                    if (style) {
-                      style.split(';').forEach((s: any) => {
-                        const [key, value] = s.split(':');
-                        if (key && value) {
-                          const camelKey = key.trim().replace(/-([a-z])/g, (g: any) => g[1].toUpperCase());
-                          (existingStyles as any)[camelKey] = value.trim();
-                        }
-                      });
-                    }
-
-                    // Map data-border-radius to borderRadius if not already present
-                    const borderRadiusAttr = domNode.attribs["data-border-radius"];
-                    if (borderRadiusAttr && !existingStyles.borderRadius) {
-                      existingStyles.borderRadius = borderRadiusAttr;
-                    }
-
-                    return (
-                      <img
-                        key={src}
-                        src={src}
-                        alt={alt || "Content image"}
-                        className={className}
-                        style={{
-                          maxWidth: "100%",
-                          display: "block",
-                          width: width ? `${width}${width.includes('%') ? '' : 'px'}` : (existingStyles.width || "100%"),
-                          height: height ? `${height}${height.includes('%') ? '' : 'px'}` : (existingStyles.height || "auto"),
-                          ...existingStyles,
-                        }}
-                        loading="lazy"
-                      />
-                    );
-                  }
-
-                  // Xử lý thẻ iframe (video, embed) để responsive
-                  if (domNode.name === "iframe" && domNode.attribs) {
-                    return (
-                      <div
-                        key={domNode.attribs.src}
-                        className="iframe-wrapper"
-                        style={{
-                          position: "relative",
-                          paddingBottom: "56.25%",
-                          height: 0,
-                          overflow: "hidden",
-                          margin: "1rem 0"
-                        }}
-                      >
-                        <iframe
-                          src={domNode.attribs.src}
-                          className={domNode.attribs.class}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                          }}
-                          allowFullScreen
-                        />
-                      </div>
-                    );
-                  }
-                  return domNode;
-                },
-              })}
+              <RichTextRenderer html={processedContent} className="room-detail-content" />
             </div>
           </>
           <div id="room" className="mb-[60px] sm:mb-0">
