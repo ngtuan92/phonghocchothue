@@ -14,6 +14,7 @@
 @media (min-width: 1024px) {
   .main-container {
     padding-left: 60px !important;
+    padding-right: 60px !important;
   }
 }
 
@@ -311,6 +312,13 @@
   font-size: clamp(15rem, 19vw, 26rem) !important;
 }
 
+.title-bg-text,
+.title-bg-text * {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 .title-bg-text strong,
 .title-bg-text b {
   font-weight: 400 !important;
@@ -336,7 +344,15 @@
   z-index: 10;
   text-shadow: 0 4px 12px rgba(86, 60, 57, 0.08);
   line-height: 1.4;
-  margin-left: 0.08rem !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.title-main-text,
+.title-main-text * {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 .title-sub-text {
@@ -344,13 +360,18 @@
   letter-spacing: 0.5em;
   font-weight: 300;
   color: #563c39;
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  padding-left: 0.5em !important;
+  padding-right: 0 !important;
 }
 
 @media (min-width: 768px) {
   .title-sub-text {
     letter-spacing: 0.4em !important;
-    padding-left: calc(1rem + 1em) !important;
-    padding-right: 1rem !important;
+    padding-left: 0.4em !important;
+    padding-right: 0 !important;
   }
 }
 
@@ -372,6 +393,7 @@
 .rich-text-renderer {
   width: 100%;
   overflow: visible;
+  text-align: center;
 }
 
 .rich-text-renderer img {
@@ -1099,7 +1121,7 @@
     white-space: nowrap !important;
     letter-spacing: -0.05em !important;
     font-family: 'Bebas Neue', sans-serif !important;
-    transform: scaleY(1.25) !important;
+    transform: scaleY(1.25) translateX(-4px) !important;
     -webkit-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
   }

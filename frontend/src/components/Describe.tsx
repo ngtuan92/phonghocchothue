@@ -22,9 +22,48 @@ const cleanWatermarkHtml = (html: string | undefined) => {
     cleaned = cleaned
         .replace(/<p[^>]*>/gi, "")
         .replace(/<\/p>/gi, "");
+    cleaned = cleaned.replace(/style="([^"]*)"/gi, (match, styleContent) => {
+        let cleanStyles = styleContent
+            .split(";")
+            .filter((style: string) => {
+                let s = style.trim().toLowerCase();
+                return !s.startsWith("text-align");
+            })
+            .join(";");
+        return cleanStyles.trim() ? `style="${cleanStyles}"` : "";
+    });
     cleaned = cleaned
         .replace(/>(&nbsp;|\s)+/gi, ">")
         .replace(/(&nbsp;|\s)+</gi, "<");
+    return cleaned.trim();
+};
+
+const cleanHeadingHtml = (html: string | undefined) => {
+    if (!html) return "";
+    let cleaned = html.replace(/\u00a0/g, " ");
+    cleaned = cleaned.replace(/style="([^"]*)"/gi, (match, styleContent) => {
+        let cleanStyles = styleContent
+            .split(";")
+            .filter((style: string) => {
+                let s = style.trim().toLowerCase();
+                return !(s.startsWith("text-align") || s.startsWith("margin") || s.startsWith("padding"));
+            })
+            .join(";");
+        return cleanStyles.trim() ? `style="${cleanStyles}"` : "";
+    });
+    cleaned = cleaned.replace(/style='([^']*)'/gi, (match, styleContent) => {
+        let cleanStyles = styleContent
+            .split(";")
+            .filter((style: string) => {
+                let s = style.trim().toLowerCase();
+                return !(s.startsWith("text-align") || s.startsWith("margin") || s.startsWith("padding"));
+            })
+            .join(";");
+        return cleanStyles.trim() ? `style='${cleanStyles}'` : "";
+    });
+    cleaned = cleaned
+        .replace(/<p>&nbsp;<\/p>/gi, "")
+        .replace(/<p>\s*<\/p>/gi, "");
     return cleaned.trim();
 };
 
@@ -108,26 +147,26 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
-                            <div className="absolute -top-16 -bottom-16 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-hidden">
+                            <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"
-                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
+                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center transform -translate-x-[15px] md:-translate-x-[10px] sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
                                 />
                             </div>
 
-                            <div className="relative z-10">
+                            <div className="relative z-10 w-full flex justify-center">
                                 <RichTextRenderer
-                                    html={replaceTagName(describeHeading, "div")}
+                                    html={cleanHeadingHtml(replaceTagName(describeHeading, "div"))}
                                     configKey="describe-heading"
-                                    className="title-main-text text-center"
+                                    className="title-main-text text-center mx-auto w-max transform -translate-x-[13px] md:-translate-x-[8px]"
                                 />
                             </div>
                         </div>
 
                         <div className="w-full text-center mb-2 md:mb-2 lg:mb-3 md:mt-7 lg:mt-10 relative z-10">
                             <h1
-                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
+                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center transform translate-x-[40px] md:translate-x-[25px]"
                                 dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
                             />
                         </div>
@@ -148,11 +187,11 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pb-10">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-[20px] pb-[76px]">
                     <div className="relative w-full flex flex-col items-center">
                         {activeMobileFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[40px] bottom-[-20px] left-1/2 -translate-x-1/2 w-[calc(100%+2.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none"
+                                className="absolute z-[-1] top-[40px] bottom-[-56px] left-1/2 -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
@@ -175,7 +214,7 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-0.5 watermark-container-wrapper">
-                            <div className="absolute -top-12 -bottom-12 left-0 right-0 flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
+                            <div className="absolute -top-12 -bottom-12 left-0 right-0 mx-auto w-max flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"
@@ -183,18 +222,18 @@ const Describe = () => {
                                 />
                             </div>
 
-                            <div className="relative z-10 -translate-y-1">
+                            <div className="relative z-10 w-full flex justify-center -translate-y-1">
                                 <RichTextRenderer
-                                    html={replaceTagName(describeHeading, "div")}
+                                    html={cleanHeadingHtml(replaceTagName(describeHeading, "div"))}
                                     configKey="describe-heading"
-                                    className="title-main-text text-center"
+                                    className="title-main-text text-center mx-auto w-max transform translate-x-[1px]"
                                 />
                             </div>
                         </div>
 
-                        <div className="w-full text-center mb-0 relative z-10">
+                        <div className="w-full text-center mt-[14px] mb-0 relative z-10">
                             <p
-                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] pt-1.5 pb-[3px] px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center"
+                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] pt-1.5 pb-[3px] px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center transform translate-x-[1px] !pl-0 !pr-0"
                                 dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
                             />
                         </div>
