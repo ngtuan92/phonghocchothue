@@ -73,4 +73,15 @@ if (process.env.NODE_ENV !== 'production') {
   redis.flushall().then(() => console.log('Cache cleared on startup'));
 }
 
+if (process.env.SIMULATE_DELAY === 'true') {
+  app.use((req, res, next) => {
+    const delay = Math.random() * 2000 + 3000; 
+    console.log(`[DELAY] ${req.method} ${req.originalUrl} - delaying ${delay.toFixed(0)}ms`);
+    setTimeout(next, delay);
+  });
+}
+
 app.listen(port, () => {});
+// app.listen(port, '0.0.0.0', () => {
+//   console.log(`Server listening on port ${port}`);
+// });

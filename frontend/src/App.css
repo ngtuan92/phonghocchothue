@@ -1121,7 +1121,7 @@
     white-space: nowrap !important;
     letter-spacing: -0.05em !important;
     font-family: 'Bebas Neue', sans-serif !important;
-    transform: scaleY(1.25) translateX(-4px) !important;
+    transform: scaleY(1.25) !important;
     -webkit-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
   }
