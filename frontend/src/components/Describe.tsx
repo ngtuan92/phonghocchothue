@@ -27,7 +27,11 @@ const cleanWatermarkHtml = (html: string | undefined) => {
             .split(";")
             .filter((style: string) => {
                 let s = style.trim().toLowerCase();
-                return !s.startsWith("text-align");
+                return !(s.startsWith("text-align") || 
+                         s.startsWith("padding") || 
+                         s.startsWith("margin") || 
+                         s.startsWith("line-height") ||
+                         s.startsWith("letter-spacing"));
             })
             .join(";");
         return cleanStyles.trim() ? `style="${cleanStyles}"` : "";
@@ -214,7 +218,7 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-0.5 watermark-container-wrapper">
-                            <div className="absolute -top-12 -bottom-12 left-0 right-0 mx-auto w-max flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
+                            <div className="absolute -top-12 -bottom-12 left-0 right-0 w-full flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"
