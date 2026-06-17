@@ -24,7 +24,7 @@ const Footer = () => {
     >
       <div className=" grid grid-cols-1 md:grid-cols-3 gap-10 lg:mx-14 place-items-center place-content-center">
         <div className=" text-2xl sm:text-3xl title-footer-custom max-sm:mt-4">
-          <RichTextRenderer html={nameBrand} />
+          <RichTextRenderer html={nameBrand} configKey="nameBrand" />
         </div>
         <div className="">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 underline">
@@ -36,7 +36,7 @@ const Footer = () => {
                 icon={faLocationDot}
                 className="mr-4 text-center flex-shrink-0"
               />
-              <RichTextRenderer html={address} className="flex-1" />
+              <RichTextRenderer html={address} configKey="address" className="flex-1 !text-left" />
             </div>
           )}
           {phone && (
@@ -44,7 +44,7 @@ const Footer = () => {
               <FontAwesomeIcon icon={faPhone} className="mr-3 text-center flex-shrink-0" />
               <div className="flex items-center gap-1">
                 <span>Phone: </span>
-                <RichTextRenderer html={phone} as="span" className="inline-rich-text" />
+                <RichTextRenderer html={phone} configKey="phone" as="span" className="inline-rich-text" />
               </div>
             </div>
           )}

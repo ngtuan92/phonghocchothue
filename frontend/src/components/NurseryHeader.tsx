@@ -26,7 +26,7 @@ const NurseryHeader = () => {
       <div className="h-full bg-black bg-opacity-20 relative">
         {nurseryTitle && (
           <span className=" absolute -translate-x-4/5 ml-[20px] -bottom-0 sm:ml-10 sm:bottom-10 mr-4 text-white mb-4 w-[80%] sm:w-1/2 text-sm sm:text-[25px] !font-normal my-class-font">
-            <RichTextRenderer html={nurseryTitle} as="span" className="inline-rich-text" />
+            <RichTextRenderer html={nurseryTitle} configKey="nurseryTitle" as="span" className="inline-rich-text" />
           </span>
         )}
       </div>
