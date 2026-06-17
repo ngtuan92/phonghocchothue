@@ -201,7 +201,7 @@ const Describe = () => {
                                 <img
                                     src={buildUrl(activeMobileFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100"
+                                    className="w-full h-full object-contain opacity-100"
                                     style={{ borderRadius: activeMobileFrameRadius }}
                                 />
                             </div>
