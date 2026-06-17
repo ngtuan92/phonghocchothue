@@ -271,7 +271,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-name-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomNameRich}
-                    disableImageWrap={true}
                     onChange={(val) => {
                       setRoomNameRich(val);
                       
@@ -528,7 +527,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   value={roomContent}
                   onChange={setRoomContent}
                   placeholder="Nhập mô tả chi tiết về phòng..."
-                  disableImageWrap={true}
                   isSticky={true}
                   maxHeight="500px"
                 />
