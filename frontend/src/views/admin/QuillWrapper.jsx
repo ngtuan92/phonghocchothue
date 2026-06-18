@@ -498,7 +498,7 @@ const QuillWrapper = forwardRef(({
             });
           };
           
-          picker.insertBefore(wrapper, picker.firstChild);
+          picker.appendChild(wrapper);
         }
       });
     };
@@ -913,7 +913,7 @@ const QuillWrapper = forwardRef(({
             input.value = cleanSize;
           }
 
-          optionsContainer.insertBefore(wrapper, optionsContainer.firstChild);
+          optionsContainer.appendChild(wrapper);
         }
       });
     };
