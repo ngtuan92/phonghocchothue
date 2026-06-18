@@ -676,6 +676,12 @@
   .title-product-detail-rich.rich-text-renderer .product-title-heading * {
     font-size: 22px !important;
   }
+}
+
+.title-product-detail-rich.rich-text-renderer,
+.title-product-detail-rich.rich-text-renderer * {
+  text-align: left !important;
+}
 
 
 
@@ -695,7 +701,6 @@
     margin: 0 !important;
     align-self: center !important;
   }
-}
 
 @media (max-width: 767px) {
   .blog-content p {
