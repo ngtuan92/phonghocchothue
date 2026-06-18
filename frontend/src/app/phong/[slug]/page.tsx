@@ -652,14 +652,14 @@ export default function DetailPage() {
             </div>
           </Modal>
           {/* Header section */}
-          <div className="flex flex-col lg:flex-row gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16" id="#">
+          <div className="flex flex-col lg:flex-row gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16 items-start" id="#">
             <div className="flex-1 relative">
               <CarouselWithThumb
                 items={productData.product.images}
                 avatar={productData.product.image}
               />
             </div>
-            <div className="flex-1 p-4 rounded-lg text-left">
+            <div className="flex-1 rounded-lg text-left lg:pl-4">
               <div className="title-product-detail mb-4">
                 {productData.product.name_rich ? (
                   <RichTextRenderer
