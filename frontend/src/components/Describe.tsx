@@ -27,11 +27,11 @@ const cleanWatermarkHtml = (html: string | undefined) => {
             .split(";")
             .filter((style: string) => {
                 let s = style.trim().toLowerCase();
-                return !(s.startsWith("text-align") || 
-                         s.startsWith("padding") || 
-                         s.startsWith("margin") || 
-                         s.startsWith("line-height") ||
-                         s.startsWith("letter-spacing"));
+                return !(s.startsWith("text-align") ||
+                    s.startsWith("padding") ||
+                    s.startsWith("margin") ||
+                    s.startsWith("line-height") ||
+                    s.startsWith("letter-spacing"));
             })
             .join(";");
         return cleanStyles.trim() ? `style="${cleanStyles}"` : "";
@@ -81,6 +81,7 @@ const Describe = () => {
     const watermarkText = useConfigContentByKey("describe-bg-text");
     const watermarkHtml = cleanWatermarkHtml(watermarkText) || "HOAHOCTRO";
     const describePhone = useConfigContentByKey("describe-phone");
+    const describeQuoteText = useConfigContentByKey("describe-quote-text");
     const describeFrameImage = useConfigContentByKey("describe-frame-image");
     const describeFrameImageRadius = useConfigContentByKey("describe-frame-image", "borderRadius");
     const frameBorderRadius = describeFrameImageRadius ? `${describeFrameImageRadius}px` : '0px';
@@ -184,8 +185,12 @@ const Describe = () => {
                                 />
                             </span>
                             <div className="flex items-center gap-2">
-                                <span className="text-lg md:text-[24px] lg:text-[26px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
-                                <span className="text-[#563c39] opacity-60 text-lg md:text-xl">♡</span>
+                                <RichTextRenderer
+                                    html={describeQuoteText}
+                                    configKey="describe-quote-text"
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0"
+                                    as="span"
+                                />
                             </div>
                         </div>
                     </div>
@@ -253,8 +258,12 @@ const Describe = () => {
                                 </span>
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">
-                                <span className="text-[11px] title-quote-text italic whitespace-nowrap">Teaching room for rent</span>
-                                <span className="text-[#563c39] opacity-60 text-[10px]">♡</span>
+                                <RichTextRenderer
+                                    html={describeQuoteText}
+                                    configKey="describe-quote-text"
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[11px]"
+                                    as="span"
+                                />
                             </div>
                         </div>
                     </div>

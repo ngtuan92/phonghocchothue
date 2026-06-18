@@ -42,7 +42,7 @@ const SECTIONS = [
 ];
 
 const SECTION_KEY_MAP = {
-  about: ["describe-heading", "describe-bg-text", "describe-phone", "seo-h1-main", "bgTitle", "describe-frame-image", "describe-frame-image-mobile", "textDecription"],
+  about: ["describe-heading", "describe-bg-text", "describe-phone", "describe-quote-text", "seo-h1-main", "bgTitle", "describe-frame-image", "describe-frame-image-mobile", "textDecription"],
   services: ["amenities-content", "amenities-description"],
   gallery: ["describe-h2", "describe-h2-image", "describe-h2-image-mobile", "gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
@@ -55,6 +55,7 @@ const SECTION_KEY_MAP = {
     "sidebar-blog-description"
   ],
 };
+
 
 const KEY_LABEL_MAP = {
   "describe-heading": "Tiêu đề nghệ thuật chính (H1)",
@@ -80,9 +81,11 @@ const KEY_LABEL_MAP = {
   "describe-frame-image": "Khung ảnh nền (sau HOAHOCTRO) (Desktop)",
   "describe-frame-image-mobile": "Khung ảnh nền (sau HOAHOCTRO) (Mobile)",
   "describe-phone": "Số điện thoại phần giới thiệu (Hero)",
+  "describe-quote-text": "Text slogan phần giới thiệu (Teaching room for rent ♡)",
   "amenities-slider-radius": "Bo góc slider tiện ích (px)",
   "gallery-slider-radius": "Bo góc slider không gian (px)",
 };
+
 
 const IMAGE_RECOMMENDATIONS = {
   "logo": "Khuyên dùng: 200x200px (Tỉ lệ 1:1, dạng vuông/tròn)",
@@ -331,7 +334,7 @@ export default function CMS() {
       if (res.ok) {
         const data = await res.json();
         setDynamicFonts(data);
-        
+
         data.forEach(font => {
           if (font.url && font.url.startsWith('http')) {
             if (!document.getElementById(`font-${font.id}`)) {
@@ -392,7 +395,7 @@ export default function CMS() {
               } else {
                 item.style.display = 'none';
               }
-              
+
               if (!item.__closeHandler) {
                 item.addEventListener('click', (e) => {
                   const pickerRoot = item.closest('.ql-picker');
@@ -402,7 +405,7 @@ export default function CMS() {
               }
             });
           };
-          
+
           const styleId = 'quill-picker-flex-fix';
           if (!document.getElementById(styleId)) {
             const style = document.createElement('style');
@@ -416,7 +419,7 @@ export default function CMS() {
             document.head.appendChild(style);
           }
 
-          wrapper.style.order = '-1'; 
+          wrapper.style.order = '-1';
           picker.appendChild(wrapper);
         }
       });
@@ -838,7 +841,7 @@ export default function CMS() {
                 </p>
               )}
             </div>
-            
+
             <div className="max-w-[200px]">
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bo góc (px)</label>
               <Input
@@ -861,9 +864,9 @@ export default function CMS() {
             return (
               <div className="space-y-2 mt-2">
                 <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ảnh xem trước (Khung chuẩn hiển thị thực tế)</label>
-                <div 
+                <div
                   className={`relative group shrink-0 overflow-hidden border border-gray-100 shadow-sm ${previewStyle.wrapperClass}`}
-                  style={{ 
+                  style={{
                     borderRadius: getRadiusStyle(config.borderRadius),
                     aspectRatio: previewStyle.aspectRatio,
                     maxWidth: previewStyle.maxWidth || "100%"
@@ -1060,7 +1063,7 @@ export default function CMS() {
                       <h3 className="text-sm font-bold text-navy-700">Bộ sưu tập hình ảnh không gian phòng học</h3>
                       <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Slider hiển thị tại trang chủ</p>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-4">
                       {gallerySliderRadiusConfig && (
                         <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
@@ -1172,7 +1175,7 @@ export default function CMS() {
                           <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Hiển thị slider tại mục tiện ích</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-wrap items-center gap-4">
                         {amenitiesSliderRadiusConfig && (
                           <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
