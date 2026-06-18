@@ -247,7 +247,7 @@ const Describe = () => {
                             />
                         </div>
 
-                        <div className="w-[calc(100%+1.5rem)] flex flex-row justify-between items-center px-0 gap-1 mt-[-2px] relative z-10">
+                        <div className="w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-[-2px] relative z-10">
                             <div className="flex-shrink-0">
                                 <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
                                     <RichTextRenderer
