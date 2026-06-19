@@ -600,6 +600,7 @@
   line-height: 1.4;
   margin-bottom: 1.0rem;
   font-weight: 400;
+  clear: both !important;
 }
 
 .rich-text-renderer h1:has(+ p),
@@ -789,6 +790,7 @@
     margin-top: 0 !important;
     margin-bottom: 1.0rem !important;
     font-weight: 400 !important;
+    clear: both !important;
   }
   .blog-content h1 { font-size: 1.8rem !important; }
   .blog-content h2 { font-size: 2rem !important; }
