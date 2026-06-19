@@ -1718,13 +1718,55 @@ const QuillWrapper = forwardRef(({
         }
 
         .ql-editor {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Montserrat', sans-serif;
           font-size: 1.05rem;
           line-height: 1.6;
-          padding: 24px !important;
+          color: #323232;
+          padding: 24px var(--site-gutter) !important; /* Matches main-container mobile padding */
           min-height: inherit;
           max-height: var(--quill-editor-max-height, none) !important;
           overflow-y: auto !important;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+          background-color: #ffffff !important;
+          transition: max-width 0.3s ease, padding 0.3s ease !important;
+          width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
+        /* 1:1 responsive content widths matching Details page (W - screen-padding) & main-container padding */
+        @media (max-width: 639px) {
+          .ql-editor {
+            max-width: calc(100vw - 68px) !important;
+            padding: 24px var(--site-gutter) !important;
+          }
+        }
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .ql-editor {
+            max-width: calc(100vw - 140px) !important;
+            padding: 24px var(--site-gutter) !important;
+            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+          }
+        }
+        @media (min-width: 1024px) and (max-width: 1239px) {
+          .ql-editor {
+            max-width: calc(100vw - 140px) !important;
+            padding: 24px 60px !important;
+            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+          }
+        }
+        @media (min-width: 1240px) and (max-width: 1439px) {
+          .ql-editor {
+            max-width: 1100px !important;
+            padding: 24px 60px !important;
+            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+          }
+        }
+        @media (min-width: 1440px) {
+          .ql-editor {
+            max-width: 1100px !important;
+            padding: 24px 80px !important;
+            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+          }
         }
         /* Giữ màu highlight selection khi editor mất focus tạm thời (click toolbar) */
         .ql-editor::selection,
@@ -1738,7 +1780,16 @@ const QuillWrapper = forwardRef(({
           color: inherit !important;
         }
         .ql-editor p {
+          font-family: 'Montserrat', sans-serif;
+          line-height: 1.6;
+          color: #323232;
           margin-bottom: 0.5rem;
+          font-weight: 400;
+          font-size: 1.05rem;
+        }
+        .ql-editor strong {
+          font-weight: 700 !important;
+          color: #563c39 !important;
         }
         .quill-wrapper-container {
           position: relative !important;
@@ -1864,6 +1915,7 @@ const QuillWrapper = forwardRef(({
           border: none !important;
           border-bottom-left-radius: 12px;
           border-bottom-right-radius: 12px;
+          background-color: #f8fafc !important; /* Canvas background behind page */
         }
         .ql-editor img {
           cursor: pointer;
@@ -1955,13 +2007,25 @@ const QuillWrapper = forwardRef(({
             content: '${label}' !important; 
           }
         `).join('\n')}
-        .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 { 
-          line-height: 1.2; 
-          margin-bottom: 0.5rem;
+        .ql-editor h1,
+        .ql-editor h2,
+        .ql-editor h3,
+        .ql-editor h4,
+        .ql-editor h5,
+        .ql-editor h6 {
+          color: #563c39;
+          line-height: 1.4;
+          margin-bottom: 1.0rem;
+          font-weight: 400;
         }
-        .ql-editor h1 { font-size: 2.5rem; }
+        .ql-editor h1:has(+ p),
+        .ql-editor h2:has(+ p),
+        .ql-editor h3:has(+ p) {
+          margin-bottom: 0.5rem !important;
+        }
+        .ql-editor h1 { font-size: 1.8rem; }
         .ql-editor h2 { font-size: 2rem; }
-        .ql-editor h3 { font-size: 1.75rem; }
+        .ql-editor h3 { font-size: 1.5rem; }
         .ql-editor h4 { font-size: 1.5rem; }
         .ql-editor h5 { font-size: 1.25rem; }
         .ql-editor h6 { font-size: 1rem; }
@@ -2042,6 +2106,7 @@ const QuillWrapper = forwardRef(({
           margin-right: 20px !important;
           margin-bottom: 16px !important;
           margin-top: 12px !important;
+          margin-left: 0 !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="right"] {
@@ -2049,6 +2114,7 @@ const QuillWrapper = forwardRef(({
           margin-left: 20px !important;
           margin-bottom: 16px !important;
           margin-top: 12px !important;
+          margin-right: 0 !important;
           display: inline !important;
         }
         .ql-editor img[data-wrap="none"] {
