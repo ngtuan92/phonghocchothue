@@ -300,6 +300,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
               className="min-h-[400px]"
               isSticky={true}
               maxHeight="500px"
+              isBlogEditor={true}
             />
           </div>
         </div>

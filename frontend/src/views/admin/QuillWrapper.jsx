@@ -238,6 +238,7 @@ const QuillWrapper = forwardRef(({
   toolbarTop = "0px",
   isSticky = false,
   maxHeight = "none",
+  isBlogEditor = false,
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -1565,7 +1566,7 @@ const QuillWrapper = forwardRef(({
 
   return (
     <div 
-      className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}`} 
+      className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`} 
       ref={containerRef}
       style={{
         '--quill-toolbar-top': toolbarTop,
@@ -1717,7 +1718,7 @@ const QuillWrapper = forwardRef(({
           white-space: nowrap !important;
         }
 
-        .ql-editor {
+        .quill-wrapper-container.is-blog-editor .ql-editor {
           font-family: 'Montserrat', sans-serif;
           font-size: 1.05rem;
           line-height: 1.6;
@@ -1733,36 +1734,41 @@ const QuillWrapper = forwardRef(({
           margin-left: auto !important;
           margin-right: auto !important;
         }
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor {
+          min-height: inherit;
+          max-height: var(--quill-editor-max-height, none) !important;
+          overflow-y: auto !important;
+        }
         /* 1:1 responsive content widths matching Details page (W - screen-padding) & main-container padding */
         @media (max-width: 639px) {
-          .ql-editor {
+          .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: calc(100vw - 68px) !important;
             padding: 24px var(--site-gutter) !important;
           }
         }
         @media (min-width: 640px) and (max-width: 1023px) {
-          .ql-editor {
+          .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: calc(100vw - 140px) !important;
             padding: 24px var(--site-gutter) !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1024px) and (max-width: 1239px) {
-          .ql-editor {
+          .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: calc(100vw - 140px) !important;
             padding: 24px 60px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1240px) and (max-width: 1439px) {
-          .ql-editor {
+          .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: 1100px !important;
             padding: 24px 60px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1440px) {
-          .ql-editor {
+          .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: 1100px !important;
             padding: 24px 80px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
@@ -1779,7 +1785,7 @@ const QuillWrapper = forwardRef(({
           background-color: #b3d4fc !important;
           color: inherit !important;
         }
-        .ql-editor p {
+        .quill-wrapper-container.is-blog-editor .ql-editor p {
           font-family: 'Montserrat', sans-serif;
           line-height: 1.6;
           color: #323232;
@@ -1787,7 +1793,7 @@ const QuillWrapper = forwardRef(({
           font-weight: 400;
           font-size: 1.05rem;
         }
-        .ql-editor strong {
+        .quill-wrapper-container.is-blog-editor .ql-editor strong {
           font-weight: 700 !important;
           color: #563c39 !important;
         }
@@ -1911,11 +1917,17 @@ const QuillWrapper = forwardRef(({
         .ql-toolbar.ql-snow:has(.ql-expanded) {
           z-index: 25 !important;
         }
-        .ql-container.ql-snow {
+        .quill-wrapper-container.is-blog-editor .ql-container.ql-snow {
           border: none !important;
           border-bottom-left-radius: 12px;
           border-bottom-right-radius: 12px;
           background-color: #f8fafc !important; /* Canvas background behind page */
+        }
+        .quill-wrapper-container:not(.is-blog-editor) .ql-container.ql-snow {
+          border: none !important;
+          border-bottom-left-radius: 12px;
+          border-bottom-right-radius: 12px;
+          background-color: #ffffff !important;
         }
         .ql-editor img {
           cursor: pointer;
@@ -2007,28 +2019,28 @@ const QuillWrapper = forwardRef(({
             content: '${label}' !important; 
           }
         `).join('\n')}
-        .ql-editor h1,
-        .ql-editor h2,
-        .ql-editor h3,
-        .ql-editor h4,
-        .ql-editor h5,
-        .ql-editor h6 {
+        .quill-wrapper-container.is-blog-editor .ql-editor h1,
+        .quill-wrapper-container.is-blog-editor .ql-editor h2,
+        .quill-wrapper-container.is-blog-editor .ql-editor h3,
+        .quill-wrapper-container.is-blog-editor .ql-editor h4,
+        .quill-wrapper-container.is-blog-editor .ql-editor h5,
+        .quill-wrapper-container.is-blog-editor .ql-editor h6 {
           color: #563c39;
           line-height: 1.4;
           margin-bottom: 1.0rem;
           font-weight: 400;
         }
-        .ql-editor h1:has(+ p),
-        .ql-editor h2:has(+ p),
-        .ql-editor h3:has(+ p) {
+        .quill-wrapper-container.is-blog-editor .ql-editor h1:has(+ p),
+        .quill-wrapper-container.is-blog-editor .ql-editor h2:has(+ p),
+        .quill-wrapper-container.is-blog-editor .ql-editor h3:has(+ p) {
           margin-bottom: 0.5rem !important;
         }
-        .ql-editor h1 { font-size: 1.8rem; }
-        .ql-editor h2 { font-size: 2rem; }
-        .ql-editor h3 { font-size: 1.5rem; }
-        .ql-editor h4 { font-size: 1.5rem; }
-        .ql-editor h5 { font-size: 1.25rem; }
-        .ql-editor h6 { font-size: 1rem; }
+        .quill-wrapper-container.is-blog-editor .ql-editor h1 { font-size: 1.8rem; }
+        .quill-wrapper-container.is-blog-editor .ql-editor h2 { font-size: 2rem; }
+        .quill-wrapper-container.is-blog-editor .ql-editor h3 { font-size: 1.5rem; }
+        .quill-wrapper-container.is-blog-editor .ql-editor h4 { font-size: 1.5rem; }
+        .quill-wrapper-container.is-blog-editor .ql-editor h5 { font-size: 1.25rem; }
+        .quill-wrapper-container.is-blog-editor .ql-editor h6 { font-size: 1rem; }
         .resizer-handle {
           position: absolute;
           width: 24px;
