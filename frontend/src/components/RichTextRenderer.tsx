@@ -21,6 +21,7 @@ interface RichTextRendererProps {
   as?: React.ElementType;
   lineHeight?: string;
   lineHeightMobile?: string;
+  preserveNbsp?: boolean;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
@@ -31,6 +32,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   as: Component = "div",
   lineHeight,
   lineHeightMobile,
+  preserveNbsp = false,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -43,7 +45,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         })
       : html;
     
-    let processedHtml = sanitized.replace(/&nbsp;/g, " ");
+    let processedHtml = preserveNbsp ? sanitized : sanitized.replace(/&nbsp;/g, " ");
 
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)\s*<\/\1>/gi, "$3");
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)\s*<\/\1>/gi, "$3");
@@ -128,7 +130,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     });
 
     return processedHtml;
-  }, [html]);
+  }, [html, preserveNbsp]);
 
   const contextLineHeight = useConfigContentByKey(configKey || "", "lineHeight");
   const contextLineHeightMobile = useConfigContentByKey(configKey || "", "lineHeightMobile");

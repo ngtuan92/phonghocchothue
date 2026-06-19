@@ -293,7 +293,7 @@ export default function BlogDetail() {
 
             <article className="blog-content-area mb-20">
               <TableOfContents html={blog.content} />
-              <RichTextRenderer html={blog.content} className="blog-content" />
+              <RichTextRenderer html={blog.content} className="blog-content" preserveNbsp={true} />
             </article>
 
             <div className="flex justify-center">
