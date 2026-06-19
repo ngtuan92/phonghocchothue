@@ -2029,16 +2029,16 @@ const QuillWrapper = forwardRef(({
           line-height: 1.4;
           margin-bottom: 1.0rem;
           font-weight: 400;
-          clear: both !important;
         }
         .ql-editor h1,
-        .ql-editor h2,
-        .ql-editor h3,
-        .ql-editor h4,
-        .ql-editor h5,
-        .ql-editor h6 {
+        .ql-editor h2 {
           clear: both !important;
         }
+        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
+        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2 {
+          clear: none !important;
+        }
+
         .quill-wrapper-container.is-blog-editor .ql-editor h1:has(+ p),
         .quill-wrapper-container.is-blog-editor .ql-editor h2:has(+ p),
         .quill-wrapper-container.is-blog-editor .ql-editor h3:has(+ p) {

@@ -600,7 +600,18 @@
   line-height: 1.4;
   margin-bottom: 1.0rem;
   font-weight: 400;
+}
+
+.rich-text-renderer h1,
+.rich-text-renderer h2 {
   clear: both !important;
+}
+
+.rich-text-renderer .image-wrap-left + h1,
+.rich-text-renderer .image-wrap-left + h2,
+.rich-text-renderer .image-wrap-right + h1,
+.rich-text-renderer .image-wrap-right + h2 {
+  clear: none !important;
 }
 
 .rich-text-renderer h1:has(+ p),
@@ -790,7 +801,18 @@
     margin-top: 0 !important;
     margin-bottom: 1.0rem !important;
     font-weight: 400 !important;
+  }
+
+  .blog-content h1,
+  .blog-content h2 {
     clear: both !important;
+  }
+
+  .blog-content .image-wrap-left + h1,
+  .blog-content .image-wrap-left + h2,
+  .blog-content .image-wrap-right + h1,
+  .blog-content .image-wrap-right + h2 {
+    clear: none !important;
   }
   .blog-content h1 { font-size: 1.8rem !important; }
   .blog-content h2 { font-size: 2rem !important; }

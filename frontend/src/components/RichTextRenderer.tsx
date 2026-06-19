@@ -284,12 +284,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         
         /* Force headings to clear floats so they start below floated images/captions */
         .rich-text-renderer h1,
-        .rich-text-renderer h2,
-        .rich-text-renderer h3,
-        .rich-text-renderer h4,
-        .rich-text-renderer h5,
-        .rich-text-renderer h6 {
+        .rich-text-renderer h2 {
           clear: both !important;
+        }
+        .rich-text-renderer .image-wrap-left + h1,
+        .rich-text-renderer .image-wrap-left + h2,
+        .rich-text-renderer .image-wrap-right + h1,
+        .rich-text-renderer .image-wrap-right + h2 {
+          clear: none !important;
         }
         
         /* Responsive Mobile styles to stack wrapped images nicely */
