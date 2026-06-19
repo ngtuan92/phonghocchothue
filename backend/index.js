@@ -13,10 +13,22 @@ const session = require('express-session')
 const flash = require('connect-flash');
 const cors = require('cors');
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:3000'];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers'],
+  credentials: true
 };
 
 app.use((req, res, next) => {
@@ -75,7 +87,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 if (process.env.SIMULATE_DELAY === 'true') {
   app.use((req, res, next) => {
-    const delay = Math.random() * 2000 + 3000; 
+    const delay = Math.random() * 2000 + 3000;
     console.log(`[DELAY] ${req.method} ${req.originalUrl} - delaying ${delay.toFixed(0)}ms`);
     setTimeout(next, delay);
   });
