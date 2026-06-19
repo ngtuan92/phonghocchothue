@@ -159,6 +159,12 @@ const Header = ({ icon }: HeaderProps) => {
     setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (audioRef.current && homeMusic) {
+      audioRef.current.load();
+    }
+  }, [homeMusic]);
+
   return (
     <header
       className="z-40 fixed left-[47px] right-[47px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[10px] sm:mt-[8px] max-sm:pl-[5px] flex justify-between items-center"

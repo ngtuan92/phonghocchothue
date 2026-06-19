@@ -97,9 +97,9 @@ const IMAGE_RECOMMENDATIONS = {
   "nurseryImg": "Khuyên dùng: 1920x450px hoặc 1920x600px (Ảnh banner rộng)",
   "background": "Khuyên dùng: 1920x1080px (Ảnh nền trang web)",
   "imgContact": "Khuyên dùng: 800x600px (Tỉ lệ 4:3, Ảnh bên cạnh form liên hệ)",
-  "describe-h2-image": "Khuyên dùng: 1100x405px (Khung giải pháp trên Desktop)",
+  "describe-h2-image": "Khuyên dùng: 1100x405px (Tỉ lệ ~ 2.7:1, Khung giải pháp trên Desktop)",
   "describe-h2-image-mobile": "Khuyên dùng: 600x300px (Tỉ lệ 2:1, Khung giải pháp trên Mobile)",
-  "blog-decoration": "Khuyên dùng: 300x100px (Ảnh nhỏ trang trí tiêu đề blog)",
+  "blog-decoration": "Khuyên dùng: 480x100px (Tỉ lệ ~ 4.8:1, Chữ/ảnh trang trí tiêu đề blog)",
 };
 
 const getImagePreviewStyle = (key) => {

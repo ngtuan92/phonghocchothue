@@ -261,7 +261,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
-                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[11px]"
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[11px] hero-slogan-text"
                                     as="span"
                                 />
                             </div>

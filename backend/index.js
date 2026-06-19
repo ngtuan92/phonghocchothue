@@ -13,10 +13,22 @@ const session = require('express-session')
 const flash = require('connect-flash');
 const cors = require('cors');
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:3000'];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers'],
+  credentials: true
 };
 
 app.use((req, res, next) => {
@@ -51,7 +63,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1y',
   immutable: true,
   setHeaders: (res, filePath) => {
-    if (filePath.match(/\.(ttf|woff|woff2|otf)$/)) {
+    if (filePath.match(/\.(ttf|woff|woff2|otf|mp3|wav|ogg|m4a)$/)) {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
@@ -81,7 +93,8 @@ if (process.env.SIMULATE_DELAY === 'true') {
   });
 }
 
-app.listen(port, () => {});
-// app.listen(port, '0.0.0.0', () => {
-//   console.log(`Server listening on port ${port}`);
-// });
+// app.listen(port, () => {});
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server listening on port ${port}`);
+});

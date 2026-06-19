@@ -62,12 +62,12 @@ const Gallery: React.FC = () => {
                 {describeH2Image && (
                   <div
                     className="relative w-full max-w-[1100px] mx-auto hidden md:block overflow-hidden shadow-md border border-[#799f851a] hover:shadow-lg transition-all duration-300"
-                    style={{ borderRadius: imageBorderRadius }}
+                    style={{ borderRadius: imageBorderRadius, aspectRatio: "1100 / 405" }}
                   >
                     <img
                       src={buildUrl(describeH2Image)}
                       alt="Ảnh Giải pháp tiện ích dịch vụ phòng học (Desktop)"
-                      className="w-full h-[405px] object-cover block"
+                      className="absolute inset-0 w-full h-full object-cover block"
                       style={{ borderRadius: imageBorderRadius }}
                     />
                   </div>
@@ -77,12 +77,12 @@ const Gallery: React.FC = () => {
                 {(describeH2ImageMobile || describeH2Image) && (
                   <div
                     className="relative w-full mx-auto block md:hidden overflow-hidden shadow-md border border-[#799f851a] hover:shadow-lg transition-all duration-300"
-                    style={{ borderRadius: mobileImageBorderRadius }}
+                    style={{ borderRadius: mobileImageBorderRadius, aspectRatio: "2 / 1" }}
                   >
                     <img
                       src={buildUrl(describeH2ImageMobile || describeH2Image)}
                       alt="Ảnh Giải pháp tiện ích dịch vụ phòng học (Mobile)"
-                      className="w-full h-[180px] sm:h-[300px] object-cover block"
+                      className="absolute inset-0 w-full h-full object-cover block"
                       style={{ borderRadius: mobileImageBorderRadius }}
                     />
                   </div>

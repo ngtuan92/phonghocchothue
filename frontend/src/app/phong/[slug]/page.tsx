@@ -561,7 +561,7 @@ export default function DetailPage() {
                 alt="logo"
                 width={110}
                 height={120}
-                className="w-[77px] h-[86px] sm:w-[110px] sm:h-[120px] cursor-pointer"
+                className="w-[77px] sm:w-[110px] h-auto object-contain cursor-pointer"
                 sizes="(max-width: 640px) 77px, 110px"
                 quality={85}
                 priority

@@ -51,7 +51,7 @@ const Contact = () => {
     : "";
 
   return (
-    <div className="mt-[60px] mb-6 sm:mt-36 sm:mb-36 w-full py-0 px-6 sm:p-6 sm:pt-0 sm:pb-20 sm:px-20 main-container grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 justify-center justify-items-center">
+    <div className="mt-[60px] mb-6 sm:mt-16 sm:mb-36 w-full py-0 px-6 sm:p-6 sm:pt-0 sm:pb-20 sm:px-20 main-container grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 justify-center justify-items-center">
       {imgUrl && (
         <Image
           className="p-0 sm:p-6 w-full flex justify-center items-center"
