@@ -13,22 +13,10 @@ const session = require('express-session')
 const flash = require('connect-flash');
 const cors = require('cors');
 
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : ['http://localhost:3000'];
-
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
-    }
-  },
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Allow-Headers']
 };
 
 app.use((req, res, next) => {
@@ -93,8 +81,7 @@ if (process.env.SIMULATE_DELAY === 'true') {
   });
 }
 
-// app.listen(port, () => {});
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server listening on port ${port}`);
-});
+app.listen(port, () => {});
+// app.listen(port, '0.0.0.0', () => {
+//   console.log(`Server listening on port ${port}`);
+// });
