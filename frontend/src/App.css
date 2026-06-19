@@ -765,43 +765,7 @@
   }
 }
 
-/* Headings clear floats automatically to prevent new sections wrapping around floated images */
-.blog-content h1,
-.blog-content h2,
-.blog-content h3,
-.blog-content h4,
-.blog-content h5,
-.blog-content h6 {
-  clear: both !important;
-}
 
-/* Exclude the very first heading if it is adjacent to the floated image/wrapper */
-.blog-content .image-wrap-left + h1,
-.blog-content .image-wrap-left + h2,
-.blog-content .image-wrap-left + h3,
-.blog-content .image-wrap-left + h4,
-.blog-content .image-wrap-left + h5,
-.blog-content .image-wrap-left + h6,
-.blog-content .image-wrap-right + h1,
-.blog-content .image-wrap-right + h2,
-.blog-content .image-wrap-right + h3,
-.blog-content .image-wrap-right + h4,
-.blog-content .image-wrap-right + h5,
-.blog-content .image-wrap-right + h6,
-.blog-content img[data-wrap="left"] + h1,
-.blog-content img[data-wrap="left"] + h2,
-.blog-content img[data-wrap="left"] + h3,
-.blog-content img[data-wrap="left"] + h4,
-.blog-content img[data-wrap="left"] + h5,
-.blog-content img[data-wrap="left"] + h6,
-.blog-content img[data-wrap="right"] + h1,
-.blog-content img[data-wrap="right"] + h2,
-.blog-content img[data-wrap="right"] + h3,
-.blog-content img[data-wrap="right"] + h4,
-.blog-content img[data-wrap="right"] + h5,
-.blog-content img[data-wrap="right"] + h6 {
-  clear: none !important;
-}
 
 .rich-text-renderer [style*="font-size: 1rem"],
 .rich-text-renderer [style*="font-size:1rem"] {

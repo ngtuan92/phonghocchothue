@@ -2140,30 +2140,8 @@ const QuillWrapper = forwardRef(({
         .ql-editor img[data-wrap="right"] + br {
           clear: both !important;
         }
-        /* Headings clear floats automatically in editor to prevent new sections wrapping around floated images */
-        .ql-editor h1,
-        .ql-editor h2,
-        .ql-editor h3,
-        .ql-editor h4,
-        .ql-editor h5,
-        .ql-editor h6 {
-          clear: both !important;
-        }
-        /* Exclude the very first heading if it is adjacent to the floated image block */
-        .ql-editor > *:has(img[data-wrap="left"]) + h1,
-        .ql-editor > *:has(img[data-wrap="left"]) + h2,
-        .ql-editor > *:has(img[data-wrap="left"]) + h3,
-        .ql-editor > *:has(img[data-wrap="left"]) + h4,
-        .ql-editor > *:has(img[data-wrap="left"]) + h5,
-        .ql-editor > *:has(img[data-wrap="left"]) + h6,
-        .ql-editor > *:has(img[data-wrap="right"]) + h1,
-        .ql-editor > *:has(img[data-wrap="right"]) + h2,
-        .ql-editor > *:has(img[data-wrap="right"]) + h3,
-        .ql-editor > *:has(img[data-wrap="right"]) + h4,
-        .ql-editor > *:has(img[data-wrap="right"]) + h5,
-        .ql-editor > *:has(img[data-wrap="right"]) + h6 {
-          clear: none !important;
-        }
+
+
         /* Align top edge of text adjacent to floated images in editor */
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) {
           margin: 0 !important;
