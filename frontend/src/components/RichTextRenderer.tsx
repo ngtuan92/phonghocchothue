@@ -222,6 +222,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           margin-bottom: 16px !important;
           margin-top: 12px !important;
           display: inline-block !important;
+          position: relative !important;
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
@@ -229,11 +230,33 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           margin-bottom: 16px !important;
           margin-top: 12px !important;
           display: inline-block !important;
+          position: relative !important;
         }
         .rich-text-renderer .image-wrap-left img,
         .rich-text-renderer .image-wrap-right img {
           display: block !important;
           float: none !important;
+          margin: 0 !important;
+          margin-bottom: 36px !important;
+        }
+        /* Caption in floated wrappers: position absolute to match admin editor */
+        .rich-text-renderer .image-wrap-left .image-caption,
+        .rich-text-renderer .image-wrap-right .image-caption {
+          position: absolute !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          text-align: center !important;
+          font-size: 13px !important;
+          color: #666666 !important;
+          font-style: italic !important;
+          line-height: 1.4 !important;
+          padding: 0 4px !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          display: -webkit-box !important;
+          -webkit-line-clamp: 2 !important;
+          -webkit-box-orient: vertical !important;
           margin: 0 !important;
         }
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
@@ -296,6 +319,18 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             font-size: 12px !important;
             margin-top: 4px !important;
             margin-bottom: 10px !important;
+          }
+          /* On mobile, reset caption back to static (no float, no absolute) */
+          .rich-text-renderer .image-wrap-left .image-caption,
+          .rich-text-renderer .image-wrap-right .image-caption {
+            position: static !important;
+            font-size: 12px !important;
+            margin-top: 4px !important;
+            margin-bottom: 10px !important;
+          }
+          .rich-text-renderer .image-wrap-left img,
+          .rich-text-renderer .image-wrap-right img {
+            margin-bottom: 0 !important;
           }
         }
         
