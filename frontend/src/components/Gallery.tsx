@@ -107,35 +107,31 @@ const Gallery: React.FC = () => {
             </div>
 
             <div className="relative group/gallery w-full md:px-10 lg:px-0 aspect-[3/2] lg:aspect-[1100/491]">
+              {/* Desktop Swiper */}
               <Swiper
                 modules={[Navigation, Pagination, Autoplay, Grid]}
                 grid={{
-                  rows: 1,
+                  rows: 2,
                   fill: "row",
                 }}
                 spaceBetween={20}
-                slidesPerView={1}
-                slidesPerGroup={1}
-                breakpoints={{
-                  1024: {
-                    slidesPerView: 3,
-                    slidesPerGroup: 3,
-                    grid: { rows: 2, fill: "row" },
-                  },
-                }}
+                slidesPerView={3}
+                slidesPerGroup={3}
                 navigation={{
-                  nextEl: ".gallery-next",
-                  prevEl: ".gallery-prev",
+                  nextEl: ".gallery-desktop-next",
+                  prevEl: ".gallery-desktop-prev",
                 }}
                 autoplay={{ delay: 6000, disableOnInteraction: false }}
                 loop={false}
-                className="w-full h-full gallery-swiper bg-transparent"
+                observer={true}
+                observeParents={true}
+                className="w-full h-full gallery-swiper bg-transparent hidden lg:block"
                 style={{ backgroundColor: "transparent" }}
               >
                 {sliderData.map((item: any, index: number) => {
                   const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
                   return (
-                    <SwiperSlide key={index} className="h-full lg:!h-[calc((100%-20px)/2)] bg-transparent" style={{ backgroundColor: "transparent" }}>
+                    <SwiperSlide key={`desktop-${index}`} className="h-full lg:!h-[calc((100%-20px)/2)] bg-transparent" style={{ backgroundColor: "transparent" }}>
                       <div
                         className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
                           hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
@@ -151,7 +147,7 @@ const Gallery: React.FC = () => {
                           alt={`Ảnh không gian ${index + 1}`}
                           fill
                           className="object-cover bg-transparent"
-                          sizes="(max-width: 1024px) 100vw, 33vw"
+                          sizes="33vw"
                           quality={90}
                           style={{ backgroundColor: "transparent" }}
                         />
@@ -161,7 +157,54 @@ const Gallery: React.FC = () => {
                 })}
               </Swiper>
 
-              <div className="gallery-prev swiper-button-prev-custom hidden md:flex !z-20">
+              {/* Mobile/Tablet Swiper */}
+              <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={20}
+                slidesPerView={1}
+                slidesPerGroup={1}
+                navigation={{
+                  nextEl: ".gallery-mobile-next",
+                  prevEl: ".gallery-mobile-prev",
+                }}
+                autoplay={{ delay: 6000, disableOnInteraction: false }}
+                loop={true}
+                observer={true}
+                observeParents={true}
+                className="w-full h-full gallery-swiper bg-transparent block lg:hidden"
+                style={{ backgroundColor: "transparent" }}
+              >
+                {sliderData.map((item: any, index: number) => {
+                  const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
+                  return (
+                    <SwiperSlide key={`mobile-${index}`} className="h-full bg-transparent" style={{ backgroundColor: "transparent" }}>
+                      <div
+                        className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
+                          hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
+                        }`}
+                        style={{
+                          ['--mobile-radius' as any]: mobileImageBorderRadius,
+                          ['--desktop-radius' as any]: galleryRadius,
+                          backgroundColor: "transparent",
+                        }}
+                      >
+                        <Image
+                          src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
+                          alt={`Ảnh không gian ${index + 1}`}
+                          fill
+                          className="object-cover bg-transparent"
+                          sizes="(max-width: 1024px) 100vw"
+                          quality={90}
+                          style={{ backgroundColor: "transparent" }}
+                        />
+                      </div>
+                    </SwiperSlide>
+                  );
+                })}
+              </Swiper>
+
+              {/* Desktop Navigation Buttons */}
+              <div className="gallery-desktop-prev swiper-button-prev-custom hidden lg:flex !z-20">
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/pre-new.jpg"
@@ -170,7 +213,27 @@ const Gallery: React.FC = () => {
                   sizes="50px"
                 />
               </div>
-              <div className="gallery-next swiper-button-next-custom hidden md:flex !z-20">
+              <div className="gallery-desktop-next swiper-button-next-custom hidden lg:flex !z-20">
+                <Image
+                  className="w-full h-full rounded-[50%]"
+                  src="/assets/images/next-new.jpg"
+                  alt="next"
+                  fill
+                  sizes="50px"
+                />
+              </div>
+
+              {/* Mobile/Tablet Navigation Buttons */}
+              <div className="gallery-mobile-prev swiper-button-prev-custom hidden md:flex lg:hidden !z-20">
+                <Image
+                  className="w-full h-full rounded-[50%]"
+                  src="/assets/images/pre-new.jpg"
+                  alt="pre"
+                  fill
+                  sizes="50px"
+                />
+              </div>
+              <div className="gallery-mobile-next swiper-button-next-custom hidden md:flex lg:hidden !z-20">
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/next-new.jpg"
