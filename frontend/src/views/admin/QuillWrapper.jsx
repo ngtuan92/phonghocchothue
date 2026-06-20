@@ -258,11 +258,10 @@ const QuillWrapper = forwardRef(({
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
 
-  const updateCaptions = useCallback(() => {
+  const updateCaptionsList = useCallback(() => {
     const imgContainer = containerRef.current;
     if (!imgContainer) return;
     const imgs = imgContainer.querySelectorAll('.ql-editor img');
-    const wrapperRect = imgContainer.getBoundingClientRect();
     const list = [];
     imgs.forEach((img, idx) => {
       const hasDataCaption = img.hasAttribute('data-caption');
@@ -270,32 +269,98 @@ const QuillWrapper = forwardRef(({
         ? (img.getAttribute('data-caption') || '').trim()
         : (img.getAttribute('title') || '').trim();
       if (captionText && captionText !== '') {
-        const imgRect = img.getBoundingClientRect();
         list.push({
           id: idx,
-          text: captionText,
-          top: imgRect.bottom - wrapperRect.top,
-          left: imgRect.left - wrapperRect.left,
-          width: imgRect.width
+          text: captionText
         });
       }
     });
-    // Only update state if the captions array has actually changed (elements, values, or positions)
     setCaptions(prev => {
       if (prev.length !== list.length) return list;
       const isDifferent = prev.some((item, index) => {
         const next = list[index];
-        return (
-          item.id !== next.id ||
-          item.text !== next.text ||
-          Math.abs(item.top - next.top) > 0.5 ||
-          Math.abs(item.left - next.left) > 0.5 ||
-          Math.abs(item.width - next.width) > 0.5
-        );
+        return item.id !== next.id || item.text !== next.text;
       });
       return isDifferent ? list : prev;
     });
   }, []);
+
+  const positionCaptionsDirectly = useCallback(() => {
+    const imgContainer = containerRef.current;
+    if (!imgContainer) return;
+    const imgs = imgContainer.querySelectorAll('.ql-editor img');
+    const wrapperRect = imgContainer.getBoundingClientRect();
+    const captionElements = imgContainer.querySelectorAll('.editor-image-caption');
+    const editor = imgContainer.querySelector('.ql-editor');
+    const editorRect = editor ? editor.getBoundingClientRect() : null;
+    
+    let captionIdx = 0;
+    imgs.forEach((img) => {
+      const hasDataCaption = img.hasAttribute('data-caption');
+      const captionText = hasDataCaption 
+        ? (img.getAttribute('data-caption') || '').trim()
+        : (img.getAttribute('title') || '').trim();
+      if (captionText && captionText !== '') {
+        const capEl = captionElements[captionIdx];
+        if (capEl) {
+          const imgRect = img.getBoundingClientRect();
+          const top = imgRect.bottom - wrapperRect.top + 6;
+          const left = imgRect.left - wrapperRect.left;
+          const width = imgRect.width;
+          
+          capEl.style.top = `${top}px`;
+          capEl.style.left = `${left}px`;
+          capEl.style.width = `${width}px`;
+          
+          if (editorRect) {
+            const isOutside = (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
+            if (isOutside) {
+              capEl.style.display = 'none';
+            } else {
+              capEl.style.display = 'block';
+            }
+          }
+        }
+        captionIdx++;
+      }
+    });
+  }, []);
+
+  const positionResizerDirectly = useCallback(() => {
+    const img = selectedImageRef.current;
+    const resizer = resizerOverlayRef.current;
+    const imgContainer = containerRef.current;
+    if (img && resizer && imgContainer && img.isConnected) {
+      try {
+        const imgRect = img.getBoundingClientRect();
+        const wrapperRect = imgContainer.getBoundingClientRect();
+        const top = imgRect.top - wrapperRect.top;
+        const left = imgRect.left - wrapperRect.left;
+        const width = imgRect.width;
+        const height = imgRect.height;
+        
+        resizer.style.top = `${top}px`;
+        resizer.style.left = `${left}px`;
+        resizer.style.width = `${width}px`;
+        resizer.style.height = `${height}px`;
+        
+        const editor = imgContainer.querySelector('.ql-editor');
+        if (editor) {
+          const editorRect = editor.getBoundingClientRect();
+          const isOutside = (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
+          if (isOutside) {
+            resizer.style.display = 'none';
+          } else {
+            resizer.style.display = 'block';
+          }
+        }
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    positionCaptionsDirectly();
+  }, [captions, positionCaptionsDirectly]);
 
   const updateSizePickerLabel = useCallback(() => {
     const quill = editorRef.current?.getEditor();
@@ -419,23 +484,34 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    const handleUpdate = () => {
-      updateCaptions();
+    const handleScrollOrResize = () => {
+      positionCaptionsDirectly();
+      positionResizerDirectly();
     };
 
-    quill.root.addEventListener('scroll', handleUpdate);
-    window.addEventListener('resize', handleUpdate);
+    const handleContentChange = () => {
+      updateCaptionsList();
+      setTimeout(() => {
+        positionCaptionsDirectly();
+        positionResizerDirectly();
+      }, 0);
+    };
+
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
     
-    const resizeObserver = new ResizeObserver(handleUpdate);
+    const resizeObserver = new ResizeObserver(handleScrollOrResize);
     resizeObserver.observe(quill.root);
 
     quill.on('selection-change', updateSizePickerLabel);
     quill.on('text-change', updateSizePickerLabel);
+    quill.on('text-change', handleContentChange);
 
     // Initial trigger
     setTimeout(() => {
-      handleUpdate();
+      updateCaptionsList();
       updateSizePickerLabel();
+      setTimeout(handleScrollOrResize, 50);
       if (toolbar) {
         try {
           toolbar.update(null);
@@ -446,15 +522,14 @@ const QuillWrapper = forwardRef(({
     return () => {
       container.removeEventListener('mousedown', handleMousedown, true);
       container.removeEventListener('mouseup', handleMouseup, true);
-      if (quill?.root) {
-        quill.root.removeEventListener('scroll', handleUpdate);
-      }
-      window.removeEventListener('resize', handleUpdate);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
       resizeObserver.disconnect();
       quill.off('selection-change', updateSizePickerLabel);
       quill.off('text-change', updateSizePickerLabel);
+      quill.off('text-change', handleContentChange);
     };
-  }, [isReady, updateCaptions, updateSizePickerLabel]);
+  }, [isReady, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly, updateSizePickerLabel]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -973,34 +1048,29 @@ const QuillWrapper = forwardRef(({
   useEffect(() => {
     if (selectedImage) {
       updateResizerRect();
-      updateCaptions();
+      updateCaptionsList();
       const resizeObserver = new ResizeObserver(() => {
-        updateResizerRect();
-        updateCaptions();
+        positionResizerDirectly();
+        positionCaptionsDirectly();
       });
       resizeObserver.observe(selectedImage);
       
       const handleResize = () => {
-        updateResizerRect();
-        updateCaptions();
+        positionResizerDirectly();
+        positionCaptionsDirectly();
       };
       
       window.addEventListener('resize', handleResize);
-      const quill = editorRef.current?.getEditor();
-      if (quill) {
-        quill.root.addEventListener('scroll', handleResize);
-      }
+      window.addEventListener('scroll', handleResize, true);
       return () => {
         resizeObserver.disconnect();
         window.removeEventListener('resize', handleResize);
-        if (quill) {
-          quill.root.removeEventListener('scroll', handleResize);
-        }
+        window.removeEventListener('scroll', handleResize, true);
       };
     } else {
       setResizerRect(null);
     }
-  }, [selectedImage, updateResizerRect, updateCaptions]);
+  }, [selectedImage, updateResizerRect, updateCaptionsList, positionResizerDirectly, positionCaptionsDirectly]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1027,7 +1097,10 @@ const QuillWrapper = forwardRef(({
         selectedImageRef.current = null;
         setSelectedImage(null);
         setImageWrapMode('none');
-        setTimeout(updateCaptions, 50);
+        setTimeout(() => {
+          updateCaptionsList();
+          positionCaptionsDirectly();
+        }, 50);
       }
     };
 
@@ -1052,7 +1125,10 @@ const QuillWrapper = forwardRef(({
             quill.formatText(index, 1, 'caption', newData.caption, 'user');
             quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
             quill.update('user');
-            setTimeout(updateCaptions, 50);
+            setTimeout(() => {
+              updateCaptionsList();
+              positionCaptionsDirectly();
+            }, 50);
           }
         }
       );
@@ -1067,7 +1143,7 @@ const QuillWrapper = forwardRef(({
       container.removeEventListener('click', handleContainerClick);
       container.removeEventListener('dblclick', handleContainerDblClick);
     };
-  }, [isReady, disableImageWrap]);
+  }, [isReady, disableImageWrap, updateCaptionsList, positionCaptionsDirectly]);
 
   const fileInputRef = useRef(null);
 
@@ -1131,7 +1207,10 @@ const QuillWrapper = forwardRef(({
                 quill.formatText(index, 1, 'caption', newData.caption, 'user');
                 quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
                 quill.update('user');
-                setTimeout(updateCaptions, 50);
+                setTimeout(() => {
+                  updateCaptionsList();
+                  positionCaptionsDirectly();
+                }, 50);
               }
             });
             return;
@@ -1158,7 +1237,10 @@ const QuillWrapper = forwardRef(({
                   quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
                   quill.update('user');
                   quill.setSelection(range);
-                  setTimeout(updateCaptions, 50);
+                  setTimeout(() => {
+                    updateCaptionsList();
+                    positionCaptionsDirectly();
+                  }, 50);
                 }
               });
               return;
@@ -1341,7 +1423,7 @@ const QuillWrapper = forwardRef(({
         resizerOverlayRef.current.style.width = `${newWidth}px`;
         resizerOverlayRef.current.style.height = `${newHeight}px`;
       }
-      updateCaptions();
+      positionCaptionsDirectly();
     };
 
     const onMouseUp = () => {
@@ -1367,7 +1449,8 @@ const QuillWrapper = forwardRef(({
       }
       
       updateResizerRect();
-      updateCaptions();
+      positionCaptionsDirectly();
+      positionResizerDirectly();
     };
 
     document.addEventListener('mousemove', onMouseMove);
@@ -1397,8 +1480,13 @@ const QuillWrapper = forwardRef(({
       quill.update('user');
     }
     setImageWrapMode(mode);
-    setTimeout(() => updateResizerRect(), 50);
-  }, [updateResizerRect]);
+    setTimeout(() => {
+      updateResizerRect();
+      updateCaptionsList();
+      positionCaptionsDirectly();
+      positionResizerDirectly();
+    }, 50);
+  }, [updateResizerRect, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly]);
 
   const handleDeleteImage = useCallback(() => {
     const img = selectedImageRef.current;
@@ -1412,9 +1500,12 @@ const QuillWrapper = forwardRef(({
       selectedImageRef.current = null;
       setSelectedImage(null);
       setImageWrapMode('none');
-      setTimeout(updateCaptions, 50);
+      setTimeout(() => {
+        updateCaptionsList();
+        positionCaptionsDirectly();
+      }, 50);
     }
-  }, [updateCaptions]);
+  }, [updateCaptionsList, positionCaptionsDirectly]);
 
   useEffect(() => {
     if (!selectedImage) return;
