@@ -639,6 +639,11 @@ export default function CMS() {
         return false;
       }
 
+      // Loại bỏ faq-schema-ld-json vì đây là dữ liệu cấu trúc tự động tạo tự động từ danh sách faq_list
+      if (c.key === "faq-schema-ld-json") {
+        return false;
+      }
+
       if (activeSection === "general") {
         const allMappedKeys = Object.values(SECTION_KEY_MAP).flat();
         if (allMappedKeys.includes(c.key)) {
