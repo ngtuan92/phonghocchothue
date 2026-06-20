@@ -1119,7 +1119,7 @@ export default function CMS() {
                           onDragStart={(e) => onDragStart(e, index, "spaces")}
                           onDragOver={onDragOver}
                           onDrop={(e) => onDrop(e, index, "spaces")}
-                          className="group relative aspect-video border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
+                          className="group relative aspect-[3/2] border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
                           style={{ borderRadius: gallerySliderRadius }}
                         >
                           <img
@@ -1233,7 +1233,7 @@ export default function CMS() {
                             onDragStart={(e) => onDragStart(e, index, "services")}
                             onDragOver={onDragOver}
                             onDrop={(e) => onDrop(e, index, "services")}
-                            className="group relative aspect-video border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
+                            className="group relative aspect-[16/10] border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
                             style={{ borderRadius: amenitiesSliderRadius }}
                           >
                             <img

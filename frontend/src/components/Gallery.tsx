@@ -102,7 +102,7 @@ const Gallery: React.FC = () => {
               />
             </div>
 
-            <div className="relative group/gallery w-full md:px-10 lg:px-0 h-[180px] sm:h-[260px] md:h-[340px] lg:h-[400px]">
+            <div className="relative group/gallery w-full md:px-10 lg:px-0 aspect-[3/2] lg:aspect-[1100/491]">
               <Swiper
                 modules={[Navigation, Pagination, Autoplay, Grid]}
                 grid={{

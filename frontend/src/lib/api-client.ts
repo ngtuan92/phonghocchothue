@@ -111,7 +111,6 @@ const compressImage = (file: File, maxWidth = 1920, maxQuality = 0.8): Promise<F
   });
 };
 
-// Interceptor để thêm token và tự động nén ảnh vào mọi request
 apiClient.interceptors.request.use(
   async (config) => {
     const token = getClientCookie("token");
@@ -119,7 +118,6 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Tự động nén ảnh nếu gửi dưới dạng FormData
     if (config.data instanceof FormData && typeof window !== "undefined") {
       const newFormData = new FormData();
       for (const [key, value] of config.data.entries()) {
