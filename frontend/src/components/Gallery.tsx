@@ -107,7 +107,6 @@ const Gallery: React.FC = () => {
             </div>
 
             <div className="relative group/gallery w-full md:px-10 lg:px-0 aspect-[3/2] lg:aspect-[1100/491]">
-              {/* Desktop Swiper */}
               <div className="w-full h-full hidden lg:block">
                 <Swiper
                   modules={[Navigation, Pagination, Autoplay, Grid]}
@@ -208,7 +207,10 @@ const Gallery: React.FC = () => {
               </div>
 
               {/* Desktop Navigation Buttons */}
-              <div className="gallery-desktop-prev swiper-button-prev-custom hidden lg:flex !z-20">
+              <div 
+                className="gallery-desktop-prev swiper-button-prev-custom hidden lg:flex !z-20"
+                style={{ left: "-45px" }}
+              >
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/pre-new.jpg"
@@ -217,7 +219,10 @@ const Gallery: React.FC = () => {
                   sizes="50px"
                 />
               </div>
-              <div className="gallery-desktop-next swiper-button-next-custom hidden lg:flex !z-20">
+              <div 
+                className="gallery-desktop-next swiper-button-next-custom hidden lg:flex !z-20"
+                style={{ right: "-45px" }}
+              >
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/next-new.jpg"
@@ -228,7 +233,10 @@ const Gallery: React.FC = () => {
               </div>
 
               {/* Mobile/Tablet Navigation Buttons */}
-              <div className="gallery-mobile-prev swiper-button-prev-custom hidden md:flex lg:hidden !z-20">
+              <div 
+                className="gallery-mobile-prev swiper-button-prev-custom hidden md:flex lg:hidden !z-20"
+                style={{ left: "5px" }}
+              >
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/pre-new.jpg"
@@ -237,7 +245,10 @@ const Gallery: React.FC = () => {
                   sizes="50px"
                 />
               </div>
-              <div className="gallery-mobile-next swiper-button-next-custom hidden md:flex lg:hidden !z-20">
+              <div 
+                className="gallery-mobile-next swiper-button-next-custom hidden md:flex lg:hidden !z-20"
+                style={{ right: "5px" }}
+              >
                 <Image
                   className="w-full h-full rounded-[50%]"
                   src="/assets/images/next-new.jpg"
