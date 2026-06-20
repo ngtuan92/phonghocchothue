@@ -288,6 +288,9 @@ export default function BlogForm({ data, onSave, onCancel }) {
                   Ảnh đại diện bài viết
                 </Typography>
               </div>
+              <Typography variant="small" className="text-[10px] text-black font-medium mb-3">
+                Khuyên dùng: Tỷ lệ 3:2 hoặc 4:3 (Ví dụ: 1200x800px).
+              </Typography>
               
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50/50 group transition-all hover:border-primary">
                 {previewImage ? (
@@ -310,7 +313,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                       <MdCloudUpload className="h-10 w-10 text-primary" />
                     </div>
                     <span className="text-xs font-bold text-gray-700 uppercase">Tải ảnh bài viết</span>
-                    <span className="text-[10px] text-gray-400 mt-2 font-medium">Khuyên dùng: 1200x800px</span>
+                    <span className="text-[10px] text-black mt-2 font-medium">Khuyên dùng: 1200x800px</span>
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </label>
                 )}
@@ -340,7 +343,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     Ảnh đại diện tác giả (Avatar)
                   </Typography>
                 </div>
-                <Typography variant="small" className="text-[10px] text-gray-400 font-medium mb-3">
+                <Typography variant="small" className="text-[10px] text-black font-medium mb-3">
                   Khuyên dùng: Tỷ lệ 1:1 (Ví dụ: 300x300px). Hệ thống sẽ tự động cắt hình tròn.
                 </Typography>
                 <div className="flex items-center gap-4">
