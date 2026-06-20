@@ -85,6 +85,10 @@ const KEY_LABEL_MAP = {
   "amenities-slider-radius": "Bo góc slider tiện ích (px)",
   "gallery-slider-radius": "Bo góc slider không gian (px)",
   "color-btn": "Màu nút xanh chính của toàn trang web",
+  textNotication: "Nội dung thông báo (chỗ chú chim)",
+  linkNotication: "Đường dẫn liên kết của thông báo (khi nhấn GO)",
+  textBtnNotication: "Chữ hiển thị trên nút thông báo (Ví dụ: GO)",
+  email: "Địa chỉ Email liên hệ",
 };
 
 
@@ -108,84 +112,84 @@ const getImagePreviewStyle = (key) => {
     case "logo":
     case "logo-page-detail":
       return {
-        wrapperClass: "w-24 h-24 sm:w-28 sm:h-28 border border-gray-100 flex items-center justify-center bg-gray-50",
+        wrapperClass: "w-24 h-24 sm:w-28 sm:h-28 border border-gray-100 flex items-center justify-center bg-transparent",
         imgClass: "w-full h-full object-contain block",
         aspectRatio: "1/1",
         maxWidth: "112px",
       };
     case "icon-goc":
       return {
-        wrapperClass: "w-16 h-16 border border-gray-100 flex items-center justify-center bg-gray-50",
+        wrapperClass: "w-16 h-16 border border-gray-100 flex items-center justify-center bg-transparent",
         imgClass: "w-full h-full object-contain block",
         aspectRatio: "1/1",
         maxWidth: "64px",
       };
     case "bgTitle":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50 flex items-center justify-center",
+        wrapperClass: "w-full border border-gray-100 bg-transparent flex items-center justify-center",
         imgClass: "w-full h-full object-contain block",
         aspectRatio: "500/150",
         maxWidth: "500px",
       };
     case "describe-frame-image":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-fill block",
         aspectRatio: "3/1",
         maxWidth: "1200px",
       };
     case "describe-frame-image-mobile":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-fill block",
         aspectRatio: "1.6/1",
         maxWidth: "400px",
       };
     case "describe-h2-image":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-cover block",
         aspectRatio: "1100/405",
         maxWidth: "1100px",
       };
     case "describe-h2-image-mobile":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-cover block",
         aspectRatio: "2/1",
         maxWidth: "375px",
       };
     case "nurseryImg":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-cover block",
         aspectRatio: "1920/450",
         maxWidth: "100%",
       };
     case "background":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-cover block",
         aspectRatio: "16/9",
         maxWidth: "800px",
       };
     case "imgContact":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50",
+        wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-cover block",
         aspectRatio: "4/3",
         maxWidth: "800px",
       };
     case "blog-decoration":
       return {
-        wrapperClass: "w-full border border-gray-100 bg-gray-50 flex items-center justify-center",
+        wrapperClass: "w-full border border-gray-100 bg-transparent flex items-center justify-center",
         imgClass: "w-full h-full object-contain block",
         aspectRatio: "480/100",
         maxWidth: "480px",
       };
     default:
       return {
-        wrapperClass: "h-28 w-auto border border-gray-100 bg-gray-50",
+        wrapperClass: "h-28 w-auto border border-gray-100 bg-transparent",
         imgClass: "h-28 w-auto object-contain block",
         aspectRatio: "auto",
         maxWidth: "100%",
@@ -669,6 +673,19 @@ export default function CMS() {
         return idxA - idxB;
       });
     }
+
+    if (activeSection === "general") {
+      const generalPreferredOrder = ["textNotication", "textBtnNotication", "linkNotication"];
+      return filtered.sort((a, b) => {
+        const idxA = generalPreferredOrder.indexOf(a.key);
+        const idxB = generalPreferredOrder.indexOf(b.key);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return 0;
+      });
+    }
+
     return filtered;
   };
 
@@ -1133,7 +1150,7 @@ export default function CMS() {
                           onDragStart={(e) => onDragStart(e, index, "spaces")}
                           onDragOver={onDragOver}
                           onDrop={(e) => onDrop(e, index, "spaces")}
-                          className="group relative aspect-[3/2] border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
+                          className="group relative aspect-[3/2] border-b border-gray-50 bg-transparent cursor-move overflow-hidden"
                           style={{ borderRadius: gallerySliderRadius }}
                         >
                           <img
@@ -1247,7 +1264,7 @@ export default function CMS() {
                             onDragStart={(e) => onDragStart(e, index, "services")}
                             onDragOver={onDragOver}
                             onDrop={(e) => onDrop(e, index, "services")}
-                            className="group relative aspect-[16/10] border-b border-gray-50 bg-gray-50 cursor-move overflow-hidden"
+                            className="group relative aspect-[16/10] border-b border-gray-50 bg-transparent cursor-move overflow-hidden"
                             style={{ borderRadius: amenitiesSliderRadius }}
                           >
                             <img

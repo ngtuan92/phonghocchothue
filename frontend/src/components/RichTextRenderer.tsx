@@ -386,6 +386,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         .inline-rich-text span,
         .inline-rich-text div {
           display: inline !important;
+          width: auto !important;
           margin: 0 !important;
           padding: 0 !important;
         }

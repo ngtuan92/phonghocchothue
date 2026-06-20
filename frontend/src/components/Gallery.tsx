@@ -61,14 +61,16 @@ const Gallery: React.FC = () => {
                 {/* Desktop Image */}
                 {describeH2Image && (
                   <div
-                    className="relative w-full max-w-[1100px] mx-auto hidden md:block overflow-hidden shadow-md border border-[#799f851a] hover:shadow-lg transition-all duration-300"
-                    style={{ borderRadius: imageBorderRadius, aspectRatio: "1100 / 405" }}
+                    className={`relative w-full max-w-[1100px] mx-auto hidden md:block overflow-hidden transition-all duration-300 ${
+                      imageBorderRadius !== "0px" ? "border border-[#799f851a]" : "border-0"
+                    }`}
+                    style={{ borderRadius: imageBorderRadius, aspectRatio: "1100 / 405", backgroundColor: "transparent" }}
                   >
                     <img
                       src={buildUrl(describeH2Image)}
                       alt="Ảnh Giải pháp tiện ích dịch vụ phòng học (Desktop)"
                       className="absolute inset-0 w-full h-full object-cover block"
-                      style={{ borderRadius: imageBorderRadius }}
+                      style={{ borderRadius: imageBorderRadius, backgroundColor: "transparent" }}
                     />
                   </div>
                 )}
@@ -76,14 +78,16 @@ const Gallery: React.FC = () => {
                 {/* Mobile Image */}
                 {(describeH2ImageMobile || describeH2Image) && (
                   <div
-                    className="relative w-full mx-auto block md:hidden overflow-hidden shadow-md border border-[#799f851a] hover:shadow-lg transition-all duration-300"
-                    style={{ borderRadius: mobileImageBorderRadius, aspectRatio: "2 / 1" }}
+                    className={`relative w-full mx-auto block md:hidden overflow-hidden transition-all duration-300 ${
+                      mobileImageBorderRadius !== "0px" ? "border border-[#799f851a]" : "border-0"
+                    }`}
+                    style={{ borderRadius: mobileImageBorderRadius, aspectRatio: "2 / 1", backgroundColor: "transparent" }}
                   >
                     <img
                       src={buildUrl(describeH2ImageMobile || describeH2Image)}
                       alt="Ảnh Giải pháp tiện ích dịch vụ phòng học (Mobile)"
                       className="absolute inset-0 w-full h-full object-cover block"
-                      style={{ borderRadius: mobileImageBorderRadius }}
+                      style={{ borderRadius: mobileImageBorderRadius, backgroundColor: "transparent" }}
                     />
                   </div>
                 )}
@@ -125,29 +129,36 @@ const Gallery: React.FC = () => {
                 }}
                 autoplay={{ delay: 6000, disableOnInteraction: false }}
                 loop={false}
-                className="w-full h-full gallery-swiper"
+                className="w-full h-full gallery-swiper bg-transparent"
+                style={{ backgroundColor: "transparent" }}
               >
-                {sliderData.map((item: any, index: number) => (
-                  <SwiperSlide key={index} className="h-full lg:!h-[calc((100%-20px)/2)]">
-                    <div
-                      className="relative w-full h-full overflow-hidden group/item shadow-md border border-[#799f851a] md:border-2 md:border-white/50 hover:shadow-lg transition-all duration-300 md:duration-500 gallery-swiper-slide-container"
-                      style={{
-                        ['--mobile-radius' as any]: mobileImageBorderRadius,
-                        ['--desktop-radius' as any]: galleryRadius,
-                      }}
-                    >
-                      <Image
-                        src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
-                        alt={`Ảnh không gian ${index + 1}`}
-                        fill
-                        className="object-cover group-hover/item:scale-110 transition-transform duration-1000"
-                        sizes="(max-width: 1024px) 100vw, 33vw"
-                        quality={90}
-                      />
-                      <div className="absolute inset-0 bg-black/5 group-hover/item:bg-transparent transition-colors duration-300"></div>
-                    </div>
-                  </SwiperSlide>
-                ))}
+                {sliderData.map((item: any, index: number) => {
+                  const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
+                  return (
+                    <SwiperSlide key={index} className="h-full lg:!h-[calc((100%-20px)/2)] bg-transparent" style={{ backgroundColor: "transparent" }}>
+                      <div
+                        className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
+                          hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
+                        }`}
+                        style={{
+                          ['--mobile-radius' as any]: mobileImageBorderRadius,
+                          ['--desktop-radius' as any]: galleryRadius,
+                          backgroundColor: "transparent",
+                        }}
+                      >
+                        <Image
+                          src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
+                          alt={`Ảnh không gian ${index + 1}`}
+                          fill
+                          className="object-cover bg-transparent"
+                          sizes="(max-width: 1024px) 100vw, 33vw"
+                          quality={90}
+                          style={{ backgroundColor: "transparent" }}
+                        />
+                      </div>
+                    </SwiperSlide>
+                  );
+                })}
               </Swiper>
 
               <div className="gallery-prev swiper-button-prev-custom hidden md:flex !z-20">

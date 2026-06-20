@@ -14,7 +14,7 @@ import "swiper/css/navigation";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
-const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: string }> = ({ data, keyPrefix, borderRadius }) => {
+const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: string, colorBg: string }> = ({ data, keyPrefix, borderRadius, colorBg }) => {
   if (data.length === 0) {
     return (
       <div className="w-full h-full bg-gray-50 rounded-[12px] flex items-center justify-center border-2 border-dashed border-gray-200">
@@ -23,10 +23,14 @@ const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: st
     );
   }
 
+  const hasBorder = borderRadius !== "0px";
+
   return (
     <div 
-      className="relative w-full aspect-[16/10] group shadow-sm border border-[#799f851a] overflow-hidden transition-all duration-300"
-      style={{ borderRadius }}
+      className={`relative w-full aspect-[16/10] group overflow-hidden transition-all duration-300 ${
+        hasBorder ? "border border-[#799f851a]" : "border-0"
+      }`}
+      style={{ borderRadius, backgroundColor: "transparent" }}
     >
       <Swiper
         modules={[Autoplay, EffectFade, Navigation]}
@@ -38,19 +42,19 @@ const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: st
           delay: 4000,
           disableOnInteraction: false,
         }}
-        className="w-full h-full bg-gray-50"
+        className="w-full h-full bg-transparent"
+        style={{ backgroundColor: "transparent" }}
       >
         {data.map((item: any, index: number) => (
-          <SwiperSlide key={`${keyPrefix}-${index}`}>
-            <div className="relative w-full h-full overflow-hidden" style={{ borderRadius }}>
+          <SwiperSlide key={`${keyPrefix}-${index}`} className="bg-transparent" style={{ backgroundColor: "transparent" }}>
+            <div className="relative w-full h-full overflow-hidden bg-transparent" style={{ borderRadius }}>
               <img
                 src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
                 alt={`Tiện ích ${index + 1}`}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 block"
-                style={{ borderRadius }}
+                className="w-full h-full object-cover block bg-transparent"
+                style={{ borderRadius, backgroundColor: "transparent" }}
                 loading={index === 0 ? "eager" : "lazy"}
               />
-              <div className="absolute inset-0 z-20 bg-black/5 pointer-events-none" />
             </div>
           </SwiperSlide>
         ))}
@@ -63,6 +67,7 @@ const Amenities: React.FC = () => {
   const amenitiesHeading = useConfigContentByKey("amenities-content");
   const amenitiesDescription = useConfigContentByKey("amenities-description");
   const amenitiesSliderRadius = useConfigContentByKey("amenities-slider-radius");
+  const colorBg = useConfigContentByKey("color-bg") || "#fbf8f0";
   const { data: sliderData = [] } = useSliders("services");
 
   if (!amenitiesHeading && !amenitiesDescription) return null;
@@ -70,7 +75,7 @@ const Amenities: React.FC = () => {
   const sliderRadius = amenitiesSliderRadius ? `${amenitiesSliderRadius}px` : '0px';
 
   const renderSlider = (data: any[], keyPrefix: string) => {
-    return <AmenitySlider data={data} keyPrefix={keyPrefix} borderRadius={sliderRadius} />;
+    return <AmenitySlider data={data} keyPrefix={keyPrefix} borderRadius={sliderRadius} colorBg={colorBg} />;
   };
 
   return (

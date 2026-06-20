@@ -1454,3 +1454,14 @@ footer .rich-text-renderer * {
     margin-top: 18px !important;
   }
 }
+
+/* Custom styling for rich text inside notification bubble */
+.notification-rich-text,
+.notification-rich-text p {
+  font-family: 'Raleway', sans-serif;
+  color: #563c39;
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+  padding: 0;
+}

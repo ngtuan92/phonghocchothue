@@ -298,8 +298,10 @@ const Describe = () => {
 
                     <div className="md:col-span-6 w-full flex justify-center relative">
                         <div
-                            className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden shadow-sm"
-                            style={{ borderRadius: galleryRadius }}
+                            className={`w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden ${
+                                galleryRadius !== "0px" ? "shadow-sm border border-[#799f851a]" : ""
+                            }`}
+                            style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}
                         >
                             <Fade
                                 autoplay={true}
@@ -308,9 +310,9 @@ const Describe = () => {
                                 arrows={false}
                             >
                                 {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                    <div key={index} className="relative w-full overflow-hidden" style={{ borderRadius: galleryRadius }}>
+                                    <div key={index} className="relative w-full overflow-hidden bg-transparent" style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}>
                                         <Image
-                                            className="w-full h-auto object-contain"
+                                            className="w-full h-auto object-contain bg-transparent"
                                             src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
                                             alt={`Slide ${index + 1}`}
                                             width={1200}
@@ -318,6 +320,7 @@ const Describe = () => {
                                             sizes="(max-width: 768px) 95vw, 58vw"
                                             quality={95}
                                             priority={index === 0}
+                                            style={{ backgroundColor: "transparent" }}
                                         />
                                     </div>
                                 ))}

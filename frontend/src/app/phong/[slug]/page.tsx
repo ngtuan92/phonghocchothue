@@ -658,6 +658,7 @@ export default function DetailPage() {
               <CarouselWithThumb
                 items={productData.product.images}
                 avatar={productData.product.image}
+                colorBg={colorBg}
               />
             </div>
             <div className="flex-1 rounded-lg text-left lg:pl-4">

@@ -47,6 +47,7 @@ export default function Home() {
     useConfigContentByKey("seo-image-home") || background.backgroundImage;
   const notificationText = useConfigContentByKey("textNotication");
   const notificationLink = useConfigContentByKey("linkNotication");
+  const textBtnNotication = useConfigContentByKey("textBtnNotication") || "Go";
   const logo = useConfigContentByKey("logo");
 
   const origin =
@@ -335,16 +336,21 @@ export default function Home() {
             />
           </div>
 
-          <p className="text-[#563c39] mt-0 text-[10px] sm:text-xs raleway !font-[400] leading-[14px]">
-            {notificationText}
-          </p>
+          <RichTextRenderer
+            html={notificationText}
+            className="notification-rich-text text-[#563c39] mt-0 text-[10px] sm:text-xs raleway !font-[400] leading-[14px]"
+          />
 
           {notificationLink && (
             <a
               href={notificationLink}
-              className="cursor-pointer mt-2 font-bold px-3 bg-[#563c39] text-white rounded-tl-xl rounded-br-xl hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none py-1 uppercase text-xs transition-all duration-300 ease-in-out"
+              className="inline-block cursor-pointer mt-2 font-bold px-3 bg-[#563c39] text-white rounded-tl-xl rounded-br-xl hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none py-1 uppercase text-xs transition-all duration-300 ease-in-out"
             >
-              Go
+              <RichTextRenderer
+                html={textBtnNotication}
+                className="inline-rich-text"
+                as="span"
+              />
             </a>
           )}
         </div>

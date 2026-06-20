@@ -71,7 +71,7 @@ function BlogCard({ blog }: { blog: Blog }) {
       href={`/blog/${blog.slug}`}
       className="group rounded-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white block"
     >
-      <div className="relative aspect-video overflow-hidden bg-gray-100 flex-shrink-0">
+      <div className="relative aspect-video overflow-hidden bg-transparent flex-shrink-0">
         {thumbnailSrc ? (
           <Image
             src={thumbnailSrc}

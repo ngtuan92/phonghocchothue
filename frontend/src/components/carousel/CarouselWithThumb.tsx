@@ -19,6 +19,7 @@ interface CarouselWithThumbProps {
   thumbsPerView?: number;
   gutter?: number;
   thumbIndex?: number;
+  colorBg?: string; // Add colorBg prop
   classNames?: {
     wrapper?: string;
   };
@@ -34,6 +35,7 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
     thumbsPerView = 4,
     gutter = 16,
     thumbIndex = 0,
+    colorBg = "#fbf8f0", // Default color
     classNames,
   } = props;
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -127,12 +129,16 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
                 paddingLeft: `${slidesGap}px`,
               }}
             >
-              <div className="flex-1 relative overflow-hidden bg-transparent">
+              <div 
+                className="flex-1 relative overflow-hidden"
+                style={{ backgroundColor: colorBg }}
+              >
                 <img
                   className="w-full h-auto object-contain"
                   src={`${URL_API}${item?.image_detail?.replaceAll("\\", "/") || ""}`}
                   alt={`Slide ${index + 1}`}
                   loading={index === 0 ? "eager" : "lazy"}
+                  style={{ backgroundColor: colorBg }}
                 />
               </div>
             </div>
@@ -169,7 +175,8 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
                 <button
                   onClick={() => onThumbClick(index)}
                   type="button"
-                  className="relative aspect-square w-full overflow-hidden rounded-md bg-gray-100"
+                  className="relative aspect-square w-full overflow-hidden rounded-md"
+                  style={{ backgroundColor: colorBg }}
                 >
                   <span
                     aria-selected={index === selectedIndex}
@@ -183,6 +190,7 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
                     sizes="(max-width: 640px) 25vw, 15vw"
                     quality={75}
                     loading="lazy"
+                    style={{ backgroundColor: colorBg }}
                   />
                 </button>
               </div>

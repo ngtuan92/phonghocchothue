@@ -103,19 +103,21 @@ const ProductCard = ({ product }: { product?: Product }) => {
         className="w-full h-auto"
       >
         {products.map((product: any) => (
-          <SwiperSlide key={product.id || product._id}>
+          <SwiperSlide key={product.id || product._id} className="bg-transparent" style={{ backgroundColor: "transparent" }}>
             <Link 
               href={getProductUrl(product)}
-              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block"
+              className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block bg-transparent"
+              style={{ backgroundColor: "transparent" }}
             >
               <Image
                 src={`${URL_API}${product.image.replaceAll("\\", "/")}`}
                 alt={product.name || "ảnh phòng"}
                 fill
-                className="object-contain"
+                className="object-contain bg-transparent"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
                 quality={85}
                 loading="lazy"
+                style={{ backgroundColor: "transparent" }}
               />
 
             </Link>

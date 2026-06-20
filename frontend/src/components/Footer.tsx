@@ -8,6 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useConfigContentByKey from "../hooks/useConfigContentByKey";
 import RichTextRenderer from "./RichTextRenderer";
+import { stripHtmlAndCss } from "../utils/seoHelpers";
 
 const Footer = () => {
   const bgFt = useConfigContentByKey("color-bg-footer");
@@ -26,12 +27,12 @@ const Footer = () => {
         <div className=" text-2xl sm:text-3xl title-footer-custom max-sm:mt-4">
           <RichTextRenderer html={nameBrand} configKey="nameBrand" />
         </div>
-        <div className="">
+        <div className="w-full px-0.5 md:px-0 md:w-auto">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 underline">
             LIÊN HỆ
           </h2>
           {address && (
-            <div className="flex items-center my-3 ">
+            <div className="flex items-center my-3">
               <FontAwesomeIcon
                 icon={faLocationDot}
                 className="mr-4 text-center flex-shrink-0"
@@ -42,8 +43,8 @@ const Footer = () => {
           {phone && (
             <div className="flex items-center mb-2">
               <FontAwesomeIcon icon={faPhone} className="mr-3 text-center flex-shrink-0" />
-              <div className="flex items-center gap-1">
-                <span>Phone: </span>
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="whitespace-nowrap">Điện thoại: </span>
                 <RichTextRenderer html={phone} configKey="phone" as="span" className="inline-rich-text" />
               </div>
             </div>
@@ -52,12 +53,14 @@ const Footer = () => {
             <div className="flex items-center mb-2">
               <FontAwesomeIcon
                 icon={faEnvelopeCircleCheck}
-                className="mr-2 text-center"
+                className="mr-2 text-center flex-shrink-0"
               />
-              <p>
-                Email:{" "}
-                <a href={`mailto:${email}`}>{email}</a>
-              </p>
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="whitespace-nowrap">Email: </span>
+                <a href={`mailto:${stripHtmlAndCss(email)}`} className="break-all">
+                  <RichTextRenderer html={email} configKey="email" as="span" className="inline-rich-text" />
+                </a>
+              </div>
             </div>
           )}
         </div>
