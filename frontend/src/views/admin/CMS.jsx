@@ -734,6 +734,10 @@ export default function CMS() {
                       value={item.question || ""}
                       onChange={(val) => updateFAQ(index, "question", val)}
                       placeholder="Nhập nội dung câu hỏi..."
+                      lineHeight={item.qLineHeight}
+                      lineHeightMobile={item.qLineHeightMobile}
+                      onChangeLineHeight={(val) => updateFAQ(index, "qLineHeight", val)}
+                      onChangeLineHeightMobile={(val) => updateFAQ(index, "qLineHeightMobile", val)}
                     />
                   </div>
                 </div>
@@ -747,6 +751,10 @@ export default function CMS() {
                       value={item.answer || ""}
                       onChange={(val) => updateFAQ(index, "answer", val)}
                       placeholder="Nhập nội dung câu trả lời..."
+                      lineHeight={item.aLineHeight}
+                      lineHeightMobile={item.aLineHeightMobile}
+                      onChangeLineHeight={(val) => updateFAQ(index, "aLineHeight", val)}
+                      onChangeLineHeightMobile={(val) => updateFAQ(index, "aLineHeightMobile", val)}
                     />
                   </div>
                 </div>

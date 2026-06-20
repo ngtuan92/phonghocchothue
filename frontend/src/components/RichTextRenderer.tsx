@@ -129,6 +129,18 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       return match;
     });
 
+    // Convert inline font-size styles (e.g. style="font-size: 42px;") to CSS Custom Properties (--fs: 42px; font-size: var(--fs);)
+    processedHtml = processedHtml.replace(/style=["']([^"']*?)font-size:\s*(\d+(?:\.\d+)?)px;?([^"']*?)["']/gi, (match: string, before: string, size: string, after: string) => {
+      const cleanBefore = before.trim();
+      const cleanAfter = after.trim();
+      const styleContent = [
+        cleanBefore ? (cleanBefore.endsWith(';') ? cleanBefore : `${cleanBefore};`) : '',
+        `--fs: ${size}px; font-size: var(--fs);`,
+        cleanAfter
+      ].filter(Boolean).join(' ');
+      return `style="${styleContent}"`;
+    });
+
     return processedHtml;
   }, [html, preserveNbsp]);
 
@@ -148,10 +160,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       display: Component === "span" ? "inline" : "block",
     };
     if (activeLineHeight) {
-      styles['--custom-line-height' as any] = /^\d+$/.test(activeLineHeight.trim()) ? `${activeLineHeight.trim()}px` : activeLineHeight;
+      const lhStr = String(activeLineHeight).trim();
+      styles['--custom-line-height' as any] = /^\d+$/.test(lhStr) ? `${lhStr}px` : lhStr;
     }
     if (activeLineHeightMobile) {
-      styles['--custom-line-height-mobile' as any] = /^\d+$/.test(activeLineHeightMobile.trim()) ? `${activeLineHeightMobile.trim()}px` : activeLineHeightMobile;
+      const lhmStr = String(activeLineHeightMobile).trim();
+      styles['--custom-line-height-mobile' as any] = /^\d+$/.test(lhmStr) ? `${lhmStr}px` : lhmStr;
     }
     return styles;
   }, [Component, activeLineHeight, activeLineHeightMobile]);

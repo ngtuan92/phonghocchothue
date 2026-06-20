@@ -184,7 +184,7 @@ const Describe = () => {
                                     className="inline-block [&_*]:inline hero-phone-text"
                                 />
                             </span>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 hero-slogan-container">
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
@@ -257,7 +257,7 @@ const Describe = () => {
                                     />
                                 </span>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1 flex-shrink-0 hero-slogan-container">
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"

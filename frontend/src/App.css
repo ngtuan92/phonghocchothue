@@ -1412,3 +1412,45 @@ footer .rich-text-renderer,
 footer .rich-text-renderer * {
   color: inherit;
 }
+
+/* Custom responsive scaling for inline font-sizes in RichTextRenderer */
+.rich-text-renderer *[style*="--fs"] {
+  font-size: var(--fs) !important;
+}
+.rich-text-renderer *[style*="--fs"] * {
+  font-size: inherit !important;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer *[style*="--fs"] {
+    /* Mobile size scales to 60% of original, but never smaller than 12px for readability */
+    font-size: max(12px, calc(var(--fs) * 0.6)) !important;
+  }
+}
+
+/* Custom line-height scaling in RichTextRenderer */
+.rich-text-renderer[style*="--custom-line-height"] {
+  line-height: var(--custom-line-height) !important;
+}
+.rich-text-renderer[style*="--custom-line-height"] * {
+  line-height: inherit !important;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer[style*="--custom-line-height"] {
+    line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
+  }
+}
+
+/* Adjust spacing for Hero slogan (slogan in Describe component) */
+.hero-slogan-container {
+  margin-left: 12px !important;
+  margin-top: 8px !important;
+}
+
+@media (min-width: 768px) {
+  .hero-slogan-container {
+    margin-left: 28px !important;
+    margin-top: 18px !important;
+  }
+}

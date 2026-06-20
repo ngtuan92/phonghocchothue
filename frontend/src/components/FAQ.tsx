@@ -5,6 +5,10 @@ import RichTextRenderer from "./RichTextRenderer";
 interface FAQItem {
   question: string;
   answer: string;
+  qLineHeight?: string;
+  qLineHeightMobile?: string;
+  aLineHeight?: string;
+  aLineHeightMobile?: string;
 }
 
 const FAQ = () => {
@@ -59,7 +63,11 @@ const FAQ = () => {
                 onClick={handleToggle(index)}
               >
                 <div className="pr-4 leading-relaxed font-bold raleway w-full">
-                  <RichTextRenderer html={item.question} />
+                  <RichTextRenderer 
+                    html={item.question} 
+                    lineHeight={item.qLineHeight}
+                    lineHeightMobile={item.qLineHeightMobile}
+                  />
                 </div>
                 <span className="transition-transform duration-300 group-open:rotate-180 flex-shrink-0 text-[#799f85] font-bold text-xl">
                   ▼
@@ -70,7 +78,11 @@ const FAQ = () => {
                 className="mt-4 text-[#323232] leading-relaxed relative pl-4 border-l-2 border-[#e57f7f]"
               >
                 <div className="raleway">
-                  <RichTextRenderer html={item.answer} />
+                  <RichTextRenderer 
+                    html={item.answer} 
+                    lineHeight={item.aLineHeight}
+                    lineHeightMobile={item.aLineHeightMobile}
+                  />
                 </div>
               </div>
             </details>
