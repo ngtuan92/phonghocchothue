@@ -90,6 +90,7 @@ export default function DetailPage() {
   const colorBg = useConfigContentByKey("color-bg");
   const imgIcon = useConfigContentByKey("logo-page-detail");
   const bgConfig = useConfigContentByKey("background");
+  const btnColor = useConfigContentByKey("color-btn") || "#b8c7b0";
 
   // Memoized values
   const pageStyle = useMemo(
@@ -702,7 +703,8 @@ export default function DetailPage() {
                 )}
               </div>
               <Button
-                className="!w-auto !h-[40px] !bg-[#b8c7b0] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
+                className="!w-auto !h-[40px] !bg-[var(--btn-color)] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
+                style={{ '--btn-color': btnColor } as React.CSSProperties}
                 onClick={open}
               >
                 Đăng ký ngay

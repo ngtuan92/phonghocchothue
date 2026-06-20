@@ -84,6 +84,7 @@ const KEY_LABEL_MAP = {
   "describe-quote-text": "Text slogan phần giới thiệu (Teaching room for rent ♡)",
   "amenities-slider-radius": "Bo góc slider tiện ích (px)",
   "gallery-slider-radius": "Bo góc slider không gian (px)",
+  "color-btn": "Màu nút xanh chính của toàn trang web",
 };
 
 

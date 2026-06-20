@@ -14,6 +14,7 @@ const Contact = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  const btnColor = useConfigContentByKey("color-btn") || "#b8c7b0";
 
   const createContact = useCreateContact();
 
@@ -114,7 +115,8 @@ const Contact = () => {
           <button
             type="submit"
             disabled={createContact.isPending}
-            className="mt-4 w-auto bg-[#b8c7b0] px-[15px] sm:px-[20px] text-white rounded-tl-xl text-xs sm:text-lg rounded-br-xl py-2 hover:bg-[#e57f7f] max-sm:mt-0"
+            className="mt-4 w-auto bg-[var(--btn-color)] px-[15px] sm:px-[20px] text-white rounded-tl-xl text-xs sm:text-lg rounded-br-xl py-2 hover:bg-[#e57f7f] max-sm:mt-0"
+            style={{ '--btn-color': btnColor } as React.CSSProperties}
           >
             {createContact.isPending ? "ĐANG GỬI..." : "GỬI THÔNG BÁO"}
           </button>

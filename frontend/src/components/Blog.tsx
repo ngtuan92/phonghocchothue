@@ -57,6 +57,7 @@ function BlogCardSkeleton() {
 
 function BlogCard({ blog }: { blog: Blog }) {
   const cat = getCategoryConfig(blog.category);
+  const btnColor = useConfigContentByKey("color-btn") || "#b8c7b0";
 
   const thumbnailSrc =
     blog.thumbnail
@@ -66,7 +67,10 @@ function BlogCard({ blog }: { blog: Blog }) {
       : null;
 
   return (
-    <div className="group rounded-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white">
+    <Link
+      href={`/blog/${blog.slug}`}
+      className="group rounded-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white block"
+    >
       <div className="relative aspect-video overflow-hidden bg-gray-100 flex-shrink-0">
         {thumbnailSrc ? (
           <Image
@@ -106,24 +110,22 @@ function BlogCard({ blog }: { blog: Blog }) {
         </p>
 
         <h3 className="text-xs sm:text-[14px] font-bold text-[#563c39] line-clamp-2 mb-1 leading-snug">
-          <Link href={`/blog/${blog.slug}`} className="hover:text-[#e57f7f] transition-colors">
-            {blog.title}
-          </Link>
+          {blog.title}
         </h3>
 
         <p className="text-[11px] sm:text-[13px] text-gray-700 raleway !font-normal line-clamp-2 flex-1 mb-2">
           {blog.excerpt}
         </p>
 
-        <Link
-          href={`/blog/${blog.slug}`}
-          className="mt-2 self-start inline-flex items-center gap-2 text-xs sm:text-xs text-white bg-[#b8c7b0] hover:bg-[#e57f7f] px-3.5 py-1.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
+        <span
+          className="mt-2 self-start inline-flex items-center gap-2 text-xs sm:text-xs text-white bg-[var(--btn-color)] group-hover:bg-[#e57f7f] px-3.5 py-1.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out group-hover:rounded-bl-xl group-hover:rounded-tr-xl group-hover:rounded-br-none group-hover:rounded-tl-none"
+          style={{ '--btn-color': btnColor } as React.CSSProperties}
         >
           Đọc tiếp
           <FaArrowRight size={10} />
-        </Link>
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -136,7 +138,10 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
     : null;
 
   return (
-    <div className="group relative rounded-[2rem] overflow-hidden flex flex-col lg:flex-row bg-white transition-all duration-500 hover:shadow-2xl mb-12">
+    <Link
+      href={`/blog/${blog.slug}`}
+      className="group relative rounded-[2rem] overflow-hidden flex flex-col lg:flex-row bg-white transition-all duration-500 hover:shadow-2xl mb-12 block"
+    >
       <div className="relative w-full lg:w-3/5 aspect-video lg:aspect-auto min-h-[300px] overflow-hidden">
         {thumbnailSrc ? (
           <Image
@@ -172,7 +177,7 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
           </span>
         </div>
 
-        <h2 className="text-2xl sm:text-4xl font-bold text-[#563c39] mb-6 leading-tight group-hover:text-[#e57f7f] transition-colors duration-300">
+        <h2 className="text-2xl sm:text-4xl font-bold text-[#563c39] mb-6 leading-tight">
           {blog.title}
         </h2>
 
@@ -180,15 +185,14 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
           {blog.excerpt}
         </p>
 
-        <Link
-          href={`/blog/${blog.slug}`}
-          className="self-start inline-flex items-center gap-3 text-sm font-bold text-white bg-[#563c39] hover:bg-[#e57f7f] px-8 py-4 rounded-tl-2xl rounded-br-2xl transition-all duration-300 hover:rounded-bl-2xl hover:rounded-tr-2xl hover:rounded-br-none hover:rounded-tl-none"
+        <span
+          className="self-start inline-flex items-center gap-3 text-sm font-bold text-white bg-[#563c39] group-hover:bg-[#e57f7f] px-8 py-4 rounded-tl-2xl rounded-br-2xl transition-all duration-300 group-hover:rounded-bl-2xl group-hover:rounded-tr-2xl group-hover:rounded-br-none group-hover:rounded-tl-none"
         >
           Đọc bài viết nổi bật
           <FaArrowRight size={14} />
-        </Link>
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
