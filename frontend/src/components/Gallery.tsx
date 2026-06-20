@@ -108,100 +108,104 @@ const Gallery: React.FC = () => {
 
             <div className="relative group/gallery w-full md:px-10 lg:px-0 aspect-[3/2] lg:aspect-[1100/491]">
               {/* Desktop Swiper */}
-              <Swiper
-                modules={[Navigation, Pagination, Autoplay, Grid]}
-                grid={{
-                  rows: 2,
-                  fill: "row",
-                }}
-                spaceBetween={20}
-                slidesPerView={3}
-                slidesPerGroup={3}
-                navigation={{
-                  nextEl: ".gallery-desktop-next",
-                  prevEl: ".gallery-desktop-prev",
-                }}
-                autoplay={{ delay: 6000, disableOnInteraction: false }}
-                loop={false}
-                observer={true}
-                observeParents={true}
-                className="w-full h-full gallery-swiper bg-transparent hidden lg:block"
-                style={{ backgroundColor: "transparent" }}
-              >
-                {sliderData.map((item: any, index: number) => {
-                  const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
-                  return (
-                    <SwiperSlide key={`desktop-${index}`} className="h-full lg:!h-[calc((100%-20px)/2)] bg-transparent" style={{ backgroundColor: "transparent" }}>
-                      <div
-                        className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
-                          hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
-                        }`}
-                        style={{
-                          ['--mobile-radius' as any]: mobileImageBorderRadius,
-                          ['--desktop-radius' as any]: galleryRadius,
-                          backgroundColor: "transparent",
-                        }}
-                      >
-                        <Image
-                          src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
-                          alt={`Ảnh không gian ${index + 1}`}
-                          fill
-                          className="object-cover bg-transparent"
-                          sizes="33vw"
-                          quality={90}
-                          style={{ backgroundColor: "transparent" }}
-                        />
-                      </div>
-                    </SwiperSlide>
-                  );
-                })}
-              </Swiper>
+              <div className="w-full h-full hidden lg:block">
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay, Grid]}
+                  grid={{
+                    rows: 2,
+                    fill: "row",
+                  }}
+                  spaceBetween={20}
+                  slidesPerView={3}
+                  slidesPerGroup={3}
+                  navigation={{
+                    nextEl: ".gallery-desktop-next",
+                    prevEl: ".gallery-desktop-prev",
+                  }}
+                  autoplay={{ delay: 6000, disableOnInteraction: false }}
+                  loop={false}
+                  observer={true}
+                  observeParents={true}
+                  className="w-full h-full gallery-swiper bg-transparent"
+                  style={{ backgroundColor: "transparent" }}
+                >
+                  {sliderData.map((item: any, index: number) => {
+                    const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
+                    return (
+                      <SwiperSlide key={`desktop-${index}`} className="h-full lg:!h-[calc((100%-20px)/2)] bg-transparent" style={{ backgroundColor: "transparent" }}>
+                        <div
+                          className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
+                            hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
+                          }`}
+                          style={{
+                            ['--mobile-radius' as any]: mobileImageBorderRadius,
+                            ['--desktop-radius' as any]: galleryRadius,
+                            backgroundColor: "transparent",
+                          }}
+                        >
+                          <Image
+                            src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
+                            alt={`Ảnh không gian ${index + 1}`}
+                            fill
+                            className="object-cover bg-transparent"
+                            sizes="33vw"
+                            quality={90}
+                            style={{ backgroundColor: "transparent" }}
+                          />
+                        </div>
+                      </SwiperSlide>
+                    );
+                  })}
+                </Swiper>
+              </div>
 
               {/* Mobile/Tablet Swiper */}
-              <Swiper
-                modules={[Navigation, Pagination, Autoplay]}
-                spaceBetween={20}
-                slidesPerView={1}
-                slidesPerGroup={1}
-                navigation={{
-                  nextEl: ".gallery-mobile-next",
-                  prevEl: ".gallery-mobile-prev",
-                }}
-                autoplay={{ delay: 6000, disableOnInteraction: false }}
-                loop={true}
-                observer={true}
-                observeParents={true}
-                className="w-full h-full gallery-swiper bg-transparent block lg:hidden"
-                style={{ backgroundColor: "transparent" }}
-              >
-                {sliderData.map((item: any, index: number) => {
-                  const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
-                  return (
-                    <SwiperSlide key={`mobile-${index}`} className="h-full bg-transparent" style={{ backgroundColor: "transparent" }}>
-                      <div
-                        className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
-                          hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
-                        }`}
-                        style={{
-                          ['--mobile-radius' as any]: mobileImageBorderRadius,
-                          ['--desktop-radius' as any]: galleryRadius,
-                          backgroundColor: "transparent",
-                        }}
-                      >
-                        <Image
-                          src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
-                          alt={`Ảnh không gian ${index + 1}`}
-                          fill
-                          className="object-cover bg-transparent"
-                          sizes="(max-width: 1024px) 100vw"
-                          quality={90}
-                          style={{ backgroundColor: "transparent" }}
-                        />
-                      </div>
-                    </SwiperSlide>
-                  );
-                })}
-              </Swiper>
+              <div className="w-full h-full block lg:hidden">
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay]}
+                  spaceBetween={20}
+                  slidesPerView={1}
+                  slidesPerGroup={1}
+                  navigation={{
+                    nextEl: ".gallery-mobile-next",
+                    prevEl: ".gallery-mobile-prev",
+                  }}
+                  autoplay={{ delay: 6000, disableOnInteraction: false }}
+                  loop={true}
+                  observer={true}
+                  observeParents={true}
+                  className="w-full h-full gallery-swiper bg-transparent"
+                  style={{ backgroundColor: "transparent" }}
+                >
+                  {sliderData.map((item: any, index: number) => {
+                    const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
+                    return (
+                      <SwiperSlide key={`mobile-${index}`} className="h-full bg-transparent" style={{ backgroundColor: "transparent" }}>
+                        <div
+                          className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
+                            hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
+                          }`}
+                          style={{
+                            ['--mobile-radius' as any]: mobileImageBorderRadius,
+                            ['--desktop-radius' as any]: galleryRadius,
+                            backgroundColor: "transparent",
+                          }}
+                        >
+                          <Image
+                            src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
+                            alt={`Ảnh không gian ${index + 1}`}
+                            fill
+                            className="object-cover bg-transparent"
+                            sizes="(max-width: 1024px) 100vw"
+                            quality={90}
+                            style={{ backgroundColor: "transparent" }}
+                          />
+                        </div>
+                      </SwiperSlide>
+                    );
+                  })}
+                </Swiper>
+              </div>
 
               {/* Desktop Navigation Buttons */}
               <div className="gallery-desktop-prev swiper-button-prev-custom hidden lg:flex !z-20">
