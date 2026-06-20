@@ -329,7 +329,7 @@ export default function Blog({
               className="text-center"
             />
             {blogDecoration && (
-              <div className="w-full mt-[-10px] sm:mt-[-36px] flex justify-center blog-decoration-wrapper">
+              <div className="w-full mt-2 sm:mt-4 flex justify-center blog-decoration-wrapper">
                 <div className="w-[320px] h-[40px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
                   <Image
                     src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
@@ -363,7 +363,7 @@ export default function Blog({
           </div>
         )}
 
-        <div className={classNames("flex flex-col", isHomePage && "-mt-2 md:-mt-15 lg:-mt-6")}>
+        <div className={classNames("flex flex-col", isHomePage ? "mt-4 sm:mt-8" : "")}>
           {showFeatured && page === 1 && blogs.length > 0 && (
             <FeaturedBlogCard blog={blogs[0]} />
           )}
