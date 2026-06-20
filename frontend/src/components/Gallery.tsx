@@ -30,6 +30,30 @@ const Gallery: React.FC = () => {
   const galleryRadius = gallerySliderRadius ? `${gallerySliderRadius}px` : "0px";
   const { data: sliderData = [] } = useSliders("spaces");
 
+  const desktopSwiperRef = React.useRef<any>(null);
+
+  const handleDesktopPrev = () => {
+    if (desktopSwiperRef.current) {
+      const swiper = desktopSwiperRef.current;
+      if (swiper.isBeginning) {
+        swiper.slideTo(swiper.slides.length - 1);
+      } else {
+        swiper.slidePrev();
+      }
+    }
+  };
+
+  const handleDesktopNext = () => {
+    if (desktopSwiperRef.current) {
+      const swiper = desktopSwiperRef.current;
+      if (swiper.isEnd) {
+        swiper.slideTo(0);
+      } else {
+        swiper.slideNext();
+      }
+    }
+  };
+
   const buildUrl = (path: string | undefined) => {
     if (!path) return "";
     return `${URL_API}${path.replace(/\\/g, "/")}`;
@@ -117,9 +141,8 @@ const Gallery: React.FC = () => {
                   spaceBetween={20}
                   slidesPerView={3}
                   slidesPerGroup={3}
-                  navigation={{
-                    nextEl: ".gallery-desktop-next",
-                    prevEl: ".gallery-desktop-prev",
+                  onSwiper={(swiper) => {
+                    desktopSwiperRef.current = swiper;
                   }}
                   autoplay={{ delay: 6000, disableOnInteraction: false }}
                   loop={false}
@@ -210,6 +233,7 @@ const Gallery: React.FC = () => {
               <div 
                 className="gallery-desktop-prev swiper-button-prev-custom hidden lg:flex !z-20"
                 style={{ left: "-45px" }}
+                onClick={handleDesktopPrev}
               >
                 <Image
                   className="w-full h-full rounded-[50%]"
@@ -222,6 +246,7 @@ const Gallery: React.FC = () => {
               <div 
                 className="gallery-desktop-next swiper-button-next-custom hidden lg:flex !z-20"
                 style={{ right: "-45px" }}
+                onClick={handleDesktopNext}
               >
                 <Image
                   className="w-full h-full rounded-[50%]"
