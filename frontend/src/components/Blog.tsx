@@ -329,16 +329,12 @@ export default function Blog({
               className="text-center"
             />
             {blogDecoration && (
-              <div className="w-full mt-2 sm:mt-4 flex justify-center blog-decoration-wrapper">
-                <div className="w-[320px] h-[40px] md:w-[480px] md:h-[100px] relative flex items-center justify-center overflow-hidden">
-                  <Image
-                    src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
-                    alt="Decoration"
-                    fill
-                    className="object-contain"
-                    quality={100}
-                  />
-                </div>
+              <div className="w-full flex justify-center blog-decoration-wrapper">
+                <img
+                  src={`${URL_API}${blogDecoration.replace(/\\/g, "/")}`}
+                  alt="Decoration"
+                  className="w-[280px] md:w-[400px] h-auto object-contain"
+                />
               </div>
             )}
           </div>
