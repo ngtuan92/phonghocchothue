@@ -31,13 +31,113 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor để thêm token vào mọi request
+const isCompressibleImage = (file: File): boolean => {
+  if (!file) return false;
+  const type = file.type.toLowerCase();
+  const name = file.name.toLowerCase();
+  
+  return (
+    type.startsWith("image/") &&
+    !type.includes("gif") &&
+    !type.includes("svg") &&
+    !type.includes("icon") &&
+    !type.includes("x-icon") &&
+    !name.endsWith(".gif") &&
+    !name.endsWith(".svg")
+  );
+};
+
+const compressImage = (file: File, maxWidth = 1920, maxQuality = 0.8): Promise<File> => {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      resolve(file);
+      return;
+    }
+
+    if (!isCompressibleImage(file)) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const compressedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          maxQuality
+        );
+      };
+      img.onerror = () => {
+        resolve(file);
+      };
+    };
+    reader.onerror = () => {
+      resolve(file);
+    };
+  });
+};
+
+// Interceptor để thêm token và tự động nén ảnh vào mọi request
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = getClientCookie("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Tự động nén ảnh nếu gửi dưới dạng FormData
+    if (config.data instanceof FormData && typeof window !== "undefined") {
+      const newFormData = new FormData();
+      for (const [key, value] of config.data.entries()) {
+        if (value instanceof File && isCompressibleImage(value)) {
+          try {
+            const compressed = await compressImage(value);
+            newFormData.append(key, compressed, value.name);
+          } catch (e) {
+            console.error("Lỗi nén ảnh, sử dụng file gốc:", e);
+            newFormData.append(key, value);
+          }
+        } else {
+          newFormData.append(key, value);
+        }
+      }
+      config.data = newFormData;
+    }
+
     return config;
   },
   (error) => {
