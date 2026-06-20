@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
+import Cropper from "react-easy-crop";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -10,8 +11,51 @@ const QuillWrapper = dynamic(
 
 import "react-quill-new/dist/quill.snow.css";
 
-
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+
+const getCroppedImg = (imageSrc, croppedAreaPixels) => {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.src = imageSrc;
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        reject(new Error("No 2d context"));
+        return;
+      }
+
+      // Set canvas size to the cropped area
+      canvas.width = croppedAreaPixels.width;
+      canvas.height = croppedAreaPixels.height;
+
+      // Draw the cropped image
+      ctx.drawImage(
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height
+      );
+
+      // Export as blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Canvas is empty"));
+          return;
+        }
+        resolve(blob);
+      }, "image/jpeg", 0.95);
+    };
+    image.onerror = (error) => reject(error);
+  });
+};
 
 export default function BlogForm({ data, onSave, onCancel }) {
   const [formData, setFormData] = useState({
@@ -30,6 +74,13 @@ export default function BlogForm({ data, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+
+  // States for Image Cropper
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   useEffect(() => {
     if (formData.thumbnail && !formData.thumbnail.startsWith("blob:")) {
@@ -67,11 +118,34 @@ export default function BlogForm({ data, onSave, onCancel }) {
     }
   };
 
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropImageSrc(null);
+  };
+
+  const handleCropSave = async () => {
+    try {
+      const croppedBlob = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      const croppedFile = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
+      setAvatarFile(croppedFile);
+      setPreviewAvatar(URL.createObjectURL(croppedBlob));
+      setShowCropper(false);
+    } catch (error) {
+      console.error("Lỗi cắt ảnh:", error);
+    }
+  };
+
+  const onCropComplete = (croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setAvatarFile(file);
-      setPreviewAvatar(URL.createObjectURL(file));
+      setCropImageSrc(URL.createObjectURL(file));
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setShowCropper(true);
     }
   };
 
@@ -260,12 +334,15 @@ export default function BlogForm({ data, onSave, onCancel }) {
               </div>
 
               <div className="pt-2">
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-1">
                   <MdCloudUpload className="text-primary h-5 w-5" />
                   <Typography variant="small" className="text-gray-700 font-bold uppercase tracking-wider text-[11px]">
                     Ảnh đại diện tác giả (Avatar)
                   </Typography>
                 </div>
+                <Typography variant="small" className="text-[10px] text-gray-400 font-medium mb-3">
+                  Khuyên dùng: Tỷ lệ 1:1 (Ví dụ: 300x300px). Hệ thống sẽ tự động cắt hình tròn.
+                </Typography>
                 <div className="flex items-center gap-4">
                   <div className="relative w-12 h-12 rounded-full overflow-hidden border border-gray-300 bg-gray-50 flex-shrink-0 flex items-center justify-center">
                     {previewAvatar ? (
@@ -323,6 +400,67 @@ export default function BlogForm({ data, onSave, onCancel }) {
           </button>
         </div>
       </div>
+      {/* Cropper Modal */}
+      {showCropper && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleCropCancel} />
+          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl z-10 overflow-hidden border border-gray-100 flex flex-col h-[500px]">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+              <h3 className="text-sm font-bold text-gray-700 uppercase">Cắt ảnh đại diện</h3>
+              <button type="button" onClick={handleCropCancel} className="p-1.5 hover:bg-gray-100 rounded-lg transition-all text-gray-400 hover:text-red-500">
+                <MdClose className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="relative flex-1 bg-gray-900 overflow-hidden">
+              <Cropper
+                image={cropImageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            
+            <div className="p-4 bg-gray-50 border-t border-gray-100 space-y-4">
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Thu phóng</span>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-label="Zoom"
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="flex-1 accent-primary cursor-pointer h-1.5 bg-gray-200 rounded-lg appearance-none"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleCropCancel}
+                  className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 transition-all active:scale-95"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCropSave}
+                  className="px-6 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-green-700 transition-all active:scale-95 shadow-md shadow-green-100"
+                >
+                  Cắt và Lưu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
