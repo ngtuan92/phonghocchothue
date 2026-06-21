@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 import Cropper from "react-easy-crop";
+import PropTypes from "prop-types";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -57,7 +58,7 @@ const getCroppedImg = (imageSrc, croppedAreaPixels) => {
   });
 };
 
-export default function BlogForm({ data, onSave, onCancel }) {
+export default function BlogForm({ data, onSave, onCancel, showFooter = true }) {
   const [formData, setFormData] = useState({
     title: "",
     category: "kien-thuc",
@@ -162,7 +163,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-h-[85vh] overflow-y-auto px-6 py-4 custom-scrollbar">
+    <form id="blog-form" onSubmit={handleSubmit} className="space-y-8">
       <div className="w-full space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
@@ -385,23 +386,25 @@ export default function BlogForm({ data, onSave, onCancel }) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
-          <button 
-            type="button"
-            onClick={onCancel} 
-            className="flex items-center gap-2 px-8 py-3 text-sm font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
-          >
-            <MdClose className="h-5 w-5" />
-            Hủy bỏ
-          </button>
-          <button 
-            type="submit" 
-            className="flex items-center gap-2 px-12 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-all active:scale-95 shadow-lg shadow-green-100"
-          >
-            <MdSave className="h-5 w-5" />
-            Lưu bài viết ngay
-          </button>
-        </div>
+        {showFooter && (
+          <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
+            <button 
+              type="button"
+              onClick={onCancel} 
+              className="flex items-center gap-2 px-8 py-3 text-sm font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
+            >
+              <MdClose className="h-5 w-5" />
+              Hủy bỏ
+            </button>
+            <button 
+              type="submit" 
+              className="flex items-center gap-2 px-12 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-all active:scale-95 shadow-lg shadow-green-100"
+            >
+              <MdSave className="h-5 w-5" />
+              Lưu bài viết ngay
+            </button>
+          </div>
+        )}
       </div>
       {/* Cropper Modal */}
       {showCropper && (
@@ -467,3 +470,10 @@ export default function BlogForm({ data, onSave, onCancel }) {
     </form>
   );
 }
+
+BlogForm.propTypes = {
+  data: PropTypes.object,
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  showFooter: PropTypes.bool,
+};

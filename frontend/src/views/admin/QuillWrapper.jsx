@@ -1814,7 +1814,7 @@ const QuillWrapper = forwardRef(({
           font-size: 1.05rem;
           line-height: 1.6;
           color: #323232;
-          padding: 24px var(--site-gutter) !important; /* Matches main-container mobile padding */
+          padding: 24px 20px !important;
           min-height: inherit;
           max-height: var(--quill-editor-max-height, none) !important;
           overflow-y: auto !important;
@@ -1834,34 +1834,34 @@ const QuillWrapper = forwardRef(({
         @media (max-width: 639px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: calc(100vw - 68px) !important;
-            padding: 24px var(--site-gutter) !important;
+            padding: 24px 16px !important;
           }
         }
         @media (min-width: 640px) and (max-width: 1023px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: calc(100vw - 140px) !important;
-            padding: 24px var(--site-gutter) !important;
+            padding: 24px 20px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1024px) and (max-width: 1239px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
             max-width: calc(100vw - 140px) !important;
-            padding: 24px 60px !important;
+            padding: 24px 20px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1240px) and (max-width: 1439px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            max-width: 1100px !important;
-            padding: 24px 60px !important;
+            max-width: 100% !important;
+            padding: 24px 20px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1440px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            max-width: 1100px !important;
-            padding: 24px 80px !important;
+            max-width: 100% !important;
+            padding: 24px 20px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
@@ -1880,9 +1880,24 @@ const QuillWrapper = forwardRef(({
           font-family: 'Montserrat', sans-serif;
           line-height: 1.6;
           color: #323232;
-          margin-bottom: 0.5rem;
+          margin: 0 0 0.5rem 0 !important;
           font-weight: 400;
           font-size: 1.05rem;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor ul {
+          list-style-type: disc !important;
+          padding-left: 1.5rem !important;
+          margin: 0 0 1rem 0 !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor ol {
+          list-style-type: decimal !important;
+          padding-left: 1.5rem !important;
+          margin: 0 0 1rem 0 !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor li {
+          margin: 0.5rem 0 !important;
+          line-height: 1.6 !important;
+          font-size: 1.05rem !important;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor strong {
           font-weight: 700 !important;
@@ -2118,7 +2133,8 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor h6 {
           color: #563c39;
           line-height: 1.4;
-          margin-bottom: 1.0rem;
+          margin-top: 0 !important;
+          margin-bottom: 1.0rem !important;
           font-weight: 400;
         }
         .ql-editor h1,
