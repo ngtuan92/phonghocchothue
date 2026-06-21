@@ -750,66 +750,54 @@ export default function DetailPage() {
                   margin: 0.5rem 0 !important;
                   line-height: 1.6 !important;
                   display: list-item !important;
-                  font-size: 1.05rem !important;
+                  font-size: 1rem !important;
                 }
                 .ckeditor-content p {
-                  margin-bottom: 0.5rem !important;
+                  margin: 1rem 0 !important;
                   line-height: 1.6 !important;
-                  font-size: 1.05rem !important;
+                  font-size: 1rem !important;
                 }
                 .ckeditor-content h1 {
-                  margin: 0 0 1rem 0 !important;
-                  line-height: 1.4 !important;
-                  font-size: 1.8rem !important;
-                  font-weight: 400 !important;
-                  color: #563c39 !important;
+                  margin: 1rem 0 1rem 0 !important;
+                  line-height: 1.2 !important;
+                  font-size: 2rem !important;
                 }
                 .ckeditor-content h2 {
-                  margin: 0 0 1rem 0 !important;
-                  line-height: 1.4 !important;
-                  font-size: 2rem !important;
-                  font-weight: 400 !important;
-                  color: #563c39 !important;
+                  margin: 1rem 0 1rem 0 !important;
+                  line-height: 1.2 !important;
+                  font-size: 1.5rem !important;
                 }
                 .ckeditor-content h3 {
-                  margin: 0 0 1rem 0 !important;
-                  line-height: 1.4 !important;
-                  font-size: 1.5rem !important;
-                  font-weight: 400 !important;
-                  color: #563c39 !important;
+                  margin: 1rem 0 1rem 0 !important;
+                  line-height: 1.2 !important;
+                  font-size: 1.25rem !important;
                 }
                 .ckeditor-content h4 {
-                  margin: 0 0 1rem 0 !important;
-                  line-height: 1.4 !important;
-                  font-size: 1.5rem !important;
-                  font-weight: 400 !important;
-                  color: #563c39 !important;
+                  margin: 1rem 0 1rem 0 !important;
+                  line-height: 1.2 !important;
+                  font-size: 1.125rem !important;
                 }
                 .ckeditor-content h5 {
-                  margin: 0 0 1rem 0 !important;
-                  line-height: 1.4 !important;
-                  font-size: 1.25rem !important;
-                  font-weight: 400 !important;
-                  color: #563c39 !important;
+                  margin: 1rem 0 1rem 0 !important;
+                  line-height: 1.2 !important;
+                  font-size: 1rem !important;
                 }
                 .ckeditor-content h6 {
-                  margin: 0 0 1rem 0 !important;
-                  line-height: 1.4 !important;
-                  font-size: 1rem !important;
-                  font-weight: 400 !important;
-                  color: #563c39 !important;
+                  margin: 1rem 0 1rem 0 !important;
+                  line-height: 1.2 !important;
+                  font-size: 0.875rem !important;
                 }
                 .ckeditor-content table {
                   width: 100% !important;
                   border-collapse: collapse !important;
                   margin: 1rem 0 !important;
-                  font-size: 1.05rem !important;
+                  font-size: 1rem !important;
                 }
                 .ckeditor-content table td,
                 .ckeditor-content table th {
                   padding: 0.5rem !important;
                   border: 1px solid #ddd !important;
-                  font-size: 1.05rem !important;
+                  font-size: 1rem !important;
                 }
                 .ckeditor-content a {
                   color: #2563eb !important;
@@ -864,11 +852,23 @@ export default function DetailPage() {
                    .ckeditor-content img {
                     height: auto !important;
                   }
+                  .room-detail-content img {
+                    display: block !important;
+                    margin-left: 0 !important;
+                    margin-right: auto !important;
+                    float: none !important;
+                  }
+                  .room-detail-content .image-wrapper {
+                    margin-left: 0 !important;
+                    margin-right: auto !important;
+                    display: block !important;
+                    float: none !important;
+                  }
                 }
               `
             }} />
             <div
-              className="mt-4 px-[40px] sm:px-20 text-xs sm:text-base ckeditor-content w-full"
+              className="mt-4 px-[40px] sm:px-20 content-img text-xs sm:text-base ckeditor-content"
               style={{
                 wordWrap: "break-word",
                 lineHeight: "1.6",

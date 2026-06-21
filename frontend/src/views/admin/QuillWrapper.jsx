@@ -813,23 +813,33 @@ const QuillWrapper = forwardRef(({
       return changed;
     };
 
-    syncClasses();
+    const syncEditorState = () => {
+      syncClasses();
+      qlEditor.querySelectorAll('*[style*="font-size"]').forEach(el => {
+        const fontSize = el.style.fontSize;
+        if (fontSize && !el.style.getPropertyValue('--fs')) {
+          el.style.setProperty('--fs', fontSize);
+        }
+      });
+    };
+
+    syncEditorState();
 
     const observer = new MutationObserver(() => {
       observer.disconnect();
-      syncClasses();
-      observer.observe(qlEditor, { attributes: true, attributeFilter: ['class'] });
+      syncEditorState();
+      observer.observe(qlEditor, { attributes: true, attributeFilter: ['class', 'style'] });
     });
-    observer.observe(qlEditor, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(qlEditor, { attributes: true, attributeFilter: ['class', 'style'] });
 
     const quill = editorRef.current?.getEditor();
     if (quill) {
-      quill.on('text-change', syncClasses);
-      quill.on('selection-change', syncClasses);
+      quill.on('text-change', syncEditorState);
+      quill.on('selection-change', syncEditorState);
       return () => {
         observer.disconnect();
-        quill.off('text-change', syncClasses);
-        quill.off('selection-change', syncClasses);
+        quill.off('text-change', syncEditorState);
+        quill.off('selection-change', syncEditorState);
       };
     }
     return () => {
@@ -983,10 +993,9 @@ const QuillWrapper = forwardRef(({
         // Inject custom size input into the size dropdown options list
         const optionsContainer = picker.querySelector('.ql-picker-options');
         if (optionsContainer && !optionsContainer.querySelector('.custom-size-dropdown-wrapper')) {
-          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 767;
           const wrapper = document.createElement('div');
           wrapper.className = 'custom-size-dropdown-wrapper';
-          wrapper.style.order = isMobile ? '-1' : '999';
+          wrapper.style.order = '-1';
           wrapper.style.position = 'sticky';
           wrapper.style.top = '0';
           wrapper.style.backgroundColor = '#fff';
@@ -1861,17 +1870,34 @@ const QuillWrapper = forwardRef(({
           text-transform: inherit !important;
         }
 
-        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
+        /* Custom responsive scaling for inline font-sizes inside the editor matching frontend */
+        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
           font-size: var(--fs) !important;
         }
+        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] * {
+          font-size: inherit !important;
+        }
+
         @media (max-width: 767px) {
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
             font-size: max(12px, calc(var(--fs) * 0.6)) !important;
+          }
+          /* Scale custom font-sizes for phone number and slogan in the editor on mobile */
+          .quill-wrapper-container .ql-editor.hero-phone-text *[style*="--fs"],
+          .quill-wrapper-container .ql-editor.hero-phone-text *[style*="--fs"] *,
+          .quill-wrapper-container .ql-editor.hero-slogan-text *[style*="--fs"],
+          .quill-wrapper-container .ql-editor.hero-slogan-text *[style*="--fs"] * {
+            font-size: clamp(8px, calc(var(--fs) * 0.5), 12px) !important;
           }
           .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
           .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
             font-size: inherit !important;
           }
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-size.ql-expanded .ql-picker-options {
+          display: flex !important;
+          flex-direction: column !important;
         }
 
         /* Custom Color Picker dropdown overrides */
@@ -1977,15 +2003,15 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 1240px) and (max-width: 1439px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            max-width: 100% !important;
-            padding: 24px 20px !important;
+            max-width: 1100px !important;
+            padding: 24px 60px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1440px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            max-width: 100% !important;
-            padding: 24px 20px !important;
+            max-width: 1100px !important;
+            padding: 24px 80px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
@@ -2560,10 +2586,11 @@ const QuillWrapper = forwardRef(({
             top: 100% !important;
           }
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-options {
-            min-width: 145px !important;
-            width: 145px !important;
-            left: auto !important;
-            right: 0 !important;
+            min-width: 180px !important;
+            width: 180px !important;
+            left: 0 !important;
+            right: auto !important;
+            overflow-x: hidden !important;
           }
           .quill-wrapper-container .ql-editor.title-bg-text,
           .quill-wrapper-container .ql-editor.mobile-watermark-text {

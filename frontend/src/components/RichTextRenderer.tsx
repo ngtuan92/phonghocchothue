@@ -129,14 +129,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       return match;
     });
 
-    // Convert inline font-size styles (e.g. style="font-size: 6.5rem;") to CSS Custom Properties (--fs: 6.5rem; font-size: var(--fs);)
-    processedHtml = processedHtml.replace(/style=["']([^"']*?)font-size:\s*([^;]+?);?([^"']*?)["']/gi, (match: string, before: string, size: string, after: string) => {
+    // Convert inline font-size styles (e.g. style="font-size: 42px;") to CSS Custom Properties (--fs: 42px; font-size: var(--fs);)
+    processedHtml = processedHtml.replace(/style=["']([^"']*?)font-size:\s*(\d+(?:\.\d+)?)px;?([^"']*?)["']/gi, (match: string, before: string, size: string, after: string) => {
       const cleanBefore = before.trim();
       const cleanAfter = after.trim();
-      const cleanSize = size.trim();
       const styleContent = [
         cleanBefore ? (cleanBefore.endsWith(';') ? cleanBefore : `${cleanBefore};`) : '',
-        `--fs: ${cleanSize}; font-size: var(--fs);`,
+        `--fs: ${size}px; font-size: var(--fs);`,
         cleanAfter
       ].filter(Boolean).join(' ');
       return `style="${styleContent}"`;

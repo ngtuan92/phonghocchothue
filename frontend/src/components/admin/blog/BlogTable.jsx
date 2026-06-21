@@ -1,16 +1,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import Card from "../card";
 import { 
-  MdAdd, MdEdit, MdDelete, MdSearch, MdLibraryBooks, 
+  MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdLibraryBooks, 
   MdNavigateBefore, MdNavigateNext, MdPerson, MdCalendarToday, 
   MdFiberManualRecord 
 } from "react-icons/md";
 import { useBlogs, useCreateBlog, useUpdateBlog, useDeleteBlog } from "@/hooks/api/useBlog";
+import Loading from "@/components/admin/loading";
 import { showToastSuccess, showToastError } from "@/helpers/toast";
 import { handleInvalidToken } from "@/utils/helpers";
 import fetchData from "@/axios";
 
+const Dialog = dynamic(() => import("@/components/admin/dialog"), { ssr: false });
 const Confirm = dynamic(() => import("@/components/admin/confirm"), { ssr: false });
 const BlogForm = dynamic(() => import("./BlogForm"), { ssr: false });
 
@@ -319,65 +322,22 @@ export default function BlogTable() {
 
       {openForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button
-            type="button"
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity border-0 p-0 cursor-pointer w-full h-full"
-            onClick={() => setOpenForm(false)}
-            aria-label="Đóng dialog"
-          />
-          <div className="relative bg-white rounded-lg w-full max-w-[95vw] xl:max-w-[1350px] max-h-[90vh] flex flex-col shadow-2xl z-10 overflow-hidden border border-gray-200">
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-200 flex-shrink-0">
-              <div className="flex flex-col items-start p-0">
-                <h2 className="text-2xl font-bold text-[#15803d]">
-                  {selectedBlog ? "✏️ Chỉnh sửa bài viết" : "➕ Viết bài mới"}
-                </h2>
-                <p className="text-xs text-gray-500 mt-1">
-                  {selectedBlog ? "Cập nhật nội dung bài viết tin tức" : "Điền thông tin để viết bài mới"}
-                </p>
-              </div>
-              <button
-                onClick={() => setOpenForm(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Đóng"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-6 w-6 text-gray-600"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+          <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpenForm(false)} />
+          <div className="relative bg-white rounded-2xl w-full max-w-[95vw] xl:max-w-[1350px] shadow-2xl z-10 overflow-hidden border border-gray-100">
+            <div className="flex justify-between items-center px-8 py-4 border-b border-gray-50">
+              <h2 className="text-lg font-bold text-foreground">
+                {selectedBlog ? "Chỉnh sửa bài viết" : "Soạn thảo bài viết mới"}
+              </h2>
+              <button onClick={() => setOpenForm(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-all group">
+                <MdClose className="h-5 w-5 text-gray-700 group-hover:text-red-500" />
               </button>
             </div>
-            <div className="flex flex-col gap-6 overflow-y-auto px-6 py-6 flex-1 min-h-0 custom-scrollbar">
+            <div className="p-6">
               <BlogForm
                 data={selectedBlog}
                 onSave={handleSaveBlog}
                 onCancel={() => setOpenForm(false)}
-                showFooter={false}
               />
-            </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setOpenForm(false)}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium text-sm transition-colors"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                form="blog-form"
-                disabled={isSubmitting}
-                className="px-8 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg shadow-md hover:from-green-700 hover:to-green-800 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 text-sm font-semibold"
-              >
-                {isSubmitting ? "Đang lưu..." : "💾 Lưu bài viết"}
-              </button>
             </div>
           </div>
         </div>

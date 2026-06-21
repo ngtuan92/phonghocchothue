@@ -529,7 +529,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   placeholder="Nhập mô tả chi tiết về phòng..."
                   isSticky={true}
                   maxHeight="500px"
-                  isBlogEditor={true}
                 />
               </div>
             </div>
