@@ -1805,6 +1805,7 @@ const QuillWrapper = forwardRef(({
         <ReactQuill
           key={dynamicFonts.map(f => f.name).join(',')}
           ref={editorRef}
+          className={editorClassName}
           {...props}
           value={absoluteValue}
           onChange={handleOnChange}
@@ -1837,12 +1838,8 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-container:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
             font-size: max(12px, calc(var(--fs) * 0.6)) !important;
           }
-          .quill-wrapper-container .ql-container.title-main-text *[style*="font-size"],
           .quill-wrapper-container .ql-container.title-bg-text *[style*="font-size"],
-          .quill-wrapper-container .ql-container.title-sub-text *[style*="font-size"],
-          .quill-wrapper-container .ql-container.mobile-watermark-text *[style*="font-size"],
-          .quill-wrapper-container .ql-container.hero-phone-text *[style*="font-size"],
-          .quill-wrapper-container .ql-container.hero-slogan-text *[style*="font-size"] {
+          .quill-wrapper-container .ql-container.mobile-watermark-text *[style*="font-size"] {
             font-size: inherit !important;
           }
         }
@@ -2535,12 +2532,8 @@ const QuillWrapper = forwardRef(({
             min-width: 145px !important;
             width: 145px !important;
           }
-          .quill-wrapper-container .ql-container.title-main-text .ql-editor,
           .quill-wrapper-container .ql-container.title-bg-text .ql-editor,
-          .quill-wrapper-container .ql-container.title-sub-text .ql-editor,
-          .quill-wrapper-container .ql-container.mobile-watermark-text .ql-editor,
-          .quill-wrapper-container .ql-container.hero-phone-text .ql-editor,
-          .quill-wrapper-container .ql-container.hero-slogan-text .ql-editor {
+          .quill-wrapper-container .ql-container.mobile-watermark-text .ql-editor {
             font-size: inherit !important;
           }
         }

@@ -1103,10 +1103,10 @@ export default function CMS() {
                     className={`flex items-center gap-1.5 px-2.5 py-2.5 md:px-4 md:py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap
                       ${isActive
                         ? "bg-lightPrimary text-primary shadow-sm"
-                        : "text-gray-500 hover:bg-gray-50 hover:text-navy-700"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-navy-700"
                       }`}
                   >
-                    <Icon className={`h-4 w-4 md:h-5 md:w-5 shrink-0 ${isActive ? "text-primary" : "text-gray-400"}`} />
+                    <Icon className={`h-4 w-4 md:h-5 md:w-5 shrink-0 ${isActive ? "text-primary" : "text-gray-700"}`} />
                     <span className="hidden md:inline text-xs md:text-sm">{label}</span>
                   </button>
                 </li>
