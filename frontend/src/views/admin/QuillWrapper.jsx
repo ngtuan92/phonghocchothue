@@ -790,21 +790,21 @@ const QuillWrapper = forwardRef(({
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
-    const qlContainer = containerRef.current.querySelector('.ql-container');
-    if (!qlContainer) return;
+    const qlEditor = containerRef.current.querySelector('.ql-editor');
+    if (!qlEditor) return;
 
     const applyClasses = () => {
-      const currentClasses = Array.from(qlContainer.classList);
-      const targetClasses = ['ql-container', 'ql-snow', ...editorClassName.split(' ').filter(Boolean)];
+      const targetClasses = [...editorClassName.split(' ').filter(Boolean)];
       
       targetClasses.forEach(c => {
-        if (!qlContainer.classList.contains(c)) {
-          qlContainer.classList.add(c);
+        if (!qlEditor.classList.contains(c)) {
+          qlEditor.classList.add(c);
         }
       });
+      const currentClasses = Array.from(qlEditor.classList);
       currentClasses.forEach(c => {
-        if (!targetClasses.includes(c)) {
-          qlContainer.classList.remove(c);
+        if (c !== 'ql-editor' && c !== 'ql-blank' && !targetClasses.includes(c)) {
+          qlEditor.classList.remove(c);
         }
       });
     };
@@ -1805,7 +1805,6 @@ const QuillWrapper = forwardRef(({
         <ReactQuill
           key={dynamicFonts.map(f => f.name).join(',')}
           ref={editorRef}
-          className={editorClassName}
           {...props}
           value={absoluteValue}
           onChange={handleOnChange}
@@ -1831,15 +1830,15 @@ const QuillWrapper = forwardRef(({
           border: none !important;
         }
 
-        .quill-wrapper-container .ql-container:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
+        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
           font-size: var(--fs) !important;
         }
         @media (max-width: 767px) {
-          .quill-wrapper-container .ql-container:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
             font-size: max(12px, calc(var(--fs) * 0.6)) !important;
           }
-          .quill-wrapper-container .ql-container.title-bg-text *[style*="font-size"],
-          .quill-wrapper-container .ql-container.mobile-watermark-text *[style*="font-size"] {
+          .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
+          .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
             font-size: inherit !important;
           }
         }
@@ -2532,8 +2531,8 @@ const QuillWrapper = forwardRef(({
             min-width: 145px !important;
             width: 145px !important;
           }
-          .quill-wrapper-container .ql-container.title-bg-text .ql-editor,
-          .quill-wrapper-container .ql-container.mobile-watermark-text .ql-editor {
+          .quill-wrapper-container .ql-editor.title-bg-text,
+          .quill-wrapper-container .ql-editor.mobile-watermark-text {
             font-size: inherit !important;
           }
         }
