@@ -238,7 +238,10 @@ const QuillWrapper = forwardRef(({
   toolbarTop = "0px",
   isSticky = false,
   maxHeight = "none",
+  minHeight = "120px",
   isBlogEditor = false,
+  className = "",
+  editorClassName = "",
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -257,6 +260,21 @@ const QuillWrapper = forwardRef(({
   const containerClickRef = useRef(null);
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
+
+  const syncCustomFontSizes = useCallback(() => {
+    const imgContainer = containerRef.current;
+    if (!imgContainer) return;
+    const elements = imgContainer.querySelectorAll('.ql-editor [style*="font-size"]');
+    elements.forEach(el => {
+      const fontSize = el.style.fontSize;
+      if (fontSize) {
+        const cleanSize = fontSize.trim();
+        if (cleanSize && el.style.getPropertyValue('--fs') !== cleanSize) {
+          el.style.setProperty('--fs', cleanSize);
+        }
+      }
+    });
+  }, []);
 
   const updateCaptionsList = useCallback(() => {
     const imgContainer = containerRef.current;
@@ -491,6 +509,7 @@ const QuillWrapper = forwardRef(({
 
     const handleContentChange = () => {
       updateCaptionsList();
+      syncCustomFontSizes();
       setTimeout(() => {
         positionCaptionsDirectly();
         positionResizerDirectly();
@@ -511,6 +530,7 @@ const QuillWrapper = forwardRef(({
     setTimeout(() => {
       updateCaptionsList();
       updateSizePickerLabel();
+      syncCustomFontSizes();
       setTimeout(handleScrollOrResize, 50);
       if (toolbar) {
         try {
@@ -530,6 +550,8 @@ const QuillWrapper = forwardRef(({
       quill.off('text-change', handleContentChange);
     };
   }, [isReady, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly, updateSizePickerLabel]);
+
+
 
   useEffect(() => {
     if (!isReady) return;
@@ -768,6 +790,40 @@ const QuillWrapper = forwardRef(({
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
+    const qlContainer = containerRef.current.querySelector('.ql-container');
+    if (!qlContainer) return;
+
+    const applyClasses = () => {
+      const currentClasses = Array.from(qlContainer.classList);
+      const targetClasses = ['ql-container', 'ql-snow', ...editorClassName.split(' ').filter(Boolean)];
+      
+      targetClasses.forEach(c => {
+        if (!qlContainer.classList.contains(c)) {
+          qlContainer.classList.add(c);
+        }
+      });
+      currentClasses.forEach(c => {
+        if (!targetClasses.includes(c)) {
+          qlContainer.classList.remove(c);
+        }
+      });
+    };
+
+    applyClasses();
+
+    const quill = editorRef.current?.getEditor();
+    if (quill) {
+      quill.on('text-change', applyClasses);
+      quill.on('selection-change', applyClasses);
+      return () => {
+        quill.off('text-change', applyClasses);
+        quill.off('selection-change', applyClasses);
+      };
+    }
+  }, [isReady, editorClassName]);
+
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
 
     const initSizeInput = () => {
       const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
@@ -989,7 +1045,12 @@ const QuillWrapper = forwardRef(({
             input.value = cleanSize;
           }
 
-          optionsContainer.appendChild(wrapper);
+          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 767;
+          if (isMobile) {
+            optionsContainer.insertBefore(wrapper, optionsContainer.firstChild);
+          } else {
+            optionsContainer.appendChild(wrapper);
+          }
         }
       });
     };
@@ -1657,11 +1718,14 @@ const QuillWrapper = forwardRef(({
 
   return (
     <div 
-      className={`quill-wrapper-container relative${disableImageWrap ? " disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`} 
+      className={`quill-wrapper-container relative ${className} ${disableImageWrap ? "disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`} 
       ref={containerRef}
       style={{
         '--quill-toolbar-top': toolbarTop,
-        '--quill-editor-max-height': maxHeight
+        '--quill-editor-max-height': maxHeight,
+        '--quill-editor-min-height': minHeight,
+        '--custom-line-height': lineHeight ? (/^\d+$/.test(String(lineHeight).trim()) ? `${lineHeight}px` : lineHeight) : undefined,
+        '--custom-line-height-mobile': lineHeightMobile ? (/^\d+$/.test(String(lineHeightMobile).trim()) ? `${lineHeightMobile}px` : lineHeightMobile) : undefined,
       }}
     >
       {renderModals()}
@@ -1749,6 +1813,39 @@ const QuillWrapper = forwardRef(({
         />
       )}
       <style dangerouslySetInnerHTML={{ __html: `
+
+        .quill-wrapper-container .ql-container,
+        .quill-wrapper-container .ql-editor {
+          min-height: var(--quill-editor-min-height, 120px) !important;
+        }
+
+        .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden,
+        .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden * {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          height: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border: none !important;
+        }
+
+        .quill-wrapper-container .ql-container:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
+          font-size: var(--fs) !important;
+        }
+        @media (max-width: 767px) {
+          .quill-wrapper-container .ql-container:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
+            font-size: max(12px, calc(var(--fs) * 0.6)) !important;
+          }
+          .quill-wrapper-container .ql-container.title-main-text *[style*="font-size"],
+          .quill-wrapper-container .ql-container.title-bg-text *[style*="font-size"],
+          .quill-wrapper-container .ql-container.title-sub-text *[style*="font-size"],
+          .quill-wrapper-container .ql-container.mobile-watermark-text *[style*="font-size"],
+          .quill-wrapper-container .ql-container.hero-phone-text *[style*="font-size"],
+          .quill-wrapper-container .ql-container.hero-slogan-text *[style*="font-size"] {
+            font-size: inherit !important;
+          }
+        }
 
         /* Custom Color Picker dropdown overrides */
         .ql-snow .ql-picker-options {
@@ -2300,6 +2397,152 @@ const QuillWrapper = forwardRef(({
           margin-left: 0 !important;
           margin-right: auto !important;
           float: none !important;
+        }
+
+        /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
+        .quill-wrapper-container .ql-toolbar.ql-snow,
+        .quill-wrapper-container .ql-toolbar.ql-snow * {
+          font-family: system-ui, -apple-system, sans-serif !important;
+          font-size: 12px !important;
+          line-height: 1.4 !important;
+          display: inline-block !important;
+          width: auto !important;
+          height: auto !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          float: none !important;
+          letter-spacing: normal !important;
+          text-transform: none !important;
+          font-weight: normal !important;
+        }
+        
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-formats {
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 2px !important;
+          margin-right: 15px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow button {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 28px !important;
+          height: 24px !important;
+          padding: 3px 5px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow button svg {
+          width: 16px !important;
+          height: 16px !important;
+          display: block !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker {
+          display: inline-flex !important;
+          align-items: center !important;
+          height: 24px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          width: 100% !important;
+          height: 100% !important;
+          padding: 0 8px !important;
+          font-size: 12px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label svg {
+          width: 10px !important;
+          height: 10px !important;
+          display: inline-block !important;
+          margin-left: 4px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-options {
+          display: none !important;
+          position: absolute !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+          display: block !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item {
+          display: block !important;
+          width: 100% !important;
+          padding: 8px 12px !important;
+          text-align: left !important;
+          font-size: 13px !important;
+        }
+        
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-formats-group {
+          position: relative !important;
+          overflow: visible !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-dropdown {
+          display: none !important;
+          position: absolute !important;
+          top: 28px !important;
+          right: 0 !important;
+          background: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 12px !important;
+          padding: 8px 10px !important;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+          z-index: 100 !important;
+          width: 300px !important;
+          flex-wrap: wrap !important;
+          gap: 6px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-expanded .ql-more-dropdown {
+          display: flex !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-dropdown .ql-formats {
+          margin-right: 0 !important;
+          border-right: none !important;
+          padding-right: 0 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 2px !important;
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-expanded button.ql-more {
+          color: #1A94FF !important;
+          background: #e6f7ff !important;
+          border-radius: 4px !important;
+        }
+
+        @media (max-width: 767px) {
+          .quill-wrapper-container .ql-toolbar.ql-snow {
+            position: relative !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-formats-group {
+            position: static !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-dropdown {
+            left: 10px !important;
+            right: 10px !important;
+            width: auto !important;
+            top: 100% !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-options {
+            min-width: 145px !important;
+            width: 145px !important;
+          }
+          .quill-wrapper-container .ql-container.title-main-text .ql-editor,
+          .quill-wrapper-container .ql-container.title-bg-text .ql-editor,
+          .quill-wrapper-container .ql-container.title-sub-text .ql-editor,
+          .quill-wrapper-container .ql-container.mobile-watermark-text .ql-editor,
+          .quill-wrapper-container .ql-container.hero-phone-text .ql-editor,
+          .quill-wrapper-container .ql-container.hero-slogan-text .ql-editor {
+            font-size: inherit !important;
+          }
         }
       `}} />
 

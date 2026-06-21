@@ -213,6 +213,35 @@ const getRadiusStyle = (val) => {
   return /^[0-9]+$/.test(cleanVal) ? `${cleanVal}px` : cleanVal;
 };
 
+const getFrontendClass = (key) => {
+  switch (key) {
+    case "describe-heading":
+      return "title-main-text";
+    case "describe-bg-text":
+      return "mobile-watermark-text";
+    case "seo-h1-main":
+      return "title-sub-text";
+    case "describe-phone":
+      return "hero-phone-text";
+    case "describe-quote-text":
+      return "hero-slogan-text";
+    case "textDecription":
+    case "amenities-description":
+    case "blog-page-description":
+      return "describe-description-wrapper";
+    case "amenities-content":
+    case "describe-h2":
+    case "room-heading":
+    case "faq-heading":
+    case "blog-heading":
+      return "describe-h2-wrapper";
+    case "blog-page-title":
+      return "blog-header-dynamic";
+    default:
+      return "";
+  }
+};
+
 export default function CMS() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -325,6 +354,60 @@ export default function CMS() {
       display: block !important;
       margin: 0 !important;
     }
+
+    @media (max-width: 767px) {
+      .faq-quill-question .ql-editor,
+      .faq-quill-question .ql-editor * {
+        font-size: 17px !important;
+      }
+      .faq-quill-answer .ql-editor,
+      .faq-quill-answer .ql-editor * {
+        font-size: 16px !important;
+      }
+
+      /* Mobile: thu nhỏ Quill toolbar */
+      .quill-wrapper-container .ql-toolbar.ql-snow {
+        padding: 4px 6px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 2px !important;
+      }
+      .quill-wrapper-container .ql-toolbar.ql-snow .ql-formats {
+        margin-right: 4px !important;
+        gap: 1px !important;
+      }
+      .quill-wrapper-container .ql-toolbar.ql-snow button {
+        width: 24px !important;
+        height: 22px !important;
+        padding: 2px 3px !important;
+      }
+      .quill-wrapper-container .ql-toolbar.ql-snow button svg {
+        width: 14px !important;
+        height: 14px !important;
+      }
+      .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker {
+        height: 22px !important;
+        font-size: 11px !important;
+      }
+      .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label {
+        font-size: 11px !important;
+        padding: 0 4px !important;
+      }
+      .ql-snow .ql-picker.ql-font {
+        width: 90px !important;
+      }
+      .ql-snow .ql-picker.ql-header {
+        width: 80px !important;
+      }
+      .ql-snow .ql-picker.ql-size {
+        width: 70px !important;
+      }
+    }
+
+    /* FAQ Editor Styles */
+    .faq-quill { overflow: visible !important; }
+    .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; overflow: visible !important; }
+    .faq-quill .ql-container.ql-snow { border: none !important; }
   `;
 
   useEffect(() => {
@@ -740,14 +823,11 @@ export default function CMS() {
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
-                    <style>{`
-                      .faq-quill { overflow: visible !important; }
-                      .faq-quill .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #f3f4f6 !important; background: #f9fafb; overflow: visible !important; }
-                      .faq-quill .ql-container.ql-snow { border: none !important; }
-                    `}</style>
+
                     <QuillWrapper
                       theme="snow"
-                      className="faq-quill"
+                      className="faq-quill faq-quill-question"
+                      editorClassName="faq-quill-question rich-text-renderer"
                       value={item.question || ""}
                       onChange={(val) => updateFAQ(index, "question", val)}
                       placeholder="Nhập nội dung câu hỏi..."
@@ -764,7 +844,8 @@ export default function CMS() {
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
                     <QuillWrapper
                       theme="snow"
-                      className="faq-quill"
+                      className="faq-quill faq-quill-answer"
+                      editorClassName="faq-quill-answer rich-text-renderer"
                       value={item.answer || ""}
                       onChange={(val) => updateFAQ(index, "answer", val)}
                       placeholder="Nhập nội dung câu trả lời..."
@@ -835,15 +916,10 @@ export default function CMS() {
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeightMobile: val } : c))
               );
             }}
-            className={`quill-editor-${config.key}`}
+             className={`quill-editor-${config.key}`}
+             editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
+             minHeight={minHeight}
           />
-          <style jsx global>{`
-            .quill-editor-${config.key} .ql-container,
-            .quill-editor-${config.key} .ql-editor {
-              min-height: ${minHeight};
-              font-size: 16px;
-            }
-          `}</style>
         </div>
       );
     }
@@ -1016,21 +1092,22 @@ export default function CMS() {
 
       <div className="flex flex-col gap-4">
         <div className="bg-white rounded-2xl p-1 shadow-sm border border-gray-50 sticky top-[72px] z-30">
-          <ul className="flex flex-row gap-1 overflow-x-auto scrollbar-hide p-1">
+          <ul className="flex flex-row gap-0.5 overflow-x-auto scrollbar-hide p-1">
             {SECTIONS.map(({ id, label, icon: Icon }) => {
               const isActive = activeSection === id;
               return (
                 <li key={id} className="flex-none">
                   <button
                     onClick={() => setActiveSection(id)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap
+                    title={label}
+                    className={`flex items-center gap-1.5 px-2.5 py-2.5 md:px-4 md:py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap
                       ${isActive
                         ? "bg-lightPrimary text-primary shadow-sm"
                         : "text-gray-500 hover:bg-gray-50 hover:text-navy-700"
                       }`}
                   >
-                    <Icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-gray-400"}`} />
-                    <span>{label}</span>
+                    <Icon className={`h-4 w-4 md:h-5 md:w-5 shrink-0 ${isActive ? "text-primary" : "text-gray-400"}`} />
+                    <span className="hidden md:inline text-xs md:text-sm">{label}</span>
                   </button>
                 </li>
               );
@@ -1055,24 +1132,24 @@ export default function CMS() {
                   key={config.key}
                   className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
                 >
-                  <div className="flex items-center justify-between px-6 py-4 bg-gray-50/10 border-b border-gray-50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-1 h-8 bg-primary rounded-full" />
+                  <div className="flex items-center justify-between px-3 py-3 md:px-6 md:py-4 bg-gray-50/10 border-b border-gray-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 h-6 md:h-8 bg-primary rounded-full" />
                       <div>
-                        <p className="text-sm font-bold text-navy-700">
+                        <p className="text-xs md:text-sm font-bold text-navy-700">
                           {KEY_LABEL_MAP[config.key] || config.key}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-3 md:p-6">
                     {renderEditor(config, (val) => updateField(config.key, val))}
-                    <div className="flex justify-end mt-4">
+                    <div className="flex justify-end mt-3 md:mt-4">
                       <button
                         onClick={() => saveConfig(config)}
                         disabled={savingKey === config.key}
-                        className="flex items-center justify-center gap-2 px-14 py-3 min-w-[200px] bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
+                        className="flex items-center justify-center gap-2 w-full md:w-auto px-6 md:px-14 py-2.5 md:py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
                       >
                         {savingKey === config.key ? (
                           <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
