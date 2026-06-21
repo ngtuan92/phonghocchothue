@@ -1259,18 +1259,18 @@
     text-size-adjust: 100% !important;
   }
 
-  .hero-phone-text,
-  .hero-phone-text *,
-  .hero-phone-text span,
-  .hero-phone-text p,
-  div.rich-text-renderer.hero-phone-text span,
-  div.rich-text-renderer.hero-phone-text p,
-  .hero-slogan-text,
-  .hero-slogan-text *,
-  .hero-slogan-text span,
-  .hero-slogan-text p,
-  div.rich-text-renderer.hero-slogan-text span,
-  div.rich-text-renderer.hero-slogan-text p {
+  .hero-phone-text:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-phone-text span:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-phone-text p:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-phone-text span:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-phone-text p:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text span:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text p:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-slogan-text span:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-slogan-text p:not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 11px !important;
   }
 }
@@ -1425,10 +1425,10 @@ footer .rich-text-renderer * {
 }
 
 /* Custom responsive scaling for inline font-sizes in RichTextRenderer */
-.rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="--fs"] {
+.rich-text-renderer *[style*="--fs"] {
   font-size: var(--fs) !important;
 }
-.rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="--fs"] * {
+.rich-text-renderer *[style*="--fs"] * {
   font-size: inherit !important;
 }
 

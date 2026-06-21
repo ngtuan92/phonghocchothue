@@ -793,33 +793,48 @@ const QuillWrapper = forwardRef(({
     const qlEditor = containerRef.current.querySelector('.ql-editor');
     if (!qlEditor) return;
 
-    const applyClasses = () => {
-      const targetClasses = [...editorClassName.split(' ').filter(Boolean)];
-      
+    const targetClasses = [...editorClassName.split(' ').filter(Boolean)];
+
+    const syncClasses = () => {
+      let changed = false;
       targetClasses.forEach(c => {
         if (!qlEditor.classList.contains(c)) {
           qlEditor.classList.add(c);
+          changed = true;
         }
       });
       const currentClasses = Array.from(qlEditor.classList);
       currentClasses.forEach(c => {
-        if (c !== 'ql-editor' && c !== 'ql-blank' && !targetClasses.includes(c)) {
+        if (c !== 'ql-editor' && c !== 'ql-blank' && !c.startsWith('ql-') && !targetClasses.includes(c)) {
           qlEditor.classList.remove(c);
+          changed = true;
         }
       });
+      return changed;
     };
 
-    applyClasses();
+    syncClasses();
+
+    const observer = new MutationObserver(() => {
+      observer.disconnect();
+      syncClasses();
+      observer.observe(qlEditor, { attributes: true, attributeFilter: ['class'] });
+    });
+    observer.observe(qlEditor, { attributes: true, attributeFilter: ['class'] });
 
     const quill = editorRef.current?.getEditor();
     if (quill) {
-      quill.on('text-change', applyClasses);
-      quill.on('selection-change', applyClasses);
+      quill.on('text-change', syncClasses);
+      quill.on('selection-change', syncClasses);
       return () => {
-        quill.off('text-change', applyClasses);
-        quill.off('selection-change', applyClasses);
+        observer.disconnect();
+        quill.off('text-change', syncClasses);
+        quill.off('selection-change', syncClasses);
       };
     }
+    return () => {
+      observer.disconnect();
+    };
   }, [isReady, editorClassName]);
 
   useEffect(() => {
@@ -968,9 +983,10 @@ const QuillWrapper = forwardRef(({
         // Inject custom size input into the size dropdown options list
         const optionsContainer = picker.querySelector('.ql-picker-options');
         if (optionsContainer && !optionsContainer.querySelector('.custom-size-dropdown-wrapper')) {
+          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 767;
           const wrapper = document.createElement('div');
           wrapper.className = 'custom-size-dropdown-wrapper';
-          wrapper.style.order = '-1';
+          wrapper.style.order = isMobile ? '-1' : '999';
           wrapper.style.position = 'sticky';
           wrapper.style.top = '0';
           wrapper.style.backgroundColor = '#fff';
@@ -1045,12 +1061,7 @@ const QuillWrapper = forwardRef(({
             input.value = cleanSize;
           }
 
-          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 767;
-          if (isMobile) {
-            optionsContainer.insertBefore(wrapper, optionsContainer.firstChild);
-          } else {
-            optionsContainer.appendChild(wrapper);
-          }
+          optionsContainer.appendChild(wrapper);
         }
       });
     };
@@ -1830,6 +1841,26 @@ const QuillWrapper = forwardRef(({
           border: none !important;
         }
 
+        .quill-wrapper-container .ql-editor.title-bg-text,
+        .quill-wrapper-container .ql-editor.mobile-watermark-text {
+          font-family: 'Bebas Neue', sans-serif !important;
+          letter-spacing: -0.05em !important;
+          color: #d4908a !important;
+          opacity: 0.12 !important;
+          text-transform: uppercase !important;
+          font-size: clamp(100px, 12vw, 180px) !important;
+          line-height: 0.85 !important;
+          text-align: center !important;
+        }
+        .quill-wrapper-container .ql-editor.title-bg-text *,
+        .quill-wrapper-container .ql-editor.mobile-watermark-text * {
+          font-size: inherit !important;
+          font-family: inherit !important;
+          color: inherit !important;
+          line-height: inherit !important;
+          text-transform: inherit !important;
+        }
+
         .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.hero-phone-text):not(.hero-slogan-text) *[style*="font-size"] {
           font-size: var(--fs) !important;
         }
@@ -2464,7 +2495,8 @@ const QuillWrapper = forwardRef(({
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
-            display: block !important;
+            display: flex !important;
+            flex-direction: column !important;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item {
@@ -2530,10 +2562,12 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-options {
             min-width: 145px !important;
             width: 145px !important;
+            left: auto !important;
+            right: 0 !important;
           }
           .quill-wrapper-container .ql-editor.title-bg-text,
           .quill-wrapper-container .ql-editor.mobile-watermark-text {
-            font-size: inherit !important;
+            font-size: clamp(60px, 19vw, 90px) !important;
           }
         }
       `}} />
