@@ -1839,6 +1839,45 @@ const QuillWrapper = forwardRef(({
           min-height: var(--quill-editor-min-height, 120px) !important;
         }
 
+        /* Responsive custom line heights matching frontend user UI rendering */
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor *,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor p,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor span,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h1,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h2,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h3,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h4,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h5,
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h6 {
+          line-height: var(--custom-line-height) !important;
+        }
+
+        @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor *,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor p,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor span,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h1,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h2,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h3,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h4,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h5,
+          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h6,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor *,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor p,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor span,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h1,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h2,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h3,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h4,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h5,
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h6 {
+            line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
+          }
+        }
+
         .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden,
         .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden * {
           display: none !important;
@@ -1892,6 +1931,78 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
           .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
             font-size: inherit !important;
+          }
+
+          /* General paragraph & span fallbacks when no custom inline size is set */
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) p:not(h1 p):not(h2 p):not(h3 p):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) span:not(h1 span):not(h2 span):not(h3 span):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) *:not(h1):not(h1 *):not(h2):not(h2 *):not(h3):not(h3 *):not(h4):not(h4 *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
+            font-size: 13px !important;
+          }
+
+          /* Fallback sizes for Hero Phone and Hero Slogan when no custom inline size is set */
+          .quill-wrapper-container .ql-editor.hero-phone-text:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container .ql-editor.hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container .ql-editor.hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container .ql-editor.hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]) {
+            font-size: 11px !important;
+          }
+
+          /* Standard heading scaling for other rich text editors on mobile */
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h1,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h1 *,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h2,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h2 *,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h3,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h3 *,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h4,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h4 * {
+            font-size: 18px !important;
+            line-height: 1.2 !important;
+            margin-bottom: 5px !important;
+            margin-top: 0 !important;
+          }
+
+          /* Main Title editor scaling on mobile */
+          .quill-wrapper-container .ql-editor.title-main-text .font-cursive,
+          .quill-wrapper-container .ql-editor.title-main-text [style*="cursive"],
+          .quill-wrapper-container .ql-editor.title-main-text .ql-size-huge,
+          .quill-wrapper-container .ql-editor.title-main-text h1 .font-cursive,
+          .quill-wrapper-container .ql-editor.title-main-text h2 .font-cursive,
+          .quill-wrapper-container .ql-editor.title-main-text h1 span,
+          .quill-wrapper-container .ql-editor.title-main-text h2 span,
+          .quill-wrapper-container .ql-editor.title-main-text p,
+          .quill-wrapper-container .ql-editor.title-main-text p span,
+          .quill-wrapper-container .ql-editor.title-main-text p .font-cursive {
+            font-size: clamp(22px, 6.8vw, 28px) !important;
+            line-height: 1.6 !important;
+            display: block !important;
+            margin-top: 5px !important;
+            margin-bottom: 5px !important;
+          }
+
+          .quill-wrapper-container .ql-editor.title-main-text h1,
+          .quill-wrapper-container .ql-editor.title-main-text h2,
+          .quill-wrapper-container .ql-editor.title-main-text .ql-size-huge,
+          .quill-wrapper-container .ql-editor.title-main-text .font-cursive,
+          .quill-wrapper-container .ql-editor.title-main-text span {
+            font-size: 36px !important;
+            line-height: 1.1 !important;
+            margin-bottom: 0 !important;
+            margin-top: 0 !important;
+          }
+
+          /* Sub Title editor scaling on mobile */
+          .quill-wrapper-container .ql-editor.title-sub-text,
+          .quill-wrapper-container .ql-editor.title-sub-text *,
+          .quill-wrapper-container .ql-editor.title-sub-text h1,
+          .quill-wrapper-container .ql-editor.title-sub-text h1 *,
+          .quill-wrapper-container .ql-editor.title-sub-text span,
+          .quill-wrapper-container .ql-editor.title-sub-text p {
+            font-size: clamp(9px, 2.7vw, 14px) !important;
+            letter-spacing: 0.05em !important;
+            padding-left: 0.15em !important;
+            text-align: center !important;
           }
         }
 
@@ -2003,14 +2114,12 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 1240px) and (max-width: 1439px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            max-width: 1100px !important;
             padding: 24px 60px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
         @media (min-width: 1440px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            max-width: 1100px !important;
             padding: 24px 80px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
