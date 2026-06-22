@@ -179,11 +179,11 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(borderRadiusAttributor, true);
   }
 
-  
+
   const SizeStyle = Quill.import("attributors/style/size");
   if (SizeStyle) {
     SizeStyle.whitelist = null;
-    SizeStyle.canAdd = () => true; 
+    SizeStyle.canAdd = () => true;
     Quill.register(SizeStyle, true);
   }
   const AlignStyle = Quill.import("attributors/style/align");
@@ -228,6 +228,41 @@ const FORMATS = [
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
+
+const cleanStyleForSave = (styleContent) => {
+  const parts = styleContent.split(';');
+  let activeSize = null;
+  let otherStyles = [];
+
+  for (let part of parts) {
+    part = part.trim();
+    if (!part) continue;
+
+    const fsMatch = part.match(/^--fs:\s*(.+)$/i);
+    if (fsMatch) {
+      activeSize = fsMatch[1].trim();
+      continue;
+    }
+
+    const fontSizeMatch = part.match(/^font-size:\s*(.+)$/i);
+    if (fontSizeMatch) {
+      const val = fontSizeMatch[1].trim();
+      if (val.toLowerCase() !== 'var(--fs)') {
+        activeSize = val;
+      }
+      continue;
+    }
+
+    otherStyles.push(part);
+  }
+
+  if (activeSize) {
+    const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
+    return `font-size: ${activeSize}${othersStr}`;
+  } else {
+    return otherStyles.join('; ');
+  }
+};
 
 const QuillWrapper = forwardRef(({
   lineHeight,
@@ -283,7 +318,7 @@ const QuillWrapper = forwardRef(({
     const list = [];
     imgs.forEach((img, idx) => {
       const hasDataCaption = img.hasAttribute('data-caption');
-      const captionText = hasDataCaption 
+      const captionText = hasDataCaption
         ? (img.getAttribute('data-caption') || '').trim()
         : (img.getAttribute('title') || '').trim();
       if (captionText && captionText !== '') {
@@ -311,11 +346,11 @@ const QuillWrapper = forwardRef(({
     const captionElements = imgContainer.querySelectorAll('.editor-image-caption');
     const editor = imgContainer.querySelector('.ql-editor');
     const editorRect = editor ? editor.getBoundingClientRect() : null;
-    
+
     let captionIdx = 0;
     imgs.forEach((img) => {
       const hasDataCaption = img.hasAttribute('data-caption');
-      const captionText = hasDataCaption 
+      const captionText = hasDataCaption
         ? (img.getAttribute('data-caption') || '').trim()
         : (img.getAttribute('title') || '').trim();
       if (captionText && captionText !== '') {
@@ -325,11 +360,11 @@ const QuillWrapper = forwardRef(({
           const top = imgRect.bottom - wrapperRect.top + 6;
           const left = imgRect.left - wrapperRect.left;
           const width = imgRect.width;
-          
+
           capEl.style.top = `${top}px`;
           capEl.style.left = `${left}px`;
           capEl.style.width = `${width}px`;
-          
+
           if (editorRect) {
             const isOutside = (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
             if (isOutside) {
@@ -356,12 +391,12 @@ const QuillWrapper = forwardRef(({
         const left = imgRect.left - wrapperRect.left;
         const width = imgRect.width;
         const height = imgRect.height;
-        
+
         resizer.style.top = `${top}px`;
         resizer.style.left = `${left}px`;
         resizer.style.width = `${width}px`;
         resizer.style.height = `${height}px`;
-        
+
         const editor = imgContainer.querySelector('.ql-editor');
         if (editor) {
           const editorRect = editor.getBoundingClientRect();
@@ -372,7 +407,7 @@ const QuillWrapper = forwardRef(({
             resizer.style.display = 'block';
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -391,7 +426,7 @@ const QuillWrapper = forwardRef(({
         selection = { index: 0, length: 0 };
       }
       format = selection ? quill.getFormat(selection) : {};
-    } catch (e) {}
+    } catch (e) { }
 
     const size = format.size;
     const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
@@ -469,7 +504,7 @@ const QuillWrapper = forwardRef(({
               try {
                 quillInstance.focus();
                 quillInstance.setSelection(saved.index, saved.length);
-              } catch (e2) {}
+              } catch (e2) { }
             }, 0);
           }
         }
@@ -496,7 +531,7 @@ const QuillWrapper = forwardRef(({
           setTimeout(() => {
             try {
               toolbar.update(null);
-            } catch (e) {}
+            } catch (e) { }
           }, 10);
         }
       });
@@ -518,7 +553,7 @@ const QuillWrapper = forwardRef(({
 
     window.addEventListener('scroll', handleScrollOrResize, true);
     window.addEventListener('resize', handleScrollOrResize);
-    
+
     const resizeObserver = new ResizeObserver(handleScrollOrResize);
     resizeObserver.observe(quill.root);
 
@@ -535,7 +570,7 @@ const QuillWrapper = forwardRef(({
       if (toolbar) {
         try {
           toolbar.update(null);
-        } catch (e) {}
+        } catch (e) { }
       }
     }, 100);
 
@@ -595,7 +630,7 @@ const QuillWrapper = forwardRef(({
               }
             });
           };
-          
+
           picker.appendChild(wrapper);
         }
       });
@@ -654,7 +689,7 @@ const QuillWrapper = forwardRef(({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('mousedown', handleClickOutside);
@@ -693,10 +728,10 @@ const QuillWrapper = forwardRef(({
                 const data = await googleRes.json();
                 googleFonts = data
                   .filter(f => f.name.trim().toLowerCase() !== 'inter')
-                  .map(f => ({ 
+                  .map(f => ({
                     name: f.name.trim(),
                     slug: slugify(f.name),
-                    family: f.name.trim() 
+                    family: f.name.trim()
                   }));
               }
 
@@ -721,22 +756,22 @@ const QuillWrapper = forwardRef(({
                 const FontStyle = Quill.import("attributors/style/font");
                 if (FontStyle) {
                   FontStyle.whitelist = finalWhitelist;
-                  
+
                   // Wrap value function to normalize browser font-family name to our slug representation
                   const originalValue = FontStyle.value;
                   FontStyle.value = function (domNode) {
                     const rawVal = originalValue.call(this, domNode);
                     if (!rawVal) return rawVal;
-                    
+
                     const cleanVal = rawVal.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
                     const cleanSlug = cleanVal.replace(/\s+/g, '-');
-                    
+
                     if (cleanVal === 'inter' || cleanVal === 'macdinh') {
                       return 'macdinh';
                     }
-                    
+
                     const listToSearch = sorted || cachedFonts || [];
-                    const matched = listToSearch.find(f => 
+                    const matched = listToSearch.find(f =>
                       f.slug.toLowerCase() === cleanVal ||
                       f.slug.toLowerCase() === cleanSlug ||
                       slugify(f.name) === cleanVal ||
@@ -744,18 +779,18 @@ const QuillWrapper = forwardRef(({
                       slugify(f.family) === cleanVal ||
                       slugify(f.family) === cleanSlug
                     );
-                    
+
                     if (matched) {
                       return matched.slug;
                     }
-                    
+
                     if (finalWhitelist.includes(cleanSlug)) {
                       return cleanSlug;
                     }
                     if (finalWhitelist.includes(cleanVal)) {
                       return cleanVal;
                     }
-                    
+
                     return rawVal;
                   };
 
@@ -790,60 +825,84 @@ const QuillWrapper = forwardRef(({
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
-    const qlEditor = containerRef.current.querySelector('.ql-editor');
-    if (!qlEditor) return;
 
     const targetClasses = [...editorClassName.split(' ').filter(Boolean)];
 
-    const syncClasses = () => {
-      let changed = false;
+    const syncEditorState = (qlEditor) => {
+      // 1. Sync class names
       targetClasses.forEach(c => {
         if (!qlEditor.classList.contains(c)) {
           qlEditor.classList.add(c);
-          changed = true;
         }
       });
       const currentClasses = Array.from(qlEditor.classList);
       currentClasses.forEach(c => {
         if (c !== 'ql-editor' && c !== 'ql-blank' && !c.startsWith('ql-') && !targetClasses.includes(c)) {
           qlEditor.classList.remove(c);
-          changed = true;
         }
       });
-      return changed;
-    };
 
-    const syncEditorState = () => {
-      syncClasses();
+      // 2. Sync inline font-sizes to CSS custom properties (--fs) for responsive scaling
       qlEditor.querySelectorAll('*[style*="font-size"]').forEach(el => {
         const fontSize = el.style.fontSize;
-        if (fontSize && !el.style.getPropertyValue('--fs')) {
+        if (fontSize && el.style.getPropertyValue('--fs') !== fontSize) {
           el.style.setProperty('--fs', fontSize);
         }
       });
     };
 
-    syncEditorState();
+    // Run sync initially if the editor is already present
+    const qlEditor = containerRef.current.querySelector('.ql-editor');
+    if (qlEditor) {
+      syncEditorState(qlEditor);
+    }
 
+    // Set up a unified MutationObserver on the stable containerRef to observe all subtree modifications and attributes
     const observer = new MutationObserver(() => {
-      observer.disconnect();
-      syncEditorState();
-      observer.observe(qlEditor, { attributes: true, attributeFilter: ['class', 'style'] });
+      const activeEditor = containerRef.current?.querySelector('.ql-editor');
+      if (activeEditor) {
+        observer.disconnect();
+        syncEditorState(activeEditor);
+        observer.observe(containerRef.current, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['class', 'style']
+        });
+      }
     });
-    observer.observe(qlEditor, { attributes: true, attributeFilter: ['class', 'style'] });
+
+    observer.observe(containerRef.current, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+
+    // Also register Quill text/selection change listeners for high-frequency updates
+    let currentEditor = null;
+    const onTextChange = () => {
+      const activeEditor = containerRef.current?.querySelector('.ql-editor');
+      if (activeEditor) syncEditorState(activeEditor);
+    };
+    const onSelectionChange = () => {
+      const activeEditor = containerRef.current?.querySelector('.ql-editor');
+      if (activeEditor) syncEditorState(activeEditor);
+    };
 
     const quill = editorRef.current?.getEditor();
     if (quill) {
-      quill.on('text-change', syncEditorState);
-      quill.on('selection-change', syncEditorState);
-      return () => {
-        observer.disconnect();
-        quill.off('text-change', syncEditorState);
-        quill.off('selection-change', syncEditorState);
-      };
+      quill.on('text-change', onTextChange);
+      quill.on('selection-change', onSelectionChange);
+      currentEditor = quill;
     }
+
     return () => {
       observer.disconnect();
+      if (currentEditor) {
+        currentEditor.off('text-change', onTextChange);
+        currentEditor.off('selection-change', onSelectionChange);
+      }
     };
   }, [isReady, editorClassName]);
 
@@ -867,7 +926,7 @@ const QuillWrapper = forwardRef(({
                 try {
                   const sel = quill.getSelection();
                   format = sel ? quill.getFormat(sel) : {};
-                } catch (e) {}
+                } catch (e) { }
                 const size = format.size;
                 if (size) {
                   const sizeVal = Array.isArray(size) ? size[0] : size;
@@ -890,7 +949,7 @@ const QuillWrapper = forwardRef(({
             }
           });
         });
-        
+
         const quill = editorRef.current?.getEditor();
         let initialVal = label.getAttribute('data-value');
         if (quill) {
@@ -898,7 +957,7 @@ const QuillWrapper = forwardRef(({
           try {
             const sel = quill.getSelection();
             format = sel ? quill.getFormat(sel) : {};
-          } catch (e) {}
+          } catch (e) { }
           if (format.size) {
             const sizeVal = Array.isArray(format.size) ? format.size[0] : format.size;
             if (typeof sizeVal === 'string') {
@@ -942,7 +1001,7 @@ const QuillWrapper = forwardRef(({
           try {
             const sel = quill.getSelection();
             currentFormat = sel ? quill.getFormat(sel) : {};
-          } catch (e) {}
+          } catch (e) { }
           let currentSizeVal = '16';
           if (currentFormat && currentFormat.size) {
             currentSizeVal = currentFormat.size.replace('px', '');
@@ -1064,7 +1123,7 @@ const QuillWrapper = forwardRef(({
               const sel = currentQuill.getSelection();
               currentFormat = sel ? currentQuill.getFormat(sel) : {};
             }
-          } catch (e) {}
+          } catch (e) { }
           if (currentFormat && currentFormat.size) {
             const cleanSize = typeof currentFormat.size === 'string' ? currentFormat.size.replace('px', '') : '';
             input.value = cleanSize;
@@ -1135,12 +1194,12 @@ const QuillWrapper = forwardRef(({
         positionCaptionsDirectly();
       });
       resizeObserver.observe(selectedImage);
-      
+
       const handleResize = () => {
         positionResizerDirectly();
         positionCaptionsDirectly();
       };
-      
+
       window.addEventListener('resize', handleResize);
       window.addEventListener('scroll', handleResize, true);
       return () => {
@@ -1191,8 +1250,8 @@ const QuillWrapper = forwardRef(({
       const quill = editorRef.current?.getEditor();
       if (!quill || !img || !quill.root.contains(img)) return;
       openAltModal(
-        { 
-          alt: img.getAttribute('alt') || '', 
+        {
+          alt: img.getAttribute('alt') || '',
           title: img.getAttribute('title') || '',
           caption: img.hasAttribute('data-caption') ? (img.getAttribute('data-caption') || '') : (img.getAttribute('title') || ''),
           borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
@@ -1271,7 +1330,7 @@ const QuillWrapper = forwardRef(({
         'image-settings': function () {
           const quill = this.quill;
           const currentImg = selectedImageRef.current;
-          
+
           if (currentImg) {
             const currentData = {
               alt: currentImg.getAttribute("alt") || "",
@@ -1456,7 +1515,7 @@ const QuillWrapper = forwardRef(({
     if (!img) return;
 
     const startX = e.clientX;
-    
+
     // Use getBoundingClientRect().width to get the rendered width (including borders for border-box sizing)
     const initialRect = img.getBoundingClientRect();
     const startWidth = initialRect.width;
@@ -1481,23 +1540,23 @@ const QuillWrapper = forwardRef(({
       const deltaX = moveEvent.clientX - startX;
       let newWidth = isRight ? startWidth + deltaX : startWidth - deltaX;
       newWidth = Math.max(50, Math.min(newWidth, containerWidth));
-      
+
       currentWidth = newWidth;
       const newHeight = newWidth / aspectRatio;
-      
+
       let newLeft = startLeft;
       if (isLeft) {
         newLeft = startLeft + (startWidth - newWidth);
       }
-      
+
       let newTop = startTop;
       if (isTop) {
         newTop = startTop + (startHeight - newHeight);
       }
-      
+
       img.style.width = `${newWidth}px`;
       img.style.height = 'auto';
-      
+
       if (resizerOverlayRef.current) {
         resizerOverlayRef.current.style.top = `${newTop}px`;
         resizerOverlayRef.current.style.left = `${newLeft}px`;
@@ -1510,16 +1569,16 @@ const QuillWrapper = forwardRef(({
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-      
+
       const percentageWidth = Math.round((currentWidth / containerWidth) * 100);
       const widthValue = percentageWidth >= 95 ? "100%" : `${Math.round(currentWidth)}px`;
-      
+
       img.style.width = widthValue;
       img.setAttribute('width', widthValue);
-      
+
       const quill = editorRef.current?.getEditor();
       const currentImg = selectedImageRef.current;
-      
+
       if (quill && currentImg) {
         const blot = Quill.find(currentImg);
         if (blot) {
@@ -1528,7 +1587,7 @@ const QuillWrapper = forwardRef(({
           quill.setSelection(index, 1, 'user');
         }
       }
-      
+
       updateResizerRect();
       positionCaptionsDirectly();
       positionResizerDirectly();
@@ -1608,8 +1667,8 @@ const QuillWrapper = forwardRef(({
     if (!isMounted) return null;
     return (
       <>
-        <Modal 
-          isOpen={alertConfig.isOpen} 
+        <Modal
+          isOpen={alertConfig.isOpen}
           onClose={() => setAlertConfig({ ...alertConfig, isOpen: false })}
           title="Thông báo"
           maxWidth="max-w-sm"
@@ -1712,13 +1771,28 @@ const QuillWrapper = forwardRef(({
       const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
       let relativeContent = content.replace(regex, 'src="/$1"');
       relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
+
+      // Clean up custom responsive scaling variables/properties from HTML before saving to database
+      relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+        const cleaned = cleanStyleForSave(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+
       props.onChange(relativeContent, delta, source, editor);
     }
   }, [props.onChange]);
 
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
-    return props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    let val = props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+
+    // Clean up any dirty database styles before loading into the editor
+    val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+      const cleaned = cleanStyleForSave(styleContent);
+      return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+    });
+
+    return val;
   }, [props.value]);
 
   useEffect(() => {
@@ -1737,8 +1811,8 @@ const QuillWrapper = forwardRef(({
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
-    <div 
-      className={`quill-wrapper-container relative ${className} ${disableImageWrap ? "disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`} 
+    <div
+      className={`quill-wrapper-container relative ${className} ${disableImageWrap ? "disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`}
       ref={containerRef}
       style={{
         '--quill-toolbar-top': toolbarTop,
@@ -1749,9 +1823,9 @@ const QuillWrapper = forwardRef(({
       }}
     >
       {renderModals()}
-      
+
       {showSpacingPopup && (
-        <div 
+        <div
           className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
             top: popupPosition.top + 5,
@@ -1762,7 +1836,7 @@ const QuillWrapper = forwardRef(({
         >
           <div className="flex justify-between items-center mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình giãn dòng</span>
-            <button 
+            <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => setShowSpacingPopup(false)}
@@ -1832,50 +1906,12 @@ const QuillWrapper = forwardRef(({
           formats={props.formats || FORMATS}
         />
       )}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
 
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
           min-height: var(--quill-editor-min-height, 120px) !important;
-        }
-
-        /* Responsive custom line heights matching frontend user UI rendering */
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor *,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor p,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor span,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h1,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h2,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h3,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h4,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h5,
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h6 {
-          line-height: var(--custom-line-height) !important;
-        }
-
-        @media (max-width: 767px) {
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor *,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor p,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor span,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h1,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h2,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h3,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h4,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h5,
-          .quill-wrapper-container[style*="--custom-line-height-mobile"] .ql-editor h6,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor *,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor p,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor span,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h1,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h2,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h3,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h4,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h5,
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor h6 {
-            line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
-          }
         }
 
         .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden,
@@ -1893,18 +1929,13 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-editor.mobile-watermark-text {
           font-family: 'Bebas Neue', sans-serif !important;
           letter-spacing: -0.05em !important;
-          color: #d4908a !important;
-          opacity: 0.12 !important;
           text-transform: uppercase !important;
-          font-size: clamp(100px, 12vw, 180px) !important;
           line-height: 0.85 !important;
           text-align: center !important;
         }
         .quill-wrapper-container .ql-editor.title-bg-text *,
         .quill-wrapper-container .ql-editor.mobile-watermark-text * {
-          font-size: inherit !important;
           font-family: inherit !important;
-          color: inherit !important;
           line-height: inherit !important;
           text-transform: inherit !important;
         }
@@ -1949,14 +1980,14 @@ const QuillWrapper = forwardRef(({
           }
 
           /* Standard heading scaling for other rich text editors on mobile */
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h1,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h1 *,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h2,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h2 *,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h3,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h3 *,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h4,
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.mobile-watermark-text) h4 * {
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h1,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h1 *,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h2,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h2 *,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h3,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h3 *,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h4,
+          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text):not(.describe-h2-wrapper) h4 * {
             font-size: 18px !important;
             line-height: 1.2 !important;
             margin-bottom: 5px !important;
@@ -2705,11 +2736,15 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.mobile-watermark-text {
             font-size: clamp(60px, 19vw, 90px) !important;
           }
+          .quill-wrapper-container .ql-editor.title-bg-text *,
+          .quill-wrapper-container .ql-editor.mobile-watermark-text * {
+            font-size: inherit !important;
+          }
         }
       `}} />
 
       {resizerRect && (
-        <div 
+        <div
           ref={resizerOverlayRef}
           className="absolute"
           style={{
@@ -2736,11 +2771,11 @@ const QuillWrapper = forwardRef(({
                   onClick={(e) => { e.stopPropagation(); handleImageWrap('left'); }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                    <line x1="14" y1="4" x2="21" y2="4"/>
-                    <line x1="14" y1="8" x2="21" y2="8"/>
-                    <line x1="3" y1="14" x2="21" y2="14"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
+                    <rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor" />
+                    <line x1="14" y1="4" x2="21" y2="4" />
+                    <line x1="14" y1="8" x2="21" y2="8" />
+                    <line x1="3" y1="14" x2="21" y2="14" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
                   </svg>
                 </button>
                 <button
@@ -2750,9 +2785,9 @@ const QuillWrapper = forwardRef(({
                   onClick={(e) => { e.stopPropagation(); handleImageWrap('none'); }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="3" y1="4" x2="21" y2="4"/>
-                    <rect x="7" y="8" width="10" height="7" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                    <line x1="3" y1="19" x2="21" y2="19"/>
+                    <line x1="3" y1="4" x2="21" y2="4" />
+                    <rect x="7" y="8" width="10" height="7" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor" />
+                    <line x1="3" y1="19" x2="21" y2="19" />
                   </svg>
                 </button>
                 <button
@@ -2762,11 +2797,11 @@ const QuillWrapper = forwardRef(({
                   onClick={(e) => { e.stopPropagation(); handleImageWrap('right'); }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor"/>
-                    <line x1="3" y1="4" x2="10" y2="4"/>
-                    <line x1="3" y1="8" x2="10" y2="8"/>
-                    <line x1="3" y1="14" x2="21" y2="14"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
+                    <rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor" opacity="0.15" stroke="currentColor" />
+                    <line x1="3" y1="4" x2="10" y2="4" />
+                    <line x1="3" y1="8" x2="10" y2="8" />
+                    <line x1="3" y1="14" x2="21" y2="14" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
                   </svg>
                 </button>
                 <div className="wrap-divider"></div>
@@ -2794,7 +2829,7 @@ const QuillWrapper = forwardRef(({
             { dir: 'bottom-left', cursor: 'nesw-resize', style: { bottom: -12, left: -12 } },
             { dir: 'bottom-right', cursor: 'nwse-resize', style: { bottom: -12, right: -12 } }
           ].map((handle) => (
-            <div 
+            <div
               key={handle.dir}
               className="resizer-handle"
               style={{ ...handle.style, cursor: handle.cursor }}

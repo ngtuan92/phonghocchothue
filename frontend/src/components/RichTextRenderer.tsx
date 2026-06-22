@@ -36,15 +36,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
-    
+
     const domPurify = getDOMPurify();
     const sanitized = domPurify
       ? domPurify.sanitize(html, {
-          ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius', 'data-wrap', 'data-caption'],
-          ADD_TAGS: ['iframe'],
-        })
+        ADD_ATTR: ['style', 'width', 'height', 'target', 'rel', 'data-border-radius', 'data-wrap', 'data-caption'],
+        ADD_TAGS: ['iframe'],
+      })
       : html;
-    
+
     let processedHtml = preserveNbsp ? sanitized : sanitized.replace(/&nbsp;/g, " ");
 
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)\s*<\/\1>/gi, "$3");
@@ -97,19 +97,19 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
       const captionMatch = attributes.match(/data-caption=["']([^"']*)["']/i);
       const wrapMatch = attributes.match(/data-wrap=["']([^"']*)["']/i);
-      
+
       const hasDataCaption = /data-caption\s*=/i.test(attributes);
       const captionText = hasDataCaption
         ? (captionMatch?.[1] || "").trim()
         : (titleMatch?.[1] || "").trim();
-        
+
       const wrapMode = wrapMatch?.[1] || '';
       const wrapClass = wrapMode === 'left' || wrapMode === 'right' ? ` image-wrap-${wrapMode}` : '';
 
       if (captionText) {
         const widthMatch = attributes.match(/width=["']([^"']*)["']/i);
         const styleMatch = attributes.match(/style=["']([^"']*)["']/i);
-        
+
         let inlineWidth = "";
         if (widthMatch) {
           const wVal = widthMatch[1].trim();
@@ -122,23 +122,50 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
           }
         }
-        
+
         const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
         return `<div class="image-wrapper${wrapClass}"${wrapperStyle}><img${attributes}><div class="image-caption">${captionText}</div></div>`;
       }
       return match;
     });
+    const cleanAndConvertStyle = (styleContent: string) => {
+      const parts = styleContent.split(';');
+      let activeSize = null;
+      let otherStyles: string[] = [];
 
-    // Convert inline font-size styles (e.g. style="font-size: 42px;") to CSS Custom Properties (--fs: 42px; font-size: var(--fs);)
-    processedHtml = processedHtml.replace(/style=["']([^"']*?)font-size:\s*(\d+(?:\.\d+)?)px;?([^"']*?)["']/gi, (match: string, before: string, size: string, after: string) => {
-      const cleanBefore = before.trim();
-      const cleanAfter = after.trim();
-      const styleContent = [
-        cleanBefore ? (cleanBefore.endsWith(';') ? cleanBefore : `${cleanBefore};`) : '',
-        `--fs: ${size}px; font-size: var(--fs);`,
-        cleanAfter
-      ].filter(Boolean).join(' ');
-      return `style="${styleContent}"`;
+      for (let part of parts) {
+        part = part.trim();
+        if (!part) continue;
+
+        const fsMatch = part.match(/^--fs:\s*(.+)$/i);
+        if (fsMatch) {
+          activeSize = fsMatch[1].trim();
+          continue;
+        }
+
+        const fontSizeMatch = part.match(/^font-size:\s*(.+)$/i);
+        if (fontSizeMatch) {
+          const val = fontSizeMatch[1].trim();
+          if (val.toLowerCase() !== 'var(--fs)') {
+            activeSize = val;
+          }
+          continue;
+        }
+
+        otherStyles.push(part);
+      }
+
+      if (activeSize) {
+        const othersStr = otherStyles.length > 0 ? ` ${otherStyles.join('; ')};` : '';
+        return `--fs: ${activeSize}; font-size: var(--fs);${othersStr}`;
+      } else {
+        return otherStyles.join('; ');
+      }
+    };
+
+    processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
+      const cleaned = cleanAndConvertStyle(styleContent);
+      return `style=${quote}${cleaned}${quote}`;
     });
 
     return processedHtml;
@@ -179,7 +206,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         style={customStyles}
         dangerouslySetInnerHTML={{ __html: cleanHtml }}
       />
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .rich-text-renderer img {
           display: block;
           margin-left: auto;

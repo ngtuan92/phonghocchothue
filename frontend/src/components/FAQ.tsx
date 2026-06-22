@@ -42,11 +42,13 @@ const FAQ = () => {
 
   return (
     <section className="pt-0 pb-0 sm:pt-0 sm:pb-0 max-w-5xl mx-auto main-container mt-[70px] sm:mt-16 md:mt-16 mb-10 sm:mb-12">
-      <RichTextRenderer
-        html={faqHeading}
-        configKey="faq-heading"
-        className="text-center mb-4 md:mb-5"
-      />
+      <div className="describe-h2-wrapper w-full max-w-none text-center mb-4 md:mb-5">
+        <RichTextRenderer
+          html={faqHeading}
+          configKey="faq-heading"
+          className="text-center text-[#563c39]"
+        />
+      </div>
 
       <div 
         className="faq-container bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-[30px] p-5 sm:p-10 shadow-default border-[1px] border-[#799f85]"

@@ -122,7 +122,7 @@ const Gallery: React.FC = () => {
 
         {hasSpacesSection && (
           <div className="w-full max-w-[1100px] flex flex-col items-center mt-[68px] sm:mt-36 lg:mt-36 mx-auto">
-            <div className="mb-2 sm:mb-4 text-center w-full">
+            <div className="describe-h2-wrapper w-full max-w-none text-center mb-2 sm:mb-4">
               <RichTextRenderer
                 html={galleryHeading}
                 configKey="gallery-heading"
