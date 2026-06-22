@@ -3,8 +3,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Card from "../card";
-const Dialog = dynamic(() => import("../dialog"), { ssr: false });
-const Confirm = dynamic(() => import("../confirm"), { ssr: false });
+import Dialog from "../dialog";
+import Confirm from "../confirm";
 
 import Loading from "../loading";
 import fetchData from "../../../axios";

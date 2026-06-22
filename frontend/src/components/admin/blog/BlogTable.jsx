@@ -12,10 +12,8 @@ import Loading from "@/components/admin/loading";
 import { showToastSuccess, showToastError } from "@/helpers/toast";
 import { handleInvalidToken } from "@/utils/helpers";
 import fetchData from "@/axios";
-
-const Dialog = dynamic(() => import("@/components/admin/dialog"), { ssr: false });
-const Confirm = dynamic(() => import("@/components/admin/confirm"), { ssr: false });
-const BlogForm = dynamic(() => import("./BlogForm"), { ssr: false });
+import Confirm from "@/components/admin/confirm";
+import BlogForm from "./BlogForm";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
