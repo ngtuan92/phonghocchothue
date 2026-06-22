@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardBody,
@@ -26,6 +26,52 @@ import "react-quill-new/dist/quill.snow.css";
 
 // eslint-disable-next-line no-undef
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+
+function LazyQuillWrapper({ minHeight = "120px", ...props }) {
+  const containerRef = useRef(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (shouldRender) return;
+    const node = containerRef.current;
+    if (!node) return;
+
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setShouldRender(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { root: null, rootMargin: "350px 0px", threshold: 0.01 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [shouldRender]);
+
+  return (
+    <div ref={containerRef}>
+      {shouldRender ? (
+        <QuillWrapper minHeight={minHeight} {...props} />
+      ) : (
+        <div
+          className="rounded-xl border border-gray-100 bg-gray-50/70"
+          style={{ minHeight }}
+        />
+      )}
+    </div>
+  );
+}
+
+LazyQuillWrapper.propTypes = {
+  minHeight: PropTypes.string,
+};
 
 function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [roomName, setRoomName] = useState("");
@@ -335,7 +381,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   💰 Giá thuê (VNĐ)
                 </label>
                 <div id="room-price" className="product-dialog-quill product-dialog-quill--price">
-                  <QuillWrapper
+                  <LazyQuillWrapper
                     key={`quill-price-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomPrice}
@@ -352,7 +398,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   🔌 Thiết bị
                 </label>
                 <div id="room-equipment" className="product-dialog-quill product-dialog-quill--equipment">
-                  <QuillWrapper
+                  <LazyQuillWrapper
                     key={`quill-equipment-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomEquipment}
@@ -369,7 +415,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   👥 Sức chứa
                 </label>
                 <div id="room-contains" className="product-dialog-quill product-dialog-quill--contains">
-                  <QuillWrapper
+                  <LazyQuillWrapper
                     key={`quill-contains-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomContains}
@@ -393,9 +439,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
 
             {/* Ảnh chính */}
             <div>
-              <label htmlFor="single-image" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="single-image" className="block text-sm font-medium text-gray-700 mb-1">
                 Ảnh đại diện <span className="text-red-500">*</span>
               </label>
+              <p className="mb-2 text-xs font-medium text-gray-500">
+                Khuyến nghị: 800 x 875px, tỷ lệ 32:35. Dùng ảnh dọc nhẹ, rõ chủ thể phòng.
+              </p>
               <div className="flex flex-col gap-3">
                 <div className="relative">
                   <Input
@@ -440,9 +489,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
 
             {/* Ảnh chi tiết */}
             <div>
-              <label htmlFor="multiple-images" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="multiple-images" className="block text-sm font-medium text-gray-700 mb-1">
                 Ảnh chi tiết (có thể chọn nhiều)
               </label>
+              <p className="mb-2 text-xs font-medium text-gray-500">
+                Khuyến nghị: 1200 x 675px, tỷ lệ 16:9. Chụp ngang để gallery hiển thị đều và không bị cắt nhiều.
+              </p>
               <Card className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
                 <div className="flex flex-col gap-4">
                   <Input
@@ -505,7 +557,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Mô tả ngắn
               </label>
               <div id="room-description" className="product-dialog-quill product-dialog-quill--description">
-                <QuillWrapper
+                <LazyQuillWrapper
                   key={`quill-description-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomDescription}
@@ -521,7 +573,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Mô tả chi tiết
               </label>
               <div id="room-content" className="product-dialog-quill product-dialog-quill--content">
-                <QuillWrapper
+                <LazyQuillWrapper
                   key={`quill-content-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomContent}

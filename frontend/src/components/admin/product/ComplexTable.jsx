@@ -22,7 +22,7 @@ import {
 
 const columnHelper = createColumnHelper();
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
 
 // const columns = columnsDataCheck;
 export default function ComplexTable() {
@@ -48,6 +48,20 @@ export default function ComplexTable() {
     setId(id);
     setOpenConfirm((cur) => !cur);
   };
+  const handleEdit = async (productId) => {
+    setIsLoading(true);
+    try {
+      const response = await fetchData(`${URL_API}api/product/edit/${productId}`);
+      handleOpen(productId, response.data || null);
+    } catch (error) {
+      if (error.response?.data?.message === "Invalid token") {
+        handleInvalidToken(router);
+      }
+      showToastError("Không tải được thông tin phòng");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleConfirm = () => {
     handleRemoveData();
@@ -60,7 +74,7 @@ export default function ComplexTable() {
   const fetchDataFromAPI = async () => {
     setIsLoading(true);
     try {
-      const response = await fetchData(`${URL_API}api/product`);
+      const response = await fetchData(`${URL_API}api/product?light=true`);
 
       if (
         response.data &&
@@ -239,7 +253,7 @@ export default function ComplexTable() {
       cell: (info) => (
         <p className="text-sm font-bold text-black">
           <button
-            onClick={() => handleOpen(info.row.original.id, info.row.original)}
+            onClick={() => handleEdit(info.row.original.id)}
             className="relative h-10 max-h-[40px] w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-primary transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
             type="button"
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   MdAdd,
@@ -16,6 +16,7 @@ import {
   MdEdit,
 } from "react-icons/md";
 import dynamic from "next/dynamic";
+import PropTypes from "prop-types";
 import { Input, Textarea, Typography } from "@material-tailwind/react";
 import { handleInvalidToken } from "../../utils/helpers";
 import { showToastSuccess, showToastError } from "../../helpers/toast";
@@ -31,6 +32,53 @@ const QuillWrapper = dynamic(
 import "react-quill-new/dist/quill.snow.css";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
+
+const LazyQuillWrapper = React.forwardRef(({ minHeight = "120px", ...props }, ref) => {
+  const containerRef = useRef(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (shouldRender) return;
+    const node = containerRef.current;
+    if (!node) return;
+
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setShouldRender(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { root: null, rootMargin: "500px 0px", threshold: 0.01 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [shouldRender]);
+
+  return (
+    <div ref={containerRef}>
+      {shouldRender ? (
+        <QuillWrapper ref={ref} minHeight={minHeight} {...props} />
+      ) : (
+        <div
+          className="rounded-xl border border-gray-100 bg-gray-50/70"
+          style={{ minHeight }}
+        />
+      )}
+    </div>
+  );
+});
+
+LazyQuillWrapper.displayName = "LazyQuillWrapper";
+LazyQuillWrapper.propTypes = {
+  minHeight: PropTypes.string,
+};
 
 const SECTIONS = [
   { id: "about", label: "Giới thiệu", icon: MdArticle },
@@ -513,14 +561,14 @@ export default function CMS() {
       });
     };
 
-    const timeoutId = setInterval(initSearch, 1000);
-    return () => clearInterval(timeoutId);
-  }, []);
+    const timeoutId = setTimeout(initSearch, 500);
+    return () => clearTimeout(timeoutId);
+  }, [activeSection, configs.length]);
 
   const loadConfigs = async () => {
     setIsLoading(true);
     try {
-      const res = await fetchData(`${URL_API}api/config?noCache=true&t=${Date.now()}`, "GET");
+      const res = await fetchData(`${URL_API}api/config`, "GET");
       setConfigs(res.data || []);
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") handleInvalidToken(router);
@@ -824,7 +872,7 @@ export default function CMS() {
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu hỏi {index + 1}</label>
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
 
-                    <QuillWrapper
+                    <LazyQuillWrapper
                       theme="snow"
                       className="faq-quill faq-quill-question"
                       editorClassName="faq-quill-question rich-text-renderer"
@@ -842,7 +890,7 @@ export default function CMS() {
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu trả lời {index + 1}</label>
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
-                    <QuillWrapper
+                    <LazyQuillWrapper
                       theme="snow"
                       className="faq-quill faq-quill-answer"
                       editorClassName="faq-quill-answer rich-text-renderer"
@@ -876,7 +924,7 @@ export default function CMS() {
       const minHeight = isParagraph ? "300px" : "120px";
       return (
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
-          <QuillWrapper
+          <LazyQuillWrapper
             ref={(el) => {
               if (el && el.getEditor) {
                 const quill = el.getEditor();

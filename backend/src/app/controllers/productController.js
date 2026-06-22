@@ -14,17 +14,22 @@ function formatProductRichName(nameRich) {
 class ProductController {
   async index(req, res) {
     try {
-      const { limit } = req.query;
-      const cacheKey = limit ? `products:limit:${limit}` : "products:all";
+      const { limit, light } = req.query;
+      const isLightList = light === "true";
+      const cacheKey = isLightList
+        ? `products:light:${limit || "all"}`
+        : limit ? `products:limit:${limit}` : "products:all";
 
       const productsJson = await getOrSetCache(cacheKey, async () => {
         const productData = await productModel.findAll({
-          attributes: [
-            "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
-            "contains", "description", "price", "unit", "capacity", "isSpecial",
-            "seoTitle", "seoDescription", "seoKeywords", "seoImage",
-          ],
-          include: [{ model: productImageModel, as: "images" }],
+          attributes: isLightList
+            ? ["id", "name", "slug", "image", "status", "description"]
+            : [
+              "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
+              "contains", "description", "price", "unit", "capacity", "isSpecial",
+              "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+            ],
+          include: isLightList ? [] : [{ model: productImageModel, as: "images" }],
           limit: limit ? parseInt(limit) : undefined,
           order: [['id', 'DESC']]
         });
@@ -250,12 +255,15 @@ class ProductController {
 
       // XÓA CACHE
       await redis.del("products:all");
+      await redis.del("products:light:all");
       await redis.del(`product:detail:${id}`);
       if (product.slug) await redis.del(`product:detail:${product.slug}`);
       if (productSlug) await redis.del(`product:detail:${productSlug}`);
 
       const keys = await redis.keys("products:limit:*");
       if (keys.length > 0) await redis.del(keys);
+      const lightKeys = await redis.keys("products:light:*");
+      if (lightKeys.length > 0) await redis.del(lightKeys);
 
       return res.json({
         success: true,
@@ -337,6 +345,7 @@ class ProductController {
       }
 
       await redis.del("products:all");
+      await redis.del("products:light:all");
 
       return res.json({
         success: true,
@@ -364,6 +373,7 @@ class ProductController {
       });
 
       await redis.del("products:all");
+      await redis.del("products:light:all");
       await redis.del(`product:detail:${id}`);
 
       return res.json({
