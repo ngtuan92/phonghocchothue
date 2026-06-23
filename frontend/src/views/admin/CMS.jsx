@@ -451,6 +451,10 @@ export default function CMS() {
       content: 'Super Huge' !important;
     }
 
+    .ql-snow .ql-picker.ql-size .ql-picker-label[data-display-value]::before {
+      content: attr(data-display-value) !important;
+    }
+
     .ql-snow .ql-picker.ql-size .ql-picker-options .ql-picker-item {
       padding: 10px !important;
       display: flex !important;

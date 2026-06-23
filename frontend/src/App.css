@@ -683,10 +683,10 @@
   font-family: inherit !important;
 }
 
-.describe-h2-wrapper .rich-text-renderer *,
-.describe-h2-wrapper.rich-text-renderer *,
-.blog-hero-title .rich-text-renderer *,
-.blog-hero-title.rich-text-renderer * {
+.describe-h2-wrapper .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+.describe-h2-wrapper.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]) {
   font-size: clamp(24px, 4vw, 38px) !important;
   font-family: inherit;
   font-weight: 400 !important;
@@ -698,18 +698,18 @@
 
 @media (max-width: 767px) {
 
-  .rich-text-renderer h1,
-  .rich-text-renderer h1 *,
-  .rich-text-renderer h2,
-  .rich-text-renderer h2 *,
-  .rich-text-renderer h3,
-  .rich-text-renderer h3 *,
-  .rich-text-renderer h4,
-  .rich-text-renderer h4 *,
-  .describe-h2-wrapper .rich-text-renderer *,
-  .describe-h2-wrapper.rich-text-renderer *,
-  .blog-hero-title .rich-text-renderer *,
-  .blog-hero-title.rich-text-renderer * {
+  .rich-text-renderer h1:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h1 *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h2:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h2 *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h3:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h3 *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h4:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer h4 *:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+  .blog-hero-title .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+  .blog-hero-title.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 18px !important;
     line-height: 1.2 !important;
     margin-bottom: 5px !important;
@@ -1153,16 +1153,16 @@
 
 @media (max-width: 767px) {
 
-  .describe-h2-wrapper h1,
-  .describe-h2-wrapper h1 *,
-  .describe-h2-wrapper h2,
-  .describe-h2-wrapper h2 *,
-  .describe-h2-wrapper h3,
-  .describe-h2-wrapper h3 *,
-  .describe-h2-wrapper p,
-  .describe-h2-wrapper span,
-  .describe-h2-wrapper div,
-  h3.text-lg.font-bold {
+  .describe-h2-wrapper h1:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper h1 *:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper h2:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper h2 *:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper h3:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper h3 *:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper p:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper span:not([style*="--fs"]):not([style*="font-size"]),
+  .describe-h2-wrapper div:not([style*="--fs"]):not([style*="font-size"]),
+  h3.text-lg.font-bold:not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 18px !important;
     line-height: 1.2 !important;
     margin-bottom: 4px !important;
@@ -1241,11 +1241,11 @@
     margin-bottom: 2px !important;
   }
 
-  .describe-description-wrapper p:not(.mobile-watermark-text *),
-  .describe-description-wrapper span:not(.mobile-watermark-text *),
-  .describe-description-wrapper *:not(.mobile-watermark-text *),
-  .rich-text-renderer p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *),
-  .rich-text-renderer span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *) {
+  .describe-description-wrapper p:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
+  .describe-description-wrapper span:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
+  .describe-description-wrapper *:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 13px !important;
   }
 
@@ -1464,6 +1464,10 @@ footer .rich-text-renderer * {
 }
 
 .rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] * {
+  font-size: inherit;
+}
+
+.rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] *:not([style*="--fs"]):not([style*="font-size"]) {
   font-size: inherit !important;
 }
 

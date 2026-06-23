@@ -1023,6 +1023,7 @@ const QuillWrapper = forwardRef(({
               if (/^\d+(\.\d+)?$/.test(val)) {
                 val = `${val}px`;
               }
+              quill.focus();
               quill.format('size', val);
             }
             input.remove();
@@ -1951,6 +1952,9 @@ const QuillWrapper = forwardRef(({
           font-size: var(--fs) !important;
         }
         .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] * {
+          font-size: inherit;
+        }
+        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] *:not([style*="--fs"]):not([style*="font-size"]) {
           font-size: inherit !important;
         }
 
