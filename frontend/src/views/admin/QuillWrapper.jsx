@@ -1778,9 +1778,13 @@ const QuillWrapper = forwardRef(({
         return cleaned ? `style=${quote}${cleaned}${quote}` : "";
       });
 
+      if (typeof props.value === "string" && relativeContent === props.value) {
+        return;
+      }
+
       props.onChange(relativeContent, delta, source, editor);
     }
-  }, [props.onChange]);
+  }, [props.onChange, props.value]);
 
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;

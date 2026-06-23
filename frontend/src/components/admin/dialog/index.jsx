@@ -18,7 +18,7 @@ import PropTypes from "prop-types";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 const QuillWrapper = dynamic(
-  () => import("../../../views/admin/QuillWrapper"),
+  () => import("@/views/admin/QuillWrapper"),
   { ssr: false }
 );
 import "react-quill-new/dist/quill.snow.css";
@@ -27,43 +27,118 @@ import "react-quill-new/dist/quill.snow.css";
 // eslint-disable-next-line no-undef
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
+const pendingQuillMounts = [];
+let quillMountInProgress = false;
+
+const flushQuillMountQueue = () => {
+  if (quillMountInProgress || pendingQuillMounts.length === 0) return;
+
+  quillMountInProgress = true;
+  const mountNext = pendingQuillMounts.shift();
+
+  window.setTimeout(() => {
+    mountNext?.();
+    window.setTimeout(() => {
+      quillMountInProgress = false;
+      flushQuillMountQueue();
+    }, 350);
+  }, 0);
+};
+
+const enqueueQuillMount = (mount) => {
+  pendingQuillMounts.push(mount);
+  flushQuillMountQueue();
+
+  return () => {
+    const index = pendingQuillMounts.indexOf(mount);
+    if (index >= 0) pendingQuillMounts.splice(index, 1);
+  };
+};
+
+const getPlainText = (html) => {
+  if (!html || typeof html !== "string") return "";
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   const containerRef = useRef(null);
+  const cancelQueuedMountRef = useRef(null);
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
     if (shouldRender) return;
     const node = containerRef.current;
-    if (!node) return;
+    if (!node || typeof window === "undefined") return;
 
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
-      setShouldRender(true);
-      return;
+    const renderNow = () => {
+      if (cancelQueuedMountRef.current) return;
+      cancelQueuedMountRef.current = enqueueQuillMount(() => {
+        setShouldRender(true);
+      });
+    };
+
+    const frameId = window.requestAnimationFrame(() => {
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < viewportHeight + 160 && rect.bottom > -160) {
+        renderNow();
+      }
+    });
+
+    if (!("IntersectionObserver" in window)) {
+      renderNow();
+      return () => window.cancelAnimationFrame(frameId);
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setShouldRender(true);
+          renderNow();
           observer.disconnect();
         }
       },
-      { root: null, rootMargin: "350px 0px", threshold: 0.01 }
+      { root: null, rootMargin: "160px 0px", threshold: 0.01 }
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frameId);
+      cancelQueuedMountRef.current?.();
+      cancelQueuedMountRef.current = null;
+    };
   }, [shouldRender]);
+
+  const previewText = getPlainText(props.value);
 
   return (
     <div ref={containerRef}>
       {shouldRender ? (
         <QuillWrapper minHeight={minHeight} {...props} />
       ) : (
-        <div
-          className="rounded-xl border border-gray-100 bg-gray-50/70"
+        <button
+          type="button"
+          onClick={() => {
+            if (cancelQueuedMountRef.current) return;
+            cancelQueuedMountRef.current = enqueueQuillMount(() => {
+              setShouldRender(true);
+            });
+          }}
+          className="block w-full rounded-xl border border-gray-100 bg-gray-50/70 p-4 text-left text-sm text-gray-700 transition-colors hover:border-blue-300 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
           style={{ minHeight }}
-        />
+        >
+          {previewText ? (
+            <span className="line-clamp-4">{previewText}</span>
+          ) : (
+            <span className="text-gray-400">{props.placeholder || "Nhap noi dung..."}</span>
+          )}
+        </button>
       )}
     </div>
   );
@@ -91,6 +166,10 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [seoKeywords, setSeoKeywords] = useState("");
   const [seoImage, setSeoImage] = useState(null);
   const [errors, setErrors] = useState({});
+
+  const setIfChanged = (setter, nextValue) => {
+    setter((prev) => (prev === nextValue ? prev : nextValue));
+  };
 
   const handleSingleImageChange = (event) => {
     const file = event.target.files[0];
@@ -318,7 +397,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     theme="snow"
                     value={roomNameRich}
                     onChange={(val) => {
-                      setRoomNameRich(val);
+                      setIfChanged(setRoomNameRich, val);
                       
                       // Extract plain text safely, decoding HTML entities
                       let plainText = "";
@@ -329,7 +408,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                       } else {
                         plainText = val.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
                       }
-                      setRoomName(plainText);
+                      setIfChanged(setRoomName, plainText);
                       
                       // Auto slug with Vietnamese accent removal
                       const generatedSlug = plainText
@@ -340,7 +419,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                         .replace(/[^a-z0-9\s-]/g, "")
                         .trim()
                         .replace(/[\s-]+/g, "-");
-                      setRoomSlug(generatedSlug);
+                      setIfChanged(setRoomSlug, generatedSlug);
                       
                       setErrors((prev) => ({ ...prev, roomName: "" }));
                     }}
@@ -385,7 +464,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-price-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomPrice}
-                    onChange={setRoomPrice}
+                    onChange={(val) => setIfChanged(setRoomPrice, val)}
                     placeholder="Ví dụ: 80.000 đ/h..."
                     disableImageWrap={true}
                   />
@@ -402,7 +481,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-equipment-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomEquipment}
-                    onChange={setRoomEquipment}
+                    onChange={(val) => setIfChanged(setRoomEquipment, val)}
                     placeholder="Ví dụ: Máy chiếu, điều hòa, bảng trắng..."
                     disableImageWrap={true}
                   />
@@ -419,7 +498,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-contains-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomContains}
-                    onChange={setRoomContains}
+                    onChange={(val) => setIfChanged(setRoomContains, val)}
                     placeholder="Ví dụ: Sức chứa 45 chỗ ngồi..."
                     disableImageWrap={true}
                   />
@@ -561,7 +640,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   key={`quill-description-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomDescription}
-                  onChange={setRoomDescription}
+                  onChange={(val) => setIfChanged(setRoomDescription, val)}
                   placeholder="Nhập mô tả ngắn về phòng..."
                   disableImageWrap={true}
                 />
@@ -577,7 +656,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   key={`quill-content-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomContent}
-                  onChange={setRoomContent}
+                  onChange={(val) => setIfChanged(setRoomContent, val)}
                   placeholder="Nhập mô tả chi tiết về phòng..."
                   isSticky={true}
                   maxHeight="500px"

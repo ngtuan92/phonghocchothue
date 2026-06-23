@@ -13,6 +13,123 @@ import "react-quill-new/dist/quill.snow.css";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
+const pendingQuillMounts = [];
+let quillMountInProgress = false;
+
+const flushQuillMountQueue = () => {
+  if (quillMountInProgress || pendingQuillMounts.length === 0) return;
+
+  quillMountInProgress = true;
+  const mountNext = pendingQuillMounts.shift();
+
+  window.setTimeout(() => {
+    mountNext?.();
+    window.setTimeout(() => {
+      quillMountInProgress = false;
+      flushQuillMountQueue();
+    }, 350);
+  }, 0);
+};
+
+const enqueueQuillMount = (mount) => {
+  pendingQuillMounts.push(mount);
+  flushQuillMountQueue();
+
+  return () => {
+    const index = pendingQuillMounts.indexOf(mount);
+    if (index >= 0) pendingQuillMounts.splice(index, 1);
+  };
+};
+
+const getPlainText = (html) => {
+  if (!html || typeof html !== "string") return "";
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+function LazyQuillWrapper({ minHeight = "120px", ...props }) {
+  const [shouldRender, setShouldRender] = useState(false);
+  const containerRef = React.useRef(null);
+  const cancelQueuedMountRef = React.useRef(null);
+
+  useEffect(() => {
+    if (shouldRender) return;
+    const node = containerRef.current;
+    if (!node || typeof window === "undefined") return;
+
+    const renderNow = () => {
+      if (cancelQueuedMountRef.current) return;
+      cancelQueuedMountRef.current = enqueueQuillMount(() => {
+        setShouldRender(true);
+      });
+    };
+
+    const frameId = window.requestAnimationFrame(() => {
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < viewportHeight + 160 && rect.bottom > -160) {
+        renderNow();
+      }
+    });
+
+    if (!("IntersectionObserver" in window)) {
+      renderNow();
+      return () => window.cancelAnimationFrame(frameId);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          renderNow();
+          observer.disconnect();
+        }
+      },
+      { root: null, rootMargin: "160px 0px", threshold: 0.01 }
+    );
+
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frameId);
+      cancelQueuedMountRef.current?.();
+      cancelQueuedMountRef.current = null;
+    };
+  }, [shouldRender]);
+
+  const previewText = getPlainText(props.value);
+
+  return (
+    <div ref={containerRef}>
+      {shouldRender ? (
+        <QuillWrapper minHeight={minHeight} {...props} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            if (cancelQueuedMountRef.current) return;
+            cancelQueuedMountRef.current = enqueueQuillMount(() => {
+              setShouldRender(true);
+            });
+          }}
+          className="block w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-4 text-left text-sm text-gray-700 transition-colors hover:border-primary/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+          style={{ minHeight }}
+        >
+          {previewText ? (
+            <span className="line-clamp-5">{previewText}</span>
+          ) : (
+            <span className="text-gray-400">{props.placeholder || "Nhap noi dung..."}</span>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
 const getCroppedImg = (imageSrc, croppedAreaPixels) => {
   return new Promise((resolve, reject) => {
     const image = new window.Image();
@@ -373,7 +490,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
             Nội dung bài viết chi tiết
           </Typography>
           <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
-            <QuillWrapper
+            <LazyQuillWrapper
               theme="snow"
               value={formData.content}
               onChange={(val) => setFormData({ ...formData, content: val })}

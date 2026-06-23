@@ -18,7 +18,16 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['@mantine/core', '@mantine/hooks'],
+    optimizePackageImports: [
+      '@mantine/core',
+      '@mantine/hooks',
+      'react-icons',
+      '@heroicons/react',
+      'lodash',
+      '@fortawesome/free-solid-svg-icons',
+      '@fortawesome/free-regular-svg-icons',
+      '@fortawesome/free-brands-svg-icons'
+    ],
   },
 }
 
