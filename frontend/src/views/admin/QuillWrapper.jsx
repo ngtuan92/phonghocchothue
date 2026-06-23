@@ -231,7 +231,8 @@ const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
 
 const cleanStyleForSave = (styleContent) => {
   const parts = styleContent.split(';');
-  let activeSize = null;
+  let fontSizeValue = null;
+  let customSizeValue = null;
   let otherStyles = [];
 
   for (let part of parts) {
@@ -240,7 +241,7 @@ const cleanStyleForSave = (styleContent) => {
 
     const fsMatch = part.match(/^--fs:\s*(.+)$/i);
     if (fsMatch) {
-      activeSize = fsMatch[1].trim();
+      customSizeValue = fsMatch[1].trim();
       continue;
     }
 
@@ -248,7 +249,7 @@ const cleanStyleForSave = (styleContent) => {
     if (fontSizeMatch) {
       const val = fontSizeMatch[1].trim();
       if (val.toLowerCase() !== 'var(--fs)') {
-        activeSize = val;
+        fontSizeValue = val;
       }
       continue;
     }
@@ -256,6 +257,7 @@ const cleanStyleForSave = (styleContent) => {
     otherStyles.push(part);
   }
 
+  const activeSize = fontSizeValue || customSizeValue;
   if (activeSize) {
     const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
     return `font-size: ${activeSize}${othersStr}`;
