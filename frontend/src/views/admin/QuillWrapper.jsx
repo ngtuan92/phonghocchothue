@@ -1960,14 +1960,14 @@ const QuillWrapper = forwardRef(({
 
         @media (max-width: 767px) {
           .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
-            font-size: max(12px, calc(var(--fs) * 0.6)) !important;
+            font-size: max(12px, calc(var(--fs) * 0.5)) !important;
           }
           /* Scale custom font-sizes for phone number and slogan in the editor on mobile */
           .quill-wrapper-container .ql-editor.hero-phone-text *[style*="--fs"],
           .quill-wrapper-container .ql-editor.hero-phone-text *[style*="--fs"] *,
           .quill-wrapper-container .ql-editor.hero-slogan-text *[style*="--fs"],
           .quill-wrapper-container .ql-editor.hero-slogan-text *[style*="--fs"] * {
-            font-size: clamp(8px, calc(var(--fs) * 0.5), 12px) !important;
+            font-size: clamp(8px, calc(var(--fs) * 0.7), 12px) !important;
           }
           .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
           .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
@@ -2659,10 +2659,11 @@ const QuillWrapper = forwardRef(({
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label svg {
-            width: 10px !important;
-            height: 10px !important;
-            display: inline-block !important;
-            margin-left: 4px !important;
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            opacity: 0 !important;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-options {

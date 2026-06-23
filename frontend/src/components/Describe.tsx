@@ -271,9 +271,9 @@ const Describe = () => {
             </div>
 
             <div className="container mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-10 lg:gap-20 items-center mt-0 sm:mt-4 lg:mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-0 md:gap-10 lg:gap-20 items-center mt-0 sm:mt-4 lg:mt-6">
                     <div className="md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left mb-0 md:mb-0">
-                        <div className="space-y-4 md:space-y-5 w-full">
+                        <div className="space-y-3 md:space-y-5 w-full">
                             {bgTitle && (
                                 <div className="w-full flex justify-center decoration-image-wrapper">
                                     <Image

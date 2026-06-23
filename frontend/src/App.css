@@ -532,7 +532,7 @@
     width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: 16px !important;
+    margin-top: 10px !important;
     margin-bottom: 0px !important;
   }
 
@@ -543,8 +543,8 @@
     width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: 16px !important;
-    margin-bottom: 16px !important;
+    margin-top: 10px !important;
+    margin-bottom: 12px !important;
   }
 
   /* Ảnh không wrap (căn giữa hoặc mặc định): tự động mở rộng 100% chiều rộng container */
@@ -557,13 +557,14 @@
 
   .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
     width: 100% !important;
-    margin-bottom: 10px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
   }
 
   .rich-text-renderer .image-caption {
     font-size: 12px !important;
     margin-top: 4px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 6px !important;
   }
 
   /* On mobile, reset caption back to static (no float, no absolute) */
@@ -572,12 +573,21 @@
     position: static !important;
     font-size: 12px !important;
     margin-top: 4px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 6px !important;
   }
 
   .rich-text-renderer .image-wrap-left img,
   .rich-text-renderer .image-wrap-right img {
     margin-bottom: 0 !important;
+  }
+
+  .rich-text-renderer h2 + p,
+  .rich-text-renderer h3 + p,
+  .rich-text-renderer p + .image-wrapper,
+  .rich-text-renderer h2 + .image-wrapper,
+  .rich-text-renderer h3 + .image-wrapper,
+  .rich-text-renderer .image-wrapper + p {
+    margin-top: 4px !important;
   }
 }
 
@@ -763,8 +773,8 @@
 
   .blog-content img {
     max-width: 100% !important;
-    margin-top: 16px !important;
-    margin-bottom: 16px !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
     height: auto;
   }
 
@@ -775,8 +785,8 @@
 
   .blog-content h2,
   .blog-content h3 {
-    margin-top: 18px !important;
-    margin-bottom: 8px !important;
+    margin-top: 12px !important;
+    margin-bottom: 6px !important;
   }
 }
 
@@ -1172,7 +1182,8 @@
   }
 
   .decoration-image-wrapper {
-    margin-bottom: -10px !important;
+    margin-top: -6px !important;
+    margin-bottom: -8px !important;
   }
 
   .decoration-image-wrapper img {
@@ -1473,8 +1484,8 @@ footer .rich-text-renderer * {
 
 @media (max-width: 767px) {
   .rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
-    /* Mobile size scales to 60% of original, but never smaller than 12px for readability */
-    font-size: max(12px, calc(var(--fs) * 0.6)) !important;
+    /* Mobile size scales to 50% of original, but never smaller than 12px for readability */
+    font-size: max(12px, calc(var(--fs) * 0.5)) !important;
   }
 
   /* Scale custom font-sizes for phone number and slogan to fit mobile slot */
@@ -1482,7 +1493,7 @@ footer .rich-text-renderer * {
   .hero-phone-text *[style*="--fs"] *,
   .hero-slogan-text *[style*="--fs"],
   .hero-slogan-text *[style*="--fs"] * {
-    font-size: clamp(8px, calc(var(--fs) * 0.5), 12px) !important;
+    font-size: clamp(8px, calc(var(--fs) * 0.8), 12px) !important;
   }
 }
 
