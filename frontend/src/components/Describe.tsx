@@ -177,11 +177,12 @@ const Describe = () => {
                         </div>
 
                         <div className="w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
-                            <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap">
+                            <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap flex items-center">
                                 <RichTextRenderer
                                     html={describePhone}
                                     configKey="describe-phone"
                                     className="inline-block [&_*]:inline hero-phone-text"
+                                    as="span"
                                 />
                             </span>
                             <div className="flex items-center gap-2 hero-slogan-container">
@@ -248,12 +249,13 @@ const Describe = () => {
                         </div>
 
                         <div className="w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-[-2px] relative z-10">
-                            <div className="flex-shrink-0">
-                                <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap">
+                            <div className="flex-shrink-0 flex items-center">
+                                <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap flex items-center">
                                     <RichTextRenderer
                                         html={describePhone}
                                         configKey="describe-phone"
                                         className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
+                                        as="span"
                                     />
                                 </span>
                             </div>
