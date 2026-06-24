@@ -114,6 +114,17 @@ const Describe = () => {
             .replace(/<\/h1>/gi, `</${newTag}>`);
     };
 
+    const normalizeSeoH1Html = (html: string | undefined) => {
+        if (!html) return "";
+        return html
+            .replace(/<img[^>]*>/gi, "")
+            .replace(/<\/(h[1-6]|p|div)>\s*<(h[1-6]|p|div)([^>]*)>/gi, "<br>")
+            .replace(/<(h[1-6]|p|div)([^>]*)>/gi, "")
+            .replace(/<\/(h[1-6]|p|div)>/gi, "")
+            .replace(/(<br\s*\/?>\s*){3,}/gi, "<br><br>")
+            .trim();
+    };
+
     const stripHtml = (html: string | undefined) => {
         if (!html) return "";
         return html
@@ -170,9 +181,11 @@ const Describe = () => {
                         </div>
 
                         <div className="w-full text-center mb-2 md:mb-2 lg:mb-3 md:mt-7 lg:mt-10 relative z-10">
-                            <h1
-                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center transform translate-x-[40px] md:translate-x-[25px]"
-                                dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
+                            <RichTextRenderer
+                                html={normalizeSeoH1Html(h1Text)}
+                                configKey="seo-h1-main"
+                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
+                                as="h1"
                             />
                         </div>
 
@@ -242,9 +255,11 @@ const Describe = () => {
                         </div>
 
                         <div className="w-full text-center mt-[14px] mb-0 relative z-10">
-                            <p
-                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] pt-1.5 pb-[3px] px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] whitespace-nowrap text-center transform translate-x-[1px] !pl-0 !pr-0"
-                                dangerouslySetInnerHTML={{ __html: replaceTagName(h1Text, "span") }}
+                            <RichTextRenderer
+                                html={normalizeSeoH1Html(h1Text)}
+                                configKey="seo-h1-main"
+                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] pt-1.5 pb-[3px] px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] text-center !pl-0 !pr-0"
+                                as="p"
                             />
                         </div>
 

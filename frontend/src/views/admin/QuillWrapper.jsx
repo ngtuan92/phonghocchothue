@@ -1934,7 +1934,7 @@ const QuillWrapper = forwardRef(({
 
         .quill-wrapper-container .ql-editor.title-bg-text,
         .quill-wrapper-container .ql-editor.mobile-watermark-text {
-          font-family: 'Bebas Neue', sans-serif !important;
+          font-family: 'Bebas Neue', sans-serif;
           letter-spacing: -0.05em !important;
           text-transform: uppercase !important;
           line-height: 0.85 !important;
@@ -1942,7 +1942,6 @@ const QuillWrapper = forwardRef(({
         }
         .quill-wrapper-container .ql-editor.title-bg-text *,
         .quill-wrapper-container .ql-editor.mobile-watermark-text * {
-          font-family: inherit !important;
           line-height: inherit !important;
           text-transform: inherit !important;
         }
@@ -2386,6 +2385,15 @@ const QuillWrapper = forwardRef(({
           font-family: 'Inter', sans-serif !important;
         }
         ${dynamicFonts.map(font => `
+          .quill-wrapper-container .ql-editor [style*="font-family: ${font.slug}"],
+          .quill-wrapper-container .ql-editor [style*="font-family:${font.slug}"],
+          .quill-wrapper-container .ql-editor [style*="font-family: '${font.slug}'"],
+          .quill-wrapper-container .ql-editor [style*="font-family:'${font.slug}'"],
+          .quill-wrapper-container .ql-editor [style*='font-family: "${font.slug}"'],
+          .quill-wrapper-container .ql-editor [style*='font-family:"${font.slug}"'] {
+            font-family: '${font.family}', sans-serif !important;
+          }
+
           .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before,
           .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before { 
             content: '${font.name}' !important; 
