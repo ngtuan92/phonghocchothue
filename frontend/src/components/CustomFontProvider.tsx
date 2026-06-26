@@ -17,8 +17,8 @@ export default async function CustomFontProvider() {
 
     try {
         const [fontsRes, configsRes] = await Promise.all([
-            fetch(`${URL_API}/api/fonts/local`, { next: { revalidate: 60 } }),
-            fetch(`${URL_API}/api/config`, { next: { revalidate: 60 } })
+            fetch(`${URL_API}/api/fonts/local`, { next: { revalidate: 10 } }),
+            fetch(`${URL_API}/api/config`, { next: { revalidate: 10 } })
         ]);
 
         if (fontsRes.ok) {

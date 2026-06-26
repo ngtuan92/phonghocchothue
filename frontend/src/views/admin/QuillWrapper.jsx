@@ -229,6 +229,23 @@ const FORMATS = [
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
 
+const normalizeApiUrl = (url) => (url || "").replace(/\/$/, "");
+
+const resolveAssetUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${normalizeApiUrl(URL_API)}/${url.replace(/^\//, "")}`;
+};
+
+const getFontFormat = (type) => {
+  const cleanType = String(type || "").toLowerCase();
+  if (cleanType === "ttf") return "truetype";
+  if (cleanType === "otf") return "opentype";
+  return cleanType || "truetype";
+};
+
+const escapeCssString = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+
 const cleanStyleForSave = (styleContent) => {
   const parts = styleContent.split(';');
   let fontSizeValue = null;
@@ -747,7 +764,9 @@ const QuillWrapper = forwardRef(({
                     .map(f => ({
                       name: f.display_name,
                       slug: f.font_family,
-                      family: f.font_family
+                      family: f.font_family,
+                      fileUrl: resolveAssetUrl(f.file_url),
+                      fileType: f.file_type
                     }));
                 }
               }
@@ -2384,6 +2403,15 @@ const QuillWrapper = forwardRef(({
           content: 'Mặc định (Inter)' !important; 
           font-family: 'Inter', sans-serif !important;
         }
+        ${dynamicFonts.filter(font => font.fileUrl).map(font => `
+          @font-face {
+            font-family: '${escapeCssString(font.family)}';
+            src: url('${escapeCssString(font.fileUrl)}') format('${getFontFormat(font.fileType)}');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+          }
+        `).join('\n')}
         ${dynamicFonts.map(font => `
           .quill-wrapper-container .ql-editor [style*="font-family: ${font.slug}"],
           .quill-wrapper-container .ql-editor [style*="font-family:${font.slug}"],
@@ -2391,13 +2419,13 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor [style*="font-family:'${font.slug}'"],
           .quill-wrapper-container .ql-editor [style*='font-family: "${font.slug}"'],
           .quill-wrapper-container .ql-editor [style*='font-family:"${font.slug}"'] {
-            font-family: '${font.family}', sans-serif !important;
+            font-family: '${escapeCssString(font.family)}', sans-serif !important;
           }
 
           .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before,
           .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before { 
-            content: '${font.name}' !important; 
-            font-family: '${font.family}', sans-serif !important;
+            content: '${escapeCssString(font.name)}' !important; 
+            font-family: '${escapeCssString(font.family)}', sans-serif !important;
           }
         `).join('\n')}
         .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,

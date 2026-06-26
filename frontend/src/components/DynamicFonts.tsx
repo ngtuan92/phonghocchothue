@@ -7,7 +7,7 @@ const slugify = (name: string) => name.trim().toLowerCase().replace(/\s+/g, '-')
 export default async function DynamicFonts() {
   let fonts = [];
   try {
-    const res = await fetch(`${URL_API}/api/fonts`, { next: { revalidate: 60 } });
+    const res = await fetch(`${URL_API}/api/fonts`, { next: { revalidate: 10 } });
     if (res.ok) {
       fonts = await res.json();
     }
