@@ -146,7 +146,7 @@ const Describe = () => {
                                 <img
                                     src={buildUrl(describeFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100"
+                                    className="w-full h-auto object-contain object-top opacity-100"
                                     style={{ borderRadius: frameBorderRadius }}
                                 />
                             </div>
@@ -214,13 +214,13 @@ const Describe = () => {
                     <div className="relative w-full flex flex-col items-center">
                         {activeMobileFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[40px] bottom-[-56px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none"
+                                className="absolute z-[-1] top-[40px] bottom-[40px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
                                     src={buildUrl(activeMobileFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-contain opacity-100"
+                                    className="w-full h-full object-contain object-top opacity-100"
                                     style={{ borderRadius: activeMobileFrameRadius }}
                                 />
                             </div>
