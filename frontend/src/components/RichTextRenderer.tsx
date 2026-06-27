@@ -13,6 +13,18 @@ const getDOMPurify = () => {
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/").replace(/\/$/, "") + "/";
 
+const ABOUT_KEYS = [
+  "describe-heading",
+  "describe-bg-text",
+  "describe-phone",
+  "describe-quote-text",
+  "seo-h1-main",
+  "bgTitle",
+  "describe-frame-image",
+  "describe-frame-image-mobile",
+  "textDecription"
+];
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -21,6 +33,7 @@ interface RichTextRendererProps {
   as?: React.ElementType;
   lineHeight?: string;
   lineHeightMobile?: string;
+  fontSize?: string;
   fontSizeMobile?: string;
   translateY?: string;
   translateYMobile?: string;
@@ -35,6 +48,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   as: Component = "div",
   lineHeight,
   lineHeightMobile,
+  fontSize,
   fontSizeMobile,
   translateY,
   translateYMobile,
@@ -169,23 +183,47 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       }
     };
 
-    processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
-      const cleaned = cleanAndConvertStyle(styleContent);
-      return `style=${quote}${cleaned}${quote}`;
-    });
+    const stripFontSizeFromStyle = (styleContent: string) => {
+      return styleContent
+        .split(';')
+        .map(part => part.trim())
+        .filter(part => {
+          if (!part) return false;
+          const lower = part.toLowerCase();
+          return !lower.startsWith('font-size') && !lower.startsWith('--fs');
+        })
+        .join('; ');
+    };
+
+    const isSimpleField = configKey === "describe-phone" || configKey === "describe-quote-text";
+    if (isSimpleField) {
+      processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
+        const cleaned = stripFontSizeFromStyle(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+    } else {
+      processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
+        const cleaned = cleanAndConvertStyle(styleContent);
+        return `style=${quote}${cleaned}${quote}`;
+      });
+    }
 
     return processedHtml;
-  }, [html, preserveNbsp]);
+  }, [html, preserveNbsp, configKey]);
+
+  const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
   const contextLineHeight = useConfigContentByKey(configKey || "", "lineHeight");
   const contextLineHeightMobile = useConfigContentByKey(configKey || "", "lineHeightMobile");
+  const contextFontSize = useConfigContentByKey(configKey || "", "fontSize");
   const contextFontSizeMobile = useConfigContentByKey(configKey || "", "fontSizeMobile");
   const contextTranslateY = useConfigContentByKey(configKey || "", "translateY");
   const contextTranslateYMobile = useConfigContentByKey(configKey || "", "translateYMobile");
 
   const activeLineHeight = lineHeight || contextLineHeight;
   const activeLineHeightMobile = lineHeightMobile || contextLineHeightMobile;
-  const activeFontSizeMobile = fontSizeMobile || contextFontSizeMobile;
+  const activeFontSize = isAboutKey ? (fontSize || contextFontSize) : undefined;
+  const activeFontSizeMobile = isAboutKey ? (fontSizeMobile || contextFontSizeMobile) : undefined;
   const activeTranslateY = translateY || contextTranslateY;
   const activeTranslateYMobile = translateYMobile || contextTranslateYMobile;
 
@@ -209,6 +247,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (activeLineHeightMobile) {
       styles['--custom-line-height-mobile' as any] = normalizeCssSize(activeLineHeightMobile);
     }
+    if (activeFontSize) {
+      styles['--fs-desktop' as any] = normalizeCssSize(activeFontSize);
+    }
     if (activeFontSizeMobile) {
       styles['--fs-mobile' as any] = normalizeCssSize(activeFontSizeMobile);
     }
@@ -222,7 +263,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile]);
 
   if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`} style={customStyles}>{fallback}</Component> : null;
 

@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* global process */
 import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -38,11 +40,11 @@ const COLORS = [
   "custom-color"
 ];
 
-const createModules = (fontList) => ({
+const createModules = (fontList, hasResponsiveFontSize) => ({
   toolbar: [
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
     [{ font: fontList }],
-    [{ size: Object.values(SIZE_MAP) }],
+    hasResponsiveFontSize ? ["font-size-custom"] : [{ size: Object.values(SIZE_MAP) }],
     ["bold", "italic", "underline", "strike"],
     [{ color: COLORS }, { background: COLORS }],
     [{ list: "ordered" }, { list: "bullet" }],
@@ -223,6 +225,11 @@ if (typeof window !== "undefined" && Quill) {
         <path fill="currentColor" d="M12 2L8 6h3v12H8l4 4 4-4h-3V6h3l-4-4z" />
       </svg>
     `;
+    icons['font-size-custom'] = `
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M9 4v3h5v12h3V7h5V4H9zm-6 6v3h3v6h3v-6h3v-3H3z"/>
+      </svg>
+    `;
   }
 }
 
@@ -233,6 +240,18 @@ const FORMATS = [
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
+
+const stripFontSizeFromStyle = (styleContent) => {
+  return styleContent
+    .split(';')
+    .map(part => part.trim())
+    .filter(part => {
+      if (!part) return false;
+      const lower = part.toLowerCase();
+      return !lower.startsWith('font-size') && !lower.startsWith('--fs');
+    })
+    .join('; ');
+};
 
 const normalizeApiUrl = (url) => (url || "").replace(/\/$/, "");
 
@@ -332,6 +351,8 @@ const QuillWrapper = forwardRef(({
   onChangeLineHeightMobile,
   fontSizeMobile,
   onChangeFontSizeMobile,
+  fontSize,
+  onChangeFontSize,
   translateY,
   translateYMobile,
   onChangeTranslateY,
@@ -344,6 +365,7 @@ const QuillWrapper = forwardRef(({
   isBlogEditor = false,
   className = "",
   editorClassName = "",
+  hasResponsiveFontSize,
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -351,6 +373,9 @@ const QuillWrapper = forwardRef(({
   const [isReady, setIsReady] = useState(false);
   const [showSpacingPopup, setShowSpacingPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+  const [showFontSizePopup, setShowFontSizePopup] = useState(false);
+  const [fontSizePopupPosition, setFontSizePopupPosition] = useState({ top: 0, left: 0 });
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'desktop' | 'mobile' | null
   const [showTranslatePopup, setShowTranslatePopup] = useState(false);
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
   const [modules, setModules] = useState(null);
@@ -364,6 +389,12 @@ const QuillWrapper = forwardRef(({
   const containerClickRef = useRef(null);
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
+
+  const hasResponsive = useMemo(() => {
+    return hasResponsiveFontSize !== undefined 
+      ? hasResponsiveFontSize 
+      : (onChangeFontSize !== undefined && onChangeFontSizeMobile !== undefined);
+  }, [hasResponsiveFontSize, onChangeFontSize, onChangeFontSizeMobile]);
 
   const syncCustomFontSizes = useCallback(() => {
     const imgContainer = containerRef.current;
@@ -889,10 +920,10 @@ const QuillWrapper = forwardRef(({
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
       const currentFonts = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
       const toolbarFontValues = ['macdinh', ...currentFonts.map(f => f.slug)];
-      setModules(createModules(toolbarFontValues));
+      setModules(createModules(toolbarFontValues, hasResponsive));
       setIsReady(true);
     }
-  }, [dynamicFonts]);
+  }, [dynamicFonts, hasResponsive]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -961,11 +992,29 @@ const QuillWrapper = forwardRef(({
       if (activeEditor) syncEditorState(activeEditor);
     };
 
+    const isSimpleField = className.includes('describe-phone') || className.includes('describe-quote-text');
+    let handlePaste = null;
+
     const quill = editorRef.current?.getEditor();
     if (quill) {
       quill.on('text-change', onTextChange);
       quill.on('selection-change', onSelectionChange);
       currentEditor = quill;
+
+      if (isSimpleField) {
+        handlePaste = (e) => {
+          e.preventDefault();
+          const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+          const range = quill.getSelection();
+          if (range) {
+            quill.insertText(range.index, text);
+            quill.setSelection(range.index + text.length);
+          } else {
+            quill.setText(text);
+          }
+        };
+        quill.root.addEventListener('paste', handlePaste);
+      }
     }
 
     return () => {
@@ -973,9 +1022,14 @@ const QuillWrapper = forwardRef(({
       if (currentEditor) {
         currentEditor.off('text-change', onTextChange);
         currentEditor.off('selection-change', onSelectionChange);
+        if (handlePaste) {
+          try {
+            currentEditor.root.removeEventListener('paste', handlePaste);
+          } catch (err) {}
+        }
       }
     };
-  }, [isReady, editorClassName]);
+  }, [isReady, editorClassName, className]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1381,6 +1435,18 @@ const QuillWrapper = forwardRef(({
     mods.toolbar = {
       container: modules.toolbar,
       handlers: {
+        'font-size-custom': function () {
+          const button = containerRef.current?.querySelector('.ql-font-size-custom');
+          if (button) {
+            const rect = button.getBoundingClientRect();
+            const parentRect = containerRef.current.getBoundingClientRect();
+            setFontSizePopupPosition({
+              top: rect.bottom - parentRect.top + containerRef.current.scrollTop,
+              left: rect.left - parentRect.left
+            });
+            setShowFontSizePopup(prev => !prev);
+          }
+        },
         'line-height': function () {
           const button = containerRef.current?.querySelector('.ql-line-height');
           if (button) {
@@ -1863,11 +1929,19 @@ const QuillWrapper = forwardRef(({
       let relativeContent = content.replace(regex, 'src="/$1"');
       relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
-      // Clean up custom responsive scaling variables/properties from HTML before saving to database
-      relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-        const cleaned = cleanStyleForSave(styleContent);
-        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
-      });
+      const isSimpleField = className.includes('describe-phone') || className.includes('describe-quote-text');
+      if (isSimpleField) {
+        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+          const cleaned = stripFontSizeFromStyle(styleContent);
+          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+        });
+      } else {
+        // Clean up custom responsive scaling variables/properties from HTML before saving to database
+        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+          const cleaned = cleanStyleForSave(styleContent);
+          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+        });
+      }
 
       if (typeof props.value === "string" && relativeContent === props.value) {
         return;
@@ -1875,20 +1949,28 @@ const QuillWrapper = forwardRef(({
 
       props.onChange(relativeContent, delta, source, editor);
     }
-  }, [props.onChange, props.value]);
+  }, [props.onChange, props.value, className]);
 
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
     let val = props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
-    // Clean up any dirty database styles before loading into the editor
-    val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-      const cleaned = cleanAndInjectFs(styleContent);
-      return cleaned ? `style=${quote}${cleaned}${quote}` : "";
-    });
+    const isSimpleField = className.includes('describe-phone') || className.includes('describe-quote-text');
+    if (isSimpleField) {
+      val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+        const cleaned = stripFontSizeFromStyle(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+    } else {
+      // Clean up any dirty database styles before loading into the editor
+      val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+        const cleaned = cleanAndInjectFs(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+    }
 
     return val;
-  }, [props.value]);
+  }, [props.value, className]);
 
   useEffect(() => {
     if (!showSpacingPopup) return;
@@ -1902,6 +1984,32 @@ const QuillWrapper = forwardRef(({
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [showSpacingPopup]);
+
+  useEffect(() => {
+    if (!showFontSizePopup) return;
+    const handleOutsideClick = (e) => {
+      const popup = containerRef.current?.querySelector('.ql-font-size-popup');
+      const button = containerRef.current?.querySelector('.ql-font-size-custom');
+      if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
+        setShowFontSizePopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showFontSizePopup]);
+
+  useEffect(() => {
+    if (!activeDropdown) return;
+    const handleOutsideClick = (e) => {
+      const popup = containerRef.current?.querySelector('.ql-font-size-popup');
+      if (popup && popup.contains(e.target)) {
+        return;
+      }
+      setActiveDropdown(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [activeDropdown]);
 
   useEffect(() => {
     if (!showTranslatePopup) return;
@@ -1928,6 +2036,7 @@ const QuillWrapper = forwardRef(({
         '--quill-editor-min-height': minHeight,
         '--custom-line-height': lineHeight ? (/^\d+$/.test(String(lineHeight).trim()) ? `${lineHeight}px` : lineHeight) : undefined,
         '--custom-line-height-mobile': lineHeightMobile ? (/^\d+$/.test(String(lineHeightMobile).trim()) ? `${lineHeightMobile}px` : lineHeightMobile) : undefined,
+        '--fs-desktop': fontSize ? (/^\d+$/.test(String(fontSize).trim()) ? `${fontSize}px` : fontSize) : undefined,
         '--fs-mobile': fontSizeMobile ? (/^\d+$/.test(String(fontSizeMobile).trim()) ? `${fontSizeMobile}px` : fontSizeMobile) : undefined,
         '--translate-y': translateY ? (/^-?\d+$/.test(String(translateY).trim()) ? `${translateY}px` : translateY) : undefined,
         '--translate-y-mobile': translateYMobile ? (/^-?\d+$/.test(String(translateYMobile).trim()) ? `${translateYMobile}px` : translateYMobile) : undefined,
@@ -1946,7 +2055,7 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng & Cỡ chữ</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -1956,44 +2065,26 @@ const QuillWrapper = forwardRef(({
             </button>
           </div>
           <div className="space-y-3">
-            <div className="border-b border-gray-100 pb-2">
-              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Giãn dòng (Line Height)</span>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
-                  <input
-                    type="text"
-                    placeholder="Mặc định. VD: 32"
-                    value={lineHeight || ""}
-                    onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
-                    style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
-                  <input
-                    type="text"
-                    placeholder="Mặc định. VD: 24"
-                    value={lineHeightMobile || ""}
-                    onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
-                    style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
-                  />
-                </div>
+            <div className="space-y-2">
+              <div>
+                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
+                <input
+                  type="text"
+                  placeholder="Mặc định. VD: 32"
+                  value={lineHeight || ""}
+                  onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
+                  style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                />
               </div>
-            </div>
-
-            <div>
-              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Cỡ chữ (Font Size)</span>
               <div>
                 <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
                 <input
                   type="text"
-                  placeholder="Mặc định. VD: 16"
-                  value={fontSizeMobile || ""}
-                  onChange={(e) => onChangeFontSizeMobile && onChangeFontSizeMobile(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
+                  placeholder="Mặc định. VD: 24"
+                  value={lineHeightMobile || ""}
+                  onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
               </div>
@@ -2007,6 +2098,152 @@ const QuillWrapper = forwardRef(({
               >
                 Xác nhận
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFontSizePopup && hasResponsive && (
+        <div
+          className="ql-font-size-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          style={{
+            top: fontSizePopupPosition.top + 5,
+            left: Math.max(10, Math.min(fontSizePopupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            width: '210px'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cỡ chữ</span>
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              onClick={() => setShowFontSizePopup(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-4">
+            {/* Desktop size control */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
+                🖥️ Desktop
+              </span>
+              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    const current = parseInt(fontSize) || 16;
+                    if (onChangeFontSize) onChangeFontSize(Math.max(1, current - 1).toString());
+                  }}
+                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
+                >
+                  −
+                </button>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={fontSize || ""}
+                    onChange={(e) => onChangeFontSize && onChangeFontSize(e.target.value)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveDropdown(prev => prev === 'desktop' ? null : 'desktop');
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    placeholder="16"
+                  />
+                  {activeDropdown === 'desktop' && (
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto z-[3500] w-14 scrollbar-thin">
+                      {[8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72, 96].map((sz) => (
+                        <div
+                          key={sz}
+                          onClick={() => {
+                            if (onChangeFontSize) onChangeFontSize(sz.toString());
+                            setActiveDropdown(null);
+                          }}
+                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(fontSize) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
+                        >
+                          {sz}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    const current = parseInt(fontSize) || 16;
+                    if (onChangeFontSize) onChangeFontSize((current + 1).toString());
+                  }}
+                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile size control */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
+                📱 Mobile
+              </span>
+              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    const current = parseInt(fontSizeMobile) || 13;
+                    if (onChangeFontSizeMobile) onChangeFontSizeMobile(Math.max(1, current - 1).toString());
+                  }}
+                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
+                >
+                  −
+                </button>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={fontSizeMobile || ""}
+                    onChange={(e) => onChangeFontSizeMobile && onChangeFontSizeMobile(e.target.value)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveDropdown(prev => prev === 'mobile' ? null : 'mobile');
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    placeholder="13"
+                  />
+                  {activeDropdown === 'mobile' && (
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto z-[3500] w-14 scrollbar-thin">
+                      {[8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72, 96].map((sz) => (
+                        <div
+                          key={sz}
+                          onClick={() => {
+                            if (onChangeFontSizeMobile) onChangeFontSizeMobile(sz.toString());
+                            setActiveDropdown(null);
+                          }}
+                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(fontSizeMobile) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
+                        >
+                          {sz}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    const current = parseInt(fontSizeMobile) || 13;
+                    if (onChangeFontSizeMobile) onChangeFontSizeMobile((current + 1).toString());
+                  }}
+                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2096,6 +2333,13 @@ const QuillWrapper = forwardRef(({
       )}
       <style dangerouslySetInnerHTML={{
         __html: `
+        ${(dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || [])).map(f => `
+          .quill-wrapper-container [style*="font-family: ${f.slug}"],
+          .quill-wrapper-container [style*="font-family:${f.slug}"],
+          .quill-wrapper-container [style*="font-family: '${f.slug}'"] {
+            font-family: "${f.family}", sans-serif !important;
+          }
+        `).join('\n')}
 
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
@@ -2118,19 +2362,60 @@ const QuillWrapper = forwardRef(({
             transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
           }
         }
+
+        /* Auto scale editor container to avoid overlap with toolbar when translating */
+        .quill-wrapper-container[style*="--translate-y"] .ql-container {
+          margin-top: calc(-1 * min(var(--translate-y), 0px)) !important;
+          margin-bottom: calc(max(var(--translate-y), 0px)) !important;
+          overflow: visible !important;
+        }
+        .quill-wrapper-container[style*="--translate-y"] .ql-editor {
+          overflow: visible !important;
+        }
+        @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--translate-y"] .ql-container {
+            margin-top: calc(-1 * min(var(--translate-y-mobile, var(--translate-y)), 0px)) !important;
+            margin-bottom: calc(max(var(--translate-y-mobile, var(--translate-y)), 0px)) !important;
+          }
+        }
+        @media (min-width: 768px) {
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
+            font-size: var(--fs-desktop) !important;
+          }
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]) {
+            font-size: var(--fs-desktop) !important;
+          }
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"],
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"] *,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.title-main-text,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.title-main-text *,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.title-sub-text,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.title-sub-text *,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.hero-phone-text *,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.hero-slogan-text,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.hero-slogan-text *,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.mobile-watermark-text,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.mobile-watermark-text * {
+            font-size: var(--fs-desktop) !important;
+          }
+        }
         @media (max-width: 767px) {
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"],
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"] *,
-          .quill-wrapper-container.title-main-text[style*="--fs-mobile"] .ql-editor,
-          .quill-wrapper-container.title-main-text[style*="--fs-mobile"] .ql-editor *,
-          .quill-wrapper-container.title-sub-text[style*="--fs-mobile"] .ql-editor,
-          .quill-wrapper-container.title-sub-text[style*="--fs-mobile"] .ql-editor *,
-          .quill-wrapper-container.hero-phone-text[style*="--fs-mobile"] .ql-editor,
-          .quill-wrapper-container.hero-phone-text[style*="--fs-mobile"] .ql-editor *,
-          .quill-wrapper-container.hero-slogan-text[style*="--fs-mobile"] .ql-editor,
-          .quill-wrapper-container.hero-slogan-text[style*="--fs-mobile"] .ql-editor *,
-          .quill-wrapper-container.mobile-watermark-text[style*="--fs-mobile"] .ql-editor,
-          .quill-wrapper-container.mobile-watermark-text[style*="--fs-mobile"] .ql-editor * {
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.title-main-text,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.title-main-text *,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.title-sub-text,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.title-sub-text *,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.hero-phone-text *,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.hero-slogan-text,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.hero-slogan-text *,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.mobile-watermark-text,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.mobile-watermark-text * {
             font-size: var(--fs-mobile) !important;
           }
         }
@@ -2195,10 +2480,10 @@ const QuillWrapper = forwardRef(({
           }
 
           /* Fallback sizes for Hero Phone and Hero Slogan when no custom inline size is set */
-          .quill-wrapper-container .ql-editor.hero-phone-text:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container .ql-editor.hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container .ql-editor.hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container .ql-editor.hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]) {
+          .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-phone-text:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]) {
             font-size: 11px !important;
           }
 
@@ -2982,6 +3267,14 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.mobile-watermark-text * {
             font-size: inherit !important;
           }
+        }
+
+        .ql-font-size-popup input::placeholder {
+          color: #000000 !important;
+          opacity: 1 !important;
+        }
+        .ql-font-size-popup input {
+          color: #000000 !important;
         }
       `}} />
 

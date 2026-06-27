@@ -1,4 +1,6 @@
 "use client";
+/* eslint-disable react/prop-types, no-unused-vars */
+/* global process */
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -327,7 +329,7 @@ const TYPE_OPTIONS = [
   { value: "color", label: "Màu sắc" },
 ];
 
-const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "", fontSizeMobile: "", translateY: "", translateYMobile: "" };
+const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "", fontSizeMobile: "", fontSize: "", translateY: "", translateYMobile: "" };
 
 const getRadiusStyle = (val) => {
   if (!val) return "0px";
@@ -795,6 +797,7 @@ export default function CMS() {
     fd.append("borderRadius", config.borderRadius || "");
     fd.append("lineHeight", config.lineHeight || "");
     fd.append("lineHeightMobile", config.lineHeightMobile || "");
+    fd.append("fontSize", config.fontSize || "");
     fd.append("fontSizeMobile", config.fontSizeMobile || "");
     fd.append("translateY", config.translateY || "");
     fd.append("translateYMobile", config.translateYMobile || "");
@@ -1004,6 +1007,7 @@ export default function CMS() {
     if (isRichText) {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
+      const isAboutSection = config.section === "about" || activeSection === "about" || (SECTION_KEY_MAP.about && SECTION_KEY_MAP.about.includes(config.key));
       return (
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
           <LazyQuillWrapper
@@ -1036,7 +1040,8 @@ export default function CMS() {
             onChange={onContentChange}
             lineHeight={config.lineHeight}
             lineHeightMobile={config.lineHeightMobile}
-            fontSizeMobile={config.fontSizeMobile}
+            fontSize={isAboutSection ? config.fontSize : undefined}
+            fontSizeMobile={isAboutSection ? config.fontSizeMobile : undefined}
             translateY={config.translateY}
             translateYMobile={config.translateYMobile}
             onChangeLineHeight={(val) => {
@@ -1049,11 +1054,16 @@ export default function CMS() {
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeightMobile: val } : c))
               );
             }}
-            onChangeFontSizeMobile={(val) => {
+            onChangeFontSize={isAboutSection ? (val) => {
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, fontSize: val } : c))
+              );
+            } : undefined}
+            onChangeFontSizeMobile={isAboutSection ? (val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, fontSizeMobile: val } : c))
               );
-            }}
+            } : undefined}
             onChangeTranslateY={(val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, translateY: val } : c))
@@ -1067,6 +1077,7 @@ export default function CMS() {
              className={`quill-editor-${config.key}`}
              editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
              minHeight={minHeight}
+             hasResponsiveFontSize={isAboutSection}
           />
         </div>
       );

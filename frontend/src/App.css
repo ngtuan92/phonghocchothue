@@ -1357,18 +1357,18 @@
     text-size-adjust: 100% !important;
   }
 
-  .hero-phone-text:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-phone-text span:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-phone-text p:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-phone-text span:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-phone-text p:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text span:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text p:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-slogan-text span:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-slogan-text p:not([style*="--fs"]):not([style*="font-size"]) {
+  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not([style*="--fs"]):not([style*="font-size"]),
+  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) *:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) *:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
+  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
+  div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 11px !important;
   }
 }
@@ -1498,6 +1498,72 @@
   font-family: "Playfair Display", serif !important;
 }
 
+[style*="font-family: lato"],
+[style*="font-family:lato"],
+[style*="font-family: 'lato'"] {
+  font-family: "Lato", sans-serif !important;
+}
+
+[style*="font-family: montserrat"],
+[style*="font-family:montserrat"],
+[style*="font-family: 'montserrat'"] {
+  font-family: "Montserrat", sans-serif !important;
+}
+
+[style*="font-family: nunito"],
+[style*="font-family:nunito"],
+[style*="font-family: 'nunito'"] {
+  font-family: "Nunito", sans-serif !important;
+}
+
+[style*="font-family: oswald"],
+[style*="font-family:oswald"],
+[style*="font-family: 'oswald'"] {
+  font-family: "Oswald", sans-serif !important;
+}
+
+[style*="font-family: pacifico"],
+[style*="font-family:pacifico"],
+[style*="font-family: 'pacifico'"] {
+  font-family: "Pacifico", cursive !important;
+}
+
+[style*="font-family: parisienne"],
+[style*="font-family:parisienne"],
+[style*="font-family: 'parisienne'"] {
+  font-family: "Parisienne", cursive !important;
+}
+
+[style*="font-family: poppins"],
+[style*="font-family:poppins"],
+[style*="font-family: 'poppins'"] {
+  font-family: "Poppins", sans-serif !important;
+}
+
+[style*="font-family: quicksand"],
+[style*="font-family:quicksand"],
+[style*="font-family: 'quicksand'"] {
+  font-family: "Quicksand", sans-serif !important;
+}
+
+[style*="font-family: roboto"],
+[style*="font-family:roboto"],
+[style*="font-family: 'roboto'"] {
+  font-family: "Roboto", sans-serif !important;
+}
+
+[style*="font-family: satisfy"],
+[style*="font-family:satisfy"],
+[style*="font-family: 'satisfy'"] {
+  font-family: "Satisfy", cursive !important;
+}
+
+[style*="font-family: tangerine"],
+[style*="font-family:tangerine"],
+[style*="font-family: 'tangerine'"] {
+  font-family: "Tangerine", cursive !important;
+}
+
 [style*="font-family: syncopate"],
 [style*="font-family:syncopate"],
 [style*="font-family: 'syncopate'"] {
@@ -1617,6 +1683,11 @@ footer .rich-text-renderer * {
   transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0deg)) skewX(var(--tw-skew-x, 0deg)) skewY(var(--tw-skew-y, 0deg)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1)) !important;
 }
 
+/* Specific vertical translation rule for desktop watermark text */
+.rich-text-renderer.title-bg-text[style*="--translate-y"] {
+  transform: translate(var(--tw-translate-x, 0px), var(--translate-y)) !important;
+}
+
 @media (max-width: 767px) {
   .rich-text-renderer[style*="--translate-y"] {
     transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
@@ -1625,5 +1696,39 @@ footer .rich-text-renderer * {
   .rich-text-renderer.transform[style*="--translate-y"] {
     --tw-translate-y: var(--translate-y-mobile, var(--translate-y)) !important;
     transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0deg)) skewX(var(--tw-skew-x, 0deg)) skewY(var(--tw-skew-y, 0deg)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1)) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  /* Custom font-size scaling for --fs-desktop */
+  .rich-text-renderer[style*="--fs-desktop"] {
+    font-size: var(--fs-desktop) !important;
+  }
+
+  .rich-text-renderer[style*="--fs-desktop"] p:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer[style*="--fs-desktop"] span:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer[style*="--fs-desktop"] a:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer[style*="--fs-desktop"] li:not([style*="--fs"]):not([style*="font-size"]) {
+    font-size: var(--fs-desktop) !important;
+  }
+
+  /* Scale custom font-sizes for elements with --fs-desktop */
+  .rich-text-renderer[style*="--fs-desktop"] *[style*="--fs"],
+  .rich-text-renderer[style*="--fs-desktop"] *[style*="--fs"] *,
+  .rich-text-renderer.title-main-text[style*="--fs-desktop"],
+  .rich-text-renderer.title-main-text[style*="--fs-desktop"] *,
+  .rich-text-renderer.title-sub-text[style*="--fs-desktop"],
+  .rich-text-renderer.title-sub-text[style*="--fs-desktop"] *,
+  .rich-text-renderer.hero-phone-text[style*="--fs-desktop"],
+  .rich-text-renderer.hero-phone-text[style*="--fs-desktop"] *,
+  .rich-text-renderer.hero-slogan-text[style*="--fs-desktop"],
+  .rich-text-renderer.hero-slogan-text[style*="--fs-desktop"] *,
+  .rich-text-renderer.mobile-watermark-text[style*="--fs-desktop"],
+  .rich-text-renderer.mobile-watermark-text[style*="--fs-desktop"] *,
+  .describe-h2-wrapper .rich-text-renderer[style*="--fs-desktop"],
+  .describe-h2-wrapper .rich-text-renderer[style*="--fs-desktop"] *,
+  .describe-h2-wrapper.rich-text-renderer[style*="--fs-desktop"],
+  .describe-h2-wrapper.rich-text-renderer[style*="--fs-desktop"] * {
+    font-size: var(--fs-desktop) !important;
   }
 }

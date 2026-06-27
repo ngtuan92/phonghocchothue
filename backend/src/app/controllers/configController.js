@@ -57,6 +57,7 @@ function processConfigs(plainConfigs) {
                     lineHeight: null,
                     lineHeightMobile: null,
                     fontSizeMobile: null,
+                    fontSize: null,
                     translateY: null,
                     translateYMobile: null
                 });
@@ -76,7 +77,7 @@ class ConfigController {
             
             if (noCache) {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'translateY', 'translateYMobile'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'fontSize', 'translateY', 'translateYMobile'],
                 });
                 const plainConfigs = mutipleConvertToObject(configData);
                 return res.status(200).json({
@@ -88,7 +89,7 @@ class ConfigController {
 
             const configJson = await getOrSetCache('configs:v2', async () => {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'translateY', 'translateYMobile'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'fontSize', 'translateY', 'translateYMobile'],
                 });
                 const plainConfigs = mutipleConvertToObject(configData);
                 return {
@@ -110,7 +111,7 @@ class ConfigController {
     }
 
     async store(req, res, next) {
-        const { key, content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, translateY, translateYMobile } = req.body;
+        const { key, content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, fontSize, translateY, translateYMobile } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -131,6 +132,7 @@ class ConfigController {
                 lineHeight,
                 lineHeightMobile,
                 fontSizeMobile,
+                fontSize,
                 translateY,
                 translateYMobile
             });
@@ -152,7 +154,7 @@ class ConfigController {
 
     async update(req, res, next) {
         const { key } = req.params  
-        const { content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, translateY, translateYMobile } = req.body;
+        const { content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, fontSize, translateY, translateYMobile } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -185,6 +187,7 @@ class ConfigController {
                 lineHeight: lineHeight !== undefined ? lineHeight : config.lineHeight,
                 lineHeightMobile: lineHeightMobile !== undefined ? lineHeightMobile : config.lineHeightMobile,
                 fontSizeMobile: fontSizeMobile !== undefined ? fontSizeMobile : config.fontSizeMobile,
+                fontSize: fontSize !== undefined ? fontSize : config.fontSize,
                 translateY: translateY !== undefined ? translateY : config.translateY,
                 translateYMobile: translateYMobile !== undefined ? translateYMobile : config.translateYMobile
             });
