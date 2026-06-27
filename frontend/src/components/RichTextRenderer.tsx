@@ -21,6 +21,9 @@ interface RichTextRendererProps {
   as?: React.ElementType;
   lineHeight?: string;
   lineHeightMobile?: string;
+  fontSizeMobile?: string;
+  translateY?: string;
+  translateYMobile?: string;
   preserveNbsp?: boolean;
 }
 
@@ -32,6 +35,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   as: Component = "div",
   lineHeight,
   lineHeightMobile,
+  fontSizeMobile,
+  translateY,
+  translateYMobile,
   preserveNbsp = false,
 }) => {
   const cleanHtml = useMemo(() => {
@@ -173,9 +179,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
   const contextLineHeight = useConfigContentByKey(configKey || "", "lineHeight");
   const contextLineHeightMobile = useConfigContentByKey(configKey || "", "lineHeightMobile");
+  const contextFontSizeMobile = useConfigContentByKey(configKey || "", "fontSizeMobile");
+  const contextTranslateY = useConfigContentByKey(configKey || "", "translateY");
+  const contextTranslateYMobile = useConfigContentByKey(configKey || "", "translateYMobile");
 
   const activeLineHeight = lineHeight || contextLineHeight;
   const activeLineHeightMobile = lineHeightMobile || contextLineHeightMobile;
+  const activeFontSizeMobile = fontSizeMobile || contextFontSizeMobile;
+  const activeTranslateY = translateY || contextTranslateY;
+  const activeTranslateYMobile = translateYMobile || contextTranslateYMobile;
+
+  const normalizeCssSize = (value: string) => {
+    const cleanValue = String(value).trim();
+    return /^-?\d+(\.\d+)?$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
+  };
 
   const customStyles = useMemo(() => {
     const styles: React.CSSProperties & Record<string, any> = {
@@ -187,15 +204,25 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       display: Component === "span" ? "inline" : "block",
     };
     if (activeLineHeight) {
-      const lhStr = String(activeLineHeight).trim();
-      styles['--custom-line-height' as any] = /^\d+$/.test(lhStr) ? `${lhStr}px` : lhStr;
+      styles['--custom-line-height' as any] = normalizeCssSize(activeLineHeight);
     }
     if (activeLineHeightMobile) {
-      const lhmStr = String(activeLineHeightMobile).trim();
-      styles['--custom-line-height-mobile' as any] = /^\d+$/.test(lhmStr) ? `${lhmStr}px` : lhmStr;
+      styles['--custom-line-height-mobile' as any] = normalizeCssSize(activeLineHeightMobile);
+    }
+    if (activeFontSizeMobile) {
+      styles['--fs-mobile' as any] = normalizeCssSize(activeFontSizeMobile);
+    }
+    if (activeTranslateY) {
+      styles['--translate-y' as any] = normalizeCssSize(activeTranslateY);
+    }
+    if (activeTranslateYMobile) {
+      if (!activeTranslateY) {
+        styles['--translate-y' as any] = "0px";
+      }
+      styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile]);
 
   if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`} style={customStyles}>{fallback}</Component> : null;
 

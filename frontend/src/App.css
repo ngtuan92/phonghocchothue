@@ -1339,6 +1339,10 @@
     text-size-adjust: 100% !important;
   }
 
+  div.rich-text-renderer.mobile-watermark-text[style*="--translate-y"] {
+    transform: translateY(var(--translate-y-mobile, var(--translate-y))) scaleY(1.25) !important;
+  }
+
   div.rich-text-renderer.mobile-watermark-text * {
     font-size: inherit !important;
     line-height: inherit !important;
@@ -1544,6 +1548,26 @@ footer .rich-text-renderer * {
   .hero-slogan-text *[style*="--fs"] * {
     font-size: clamp(8px, calc(var(--fs) * 0.8), 12px) !important;
   }
+
+  /* Scale custom font-sizes for elements with --fs-mobile */
+  .rich-text-renderer[style*="--fs-mobile"] *[style*="--fs"],
+  .rich-text-renderer[style*="--fs-mobile"] *[style*="--fs"] *,
+  .rich-text-renderer.title-main-text[style*="--fs-mobile"],
+  .rich-text-renderer.title-main-text[style*="--fs-mobile"] *,
+  .rich-text-renderer.title-sub-text[style*="--fs-mobile"],
+  .rich-text-renderer.title-sub-text[style*="--fs-mobile"] *,
+  .rich-text-renderer.hero-phone-text[style*="--fs-mobile"],
+  .rich-text-renderer.hero-phone-text[style*="--fs-mobile"] *,
+  .rich-text-renderer.hero-slogan-text[style*="--fs-mobile"],
+  .rich-text-renderer.hero-slogan-text[style*="--fs-mobile"] *,
+  .rich-text-renderer.mobile-watermark-text[style*="--fs-mobile"],
+  .rich-text-renderer.mobile-watermark-text[style*="--fs-mobile"] *,
+  .describe-h2-wrapper .rich-text-renderer[style*="--fs-mobile"],
+  .describe-h2-wrapper .rich-text-renderer[style*="--fs-mobile"] *,
+  .describe-h2-wrapper.rich-text-renderer[style*="--fs-mobile"],
+  .describe-h2-wrapper.rich-text-renderer[style*="--fs-mobile"] * {
+    font-size: var(--fs-mobile) !important;
+  }
 }
 
 /* Custom line-height scaling in RichTextRenderer */
@@ -1581,4 +1605,25 @@ footer .rich-text-renderer * {
   line-height: inherit;
   margin: 0;
   padding: 0;
+}
+
+/* Configurable vertical offset for rich text blocks. */
+.rich-text-renderer[style*="--translate-y"] {
+  transform: translateY(var(--translate-y)) !important;
+}
+
+.rich-text-renderer.transform[style*="--translate-y"] {
+  --tw-translate-y: var(--translate-y) !important;
+  transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0deg)) skewX(var(--tw-skew-x, 0deg)) skewY(var(--tw-skew-y, 0deg)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1)) !important;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer[style*="--translate-y"] {
+    transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
+  }
+
+  .rich-text-renderer.transform[style*="--translate-y"] {
+    --tw-translate-y: var(--translate-y-mobile, var(--translate-y)) !important;
+    transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0deg)) skewX(var(--tw-skew-x, 0deg)) skewY(var(--tw-skew-y, 0deg)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1)) !important;
+  }
 }

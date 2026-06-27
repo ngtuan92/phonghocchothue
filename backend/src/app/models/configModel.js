@@ -10,7 +10,10 @@ const ConfigModel = db.sequelize.define("configs", {
     musicName: {type: DataTypes.CHAR, allowNull: true},
     borderRadius: { type: DataTypes.STRING(50), field: 'border_radius', allowNull: true },
     lineHeight: { type: DataTypes.STRING(50), field: 'line_height', allowNull: true },
-    lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true }
+    lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true },
+    fontSizeMobile: { type: DataTypes.STRING(50), field: 'font_size_mobile', allowNull: true },
+    translateY: { type: DataTypes.STRING(50), field: 'translate_y', allowNull: true },
+    translateYMobile: { type: DataTypes.STRING(50), field: 'translate_y_mobile', allowNull: true }
 }, {
     timestamps: true,
 });

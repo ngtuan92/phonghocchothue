@@ -327,7 +327,7 @@ const TYPE_OPTIONS = [
   { value: "color", label: "Màu sắc" },
 ];
 
-const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "" };
+const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "", fontSizeMobile: "", translateY: "", translateYMobile: "" };
 
 const getRadiusStyle = (val) => {
   if (!val) return "0px";
@@ -647,7 +647,7 @@ export default function CMS() {
   const loadConfigs = async () => {
     setIsLoading(true);
     try {
-      const res = await fetchData(`${URL_API}api/config`, "GET");
+      const res = await fetchData(`${URL_API}api/config?noCache=true`, "GET");
       setConfigs(res.data || []);
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") handleInvalidToken(router);
@@ -795,6 +795,9 @@ export default function CMS() {
     fd.append("borderRadius", config.borderRadius || "");
     fd.append("lineHeight", config.lineHeight || "");
     fd.append("lineHeightMobile", config.lineHeightMobile || "");
+    fd.append("fontSizeMobile", config.fontSizeMobile || "");
+    fd.append("translateY", config.translateY || "");
+    fd.append("translateYMobile", config.translateYMobile || "");
     if (config.type === "music") {
       fd.append("musicName", config.musicName || "");
     }
@@ -1033,6 +1036,9 @@ export default function CMS() {
             onChange={onContentChange}
             lineHeight={config.lineHeight}
             lineHeightMobile={config.lineHeightMobile}
+            fontSizeMobile={config.fontSizeMobile}
+            translateY={config.translateY}
+            translateYMobile={config.translateYMobile}
             onChangeLineHeight={(val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeight: val } : c))
@@ -1041,6 +1047,21 @@ export default function CMS() {
             onChangeLineHeightMobile={(val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeightMobile: val } : c))
+              );
+            }}
+            onChangeFontSizeMobile={(val) => {
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, fontSizeMobile: val } : c))
+              );
+            }}
+            onChangeTranslateY={(val) => {
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, translateY: val } : c))
+              );
+            }}
+            onChangeTranslateYMobile={(val) => {
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, translateYMobile: val } : c))
               );
             }}
              className={`quill-editor-${config.key}`}

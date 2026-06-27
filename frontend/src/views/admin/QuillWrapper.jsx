@@ -47,7 +47,7 @@ const createModules = (fontList) => ({
     [{ color: COLORS }, { background: COLORS }],
     [{ list: "ordered" }, { list: "bullet" }],
     [{ align: [] }],
-    ["link", "image", "line-height"],
+    ["link", "image", "line-height", "translate-y"],
     ["clean"],
     ["more"],
   ],
@@ -218,6 +218,11 @@ if (typeof window !== "undefined" && Quill) {
         <path fill="currentColor" d="M10 5h12v2H10V5zm0 6h12v2H10v-2zm0 6h12v2H10v-2zM4 4.5l-3 3h2v9H1v3h6v-3H5v-9h2l-3-3z"/>
       </svg>
     `;
+    icons['translate-y'] = `
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M12 2L8 6h3v12H8l4 4 4-4h-3V6h3l-4-4z" />
+      </svg>
+    `;
   }
 }
 
@@ -283,11 +288,54 @@ const cleanStyleForSave = (styleContent) => {
   }
 };
 
+const cleanAndInjectFs = (styleContent) => {
+  const parts = styleContent.split(';');
+  let fontSizeValue = null;
+  let customSizeValue = null;
+  let otherStyles = [];
+
+  for (let part of parts) {
+    part = part.trim();
+    if (!part) continue;
+
+    const fsMatch = part.match(/^--fs:\s*(.+)$/i);
+    if (fsMatch) {
+      customSizeValue = fsMatch[1].trim();
+      continue;
+    }
+
+    const fontSizeMatch = part.match(/^font-size:\s*(.+)$/i);
+    if (fontSizeMatch) {
+      const val = fontSizeMatch[1].trim();
+      if (val.toLowerCase() !== 'var(--fs)') {
+        fontSizeValue = val;
+      }
+      continue;
+    }
+
+    otherStyles.push(part);
+  }
+
+  const activeSize = fontSizeValue || customSizeValue;
+  if (activeSize) {
+    const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
+    return `font-size: ${activeSize}; --fs: ${activeSize}${othersStr}`;
+  } else {
+    return otherStyles.join('; ');
+  }
+};
+
 const QuillWrapper = forwardRef(({
   lineHeight,
   lineHeightMobile,
   onChangeLineHeight,
   onChangeLineHeightMobile,
+  fontSizeMobile,
+  onChangeFontSizeMobile,
+  translateY,
+  translateYMobile,
+  onChangeTranslateY,
+  onChangeTranslateYMobile,
   disableImageWrap = false,
   toolbarTop = "0px",
   isSticky = false,
@@ -303,6 +351,8 @@ const QuillWrapper = forwardRef(({
   const [isReady, setIsReady] = useState(false);
   const [showSpacingPopup, setShowSpacingPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+  const [showTranslatePopup, setShowTranslatePopup] = useState(false);
+  const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -1137,6 +1187,8 @@ const QuillWrapper = forwardRef(({
             }
           };
 
+          input.addEventListener('blur', handleApply);
+
           // Populate initial value in dropdown input if available
           let currentFormat = {};
           try {
@@ -1321,6 +1373,9 @@ const QuillWrapper = forwardRef(({
         if (!imageGroup.includes('line-height')) {
           imageGroup.push('line-height');
         }
+        if (!imageGroup.includes('translate-y')) {
+          imageGroup.push('translate-y');
+        }
       }
     }
     mods.toolbar = {
@@ -1336,6 +1391,18 @@ const QuillWrapper = forwardRef(({
               left: rect.left - parentRect.left
             });
             setShowSpacingPopup(prev => !prev);
+          }
+        },
+        'translate-y': function () {
+          const button = containerRef.current?.querySelector('.ql-translate-y');
+          if (button) {
+            const rect = button.getBoundingClientRect();
+            const parentRect = containerRef.current.getBoundingClientRect();
+            setTranslatePopupPosition({
+              top: rect.bottom - parentRect.top + containerRef.current.scrollTop,
+              left: rect.left - parentRect.left
+            });
+            setShowTranslatePopup(prev => !prev);
           }
         },
         more: function () {
@@ -1789,6 +1856,8 @@ const QuillWrapper = forwardRef(({
 
   const handleOnChange = useCallback((content, delta, source, editor) => {
     if (props.onChange) {
+      if (source !== 'user') return;
+
       const escapedUrlApi = URL_API.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
       let relativeContent = content.replace(regex, 'src="/$1"');
@@ -1814,7 +1883,7 @@ const QuillWrapper = forwardRef(({
 
     // Clean up any dirty database styles before loading into the editor
     val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-      const cleaned = cleanStyleForSave(styleContent);
+      const cleaned = cleanAndInjectFs(styleContent);
       return cleaned ? `style=${quote}${cleaned}${quote}` : "";
     });
 
@@ -1834,6 +1903,19 @@ const QuillWrapper = forwardRef(({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [showSpacingPopup]);
 
+  useEffect(() => {
+    if (!showTranslatePopup) return;
+    const handleOutsideClick = (e) => {
+      const popup = containerRef.current?.querySelector('.ql-translate-y-popup');
+      const button = containerRef.current?.querySelector('.ql-translate-y');
+      if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
+        setShowTranslatePopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showTranslatePopup]);
+
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
   return (
@@ -1846,6 +1928,9 @@ const QuillWrapper = forwardRef(({
         '--quill-editor-min-height': minHeight,
         '--custom-line-height': lineHeight ? (/^\d+$/.test(String(lineHeight).trim()) ? `${lineHeight}px` : lineHeight) : undefined,
         '--custom-line-height-mobile': lineHeightMobile ? (/^\d+$/.test(String(lineHeightMobile).trim()) ? `${lineHeightMobile}px` : lineHeightMobile) : undefined,
+        '--fs-mobile': fontSizeMobile ? (/^\d+$/.test(String(fontSizeMobile).trim()) ? `${fontSizeMobile}px` : fontSizeMobile) : undefined,
+        '--translate-y': translateY ? (/^-?\d+$/.test(String(translateY).trim()) ? `${translateY}px` : translateY) : undefined,
+        '--translate-y-mobile': translateYMobile ? (/^-?\d+$/.test(String(translateYMobile).trim()) ? `${translateYMobile}px` : translateYMobile) : undefined,
       }}
     >
       {renderModals()}
@@ -1861,7 +1946,7 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình giãn dòng</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng & Cỡ chữ</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -1871,13 +1956,90 @@ const QuillWrapper = forwardRef(({
             </button>
           </div>
           <div className="space-y-3">
+            <div className="border-b border-gray-100 pb-2">
+              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Giãn dòng (Line Height)</span>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
+                  <input
+                    type="text"
+                    placeholder="Mặc định. VD: 32"
+                    value={lineHeight || ""}
+                    onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
+                    style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
+                  <input
+                    type="text"
+                    placeholder="Mặc định. VD: 24"
+                    value={lineHeightMobile || ""}
+                    onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
+                    style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Cỡ chữ (Font Size)</span>
+              <div>
+                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
+                <input
+                  type="text"
+                  placeholder="Mặc định. VD: 16"
+                  value={fontSizeMobile || ""}
+                  onChange={(e) => onChangeFontSizeMobile && onChangeFontSizeMobile(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
+                  style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
+                onClick={() => setShowSpacingPopup(false)}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTranslatePopup && (
+        <div
+          className="ql-translate-y-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          style={{
+            top: translatePopupPosition.top + 5,
+            left: Math.max(10, Math.min(translatePopupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            width: '200px'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình dịch dòng</span>
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              onClick={() => setShowTranslatePopup(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-3">
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
               <input
                 type="text"
-                placeholder="Mặc định. VD: 32"
-                value={lineHeight || ""}
-                onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
+                placeholder="VD: -20 hoặc 10"
+                value={translateY || ""}
+                onChange={(e) => onChangeTranslateY && onChangeTranslateY(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -1886,9 +2048,9 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
               <input
                 type="text"
-                placeholder="Mặc định. VD: 24"
-                value={lineHeightMobile || ""}
-                onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
+                placeholder="VD: -10 hoặc 5"
+                value={translateYMobile || ""}
+                onChange={(e) => onChangeTranslateYMobile && onChangeTranslateYMobile(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -1898,7 +2060,7 @@ const QuillWrapper = forwardRef(({
               <button
                 type="button"
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
-                onClick={() => setShowSpacingPopup(false)}
+                onClick={() => setShowTranslatePopup(false)}
               >
                 Xác nhận
               </button>
@@ -1938,6 +2100,39 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
           min-height: var(--quill-editor-min-height, 120px) !important;
+        }
+
+        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor {
+          line-height: var(--custom-line-height) !important;
+        }
+        @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor {
+            line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
+          }
+        }
+        .quill-wrapper-container[style*="--translate-y"] .ql-editor {
+          transform: translateY(var(--translate-y)) !important;
+        }
+        @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--translate-y"] .ql-editor {
+            transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"],
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"] *,
+          .quill-wrapper-container.title-main-text[style*="--fs-mobile"] .ql-editor,
+          .quill-wrapper-container.title-main-text[style*="--fs-mobile"] .ql-editor *,
+          .quill-wrapper-container.title-sub-text[style*="--fs-mobile"] .ql-editor,
+          .quill-wrapper-container.title-sub-text[style*="--fs-mobile"] .ql-editor *,
+          .quill-wrapper-container.hero-phone-text[style*="--fs-mobile"] .ql-editor,
+          .quill-wrapper-container.hero-phone-text[style*="--fs-mobile"] .ql-editor *,
+          .quill-wrapper-container.hero-slogan-text[style*="--fs-mobile"] .ql-editor,
+          .quill-wrapper-container.hero-slogan-text[style*="--fs-mobile"] .ql-editor *,
+          .quill-wrapper-container.mobile-watermark-text[style*="--fs-mobile"] .ql-editor,
+          .quill-wrapper-container.mobile-watermark-text[style*="--fs-mobile"] .ql-editor * {
+            font-size: var(--fs-mobile) !important;
+          }
         }
 
         .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden,
