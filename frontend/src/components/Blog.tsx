@@ -110,11 +110,11 @@ function BlogCard({ blog }: { blog: Blog }) {
         </p>
 
         <h3 className="text-xs sm:text-[14px] font-bold text-[#563c39] line-clamp-2 mb-1 leading-snug">
-          {blog.title}
+          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" />
         </h3>
 
         <p className="text-[11px] sm:text-[13px] text-gray-700 raleway !font-normal line-clamp-2 flex-1 mb-2">
-          {blog.excerpt}
+          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" />
         </p>
 
         <span
@@ -178,11 +178,11 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
         </div>
 
         <h2 className="text-2xl sm:text-4xl font-bold text-[#563c39] mb-6 leading-tight">
-          {blog.title}
+          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" />
         </h2>
 
         <p className="text-gray-600 raleway text-sm sm:text-base mb-8 line-clamp-4 leading-relaxed">
-          {blog.excerpt}
+          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" />
         </p>
 
         <span

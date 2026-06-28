@@ -14,6 +14,7 @@ import { handleInvalidToken } from "@/utils/helpers";
 import fetchData from "@/axios";
 import Confirm from "@/components/admin/confirm";
 import BlogForm from "./BlogForm";
+import { stripHtmlAndCss } from "@/utils/seoHelpers";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -209,7 +210,7 @@ export default function BlogTable() {
                         {blog.thumbnail ? (
                           <img
                             src={blog.thumbnail.startsWith('http') ? blog.thumbnail : `${URL_API}${blog.thumbnail.replace(/\\/g, "/")}`}
-                            alt={blog.title}
+                            alt={stripHtmlAndCss(blog.title)}
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -219,8 +220,8 @@ export default function BlogTable() {
                     </td>
                     <td className="py-4 px-6">
                       <div className="max-w-[300px]">
-                        <p className="text-sm font-bold text-foreground line-clamp-1 mb-0.5" title={blog.title}>
-                          {blog.title}
+                        <p className="text-sm font-bold text-foreground line-clamp-1 mb-0.5" title={stripHtmlAndCss(blog.title)}>
+                          {stripHtmlAndCss(blog.title)}
                         </p>
                         <div className="flex items-center gap-3 text-[10px] text-gray-600 font-medium">
                           <div className="flex items-center gap-1">

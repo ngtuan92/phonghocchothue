@@ -242,7 +242,7 @@ export default function BlogDetail() {
               <span className="text-gray-300">/</span>
               <Link href="/blog" className="hover:text-[#e57f7f] transition-colors">Blog</Link>
               <span className="text-gray-300">/</span>
-              <span className="text-[#563c39] font-medium truncate max-w-[300px]">{blog.title}</span>
+              <span className="text-[#563c39] font-medium truncate max-w-[300px]">{stripHtmlAndCss(blog.title)}</span>
             </nav>
 
             <header className="mb-2 sm:mb-4 text-center sm:text-left flex flex-col">
@@ -277,16 +277,16 @@ export default function BlogDetail() {
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-4 order-1 sm:order-2">
-                {blog.title}
+                <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" />
               </h1>
 
               {blog.excerpt && (
                 <div className="mb-1 sm:mb-4 px-2 sm:px-0 py-1 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6 order-3 sm:order-3">
-                  <p className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
+                  <div className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
                     <span className="text-[#b8c7b0] text-3xl font-serif mr-1 sm:hidden leading-none">“</span>
-                    {blog.excerpt}
+                    <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" />
                     <span className="text-[#b8c7b0] text-3xl font-serif ml-1 sm:hidden leading-none">”</span>
-                  </p>
+                  </div>
                 </div>
               )}
             </header>

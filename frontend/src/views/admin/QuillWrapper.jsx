@@ -40,34 +40,40 @@ const COLORS = [
   "custom-color"
 ];
 
-const createModules = (fontList, hasResponsiveFontSize) => ({
-  toolbar: [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: fontList }],
-    hasResponsiveFontSize ? ["font-size-custom"] : [{ size: Object.values(SIZE_MAP) }],
-    ["bold", "italic", "underline", "strike"],
-    [{ color: COLORS }, { background: COLORS }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }],
-    ["link", "image", "line-height", "translate-y"],
-    ["clean"],
-    ["more"],
-  ],
-  clipboard: {
-    matchers: [
-      [Node.ELEMENT_NODE, (node, delta) => {
-        const style = node.getAttribute('style');
-        if (style && style.includes('font-family')) {
-          const cleanStyle = style.replace(/font-family:\s*(&quot;|['"])?([^;'"&]+)(&quot;|['"])?/i, 'font-family: $2');
-          if (cleanStyle !== style) {
-            node.setAttribute('style', cleanStyle);
-          }
-        }
-        return delta;
-      }]
-    ]
+const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation) => {
+  const mediaGroup = ["link", "image"];
+  if (showSpacingAndTranslation) {
+    mediaGroup.push("line-height", "translate-y");
   }
-});
+  return {
+    toolbar: [
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      [{ font: fontList }],
+      hasResponsiveFontSize ? ["font-size-custom"] : [{ size: Object.values(SIZE_MAP) }],
+      ["bold", "italic", "underline", "strike"],
+      [{ color: COLORS }, { background: COLORS }],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ align: [] }],
+      mediaGroup,
+      ["clean"],
+      ["more"],
+    ],
+    clipboard: {
+      matchers: [
+        [Node.ELEMENT_NODE, (node, delta) => {
+          const style = node.getAttribute('style');
+          if (style && style.includes('font-family')) {
+            const cleanStyle = style.replace(/font-family:\s*(&quot;|['"])?([^;'"&]+)(&quot;|['"])?/i, 'font-family: $2');
+            if (cleanStyle !== style) {
+              node.setAttribute('style', cleanStyle);
+            }
+          }
+          return delta;
+        }]
+      ]
+    }
+  };
+};
 
 if (typeof window !== "undefined" && Quill) {
   const ImageBlot = Quill.import("formats/image");
@@ -920,10 +926,11 @@ const QuillWrapper = forwardRef(({
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
       const currentFonts = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
       const toolbarFontValues = ['macdinh', ...currentFonts.map(f => f.slug)];
-      setModules(createModules(toolbarFontValues, hasResponsive));
+      const showSpacingAndTranslation = !!onChangeLineHeight || !!onChangeTranslateY;
+      setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation));
       setIsReady(true);
     }
-  }, [dynamicFonts, hasResponsive]);
+  }, [dynamicFonts, hasResponsive, onChangeLineHeight, onChangeTranslateY]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1418,22 +1425,32 @@ const QuillWrapper = forwardRef(({
   const customModules = React.useMemo(() => {
     if (!modules) return null;
     const mods = { ...modules };
+    let newToolbar = mods.toolbar;
     if (mods.toolbar && Array.isArray(mods.toolbar)) {
-      const imageGroup = mods.toolbar.find(group => Array.isArray(group) && group.includes('image'));
-      if (imageGroup) {
-        if (!disableImageWrap && !imageGroup.includes('image-settings')) {
-          imageGroup.push('image-settings');
+      newToolbar = mods.toolbar.map(group => {
+        if (Array.isArray(group) && group.includes('image')) {
+          const newGroup = [...group];
+          if (!disableImageWrap && !newGroup.includes('image-settings')) {
+            newGroup.push('image-settings');
+          }
+          const showSpacingAndTranslation = !!onChangeLineHeight || !!onChangeTranslateY;
+          if (showSpacingAndTranslation) {
+            if (!newGroup.includes('line-height')) {
+              newGroup.push('line-height');
+            }
+            if (!newGroup.includes('translate-y')) {
+              newGroup.push('translate-y');
+            }
+          } else {
+            return newGroup.filter(item => item !== 'line-height' && item !== 'translate-y');
+          }
+          return newGroup;
         }
-        if (!imageGroup.includes('line-height')) {
-          imageGroup.push('line-height');
-        }
-        if (!imageGroup.includes('translate-y')) {
-          imageGroup.push('translate-y');
-        }
-      }
+        return group;
+      });
     }
     mods.toolbar = {
-      container: modules.toolbar,
+      container: newToolbar,
       handlers: {
         'font-size-custom': function () {
           const button = containerRef.current?.querySelector('.ql-font-size-custom');
@@ -1612,7 +1629,7 @@ const QuillWrapper = forwardRef(({
       }
     };
     return mods;
-  }, [modules, disableImageWrap]);
+  }, [modules, disableImageWrap, onChangeLineHeight, onChangeTranslateY]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];

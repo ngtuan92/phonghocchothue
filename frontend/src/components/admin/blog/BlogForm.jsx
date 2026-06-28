@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 import Cropper from "react-easy-crop";
+import { showToastError } from "@/helpers/toast";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -268,6 +269,10 @@ export default function BlogForm({ data, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.title || !getPlainText(formData.title).trim()) {
+      showToastError("Vui lòng nhập tiêu đề bài viết.");
+      return;
+    }
     const submitData = { ...formData };
     if (imageFile) {
       submitData.thumbnailFile = imageFile;
@@ -291,15 +296,17 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     Tiêu đề bài viết
                   </Typography>
                 </div>
-                <Input
-                  size="lg"
-                  placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
-                  className="!border-gray-300 focus:!border-primary !bg-white transition-all duration-300 text-foreground font-medium placeholder:text-gray-400"
-                  labelProps={{ className: "hidden" }}
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
+                <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
+                  <LazyQuillWrapper
+                    theme="snow"
+                    value={formData.title}
+                    onChange={(val) => setFormData({ ...formData, title: val })}
+                    className="min-h-[80px]"
+                    minHeight="80px"
+                    maxHeight="150px"
+                    placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -385,14 +392,17 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     Tóm tắt ngắn (Excerpt)
                   </Typography>
                 </div>
-                <Textarea
-                  placeholder="Mô tả ngắn gọn nội dung bài viết để thu hút người đọc…"
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  rows={4}
-                  className="!border-gray-300 focus:!border-primary !bg-white transition-all duration-300 text-foreground placeholder:text-gray-400"
-                  labelProps={{ className: "hidden" }}
-                />
+                <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
+                  <LazyQuillWrapper
+                    theme="snow"
+                    value={formData.excerpt}
+                    onChange={(val) => setFormData({ ...formData, excerpt: val })}
+                    className="min-h-[120px]"
+                    minHeight="120px"
+                    maxHeight="200px"
+                    placeholder="Mô tả ngắn gọn nội dung bài viết để thu hút người đọc…"
+                  />
+                </div>
               </div>
             </div>
           </div>
