@@ -1688,6 +1688,11 @@ footer .rich-text-renderer * {
   transform: translate(var(--tw-translate-x, 0px), var(--translate-y)) !important;
 }
 
+/* Specific vertical translation rule for subtitle text (preserving horizontal translation) */
+.rich-text-renderer.title-sub-text[style*="--translate-y"] {
+  transform: translate(-50%, var(--translate-y)) !important;
+}
+
 @media (max-width: 767px) {
   .rich-text-renderer[style*="--translate-y"] {
     transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
@@ -1696,6 +1701,11 @@ footer .rich-text-renderer * {
   .rich-text-renderer.transform[style*="--translate-y"] {
     --tw-translate-y: var(--translate-y-mobile, var(--translate-y)) !important;
     transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) rotate(var(--tw-rotate, 0deg)) skewX(var(--tw-skew-x, 0deg)) skewY(var(--tw-skew-y, 0deg)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1)) !important;
+  }
+
+  /* Specific vertical translation rule for mobile subtitle text (preserving horizontal translation) */
+  .rich-text-renderer.title-sub-text[style*="--translate-y"] {
+    transform: translate(-50%, var(--translate-y-mobile, var(--translate-y))) !important;
   }
 }
 

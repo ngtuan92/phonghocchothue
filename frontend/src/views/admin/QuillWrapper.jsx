@@ -2374,9 +2374,15 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container[style*="--translate-y"] .ql-editor {
           transform: translateY(var(--translate-y)) !important;
         }
+        .quill-wrapper-container[style*="--translate-y"] .ql-editor.title-sub-text {
+          transform: translate(-50%, var(--translate-y)) !important;
+        }
         @media (max-width: 767px) {
           .quill-wrapper-container[style*="--translate-y"] .ql-editor {
             transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
+          }
+          .quill-wrapper-container[style*="--translate-y"] .ql-editor.title-sub-text {
+            transform: translate(-50%, var(--translate-y-mobile, var(--translate-y))) !important;
           }
         }
 
