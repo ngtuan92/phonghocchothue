@@ -165,7 +165,7 @@ export default function BlogDetail() {
       <div className="flex flex-col items-center justify-center min-h-screen p-10 text-center">
         <h1 className="text-4xl font-bold text-[#563c39] mb-4">404</h1>
         <p className="text-gray-600 mb-8">Xin lỗi, bài viết bạn đang tìm kiếm không tồn tại.</p>
-        <Link href="/" className="px-6 py-2 bg-[#563c39] text-white rounded-xl font-bold">
+        <Link href="/" className="px-6 py-2 bg-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple-hover)] text-white rounded-xl font-bold transition-all duration-300 shadow-sm">
           Về trang chủ
         </Link>
       </div>
@@ -299,7 +299,7 @@ export default function BlogDetail() {
             <div className="flex justify-center">
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 text-[12px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-5 py-2 sm:px-10 sm:py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md whitespace-nowrap"
+                className="inline-flex items-center gap-2 text-[12px] sm:text-sm text-white bg-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple-hover)] px-5 py-2 sm:px-10 sm:py-3 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md whitespace-nowrap"
               >
                 Quay lại danh sách bài viết
               </Link>

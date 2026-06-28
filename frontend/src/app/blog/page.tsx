@@ -206,18 +206,16 @@ export default function BlogPage() {
                         className={classNames(
                           "whitespace-nowrap px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-300 border",
                           activeCategory === cat.key
-                            ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20"
+                            ? "bg-[var(--color-btn-purple)] text-white border-[var(--color-btn-purple)] shadow-md shadow-[var(--color-btn-purple)]/20"
                             : "bg-white/80 backdrop-blur-md text-gray-600 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                         )}
                       >
                         {cat.label}
                       </button>
                     ))}
-                    {/* Spacer at the end to allow scrolling past the gradient */}
                     <div className="flex-shrink-0 w-14" />
                   </div>
 
-                  {/* Dynamic Fade-out Gradient Overlay on the right */}
                   <div 
                     className="absolute right-0 top-0 bottom-1.5 pointer-events-none z-10 w-14 transition-all duration-300"
                     style={{
@@ -225,13 +223,12 @@ export default function BlogPage() {
                     }}
                   />
 
-                  {/* Sticky Grid Button */}
                   <button
                     onClick={() => setIsDrawerOpen(true)}
-                    className="absolute right-0 top-0 bottom-1.5 my-auto z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[#563c39]/10 text-[#563c39] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
+                    className="absolute right-0 top-0 bottom-1.5 my-auto z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 backdrop-blur-md border border-[var(--color-btn-purple)]/10 text-[var(--color-btn-purple)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:scale-90 transition-all duration-200"
                     aria-label="Tất cả danh mục"
                   >
-                    <FaThLarge size={13} className="text-[#563c39]" />
+                    <FaThLarge size={13} className="text-[var(--color-btn-purple)]" />
                   </button>
                 </div>
               </div>
@@ -262,10 +259,8 @@ export default function BlogPage() {
         </div>
       </div>
 
-      {/* Bottom Sheet Drawer for Mobile Categories */}
       {categories.length > 0 && (
         <>
-          {/* Backdrop */}
           <div
             className={classNames(
               "fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] transition-opacity duration-300 ease-in-out lg:hidden",
@@ -274,7 +269,6 @@ export default function BlogPage() {
             onClick={() => setIsDrawerOpen(false)}
           />
 
-          {/* Bottom Sheet Panel */}
           <div
             className={classNames(
               "fixed bottom-0 left-0 right-0 max-h-[85vh] rounded-t-[24px] shadow-[0_-8px_30px_rgb(0,0,0,0.2)] z-[1000] flex flex-col transition-transform duration-300 ease-out transform lg:hidden",
@@ -284,24 +278,21 @@ export default function BlogPage() {
               backgroundColor: colorBg || "#faf8f5",
             }}
           >
-            {/* Drag Handle */}
-            <div className="w-12 h-1 bg-[#563c39]/20 rounded-full mx-auto my-3 flex-shrink-0" />
+            <div className="w-12 h-1 bg-[var(--color-btn-purple)]/20 rounded-full mx-auto my-3 flex-shrink-0" />
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 pb-4 border-b border-[#563c39]/10">
-              <h2 className="text-base font-bold text-[#563c39] raleway flex items-center gap-2">
-                <FaThLarge size={14} className="text-[#e57f7f]" />
+            <div className="flex items-center justify-between px-6 pb-4 border-b border-[var(--color-btn-purple)]/10">
+              <h2 className="text-base font-bold text-[var(--color-btn-purple)] raleway flex items-center gap-2">
+                <FaThLarge size={14} className="text-[var(--color-btn-purple-hover)]" />
                 <span>Danh mục bài viết</span>
               </h2>
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-[#563c39]/5 text-[#563c39] hover:bg-[#563c39]/10 active:scale-90 transition-all duration-200"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-[var(--color-btn-purple)]/5 text-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple)]/10 active:scale-90 transition-all duration-200"
               >
                 <FaTimes size={12} />
               </button>
             </div>
 
-            {/* Grid Content */}
             <div className="overflow-y-auto px-6 py-6 hide-scrollbar flex-1 max-h-[60vh]">
               <div className="grid grid-cols-2 gap-3 pb-8">
                 {categories.map((cat) => (
@@ -314,7 +305,7 @@ export default function BlogPage() {
                     className={classNames(
                       "w-full px-3 py-3.5 rounded-xl text-center text-[12px] font-semibold transition-all duration-300 border flex items-center justify-center min-h-[48px] shadow-sm leading-tight raleway",
                       activeCategory === cat.key
-                        ? "bg-[#563c39] text-white border-[#563c39] shadow-md shadow-[#563c39]/20"
+                        ? "bg-[var(--color-btn-purple)] text-white border-[var(--color-btn-purple)] shadow-md shadow-[var(--color-btn-purple)]/20"
                         : "bg-white/80 backdrop-blur-md text-gray-700 border-[#799f85]/20 hover:bg-[#fdf6f5]"
                     )}
                   >

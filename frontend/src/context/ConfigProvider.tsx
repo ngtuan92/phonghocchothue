@@ -16,8 +16,19 @@ const ConfigContext = createContext<ConfigContextType | null>(null);
 export const ConfigProvider = ({ children }: { children: ReactNode }) => {
   const { data: dataConfig = [], isLoading } = useConfigQuery();
 
+  const colorBtn = dataConfig.find((item) => item.key === "color-btn")?.content || "#b8c7b0";
+  const colorBtnPurple = dataConfig.find((item) => item.key === "color-btn-purple")?.content || "#563c39";
+  const colorBtnPurpleHover = dataConfig.find((item) => item.key === "color-btn-purple-hover")?.content || "#e57f7f";
+
   return (
     <ConfigContext.Provider value={{ dataConfig }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --btn-color: ${colorBtn};
+          --color-btn-purple: ${colorBtnPurple};
+          --color-btn-purple-hover: ${colorBtnPurpleHover};
+        }
+      ` }} />
       {children}
     </ConfigContext.Provider>
   );

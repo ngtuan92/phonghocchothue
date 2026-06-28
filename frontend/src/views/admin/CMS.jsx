@@ -210,6 +210,8 @@ const KEY_LABEL_MAP = {
   "amenities-slider-radius": "Bo góc slider tiện ích (px)",
   "gallery-slider-radius": "Bo góc slider không gian (px)",
   "color-btn": "Màu nút xanh chính của toàn trang web",
+  "color-btn-purple": "Màu nút phụ (GO, Xem thêm, Quay lại,...)",
+  "color-btn-purple-hover": "Màu hover của nút phụ",
   textNotication: "Nội dung thông báo (chỗ chú chim)",
   linkNotication: "Đường dẫn liên kết của thông báo (khi nhấn GO)",
   textBtnNotication: "Chữ hiển thị trên nút thông báo (Ví dụ: GO)",
@@ -891,7 +893,7 @@ export default function CMS() {
     }
 
     if (activeSection === "general") {
-      const generalPreferredOrder = ["textNotication", "textBtnNotication", "linkNotication"];
+      const generalPreferredOrder = ["textNotication", "textBtnNotication", "linkNotication", "color-btn-purple", "color-btn-purple-hover"];
       return filtered.sort((a, b) => {
         const idxA = generalPreferredOrder.indexOf(a.key);
         const idxB = generalPreferredOrder.indexOf(b.key);

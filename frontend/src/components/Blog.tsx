@@ -353,8 +353,8 @@ export default function Blog({
                 className={classNames(
                   "text-xs sm:text-sm px-4 py-1.5 transition-all duration-300 border",
                   activeTab === tab.key
-                    ? "bg-[#e57f7f] border-[#e57f7f] text-white rounded-tl-xl rounded-br-xl"
-                    : "bg-transparent border-[#799f85]/40 text-[#563c39] rounded-tl-xl rounded-br-xl hover:border-[#e57f7f] hover:text-[#e57f7f]"
+                    ? "bg-[var(--color-btn-purple-hover)] border-[var(--color-btn-purple-hover)] text-white rounded-tl-xl rounded-br-xl"
+                    : "bg-transparent border-[#799f85]/40 text-[var(--color-btn-purple)] rounded-tl-xl rounded-br-xl hover:border-[var(--color-btn-purple-hover)] hover:text-[var(--color-btn-purple-hover)]"
                 )}
               >
                 {tab.label}
@@ -386,7 +386,7 @@ export default function Blog({
           <div className="flex justify-center mt-4 sm:mt-8 md:mt-4">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
+              className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple-hover)] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-md hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none"
             >
               Xem thêm
               <FaArrowRight size={10} />
@@ -401,7 +401,7 @@ export default function Blog({
                     type="button"
                     onClick={handleLoadMore}
                     disabled={isFetching}
-                    className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[#563c39] hover:bg-[#e57f7f] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 text-[11px] sm:text-sm text-white bg-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple-hover)] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isFetching ? "Đang tải..." : "Xem thêm"}
                     {!isFetching && <FaArrowRight size={10} />}
@@ -430,8 +430,8 @@ export default function Blog({
                         className={classNames(
                           "w-10 h-10 rounded-lg text-sm font-bold transition-all",
                           page === i + 1
-                            ? "bg-[#563c39] text-white shadow-lg"
-                            : "bg-white border border-gray-100 text-[#563c39] hover:border-[#e57f7f]"
+                            ? "bg-[var(--color-btn-purple)] text-white shadow-lg"
+                            : "bg-white border border-gray-100 text-[var(--color-btn-purple)] hover:border-[var(--color-btn-purple-hover)]"
                         )}
                       >
                         {i + 1}

@@ -101,7 +101,7 @@ export default function CategorySidebar({
         </div>
         <Link
           href="/#contact"
-          className="inline-block w-full text-center py-3 bg-[#563c39] hover:bg-[#e57f7f] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-sm"
+          className="inline-block w-full text-center py-3 bg-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple-hover)] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-sm"
         >
           Liên hệ ngay
         </Link>
