@@ -18,6 +18,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
+export const runtime = "edge";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://phonghocchothue.com"),
   title: {
