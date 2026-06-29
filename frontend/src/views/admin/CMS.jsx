@@ -225,7 +225,7 @@ const IMAGE_RECOMMENDATIONS = {
   "icon-goc": "Khuyên dùng: 64x64px hoặc 128x128px (Dạng icon)",
   "bgTitle": "Khuyên dùng: Chiều rộng 500px (Tự động chỉnh chiều cao theo tỉ lệ gốc của ảnh)",
   "describe-frame-image": "Khuyên dùng: 1200x400px (Tỉ lệ ~ 3:1, Khung nền chính trên Desktop)",
-  "describe-frame-image-mobile": "Khuyên dùng: 400x250px (Tỉ lệ ~ 1.6:1, Khung nền chính trên Mobile)",
+  "describe-frame-image-mobile": "Khuyên dùng: 450x200px (Tỉ lệ ~ 2.25:1, Khung nền chính trên Mobile)",
   "nurseryImg": "Khuyên dùng: 1920x450px hoặc 1920x600px (Ảnh banner rộng)",
   "background": "Khuyên dùng: 1920x1080px (Ảnh nền trang web)",
   "imgContact": "Khuyên dùng: 800x600px (Tỉ lệ 4:3, Ảnh bên cạnh form liên hệ)",
@@ -269,7 +269,7 @@ const getImagePreviewStyle = (key) => {
       return {
         wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-fill block",
-        aspectRatio: "1.6/1",
+        aspectRatio: "2.25/1",
         maxWidth: "400px",
       };
     case "describe-h2-image":
