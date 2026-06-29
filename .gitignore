@@ -5,3 +5,13 @@ node_modules/
 dist/
 build/
 *.sql
+
+# Local assets/upload folders
+backend/public/assets/images/configs/*
+!backend/public/assets/images/configs/.gitkeep
+backend/public/assets/images/products-detail/*
+!backend/public/assets/images/products-detail/.gitkeep
+backend/public/assets/images/sliders/*
+!backend/public/assets/images/sliders/.gitkeep
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep

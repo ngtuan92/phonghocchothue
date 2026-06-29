@@ -47,6 +47,14 @@ interface ProductData {
     equipment: any;
     price: any;
     content: string;
+    lineHeight?: string;
+    lineHeightMobile?: string;
+    fontSize?: string;
+    fontSizeMobile?: string;
+    nameFontSize?: string;
+    nameFontSizeMobile?: string;
+    translateY?: string;
+    translateYMobile?: string;
   };
 }
 
@@ -667,8 +675,8 @@ export default function DetailPage() {
                   <RichTextRenderer
                     html={processedName}
                     className="title-product-detail-rich"
-                    fontSize={product.fontSize}
-                    fontSizeMobile={product.fontSizeMobile}
+                    fontSize={product.nameFontSize}
+                    fontSizeMobile={product.nameFontSizeMobile}
                     lineHeight={product.lineHeight}
                     lineHeightMobile={product.lineHeightMobile}
                     translateY={product.translateY}

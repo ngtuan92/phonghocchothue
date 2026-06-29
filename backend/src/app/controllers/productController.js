@@ -2,6 +2,7 @@ const productModel = require("../models/productModel");
 const { mutipleConvertToObject } = require("../../util/convert");
 const productImageModel = require("../models/productImageModel");
 const { Op } = require("sequelize");
+const { sequelize, Sequelize } = require("../../config/db");
 const { createUniqueSlug } = require("../../util/slug");
 const { getOrSetCache, redis } = require("../../util/cacheUtil");
 
@@ -11,9 +12,34 @@ function formatProductRichName(nameRich) {
   return nameRich;
 }
 
+let productNameFontColumnsReady = false;
+
+const ensureProductNameFontColumns = async () => {
+  if (productNameFontColumnsReady) return;
+
+  const queryInterface = sequelize.getQueryInterface();
+  const tableDescription = await queryInterface.describeTable("products");
+  const columnsToAdd = [
+    { name: "name_font_size", type: Sequelize.STRING(50) },
+    { name: "name_font_size_mobile", type: Sequelize.STRING(50) },
+  ];
+
+  for (const col of columnsToAdd) {
+    if (!tableDescription[col.name]) {
+      await queryInterface.addColumn("products", col.name, {
+        type: col.type,
+        allowNull: true,
+      });
+    }
+  }
+
+  productNameFontColumnsReady = true;
+};
+
 class ProductController {
   async index(req, res) {
     try {
+      await ensureProductNameFontColumns();
       const { limit, light } = req.query;
       const isLightList = light === "true";
       const cacheKey = isLightList
@@ -28,7 +54,7 @@ class ProductController {
               "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
               "contains", "description", "price", "unit", "capacity", "isSpecial",
               "seoTitle", "seoDescription", "seoKeywords", "seoImage",
-              "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "translateY", "translateYMobile",
+              "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "nameFontSize", "nameFontSizeMobile", "translateY", "translateYMobile",
             ],
           include: isLightList ? [] : [{ model: productImageModel, as: "images" }],
           limit: limit ? parseInt(limit) : undefined,
@@ -56,6 +82,7 @@ class ProductController {
   }
 
   async edit(req, res) {
+    await ensureProductNameFontColumns();
     productModel
       .findOne({
         attributes: [
@@ -81,6 +108,8 @@ class ProductController {
           "lineHeightMobile",
           "fontSize",
           "fontSizeMobile",
+          "nameFontSize",
+          "nameFontSizeMobile",
           "translateY",
           "translateYMobile",
         ],
@@ -114,6 +143,7 @@ class ProductController {
 
   async getById(req, res) {
     try {
+      await ensureProductNameFontColumns();
       const { id } = req.params;
       const cacheKey = `product:detail:${id}`;
 
@@ -126,7 +156,7 @@ class ProductController {
             "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
             "contains", "description", "price", "unit", "capacity", "isSpecial",
             "seoTitle", "seoDescription", "seoKeywords", "seoImage",
-            "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "translateY", "translateYMobile",
+            "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "nameFontSize", "nameFontSizeMobile", "translateY", "translateYMobile",
           ],
           include: [{ model: productImageModel, as: "images" }],
           where: whereCondition,
@@ -139,7 +169,7 @@ class ProductController {
             "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
             "contains", "description", "price", "unit", "capacity", "isSpecial",
             "seoTitle", "seoDescription", "seoKeywords", "seoImage",
-            "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "translateY", "translateYMobile",
+            "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "nameFontSize", "nameFontSizeMobile", "translateY", "translateYMobile",
           ],
           where: { id: { [Op.ne]: product.id } },
           order: [["id", "DESC"]],
@@ -182,7 +212,8 @@ class ProductController {
   async update(req, res) {
     const { id } = req.params;
     try {
-      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, translateY, translateYMobile } = req.body;
+      await ensureProductNameFontColumns();
+      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, nameFontSize, nameFontSizeMobile, translateY, translateYMobile } = req.body;
 
       const files = req.files || {};
       const { image, imageDetail, seoImage } = files;
@@ -240,6 +271,8 @@ class ProductController {
         lineHeightMobile,
         fontSize,
         fontSizeMobile,
+        nameFontSize,
+        nameFontSizeMobile,
         translateY,
         translateYMobile,
       };
@@ -252,19 +285,46 @@ class ProductController {
 
       await product.update(updateFields);
 
-      if (image_detail) {
+      if (name !== undefined) {
+        let existingImages = req.body.imageDetail;
+        if (existingImages) {
+          if (!Array.isArray(existingImages)) {
+            existingImages = [existingImages];
+          }
+          existingImages = existingImages.map(url => {
+            if (typeof url === 'string') {
+              const match = url.match(/\/assets\/images\/products-detail\/.+$/i);
+              if (match) {
+                return match[0].replace(/^\//, '');
+              }
+              return url;
+            }
+            return null;
+          }).filter(Boolean);
+        } else {
+          existingImages = [];
+        }
+
         await productImageModel.destroy({
           where: { product_id: id },
         });
 
-        const details = Array.isArray(image_detail) ? image_detail : [image_detail];
-
-        for (const item of details) {
-          const imagePatchDetail = await uploadFile(item, 'products-detail', item.name);
+        for (const imgPath of existingImages) {
           await productImageModel.create({
             product_id: id,
-            image_detail: imagePatchDetail,
+            image_detail: imgPath.replaceAll("\\", "/"),
           });
+        }
+
+        if (image_detail) {
+          const details = Array.isArray(image_detail) ? image_detail : [image_detail];
+          for (const item of details) {
+            const imagePatchDetail = await uploadFile(item, 'products-detail', item.name);
+            await productImageModel.create({
+              product_id: id,
+              image_detail: imagePatchDetail.replaceAll("\\", "/"),
+            });
+          }
         }
       }
 
@@ -295,7 +355,8 @@ class ProductController {
 
   async save(req, res) {
     try {
-      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, translateY, translateYMobile } = req.body;
+      await ensureProductNameFontColumns();
+      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, nameFontSize, nameFontSizeMobile, translateY, translateYMobile } = req.body;
       const { image, imageDetail, seoImage } = req.files || {};
 
       const image_detail = imageDetail
@@ -341,6 +402,8 @@ class ProductController {
         lineHeightMobile,
         fontSize,
         fontSizeMobile,
+        nameFontSize,
+        nameFontSizeMobile,
         translateY,
         translateYMobile,
       });
@@ -352,14 +415,14 @@ class ProductController {
           : [image_detail];
 
         for (const item of details) {
-          const imagePatchDetail = uploadFile(
+          const imagePatchDetail = await uploadFile(
             item,
             "products-detail",
             item.name
           );
           await productImageModel.create({
             product_id: product.id,
-            image_detail: imagePatchDetail,
+            image_detail: imagePatchDetail.replaceAll("\\", "/"),
           });
         }
 

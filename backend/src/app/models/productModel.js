@@ -24,6 +24,8 @@ const ProductModel = db.sequelize.define("products", {
     lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true },
     fontSize: { type: DataTypes.STRING(50), field: 'font_size', allowNull: true },
     fontSizeMobile: { type: DataTypes.STRING(50), field: 'font_size_mobile', allowNull: true },
+    nameFontSize: { type: DataTypes.STRING(50), field: 'name_font_size', allowNull: true },
+    nameFontSizeMobile: { type: DataTypes.STRING(50), field: 'name_font_size_mobile', allowNull: true },
     translateY: { type: DataTypes.STRING(50), field: 'translate_y', allowNull: true },
     translateYMobile: { type: DataTypes.STRING(50), field: 'translate_y_mobile', allowNull: true }
 }, {

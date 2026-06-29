@@ -193,7 +193,7 @@ const Gallery: React.FC = () => {
                     prevEl: ".gallery-mobile-prev",
                   }}
                   autoplay={{ delay: 6000, disableOnInteraction: false }}
-                  loop={true}
+                  loop={sliderData && sliderData.length > 1}
                   observer={true}
                   observeParents={true}
                   className="w-full h-full gallery-swiper bg-transparent"

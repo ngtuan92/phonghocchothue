@@ -37,7 +37,7 @@ const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: st
         effect="fade"
         fadeEffect={{ crossFade: true }}
         slidesPerView={1}
-        loop={true}
+        loop={data && data.length > 1}
         autoplay={{
           delay: 4000,
           disableOnInteraction: false,

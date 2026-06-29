@@ -170,6 +170,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [roomLineHeightMobile, setRoomLineHeightMobile] = useState("");
   const [roomFontSize, setRoomFontSize] = useState("");
   const [roomFontSizeMobile, setRoomFontSizeMobile] = useState("");
+  const [roomNameFontSize, setRoomNameFontSize] = useState("");
+  const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
   const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
 
@@ -209,6 +211,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         setRoomLineHeightMobile(dataEdit.lineHeightMobile || "");
         setRoomFontSize(dataEdit.fontSize || "");
         setRoomFontSizeMobile(dataEdit.fontSizeMobile || "");
+        setRoomNameFontSize(dataEdit.nameFontSize || "");
+        setRoomNameFontSizeMobile(dataEdit.nameFontSizeMobile || "");
         setRoomTranslateY(dataEdit.translateY || "");
         setRoomTranslateYMobile(dataEdit.translateYMobile || "");
 
@@ -249,6 +253,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         setRoomLineHeightMobile("");
         setRoomFontSize("");
         setRoomFontSizeMobile("");
+        setRoomNameFontSize("");
+        setRoomNameFontSizeMobile("");
         setRoomTranslateY("");
         setRoomTranslateYMobile("");
       }
@@ -341,6 +347,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         lineHeightMobile: roomLineHeightMobile,
         fontSize: roomFontSize,
         fontSizeMobile: roomFontSizeMobile,
+        nameFontSize: roomNameFontSize,
+        nameFontSizeMobile: roomNameFontSizeMobile,
         translateY: roomTranslateY,
         translateYMobile: roomTranslateYMobile,
       };
@@ -450,14 +458,14 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     placeholder="Nhập tên phòng..."
                     lineHeight={roomLineHeight}
                     lineHeightMobile={roomLineHeightMobile}
-                    fontSize={roomFontSize}
-                    fontSizeMobile={roomFontSizeMobile}
+                    fontSize={roomNameFontSize}
+                    fontSizeMobile={roomNameFontSizeMobile}
                     translateY={roomTranslateY}
                     translateYMobile={roomTranslateYMobile}
                     onChangeLineHeight={setRoomLineHeight}
                     onChangeLineHeightMobile={setRoomLineHeightMobile}
-                    onChangeFontSize={setRoomFontSize}
-                    onChangeFontSizeMobile={setRoomFontSizeMobile}
+                    onChangeFontSize={setRoomNameFontSize}
+                    onChangeFontSizeMobile={setRoomNameFontSizeMobile}
                     onChangeTranslateY={setRoomTranslateY}
                     onChangeTranslateYMobile={setRoomTranslateYMobile}
                     hasResponsiveFontSize={true}

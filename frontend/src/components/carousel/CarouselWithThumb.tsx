@@ -87,23 +87,35 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
   }, [emblaMainApi, onSelect]);
 
   const imagesData = useMemo(() => {
-    // Nếu có images (array of strings), convert sang format items
-    if (images && Array.isArray(images) && images.length > 0) {
-      return images.map((img) => ({ image_detail: img }));
-    }
-    // Nếu có items
-    if (items && Array.isArray(items) && items.length > 0) {
-      return items;
-    }
-    // Nếu có avatar
+    const list: Array<{ image_detail?: string; [key: string]: any }> = [];
+    
+    const normalizePath = (pathStr: string | undefined) => {
+      if (!pathStr || typeof pathStr !== "string") return "";
+      return pathStr.replace(/\\/g, "/").toLowerCase().trim();
+    };
+
+    const normalizedAvatar = normalizePath(avatar);
+
     if (avatar) {
-      return [
-        {
-          image_detail: avatar,
-        },
-      ];
+      list.push({ image_detail: avatar });
     }
-    return [];
+
+    if (items && Array.isArray(items) && items.length > 0) {
+      items.forEach((item) => {
+        const pathStr = item.image_detail || item.image;
+        if (normalizePath(pathStr) !== normalizedAvatar) {
+          list.push(item);
+        }
+      });
+    } else if (images && Array.isArray(images) && images.length > 0) {
+      images.forEach((img) => {
+        if (normalizePath(img) !== normalizedAvatar) {
+          list.push({ image_detail: img });
+        }
+      });
+    }
+
+    return list;
   }, [items, images, avatar]);
 
   if (imagesData.length === 0) {

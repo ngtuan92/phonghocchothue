@@ -83,7 +83,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={9}
         slidesPerView={1}
-        loop={true}
+        loop={products && products.length > 4}
         navigation={{
           nextEl: ".swiper-button-next-custom",
           prevEl: ".swiper-button-prev-custom",
