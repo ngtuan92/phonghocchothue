@@ -1,19 +1,28 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/").replace(/\/$/, "");
 
 const slugify = (name: string) => name.trim().toLowerCase().replace(/\s+/g, '-');
 
-export default async function DynamicFonts() {
-  let fonts = [];
-  try {
-    const res = await fetch(`${URL_API}/api/fonts`, { cache: 'no-store' });
-    if (res.ok) {
-      fonts = await res.json();
+export default function DynamicFonts() {
+  const [fonts, setFonts] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function getFonts() {
+      try {
+        const res = await fetch(`${URL_API}/api/fonts`);
+        if (res.ok) {
+          const data = await res.json();
+          setFonts(data || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dynamic fonts:", error);
+      }
     }
-  } catch (error) {
-    console.error("Failed to fetch dynamic fonts:", error);
-  }
+    getFonts();
+  }, []);
 
   if (!fonts || fonts.length === 0) return null;
 

@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080").replace(/\/$/, "");
 
@@ -11,35 +13,42 @@ interface LocalFont {
     status: string;
 }
 
-export default async function CustomFontProvider() {
-    let localFonts: LocalFont[] = [];
-    let defaultFont = '';
+export default function CustomFontProvider() {
+    const [localFonts, setLocalFonts] = useState<LocalFont[]>([]);
+    const [defaultFont, setDefaultFont] = useState('');
 
-    try {
-        const [fontsRes, configsRes] = await Promise.all([
-            fetch(`${URL_API}/api/fonts/local`, { cache: 'no-store' }),
-            fetch(`${URL_API}/api/config`, { cache: 'no-store' })
-        ]);
+    useEffect(() => {
+        async function loadFontsAndConfig() {
+            try {
+                const [fontsRes, configsRes] = await Promise.all([
+                    fetch(`${URL_API}/api/fonts/local`),
+                    fetch(`${URL_API}/api/config`)
+                ]);
 
-        if (fontsRes.ok) {
-            const result = await fontsRes.json();
-            if (result.success && Array.isArray(result.data)) {
-                localFonts = result.data.filter((f: LocalFont) => f.status === 'active');
-            }
-        }
-
-        if (configsRes.ok) {
-            const result = await configsRes.json();
-            if (result.success && Array.isArray(result.data)) {
-                const configDefaultFont = result.data.find((c: any) => c.key === 'default-font');
-                if (configDefaultFont) {
-                    defaultFont = configDefaultFont.content;
+                if (fontsRes.ok) {
+                    const result = await fontsRes.json();
+                    if (result.success && Array.isArray(result.data)) {
+                        setLocalFonts(result.data.filter((f: LocalFont) => f.status === 'active'));
+                    }
                 }
+
+                if (configsRes.ok) {
+                    const result = await configsRes.json();
+                    if (result.success && Array.isArray(result.data)) {
+                        const configDefaultFont = result.data.find((c: any) => c.key === 'default-font');
+                        if (configDefaultFont) {
+                            setDefaultFont(configDefaultFont.content);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch data for CustomFontProvider:", error);
             }
         }
-    } catch (error) {
-        console.error("Failed to fetch data for CustomFontProvider:", error);
-    }
+        loadFontsAndConfig();
+    }, []);
+
+    if (localFonts.length === 0 && !defaultFont) return null;
 
     const fontFaceCSS = localFonts.map(font => {
         const fullUrl = font.file_url.startsWith('http')
@@ -73,6 +82,7 @@ export default async function CustomFontProvider() {
             font-family: '${font.font_family}', sans-serif !important;
         }
     `).join('\n');
+
     return (
         <style
             id="custom-local-fonts"
