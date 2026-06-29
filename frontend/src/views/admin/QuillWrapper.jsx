@@ -395,12 +395,16 @@ const QuillWrapper = forwardRef(({
   const containerClickRef = useRef(null);
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
+  const lastRelativeContentRef = useRef("");
+
+  const hasOnChangeFontSize = !!onChangeFontSize;
+  const hasOnChangeFontSizeMobile = !!onChangeFontSizeMobile;
 
   const hasResponsive = useMemo(() => {
     return hasResponsiveFontSize !== undefined 
       ? hasResponsiveFontSize 
-      : (onChangeFontSize !== undefined && onChangeFontSizeMobile !== undefined);
-  }, [hasResponsiveFontSize, onChangeFontSize, onChangeFontSizeMobile]);
+      : (hasOnChangeFontSize && hasOnChangeFontSizeMobile);
+  }, [hasResponsiveFontSize, hasOnChangeFontSize, hasOnChangeFontSizeMobile]);
 
   const syncCustomFontSizes = useCallback(() => {
     const imgContainer = containerRef.current;
@@ -922,15 +926,18 @@ const QuillWrapper = forwardRef(({
     initFonts();
   }, []);
 
+  const hasLineHeight = !!onChangeLineHeight;
+  const hasTranslateY = !!onChangeTranslateY;
+
   useEffect(() => {
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
       const currentFonts = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
       const toolbarFontValues = ['macdinh', ...currentFonts.map(f => f.slug)];
-      const showSpacingAndTranslation = !!onChangeLineHeight || !!onChangeTranslateY;
+      const showSpacingAndTranslation = hasLineHeight || hasTranslateY;
       setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation));
       setIsReady(true);
     }
-  }, [dynamicFonts, hasResponsive, onChangeLineHeight, onChangeTranslateY]);
+  }, [dynamicFonts, hasResponsive, hasLineHeight, hasTranslateY]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1433,7 +1440,7 @@ const QuillWrapper = forwardRef(({
           if (!disableImageWrap && !newGroup.includes('image-settings')) {
             newGroup.push('image-settings');
           }
-          const showSpacingAndTranslation = !!onChangeLineHeight || !!onChangeTranslateY;
+          const showSpacingAndTranslation = hasLineHeight || hasTranslateY;
           if (showSpacingAndTranslation) {
             if (!newGroup.includes('line-height')) {
               newGroup.push('line-height');
@@ -1629,7 +1636,7 @@ const QuillWrapper = forwardRef(({
       }
     };
     return mods;
-  }, [modules, disableImageWrap, onChangeLineHeight, onChangeTranslateY]);
+  }, [modules, disableImageWrap, hasLineHeight, hasTranslateY]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -1964,6 +1971,7 @@ const QuillWrapper = forwardRef(({
         return;
       }
 
+      lastRelativeContentRef.current = relativeContent;
       props.onChange(relativeContent, delta, source, editor);
     }
   }, [props.onChange, props.value, className]);
@@ -1988,6 +1996,15 @@ const QuillWrapper = forwardRef(({
 
     return val;
   }, [props.value, className]);
+
+  let editorValue = absoluteValue;
+  if (editorRef.current && props.value === lastRelativeContentRef.current) {
+    try {
+      editorValue = editorRef.current.getEditor().root.innerHTML;
+    } catch (e) {
+      editorValue = absoluteValue;
+    }
+  }
 
   useEffect(() => {
     if (!showSpacingPopup) return;
@@ -2342,7 +2359,7 @@ const QuillWrapper = forwardRef(({
           key={dynamicFonts.map(f => f.name).join(',')}
           ref={editorRef}
           {...props}
-          value={absoluteValue}
+          value={editorValue}
           onChange={handleOnChange}
           modules={customModules}
           formats={props.formats || FORMATS}

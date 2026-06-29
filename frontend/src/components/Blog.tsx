@@ -77,7 +77,7 @@ function BlogCard({ blog }: { blog: Blog }) {
             src={thumbnailSrc}
             alt={blog.title}
             fill
-            className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+            className="object-cover object-top"
             sizes="(max-width: 768px) 100vw, 33vw"
             quality={80}
           />
@@ -148,7 +148,7 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
             src={thumbnailSrc}
             alt={blog.title}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-cover"
             sizes="(max-width: 1024px) 100vw, 60vw"
             priority
           />

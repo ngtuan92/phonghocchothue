@@ -223,7 +223,7 @@ const IMAGE_RECOMMENDATIONS = {
   "logo": "Khuyên dùng: 200x200px (Tỉ lệ 1:1, dạng vuông/tròn)",
   "logo-page-detail": "Khuyên dùng: 200x200px (Tỉ lệ 1:1, dạng vuông/tròn)",
   "icon-goc": "Khuyên dùng: 64x64px hoặc 128x128px (Dạng icon)",
-  "bgTitle": "Khuyên dùng: 500x150px (Ảnh ngang trang trí)",
+  "bgTitle": "Khuyên dùng: Chiều rộng 500px (Tự động chỉnh chiều cao theo tỉ lệ gốc của ảnh)",
   "describe-frame-image": "Khuyên dùng: 1200x400px (Tỉ lệ ~ 3:1, Khung nền chính trên Desktop)",
   "describe-frame-image-mobile": "Khuyên dùng: 400x250px (Tỉ lệ ~ 1.6:1, Khung nền chính trên Mobile)",
   "nurseryImg": "Khuyên dùng: 1920x450px hoặc 1920x600px (Ảnh banner rộng)",
@@ -231,7 +231,7 @@ const IMAGE_RECOMMENDATIONS = {
   "imgContact": "Khuyên dùng: 800x600px (Tỉ lệ 4:3, Ảnh bên cạnh form liên hệ)",
   "describe-h2-image": "Khuyên dùng: 1100x405px (Tỉ lệ ~ 2.7:1, Khung giải pháp trên Desktop)",
   "describe-h2-image-mobile": "Khuyên dùng: 600x300px (Tỉ lệ 2:1, Khung giải pháp trên Mobile)",
-  "blog-decoration": "Khuyên dùng: 480x100px (Tỉ lệ ~ 4.8:1, Chữ/ảnh trang trí tiêu đề blog)",
+  "blog-decoration": "Khuyên dùng: Chiều rộng 400px (Tự động chỉnh chiều cao theo tỉ lệ gốc của ảnh, tránh cắt thêm khoảng trắng)",
 };
 
 const getImagePreviewStyle = (key) => {
@@ -254,8 +254,8 @@ const getImagePreviewStyle = (key) => {
     case "bgTitle":
       return {
         wrapperClass: "w-full border border-gray-100 bg-transparent flex items-center justify-center",
-        imgClass: "w-full h-full object-contain block",
-        aspectRatio: "500/150",
+        imgClass: "w-full h-auto object-contain block",
+        aspectRatio: "auto",
         maxWidth: "500px",
       };
     case "describe-frame-image":
@@ -310,9 +310,9 @@ const getImagePreviewStyle = (key) => {
     case "blog-decoration":
       return {
         wrapperClass: "w-full border border-gray-100 bg-transparent flex items-center justify-center",
-        imgClass: "w-full h-full object-contain block",
-        aspectRatio: "480/100",
-        maxWidth: "480px",
+        imgClass: "w-full h-auto object-contain block",
+        aspectRatio: "auto",
+        maxWidth: "400px",
       };
     default:
       return {
