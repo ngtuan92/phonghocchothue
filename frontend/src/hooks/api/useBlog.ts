@@ -17,6 +17,16 @@ export interface Blog {
   authorName: string;
   authorAvatar?: string;
   publishedAt: string;
+  lineHeight?: string;
+  lineHeightMobile?: string;
+  fontSize?: string;
+  fontSizeMobile?: string;
+  titleFontSize?: string;
+  titleFontSizeMobile?: string;
+  excerptFontSize?: string;
+  excerptFontSizeMobile?: string;
+  translateY?: string;
+  translateYMobile?: string;
   createdAt?: string;
   updatedAt?: string;
 }

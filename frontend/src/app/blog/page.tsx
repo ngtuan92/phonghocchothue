@@ -183,12 +183,12 @@ export default function BlogPage() {
 
                     <div className="flex flex-col items-center mb-0 blog-header-dynamic">
                       <div className="w-full text-center">
-                        <RichTextRenderer html={blogPageTitle} />
+                        <RichTextRenderer html={blogPageTitle} configKey="blog-page-title" />
                       </div>
                     </div>
 
                     <div className="w-full text-center blog-header-dynamic">
-                      <RichTextRenderer html={blogPageDescription} />
+                      <RichTextRenderer html={blogPageDescription} configKey="blog-page-description" />
                     </div>
                   </div>
                 </div>

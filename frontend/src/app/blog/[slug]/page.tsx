@@ -281,8 +281,8 @@ export default function BlogDetail() {
                   html={blog.title} 
                   as="span" 
                   className="inline-rich-text" 
-                  fontSize={blog.fontSize}
-                  fontSizeMobile={blog.fontSizeMobile}
+                  fontSize={blog.titleFontSize}
+                  fontSizeMobile={blog.titleFontSizeMobile}
                   lineHeight={blog.lineHeight}
                   lineHeightMobile={blog.lineHeightMobile}
                   translateY={blog.translateY}
@@ -298,8 +298,8 @@ export default function BlogDetail() {
                       html={blog.excerpt} 
                       as="span" 
                       className="inline-rich-text" 
-                      fontSize={blog.fontSize}
-                      fontSizeMobile={blog.fontSizeMobile}
+                      fontSize={blog.excerptFontSize}
+                      fontSizeMobile={blog.excerptFontSizeMobile}
                       lineHeight={blog.lineHeight}
                       lineHeightMobile={blog.lineHeightMobile}
                       translateY={blog.translateY}

@@ -1580,6 +1580,43 @@
   }
 }
 
+/* Blog listing cards keep fixed readable sizes; detail pages still use editor sizes. */
+.blog-card-title,
+.blog-card-title .rich-text-renderer,
+.blog-card-title .rich-text-renderer * {
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+.blog-card-excerpt,
+.blog-card-excerpt .rich-text-renderer,
+.blog-card-excerpt .rich-text-renderer * {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+
+.blog-card-title .rich-text-renderer *,
+.blog-card-excerpt .rich-text-renderer * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+@media (min-width: 768px) {
+  .blog-card-title,
+  .blog-card-title .rich-text-renderer,
+  .blog-card-title .rich-text-renderer * {
+    font-size: 18px !important;
+    line-height: 1.35 !important;
+  }
+
+  .blog-card-excerpt,
+  .blog-card-excerpt .rich-text-renderer,
+  .blog-card-excerpt .rich-text-renderer * {
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+  }
+}
+
 /* Inherit text color for rich-text-renderer in dark/white-text containers */
 .text-white .rich-text-renderer,
 .text-white .rich-text-renderer *,

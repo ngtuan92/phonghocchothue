@@ -276,6 +276,11 @@ const getFontFormat = (type) => {
 
 const escapeCssString = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
+const safeNumber = (value, fallback = 0) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
 const cleanStyleForSave = (styleContent) => {
   const parts = styleContent.split(';');
   let fontSizeValue = null;
@@ -1451,36 +1456,36 @@ const QuillWrapper = forwardRef(({
       handlers: {
         'font-size-custom': function () {
           const button = containerRef.current?.querySelector('.ql-font-size-custom');
-          if (button) {
+          if (button && containerRef.current) {
             const rect = button.getBoundingClientRect();
             const parentRect = containerRef.current.getBoundingClientRect();
             setFontSizePopupPosition({
-              top: rect.bottom - parentRect.top + containerRef.current.scrollTop,
-              left: rect.left - parentRect.left
+              top: safeNumber(rect.bottom - parentRect.top + safeNumber(containerRef.current.scrollTop)),
+              left: safeNumber(rect.left - parentRect.left, 10)
             });
             setShowFontSizePopup(prev => !prev);
           }
         },
         'line-height': function () {
           const button = containerRef.current?.querySelector('.ql-line-height');
-          if (button) {
+          if (button && containerRef.current) {
             const rect = button.getBoundingClientRect();
             const parentRect = containerRef.current.getBoundingClientRect();
             setPopupPosition({
-              top: rect.bottom - parentRect.top + containerRef.current.scrollTop,
-              left: rect.left - parentRect.left
+              top: safeNumber(rect.bottom - parentRect.top + safeNumber(containerRef.current.scrollTop)),
+              left: safeNumber(rect.left - parentRect.left, 10)
             });
             setShowSpacingPopup(prev => !prev);
           }
         },
         'translate-y': function () {
           const button = containerRef.current?.querySelector('.ql-translate-y');
-          if (button) {
+          if (button && containerRef.current) {
             const rect = button.getBoundingClientRect();
             const parentRect = containerRef.current.getBoundingClientRect();
             setTranslatePopupPosition({
-              top: rect.bottom - parentRect.top + containerRef.current.scrollTop,
-              left: rect.left - parentRect.left
+              top: safeNumber(rect.bottom - parentRect.top + safeNumber(containerRef.current.scrollTop)),
+              left: safeNumber(rect.left - parentRect.left, 10)
             });
             setShowTranslatePopup(prev => !prev);
           }
@@ -2072,8 +2077,8 @@ const QuillWrapper = forwardRef(({
         <div
           className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
-            top: popupPosition.top + 5,
-            left: Math.max(10, Math.min(popupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            top: safeNumber(popupPosition.top) + 5,
+            left: Math.max(10, Math.min(safeNumber(popupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
             width: '200px'
           }}
           onClick={(e) => e.stopPropagation()}
@@ -2131,8 +2136,8 @@ const QuillWrapper = forwardRef(({
         <div
           className="ql-font-size-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
-            top: fontSizePopupPosition.top + 5,
-            left: Math.max(10, Math.min(fontSizePopupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            top: safeNumber(fontSizePopupPosition.top) + 5,
+            left: Math.max(10, Math.min(safeNumber(fontSizePopupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
             width: '210px'
           }}
           onClick={(e) => e.stopPropagation()}
@@ -2277,8 +2282,8 @@ const QuillWrapper = forwardRef(({
         <div
           className="ql-translate-y-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
-            top: translatePopupPosition.top + 5,
-            left: Math.max(10, Math.min(translatePopupPosition.left, (containerRef.current?.clientWidth || 500) - 220)),
+            top: safeNumber(translatePopupPosition.top) + 5,
+            left: Math.max(10, Math.min(safeNumber(translatePopupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
             width: '200px'
           }}
           onClick={(e) => e.stopPropagation()}

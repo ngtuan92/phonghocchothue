@@ -109,12 +109,12 @@ function BlogCard({ blog }: { blog: Blog }) {
           </span>
         </p>
 
-        <h3 className="text-xs sm:text-[14px] font-bold text-[#563c39] line-clamp-2 mb-1 leading-snug">
-          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" />
+        <h3 className="blog-card-title font-bold text-[#563c39] line-clamp-2 mb-1">
+          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text blog-card-title-rich" />
         </h3>
 
-        <p className="text-[11px] sm:text-[13px] text-gray-700 raleway !font-normal line-clamp-2 flex-1 mb-2">
-          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" />
+        <p className="blog-card-excerpt text-gray-700 raleway !font-normal line-clamp-2 flex-1 mb-2">
+          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text blog-card-excerpt-rich" />
         </p>
 
         <span
@@ -330,6 +330,7 @@ export default function Blog({
           <div className="mb-2 sm:mb-6 text-center blog-hero-title">
             <RichTextRenderer
               html={blogHeading}
+              configKey="blog-heading"
               className="text-center"
             />
             {blogDecoration && (

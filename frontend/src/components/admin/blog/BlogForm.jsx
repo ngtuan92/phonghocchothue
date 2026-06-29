@@ -307,14 +307,14 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
                     lineHeight={formData.lineHeight}
                     lineHeightMobile={formData.lineHeightMobile}
-                    fontSize={formData.fontSize}
-                    fontSizeMobile={formData.fontSizeMobile}
+                    fontSize={formData.titleFontSize}
+                    fontSizeMobile={formData.titleFontSizeMobile}
                     translateY={formData.translateY}
                     translateYMobile={formData.translateYMobile}
                     onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
                     onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
-                    onChangeFontSize={(val) => setFormData(prev => ({ ...prev, fontSize: val }))}
-                    onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, fontSizeMobile: val }))}
+                    onChangeFontSize={(val) => setFormData(prev => ({ ...prev, titleFontSize: val }))}
+                    onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, titleFontSizeMobile: val }))}
                     onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
                     onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
                     hasResponsiveFontSize={true}
@@ -416,14 +416,14 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     placeholder="Mô tả ngắn gọn nội dung bài viết để thu hút người đọc…"
                     lineHeight={formData.lineHeight}
                     lineHeightMobile={formData.lineHeightMobile}
-                    fontSize={formData.fontSize}
-                    fontSizeMobile={formData.fontSizeMobile}
+                    fontSize={formData.excerptFontSize}
+                    fontSizeMobile={formData.excerptFontSizeMobile}
                     translateY={formData.translateY}
                     translateYMobile={formData.translateYMobile}
                     onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
                     onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
-                    onChangeFontSize={(val) => setFormData(prev => ({ ...prev, fontSize: val }))}
-                    onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, fontSizeMobile: val }))}
+                    onChangeFontSize={(val) => setFormData(prev => ({ ...prev, excerptFontSize: val }))}
+                    onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, excerptFontSizeMobile: val }))}
                     onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
                     onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
                     hasResponsiveFontSize={true}

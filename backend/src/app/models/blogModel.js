@@ -52,6 +52,10 @@ const BlogModel = db.sequelize.define("blogs", {
     lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true },
     fontSize: { type: DataTypes.STRING(50), field: 'font_size', allowNull: true },
     fontSizeMobile: { type: DataTypes.STRING(50), field: 'font_size_mobile', allowNull: true },
+    titleFontSize: { type: DataTypes.STRING(50), field: 'title_font_size', allowNull: true },
+    titleFontSizeMobile: { type: DataTypes.STRING(50), field: 'title_font_size_mobile', allowNull: true },
+    excerptFontSize: { type: DataTypes.STRING(50), field: 'excerpt_font_size', allowNull: true },
+    excerptFontSizeMobile: { type: DataTypes.STRING(50), field: 'excerpt_font_size_mobile', allowNull: true },
     translateY: { type: DataTypes.STRING(50), field: 'translate_y', allowNull: true },
     translateYMobile: { type: DataTypes.STRING(50), field: 'translate_y_mobile', allowNull: true }
 }, {
