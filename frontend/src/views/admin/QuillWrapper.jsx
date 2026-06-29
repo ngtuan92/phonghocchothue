@@ -313,7 +313,7 @@ const cleanStyleForSave = (styleContent) => {
   }
 };
 
-const cleanAndInjectFs = (styleContent) => {
+const cleanStyleForEdit = (styleContent) => {
   const parts = styleContent.split(';');
   let fontSizeValue = null;
   let customSizeValue = null;
@@ -344,7 +344,7 @@ const cleanAndInjectFs = (styleContent) => {
   const activeSize = fontSizeValue || customSizeValue;
   if (activeSize) {
     const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
-    return `font-size: ${activeSize}; --fs: ${activeSize}${othersStr}`;
+    return `font-size: ${activeSize}${othersStr}`;
   } else {
     return otherStyles.join('; ');
   }
@@ -409,15 +409,9 @@ const QuillWrapper = forwardRef(({
   const syncCustomFontSizes = useCallback(() => {
     const imgContainer = containerRef.current;
     if (!imgContainer) return;
-    const elements = imgContainer.querySelectorAll('.ql-editor [style*="font-size"]');
+    const elements = imgContainer.querySelectorAll('.ql-editor [style*="--fs"]');
     elements.forEach(el => {
-      const fontSize = el.style.fontSize;
-      if (fontSize) {
-        const cleanSize = fontSize.trim();
-        if (cleanSize && el.style.getPropertyValue('--fs') !== cleanSize) {
-          el.style.setProperty('--fs', cleanSize);
-        }
-      }
+      el.style.removeProperty('--fs');
     });
   }, []);
 
@@ -958,12 +952,8 @@ const QuillWrapper = forwardRef(({
         }
       });
 
-      // 2. Sync inline font-sizes to CSS custom properties (--fs) for responsive scaling
-      qlEditor.querySelectorAll('*[style*="font-size"]').forEach(el => {
-        const fontSize = el.style.fontSize;
-        if (fontSize && el.style.getPropertyValue('--fs') !== fontSize) {
-          el.style.setProperty('--fs', fontSize);
-        }
+      qlEditor.querySelectorAll('*[style*="--fs"]').forEach(el => {
+        el.style.removeProperty('--fs');
       });
     };
 
@@ -1989,7 +1979,7 @@ const QuillWrapper = forwardRef(({
     } else {
       // Clean up any dirty database styles before loading into the editor
       val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-        const cleaned = cleanAndInjectFs(styleContent);
+        const cleaned = cleanStyleForEdit(styleContent);
         return cleaned ? `style=${quote}${cleaned}${quote}` : "";
       });
     }
@@ -2422,10 +2412,25 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
             font-size: var(--fs-desktop) !important;
           }
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor * {
+            font-size: var(--fs-desktop) !important;
+          }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]) {
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h1:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h2:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h3:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h5:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h6:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h1 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h2 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h3 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
             font-size: var(--fs-desktop) !important;
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"],
@@ -2444,6 +2449,28 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor * {
+            font-size: var(--fs-mobile) !important;
+          }
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h1:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h2:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h3:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h5:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h6:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h1 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h2 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h3 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
+            font-size: var(--fs-mobile) !important;
+          }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"],
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"] *,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.title-main-text,
@@ -2485,28 +2512,7 @@ const QuillWrapper = forwardRef(({
           text-transform: inherit !important;
         }
 
-        /* Custom responsive scaling for inline font-sizes inside the editor matching frontend */
-        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
-          font-size: var(--fs) !important;
-        }
-        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] * {
-          font-size: inherit;
-        }
-        .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] *:not([style*="--fs"]):not([style*="font-size"]) {
-          font-size: inherit !important;
-        }
-
         @media (max-width: 767px) {
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
-            font-size: max(12px, calc(var(--fs) * 0.5)) !important;
-          }
-          /* Scale custom font-sizes for phone number and slogan in the editor on mobile */
-          .quill-wrapper-container .ql-editor.hero-phone-text *[style*="--fs"],
-          .quill-wrapper-container .ql-editor.hero-phone-text *[style*="--fs"] *,
-          .quill-wrapper-container .ql-editor.hero-slogan-text *[style*="--fs"],
-          .quill-wrapper-container .ql-editor.hero-slogan-text *[style*="--fs"] * {
-            font-size: clamp(8px, calc(var(--fs) * 0.7), 12px) !important;
-          }
           .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
           .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
             font-size: inherit !important;

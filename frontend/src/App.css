@@ -1588,36 +1588,9 @@ footer .rich-text-renderer * {
   color: inherit;
 }
 
-/* Custom responsive scaling for inline font-sizes in RichTextRenderer */
-.rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
-  font-size: var(--fs) !important;
-}
-
-.rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] * {
-  font-size: inherit;
-}
-
-.rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] *:not([style*="--fs"]):not([style*="font-size"]) {
-  font-size: inherit !important;
-}
-
 @media (max-width: 767px) {
-  .rich-text-renderer:not(.title-main-text):not(.title-bg-text):not(.title-sub-text):not(.mobile-watermark-text) *[style*="--fs"] {
-    /* Mobile size scales to 50% of original, but never smaller than 12px for readability */
-    font-size: max(12px, calc(var(--fs) * 0.5)) !important;
-  }
-
-  /* Scale custom font-sizes for phone number and slogan to fit mobile slot */
-  .hero-phone-text *[style*="--fs"],
-  .hero-phone-text *[style*="--fs"] *,
-  .hero-slogan-text *[style*="--fs"],
-  .hero-slogan-text *[style*="--fs"] * {
-    font-size: clamp(8px, calc(var(--fs) * 0.8), 12px) !important;
-  }
-
-  /* Scale custom font-sizes for elements with --fs-mobile */
-  .rich-text-renderer[style*="--fs-mobile"] *[style*="--fs"],
-  .rich-text-renderer[style*="--fs-mobile"] *[style*="--fs"] *,
+  .rich-text-renderer[style*="--fs-mobile"],
+  .rich-text-renderer[style*="--fs-mobile"] *,
   .rich-text-renderer.title-main-text[style*="--fs-mobile"],
   .rich-text-renderer.title-main-text[style*="--fs-mobile"] *,
   .rich-text-renderer.title-sub-text[style*="--fs-mobile"],
@@ -1710,21 +1683,11 @@ footer .rich-text-renderer * {
 }
 
 @media (min-width: 768px) {
-  /* Custom font-size scaling for --fs-desktop */
   .rich-text-renderer[style*="--fs-desktop"] {
     font-size: var(--fs-desktop) !important;
   }
 
-  .rich-text-renderer[style*="--fs-desktop"] p:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer[style*="--fs-desktop"] span:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer[style*="--fs-desktop"] a:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer[style*="--fs-desktop"] li:not([style*="--fs"]):not([style*="font-size"]) {
-    font-size: var(--fs-desktop) !important;
-  }
-
-  /* Scale custom font-sizes for elements with --fs-desktop */
-  .rich-text-renderer[style*="--fs-desktop"] *[style*="--fs"],
-  .rich-text-renderer[style*="--fs-desktop"] *[style*="--fs"] *,
+  .rich-text-renderer[style*="--fs-desktop"] *,
   .rich-text-renderer.title-main-text[style*="--fs-desktop"],
   .rich-text-renderer.title-main-text[style*="--fs-desktop"] *,
   .rich-text-renderer.title-sub-text[style*="--fs-desktop"],

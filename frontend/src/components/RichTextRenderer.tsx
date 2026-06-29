@@ -148,7 +148,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       }
       return match;
     });
-    const cleanAndConvertStyle = (styleContent: string) => {
+    const cleanStyleForRender = (styleContent: string) => {
       const parts = styleContent.split(';');
       let activeSize = null;
       let otherStyles: string[] = [];
@@ -176,8 +176,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       }
 
       if (activeSize) {
-        const othersStr = otherStyles.length > 0 ? ` ${otherStyles.join('; ')};` : '';
-        return `--fs: ${activeSize}; font-size: var(--fs);${othersStr}`;
+        const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
+        return `font-size: ${activeSize}${othersStr}`;
       } else {
         return otherStyles.join('; ');
       }
@@ -203,7 +203,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       });
     } else {
       processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
-        const cleaned = cleanAndConvertStyle(styleContent);
+        const cleaned = cleanStyleForRender(styleContent);
         return `style=${quote}${cleaned}${quote}`;
       });
     }
@@ -222,8 +222,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
   const activeLineHeight = lineHeight || contextLineHeight;
   const activeLineHeightMobile = lineHeightMobile || contextLineHeightMobile;
-  const activeFontSize = isAboutKey ? (fontSize || contextFontSize) : undefined;
-  const activeFontSizeMobile = isAboutKey ? (fontSizeMobile || contextFontSizeMobile) : undefined;
+  const activeFontSize = fontSize || contextFontSize;
+  const activeFontSizeMobile = fontSizeMobile || contextFontSizeMobile;
   const activeTranslateY = translateY || contextTranslateY;
   const activeTranslateYMobile = translateYMobile || contextTranslateYMobile;
 
