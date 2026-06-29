@@ -20,6 +20,12 @@ const ProductModel = db.sequelize.define("products", {
     seoDescription: { type: DataTypes.TEXT },
     seoKeywords: { type: DataTypes.STRING, maxLength: 255 },
     seoImage: { type: DataTypes.STRING, maxLength: 255 },
+    lineHeight: { type: DataTypes.STRING(50), field: 'line_height', allowNull: true },
+    lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true },
+    fontSize: { type: DataTypes.STRING(50), field: 'font_size', allowNull: true },
+    fontSizeMobile: { type: DataTypes.STRING(50), field: 'font_size_mobile', allowNull: true },
+    translateY: { type: DataTypes.STRING(50), field: 'translate_y', allowNull: true },
+    translateYMobile: { type: DataTypes.STRING(50), field: 'translate_y_mobile', allowNull: true }
 }, {
     timestamps: true,
 });

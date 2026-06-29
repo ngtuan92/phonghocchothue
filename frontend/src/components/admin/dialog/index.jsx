@@ -166,6 +166,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [seoKeywords, setSeoKeywords] = useState("");
   const [seoImage, setSeoImage] = useState(null);
   const [errors, setErrors] = useState({});
+  const [roomLineHeight, setRoomLineHeight] = useState("");
+  const [roomLineHeightMobile, setRoomLineHeightMobile] = useState("");
+  const [roomFontSize, setRoomFontSize] = useState("");
+  const [roomFontSizeMobile, setRoomFontSizeMobile] = useState("");
+  const [roomTranslateY, setRoomTranslateY] = useState("");
+  const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
 
   const setIfChanged = (setter, nextValue) => {
     setter((prev) => (prev === nextValue ? prev : nextValue));
@@ -199,6 +205,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         setSeoTitle(dataEdit.seoTitle || "");
         setSeoDescription(dataEdit.seoDescription || "");
         setSeoKeywords(dataEdit.seoKeywords || "");
+        setRoomLineHeight(dataEdit.lineHeight || "");
+        setRoomLineHeightMobile(dataEdit.lineHeightMobile || "");
+        setRoomFontSize(dataEdit.fontSize || "");
+        setRoomFontSizeMobile(dataEdit.fontSizeMobile || "");
+        setRoomTranslateY(dataEdit.translateY || "");
+        setRoomTranslateYMobile(dataEdit.translateYMobile || "");
 
         if (dataEdit.image) {
           setSingleImage(`${URL_API}${dataEdit.image.replaceAll("\\", "/")}`);
@@ -233,6 +245,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         setSeoDescription("");
         setSeoKeywords("");
         setSeoImage(null);
+        setRoomLineHeight("");
+        setRoomLineHeightMobile("");
+        setRoomFontSize("");
+        setRoomFontSizeMobile("");
+        setRoomTranslateY("");
+        setRoomTranslateYMobile("");
       }
     }
   }, [open, dataEdit]);
@@ -319,6 +337,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         seoDescription,
         seoKeywords,
         seoImage,
+        lineHeight: roomLineHeight,
+        lineHeightMobile: roomLineHeightMobile,
+        fontSize: roomFontSize,
+        fontSizeMobile: roomFontSizeMobile,
+        translateY: roomTranslateY,
+        translateYMobile: roomTranslateYMobile,
       };
 
       onSave(data);
@@ -424,6 +448,19 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                       setErrors((prev) => ({ ...prev, roomName: "" }));
                     }}
                     placeholder="Nhập tên phòng..."
+                    lineHeight={roomLineHeight}
+                    lineHeightMobile={roomLineHeightMobile}
+                    fontSize={roomFontSize}
+                    fontSizeMobile={roomFontSizeMobile}
+                    translateY={roomTranslateY}
+                    translateYMobile={roomTranslateYMobile}
+                    onChangeLineHeight={setRoomLineHeight}
+                    onChangeLineHeightMobile={setRoomLineHeightMobile}
+                    onChangeFontSize={setRoomFontSize}
+                    onChangeFontSizeMobile={setRoomFontSizeMobile}
+                    onChangeTranslateY={setRoomTranslateY}
+                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    hasResponsiveFontSize={true}
                   />
                 </div>
                 {errors.roomName && (
@@ -467,6 +504,19 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChange={(val) => setIfChanged(setRoomPrice, val)}
                     placeholder="Ví dụ: 80.000 đ/h..."
                     disableImageWrap={true}
+                    lineHeight={roomLineHeight}
+                    lineHeightMobile={roomLineHeightMobile}
+                    fontSize={roomFontSize}
+                    fontSizeMobile={roomFontSizeMobile}
+                    translateY={roomTranslateY}
+                    translateYMobile={roomTranslateYMobile}
+                    onChangeLineHeight={setRoomLineHeight}
+                    onChangeLineHeightMobile={setRoomLineHeightMobile}
+                    onChangeFontSize={setRoomFontSize}
+                    onChangeFontSizeMobile={setRoomFontSizeMobile}
+                    onChangeTranslateY={setRoomTranslateY}
+                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    hasResponsiveFontSize={true}
                   />
                 </div>
               </div>
@@ -484,6 +534,19 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChange={(val) => setIfChanged(setRoomEquipment, val)}
                     placeholder="Ví dụ: Máy chiếu, điều hòa, bảng trắng..."
                     disableImageWrap={true}
+                    lineHeight={roomLineHeight}
+                    lineHeightMobile={roomLineHeightMobile}
+                    fontSize={roomFontSize}
+                    fontSizeMobile={roomFontSizeMobile}
+                    translateY={roomTranslateY}
+                    translateYMobile={roomTranslateYMobile}
+                    onChangeLineHeight={setRoomLineHeight}
+                    onChangeLineHeightMobile={setRoomLineHeightMobile}
+                    onChangeFontSize={setRoomFontSize}
+                    onChangeFontSizeMobile={setRoomFontSizeMobile}
+                    onChangeTranslateY={setRoomTranslateY}
+                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    hasResponsiveFontSize={true}
                   />
                 </div>
               </div>
@@ -501,6 +564,19 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChange={(val) => setIfChanged(setRoomContains, val)}
                     placeholder="Ví dụ: Sức chứa 45 chỗ ngồi..."
                     disableImageWrap={true}
+                    lineHeight={roomLineHeight}
+                    lineHeightMobile={roomLineHeightMobile}
+                    fontSize={roomFontSize}
+                    fontSizeMobile={roomFontSizeMobile}
+                    translateY={roomTranslateY}
+                    translateYMobile={roomTranslateYMobile}
+                    onChangeLineHeight={setRoomLineHeight}
+                    onChangeLineHeightMobile={setRoomLineHeightMobile}
+                    onChangeFontSize={setRoomFontSize}
+                    onChangeFontSizeMobile={setRoomFontSizeMobile}
+                    onChangeTranslateY={setRoomTranslateY}
+                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    hasResponsiveFontSize={true}
                   />
                 </div>
               </div>
@@ -636,14 +712,27 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Mô tả ngắn
               </label>
               <div id="room-description" className="product-dialog-quill product-dialog-quill--description">
-                <LazyQuillWrapper
-                  key={`quill-description-${id || 'new'}-${open}`}
-                  theme="snow"
-                  value={roomDescription}
-                  onChange={(val) => setIfChanged(setRoomDescription, val)}
-                  placeholder="Nhập mô tả ngắn về phòng..."
-                  disableImageWrap={true}
-                />
+                 <LazyQuillWrapper
+                   key={`quill-description-${id || 'new'}-${open}`}
+                   theme="snow"
+                   value={roomDescription}
+                   onChange={(val) => setIfChanged(setRoomDescription, val)}
+                   placeholder="Nhập mô tả ngắn về phòng..."
+                   disableImageWrap={true}
+                   lineHeight={roomLineHeight}
+                   lineHeightMobile={roomLineHeightMobile}
+                   fontSize={roomFontSize}
+                   fontSizeMobile={roomFontSizeMobile}
+                   translateY={roomTranslateY}
+                   translateYMobile={roomTranslateYMobile}
+                   onChangeLineHeight={setRoomLineHeight}
+                   onChangeLineHeightMobile={setRoomLineHeightMobile}
+                   onChangeFontSize={setRoomFontSize}
+                   onChangeFontSizeMobile={setRoomFontSizeMobile}
+                   onChangeTranslateY={setRoomTranslateY}
+                   onChangeTranslateYMobile={setRoomTranslateYMobile}
+                   hasResponsiveFontSize={true}
+                 />
               </div>
             </div>
 
@@ -652,15 +741,28 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Mô tả chi tiết
               </label>
               <div id="room-content" className="product-dialog-quill product-dialog-quill--content">
-                <LazyQuillWrapper
-                  key={`quill-content-${id || 'new'}-${open}`}
-                  theme="snow"
-                  value={roomContent}
-                  onChange={(val) => setIfChanged(setRoomContent, val)}
-                  placeholder="Nhập mô tả chi tiết về phòng..."
-                  isSticky={true}
-                  maxHeight="500px"
-                />
+                 <LazyQuillWrapper
+                   key={`quill-content-${id || 'new'}-${open}`}
+                   theme="snow"
+                   value={roomContent}
+                   onChange={(val) => setIfChanged(setRoomContent, val)}
+                   placeholder="Nhập mô tả chi tiết về phòng..."
+                   isSticky={true}
+                   maxHeight="500px"
+                   lineHeight={roomLineHeight}
+                   lineHeightMobile={roomLineHeightMobile}
+                   fontSize={roomFontSize}
+                   fontSizeMobile={roomFontSizeMobile}
+                   translateY={roomTranslateY}
+                   translateYMobile={roomTranslateYMobile}
+                   onChangeLineHeight={setRoomLineHeight}
+                   onChangeLineHeightMobile={setRoomLineHeightMobile}
+                   onChangeFontSize={setRoomFontSize}
+                   onChangeFontSizeMobile={setRoomFontSizeMobile}
+                   onChangeTranslateY={setRoomTranslateY}
+                   onChangeTranslateYMobile={setRoomTranslateYMobile}
+                   hasResponsiveFontSize={true}
+                 />
               </div>
             </div>
           </div>

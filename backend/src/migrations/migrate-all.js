@@ -13,7 +13,8 @@ const migrationFiles = [
   "update-button-notification-richtext.js",
   "update-email-richtext.js",
   "update-local-seo-configs.js",
-  "update-products-and-configs-seo.js"
+  "update-products-and-configs-seo.js",
+  "add-responsive-settings-to-products-and-blogs.js"
 ];
 
 console.log("=== BẮT ĐẦU CHẠY TẤT CẢ CÁC MIGRATIONS ===");

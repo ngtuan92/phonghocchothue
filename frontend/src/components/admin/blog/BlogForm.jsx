@@ -305,6 +305,19 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     minHeight="80px"
                     maxHeight="150px"
                     placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
+                    lineHeight={formData.lineHeight}
+                    lineHeightMobile={formData.lineHeightMobile}
+                    fontSize={formData.fontSize}
+                    fontSizeMobile={formData.fontSizeMobile}
+                    translateY={formData.translateY}
+                    translateYMobile={formData.translateYMobile}
+                    onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
+                    onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
+                    onChangeFontSize={(val) => setFormData(prev => ({ ...prev, fontSize: val }))}
+                    onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, fontSizeMobile: val }))}
+                    onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
+                    onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
+                    hasResponsiveFontSize={true}
                   />
                 </div>
               </div>
@@ -401,6 +414,19 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     minHeight="120px"
                     maxHeight="200px"
                     placeholder="Mô tả ngắn gọn nội dung bài viết để thu hút người đọc…"
+                    lineHeight={formData.lineHeight}
+                    lineHeightMobile={formData.lineHeightMobile}
+                    fontSize={formData.fontSize}
+                    fontSizeMobile={formData.fontSizeMobile}
+                    translateY={formData.translateY}
+                    translateYMobile={formData.translateYMobile}
+                    onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
+                    onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
+                    onChangeFontSize={(val) => setFormData(prev => ({ ...prev, fontSize: val }))}
+                    onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, fontSizeMobile: val }))}
+                    onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
+                    onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
+                    hasResponsiveFontSize={true}
                   />
                 </div>
               </div>
@@ -508,6 +534,19 @@ export default function BlogForm({ data, onSave, onCancel }) {
               isSticky={true}
               maxHeight="500px"
               isBlogEditor={true}
+              lineHeight={formData.lineHeight}
+              lineHeightMobile={formData.lineHeightMobile}
+              fontSize={formData.fontSize}
+              fontSizeMobile={formData.fontSizeMobile}
+              translateY={formData.translateY}
+              translateYMobile={formData.translateYMobile}
+              onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
+              onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
+              onChangeFontSize={(val) => setFormData(prev => ({ ...prev, fontSize: val }))}
+              onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, fontSizeMobile: val }))}
+              onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
+              onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
+              hasResponsiveFontSize={true}
             />
           </div>
         </div>

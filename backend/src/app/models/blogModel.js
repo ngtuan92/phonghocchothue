@@ -47,7 +47,13 @@ const BlogModel = db.sequelize.define("blogs", {
     publishedAt: { 
         type: DataTypes.DATE, 
         defaultValue: DataTypes.NOW 
-    }
+    },
+    lineHeight: { type: DataTypes.STRING(50), field: 'line_height', allowNull: true },
+    lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true },
+    fontSize: { type: DataTypes.STRING(50), field: 'font_size', allowNull: true },
+    fontSizeMobile: { type: DataTypes.STRING(50), field: 'font_size_mobile', allowNull: true },
+    translateY: { type: DataTypes.STRING(50), field: 'translate_y', allowNull: true },
+    translateYMobile: { type: DataTypes.STRING(50), field: 'translate_y_mobile', allowNull: true }
 }, {
     timestamps: true,
 });

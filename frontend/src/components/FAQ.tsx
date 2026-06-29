@@ -7,8 +7,16 @@ interface FAQItem {
   answer: string;
   qLineHeight?: string;
   qLineHeightMobile?: string;
+  qFontSize?: string;
+  qFontSizeMobile?: string;
+  qTranslateY?: string;
+  qTranslateYMobile?: string;
   aLineHeight?: string;
   aLineHeightMobile?: string;
+  aFontSize?: string;
+  aFontSizeMobile?: string;
+  aTranslateY?: string;
+  aTranslateYMobile?: string;
 }
 
 const FAQ = () => {
@@ -69,6 +77,10 @@ const FAQ = () => {
                     html={item.question} 
                     lineHeight={item.qLineHeight}
                     lineHeightMobile={item.qLineHeightMobile}
+                    fontSize={item.qFontSize}
+                    fontSizeMobile={item.qFontSizeMobile}
+                    translateY={item.qTranslateY}
+                    translateYMobile={item.qTranslateYMobile}
                   />
                 </div>
                 <span className="transition-transform duration-300 group-open:rotate-180 flex-shrink-0 text-[#799f85] font-bold text-xl">
@@ -84,6 +96,10 @@ const FAQ = () => {
                     html={item.answer} 
                     lineHeight={item.aLineHeight}
                     lineHeightMobile={item.aLineHeightMobile}
+                    fontSize={item.aFontSize}
+                    fontSizeMobile={item.aFontSizeMobile}
+                    translateY={item.aTranslateY}
+                    translateYMobile={item.aTranslateYMobile}
                   />
                 </div>
               </div>

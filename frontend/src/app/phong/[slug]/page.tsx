@@ -667,6 +667,12 @@ export default function DetailPage() {
                   <RichTextRenderer
                     html={processedName}
                     className="title-product-detail-rich"
+                    fontSize={product.fontSize}
+                    fontSizeMobile={product.fontSizeMobile}
+                    lineHeight={product.lineHeight}
+                    lineHeightMobile={product.lineHeightMobile}
+                    translateY={product.translateY}
+                    translateYMobile={product.translateYMobile}
                   />
                 ) : (
                   <p className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
@@ -875,7 +881,16 @@ export default function DetailPage() {
                 letterSpacing: "0.01em",
               }}
             >
-              <RichTextRenderer html={processedContent} className="room-detail-content" />
+              <RichTextRenderer 
+                html={processedContent} 
+                className="room-detail-content" 
+                fontSize={product.fontSize}
+                fontSizeMobile={product.fontSizeMobile}
+                lineHeight={product.lineHeight}
+                lineHeightMobile={product.lineHeightMobile}
+                translateY={product.translateY}
+                translateYMobile={product.translateYMobile}
+              />
             </div>
           </>
           <div id="room" className="mb-[60px] sm:mb-0">

@@ -231,7 +231,7 @@ const IMAGE_RECOMMENDATIONS = {
   "imgContact": "Khuyên dùng: 800x600px (Tỉ lệ 4:3, Ảnh bên cạnh form liên hệ)",
   "describe-h2-image": "Khuyên dùng: 1100x405px (Tỉ lệ ~ 2.7:1, Khung giải pháp trên Desktop)",
   "describe-h2-image-mobile": "Khuyên dùng: 600x300px (Tỉ lệ 2:1, Khung giải pháp trên Mobile)",
-  "blog-decoration": "Khuyên dùng: Chiều rộng 400px (Tự động chỉnh chiều cao theo tỉ lệ gốc của ảnh, tránh cắt thêm khoảng trắng)",
+  "blog-decoration": "Khuyên dùng: 800x96px hoặc 400x48px (Tỉ lệ ~ 25:3, đúng tỉ lệ khung của phần này)",
 };
 
 const getImagePreviewStyle = (key) => {
@@ -310,8 +310,8 @@ const getImagePreviewStyle = (key) => {
     case "blog-decoration":
       return {
         wrapperClass: "w-full border border-gray-100 bg-transparent flex items-center justify-center",
-        imgClass: "w-full h-auto object-contain block",
-        aspectRatio: "auto",
+        imgClass: "w-full h-full object-contain block",
+        aspectRatio: "800/96",
         maxWidth: "400px",
       };
     default:
@@ -968,8 +968,17 @@ export default function CMS() {
                       placeholder="Nhập nội dung câu hỏi..."
                       lineHeight={item.qLineHeight}
                       lineHeightMobile={item.qLineHeightMobile}
+                      fontSize={item.qFontSize}
+                      fontSizeMobile={item.qFontSizeMobile}
+                      translateY={item.qTranslateY}
+                      translateYMobile={item.qTranslateYMobile}
                       onChangeLineHeight={(val) => updateFAQ(index, "qLineHeight", val)}
                       onChangeLineHeightMobile={(val) => updateFAQ(index, "qLineHeightMobile", val)}
+                      onChangeFontSize={(val) => updateFAQ(index, "qFontSize", val)}
+                      onChangeFontSizeMobile={(val) => updateFAQ(index, "qFontSizeMobile", val)}
+                      onChangeTranslateY={(val) => updateFAQ(index, "qTranslateY", val)}
+                      onChangeTranslateYMobile={(val) => updateFAQ(index, "qTranslateYMobile", val)}
+                      hasResponsiveFontSize={true}
                     />
                   </div>
                 </div>
@@ -986,8 +995,17 @@ export default function CMS() {
                       placeholder="Nhập nội dung câu trả lời..."
                       lineHeight={item.aLineHeight}
                       lineHeightMobile={item.aLineHeightMobile}
+                      fontSize={item.aFontSize}
+                      fontSizeMobile={item.aFontSizeMobile}
+                      translateY={item.aTranslateY}
+                      translateYMobile={item.aTranslateYMobile}
                       onChangeLineHeight={(val) => updateFAQ(index, "aLineHeight", val)}
                       onChangeLineHeightMobile={(val) => updateFAQ(index, "aLineHeightMobile", val)}
+                      onChangeFontSize={(val) => updateFAQ(index, "aFontSize", val)}
+                      onChangeFontSizeMobile={(val) => updateFAQ(index, "aFontSizeMobile", val)}
+                      onChangeTranslateY={(val) => updateFAQ(index, "aTranslateY", val)}
+                      onChangeTranslateYMobile={(val) => updateFAQ(index, "aTranslateYMobile", val)}
+                      hasResponsiveFontSize={true}
                     />
                   </div>
                 </div>
@@ -1042,8 +1060,8 @@ export default function CMS() {
             onChange={onContentChange}
             lineHeight={config.lineHeight}
             lineHeightMobile={config.lineHeightMobile}
-            fontSize={isAboutSection ? config.fontSize : undefined}
-            fontSizeMobile={isAboutSection ? config.fontSizeMobile : undefined}
+            fontSize={config.fontSize}
+            fontSizeMobile={config.fontSizeMobile}
             translateY={config.translateY}
             translateYMobile={config.translateYMobile}
             onChangeLineHeight={(val) => {
@@ -1056,16 +1074,16 @@ export default function CMS() {
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeightMobile: val } : c))
               );
             }}
-            onChangeFontSize={isAboutSection ? (val) => {
+            onChangeFontSize={(val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, fontSize: val } : c))
               );
-            } : undefined}
-            onChangeFontSizeMobile={isAboutSection ? (val) => {
+            }}
+            onChangeFontSizeMobile={(val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, fontSizeMobile: val } : c))
               );
-            } : undefined}
+            }}
             onChangeTranslateY={(val) => {
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, translateY: val } : c))
@@ -1079,7 +1097,7 @@ export default function CMS() {
              className={`quill-editor-${config.key}`}
              editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
              minHeight={minHeight}
-             hasResponsiveFontSize={isAboutSection}
+             hasResponsiveFontSize={true}
           />
         </div>
       );

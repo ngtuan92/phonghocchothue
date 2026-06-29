@@ -82,7 +82,7 @@ class BlogController {
 
     async store(req, res) {
         try {
-            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt } = req.body;
+            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, translateY, translateYMobile } = req.body;
             const slug = await createUniqueSlug(title, async (s) => {
                 return await BlogModel.findOne({ where: { slug: s } });
             });
@@ -97,7 +97,13 @@ class BlogController {
                 authorAvatar: sanitizePath(authorAvatar),
                 status: status || 1,
                 excerpt,
-                publishedAt: new Date()
+                publishedAt: new Date(),
+                lineHeight,
+                lineHeightMobile,
+                fontSize,
+                fontSizeMobile,
+                translateY,
+                translateYMobile
             });
 
             await redis.incr('blogs:version');
@@ -111,7 +117,7 @@ class BlogController {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt } = req.body;
+            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, translateY, translateYMobile } = req.body;
 
             const blog = await BlogModel.findByPk(id);
             if (!blog) {
@@ -126,7 +132,13 @@ class BlogController {
                 authorName, 
                 authorAvatar: sanitizePath(authorAvatar),
                 status, 
-                excerpt 
+                excerpt,
+                lineHeight,
+                lineHeightMobile,
+                fontSize,
+                fontSizeMobile,
+                translateY,
+                translateYMobile
             };
             
             if (title && title !== blog.title) {

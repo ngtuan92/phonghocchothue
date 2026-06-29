@@ -277,14 +277,34 @@ export default function BlogDetail() {
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-4 order-1 sm:order-2">
-                <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" />
+                <RichTextRenderer 
+                  html={blog.title} 
+                  as="span" 
+                  className="inline-rich-text" 
+                  fontSize={blog.fontSize}
+                  fontSizeMobile={blog.fontSizeMobile}
+                  lineHeight={blog.lineHeight}
+                  lineHeightMobile={blog.lineHeightMobile}
+                  translateY={blog.translateY}
+                  translateYMobile={blog.translateYMobile}
+                />
               </h1>
 
               {blog.excerpt && (
                 <div className="mb-1 sm:mb-4 px-2 sm:px-0 py-1 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6 order-3 sm:order-3">
                   <div className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
                     <span className="text-[#b8c7b0] text-3xl font-serif mr-1 sm:hidden leading-none">“</span>
-                    <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" />
+                    <RichTextRenderer 
+                      html={blog.excerpt} 
+                      as="span" 
+                      className="inline-rich-text" 
+                      fontSize={blog.fontSize}
+                      fontSizeMobile={blog.fontSizeMobile}
+                      lineHeight={blog.lineHeight}
+                      lineHeightMobile={blog.lineHeightMobile}
+                      translateY={blog.translateY}
+                      translateYMobile={blog.translateYMobile}
+                    />
                     <span className="text-[#b8c7b0] text-3xl font-serif ml-1 sm:hidden leading-none">”</span>
                   </div>
                 </div>
@@ -293,7 +313,16 @@ export default function BlogDetail() {
 
             <article className="blog-content-area mb-20">
               <TableOfContents html={blog.content} />
-              <RichTextRenderer html={blog.content} className="blog-content" />
+              <RichTextRenderer 
+                html={blog.content} 
+                className="blog-content" 
+                fontSize={blog.fontSize}
+                fontSizeMobile={blog.fontSizeMobile}
+                lineHeight={blog.lineHeight}
+                lineHeightMobile={blog.lineHeightMobile}
+                translateY={blog.translateY}
+                translateYMobile={blog.translateYMobile}
+              />
             </article>
 
             <div className="flex justify-center">

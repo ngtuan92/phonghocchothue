@@ -28,6 +28,7 @@ class ProductController {
               "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
               "contains", "description", "price", "unit", "capacity", "isSpecial",
               "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+              "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "translateY", "translateYMobile",
             ],
           include: isLightList ? [] : [{ model: productImageModel, as: "images" }],
           limit: limit ? parseInt(limit) : undefined,
@@ -76,6 +77,12 @@ class ProductController {
           "seoDescription",
           "seoKeywords",
           "seoImage",
+          "lineHeight",
+          "lineHeightMobile",
+          "fontSize",
+          "fontSizeMobile",
+          "translateY",
+          "translateYMobile",
         ],
         include: [
           {
@@ -119,6 +126,7 @@ class ProductController {
             "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
             "contains", "description", "price", "unit", "capacity", "isSpecial",
             "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+            "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "translateY", "translateYMobile",
           ],
           include: [{ model: productImageModel, as: "images" }],
           where: whereCondition,
@@ -131,6 +139,7 @@ class ProductController {
             "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
             "contains", "description", "price", "unit", "capacity", "isSpecial",
             "seoTitle", "seoDescription", "seoKeywords", "seoImage",
+            "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "translateY", "translateYMobile",
           ],
           where: { id: { [Op.ne]: product.id } },
           order: [["id", "DESC"]],
@@ -173,7 +182,7 @@ class ProductController {
   async update(req, res) {
     const { id } = req.params;
     try {
-      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
+      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, translateY, translateYMobile } = req.body;
 
       const files = req.files || {};
       const { image, imageDetail, seoImage } = files;
@@ -227,6 +236,12 @@ class ProductController {
         seoDescription,
         seoKeywords,
         seoImage: seoImagePatch,
+        lineHeight,
+        lineHeightMobile,
+        fontSize,
+        fontSizeMobile,
+        translateY,
+        translateYMobile,
       };
 
       Object.keys(updateFields).forEach(key => {
@@ -280,7 +295,7 @@ class ProductController {
 
   async save(req, res) {
     try {
-      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug } = req.body;
+      const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, translateY, translateYMobile } = req.body;
       const { image, imageDetail, seoImage } = req.files || {};
 
       const image_detail = imageDetail
@@ -322,6 +337,12 @@ class ProductController {
         seoDescription: seoDescription,
         seoKeywords: seoKeywords,
         seoImage: seoImagePatch,
+        lineHeight,
+        lineHeightMobile,
+        fontSize,
+        fontSizeMobile,
+        translateY,
+        translateYMobile,
       });
 
       if (image_detail) {
