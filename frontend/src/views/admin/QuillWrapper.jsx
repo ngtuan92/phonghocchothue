@@ -789,17 +789,32 @@ const QuillWrapper = forwardRef(({
     }
 
     const handleScrollOrResize = () => {
-      positionCaptionsDirectly();
-      positionResizerDirectly();
+      try {
+        if (!quill.root.querySelector('img')) return;
+        positionCaptionsDirectly();
+        positionResizerDirectly();
+      } catch { /* ignore */ }
     };
 
     const handleContentChange = () => {
-      updateCaptionsList();
+      const hasImg = (() => {
+        try {
+          return !!quill.root.querySelector('img');
+        } catch {
+          return false;
+        }
+      })();
+
+      if (hasImg) {
+        updateCaptionsList();
+      }
       syncCustomFontSizes();
-      setTimeout(() => {
-        positionCaptionsDirectly();
-        positionResizerDirectly();
-      }, 0);
+      if (hasImg) {
+        setTimeout(() => {
+          positionCaptionsDirectly();
+          positionResizerDirectly();
+        }, 0);
+      }
     };
 
     window.addEventListener('scroll', handleScrollOrResize, true);
@@ -3628,6 +3643,12 @@ const QuillWrapper = forwardRef(({
         }
         .ql-font-size-popup input {
           color: #000000 !important;
+        }
+
+        .quill-wrapper-container,
+        .quill-wrapper-container .ql-container,
+        .quill-wrapper-container .ql-editor {
+          overflow-anchor: none !important;
         }
       `}} />
 
