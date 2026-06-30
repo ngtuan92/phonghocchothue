@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* global process */
 import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import Modal from "@/components/admin/Modal";
@@ -83,6 +84,8 @@ if (typeof window !== "undefined" && Quill) {
       if (typeof value === "string") {
         node.setAttribute("src", value);
         node.setAttribute("data-wrap", "none");
+        node.style.setProperty("float", "none", "important");
+        node.style.setProperty("display", "block", "important");
       } else if (value && typeof value === "object") {
         node.setAttribute("src", value.src);
         if (value.alt) node.setAttribute("alt", value.alt);
@@ -96,7 +99,18 @@ if (typeof window !== "undefined" && Quill) {
           node.style.borderRadius = value.borderRadius;
           node.setAttribute("data-border-radius", value.borderRadius);
         }
-        node.setAttribute("data-wrap", value.wrap || "none");
+        const wrapMode = value.wrap || "none";
+        node.setAttribute("data-wrap", wrapMode);
+        if (wrapMode === "left") {
+          node.style.setProperty("float", "left", "important");
+          node.style.setProperty("display", "inline", "important");
+        } else if (wrapMode === "right") {
+          node.style.setProperty("float", "right", "important");
+          node.style.setProperty("display", "inline", "important");
+        } else {
+          node.style.setProperty("float", "none", "important");
+          node.style.setProperty("display", "block", "important");
+        }
       }
       return node;
     }
@@ -149,7 +163,18 @@ if (typeof window !== "undefined" && Quill) {
           this.domNode.removeAttribute("data-border-radius");
         }
       } else if (name === "wrap") {
-        this.domNode.setAttribute("data-wrap", value || "none");
+        const wrapMode = value || "none";
+        this.domNode.setAttribute("data-wrap", wrapMode);
+        if (wrapMode === "left") {
+          this.domNode.style.setProperty("float", "left", "important");
+          this.domNode.style.setProperty("display", "inline", "important");
+        } else if (wrapMode === "right") {
+          this.domNode.style.setProperty("float", "right", "important");
+          this.domNode.style.setProperty("display", "inline", "important");
+        } else {
+          this.domNode.style.setProperty("float", "none", "important");
+          this.domNode.style.setProperty("display", "block", "important");
+        }
       } else {
         super.format(name, value);
       }
@@ -394,6 +419,7 @@ const QuillWrapper = forwardRef(({
   const [isMounted, setIsMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const selectedImageRef = useRef(null);
+  const selectedImageSrcRef = useRef("");
   const [imageWrapMode, setImageWrapMode] = useState('none');
   const [resizerRect, setResizerRect] = useState(null);
   const resizerOverlayRef = useRef(null);
@@ -401,6 +427,48 @@ const QuillWrapper = forwardRef(({
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
   const lastRelativeContentRef = useRef("");
+
+  const getImageWrapMode = useCallback((mode) => {
+    if (mode === 'right') return 'right';
+    if (mode === 'center' || mode === 'none' || !mode) return 'none';
+    return 'left';
+  }, []);
+
+  const applyImageWrapDom = useCallback((img, mode) => {
+    const wrapMode = getImageWrapMode(mode);
+    img.setAttribute('data-wrap', wrapMode);
+    img.style.setProperty('float', wrapMode === 'left' ? 'left' : wrapMode === 'right' ? 'right' : 'none', 'important');
+    img.style.setProperty('display', wrapMode === 'none' ? 'block' : 'inline', 'important');
+    img.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '12px', 'important');
+    img.style.setProperty('margin-bottom', '16px', 'important');
+    img.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    img.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    return wrapMode;
+  }, [getImageWrapMode]);
+
+  const rememberSelectedImage = useCallback((img) => {
+    selectedImageRef.current = img;
+    selectedImageSrcRef.current = img?.getAttribute('src') || "";
+    setSelectedImage(img || null);
+    setImageWrapMode(img?.getAttribute('data-wrap') || 'none');
+  }, []);
+
+  const getActiveImage = useCallback(() => {
+    const editor = containerRef.current?.querySelector('.ql-editor');
+    const current = selectedImageRef.current;
+    if (current && editor?.contains(current) && current.isConnected) return current;
+
+    const src = selectedImageSrcRef.current;
+    if (src && editor) {
+      const bySrc = Array.from(editor.querySelectorAll('img')).find((img) => img.getAttribute('src') === src);
+      if (bySrc) {
+        rememberSelectedImage(bySrc);
+        return bySrc;
+      }
+    }
+
+    return null;
+  }, [rememberSelectedImage]);
 
   const hasOnChangeFontSize = !!onChangeFontSize;
   const hasOnChangeFontSizeMobile = !!onChangeFontSizeMobile;
@@ -491,34 +559,73 @@ const QuillWrapper = forwardRef(({
   const positionResizerDirectly = useCallback(() => {
     const img = selectedImageRef.current;
     const resizer = resizerOverlayRef.current;
-    const imgContainer = containerRef.current;
-    if (img && resizer && imgContainer && img.isConnected) {
+    if (img && resizer && img.isConnected) {
       try {
         const imgRect = img.getBoundingClientRect();
-        const wrapperRect = imgContainer.getBoundingClientRect();
-        const top = imgRect.top - wrapperRect.top;
-        const left = imgRect.left - wrapperRect.left;
-        const width = imgRect.width;
-        const height = imgRect.height;
+        const width = Math.max(0, imgRect.width);
+        const height = Math.max(0, imgRect.height);
 
-        resizer.style.top = `${top}px`;
-        resizer.style.left = `${left}px`;
+        resizer.style.top = `${imgRect.top}px`;
+        resizer.style.left = `${imgRect.left}px`;
         resizer.style.width = `${width}px`;
         resizer.style.height = `${height}px`;
 
-        const editor = imgContainer.querySelector('.ql-editor');
+        const editor = containerRef.current?.querySelector('.ql-editor');
         if (editor) {
           const editorRect = editor.getBoundingClientRect();
-          const isOutside = (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
-          if (isOutside) {
-            resizer.style.display = 'none';
-          } else {
-            resizer.style.display = 'block';
-          }
+          const isOutside = imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom || width === 0 || height === 0;
+          resizer.style.display = isOutside ? 'none' : 'block';
+        } else {
+          resizer.style.display = width === 0 || height === 0 ? 'none' : 'block';
         }
       } catch (e) { }
     }
   }, []);
+
+  const syncSelectedImageRect = useCallback(() => {
+    let img = selectedImageRef.current;
+    if (!img || !containerRef.current) {
+      setResizerRect(null);
+      return;
+    }
+
+    if (!img.isConnected) {
+      const src = img.getAttribute('src');
+      const editor = containerRef.current.querySelector('.ql-editor');
+      const nextImg = src && editor
+        ? Array.from(editor.querySelectorAll('img')).find(i => i.getAttribute('src') === src)
+        : null;
+      if (nextImg) {
+        img = nextImg;
+        rememberSelectedImage(nextImg);
+      }
+    }
+
+    if (!img.isConnected) {
+      setResizerRect(null);
+      return;
+    }
+
+    try {
+      const imgRect = img.getBoundingClientRect();
+      const editor = containerRef.current.querySelector('.ql-editor');
+      const editorRect = editor?.getBoundingClientRect();
+      const isOutside = editorRect && (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
+
+      if (isOutside || imgRect.width === 0 || imgRect.height === 0) {
+        setResizerRect(null);
+      } else {
+        setResizerRect({
+          top: imgRect.top,
+          left: imgRect.left,
+          width: imgRect.width,
+          height: imgRect.height
+        });
+      }
+    } catch (e) {
+      setResizerRect(null);
+    }
+  }, [rememberSelectedImage]);
 
   useEffect(() => {
     positionCaptionsDirectly();
@@ -1280,7 +1387,7 @@ const QuillWrapper = forwardRef(({
   const [modalCallback, setModalCallback] = useState(null);
   const [alertConfig, setAlertConfig] = useState({ isOpen: false, message: "" });
 
-  const openAltModal = (initialData, callback) => {
+  const openAltModal = useCallback((initialData, callback) => {
     setModalData({
       alt: initialData.alt || "",
       title: initialData.title || "",
@@ -1290,7 +1397,7 @@ const QuillWrapper = forwardRef(({
     });
     setModalCallback(() => callback);
     setIsModalOpen(true);
-  };
+  }, []);
 
   const showAlert = (message) => {
     setAlertConfig({ isOpen: true, message });
@@ -1302,127 +1409,139 @@ const QuillWrapper = forwardRef(({
     setIsModalOpen(false);
   };
 
-  const updateResizerRect = useCallback(() => {
-    const img = selectedImageRef.current;
-    if (img && containerRef.current && img.isConnected) {
-      try {
-        const imgRect = img.getBoundingClientRect();
-        const wrapperRect = containerRef.current.getBoundingClientRect();
-        setResizerRect({
-          top: imgRect.top - wrapperRect.top,
-          left: imgRect.left - wrapperRect.left,
-          width: imgRect.width,
-          height: imgRect.height
-        });
-      } catch (e) {
-        setResizerRect(null);
-      }
-    } else {
-      setResizerRect(null);
-    }
-  }, []);
+  const updateResizerRect = syncSelectedImageRect;
 
   useEffect(() => {
     if (selectedImage) {
-      updateResizerRect();
+      syncSelectedImageRect();
       updateCaptionsList();
-      const resizeObserver = new ResizeObserver(() => {
-        positionResizerDirectly();
-        positionCaptionsDirectly();
-      });
-      resizeObserver.observe(selectedImage);
+      let frameId = 0;
 
-      const handleResize = () => {
-        positionResizerDirectly();
-        positionCaptionsDirectly();
+      const schedulePosition = () => {
+        if (frameId) return;
+        frameId = window.requestAnimationFrame(() => {
+          frameId = 0;
+          positionResizerDirectly();
+          positionCaptionsDirectly();
+        });
       };
 
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('scroll', handleResize, true);
+      window.addEventListener('resize', schedulePosition);
+      window.addEventListener('scroll', schedulePosition, true);
       return () => {
-        resizeObserver.disconnect();
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleResize, true);
+        if (frameId) window.cancelAnimationFrame(frameId);
+        window.removeEventListener('resize', schedulePosition);
+        window.removeEventListener('scroll', schedulePosition, true);
       };
     } else {
       setResizerRect(null);
     }
-  }, [selectedImage, updateResizerRect, updateCaptionsList, positionResizerDirectly, positionCaptionsDirectly]);
+  }, [selectedImage, syncSelectedImageRect, updateCaptionsList, positionResizerDirectly, positionCaptionsDirectly]);
+
+  const handleContainerClick = useCallback((ev) => {
+    // If clicking inside the resizer overlay or wrap toolbar, do not deselect
+    if (resizerOverlayRef.current && resizerOverlayRef.current.contains(ev.target)) {
+      return;
+    }
+
+    const img = ev.target.closest && ev.target.closest('img');
+    const quill = editorRef.current?.getEditor();
+    if (!quill) return;
+
+    if (img && quill.root.contains(img)) {
+      rememberSelectedImage(img);
+      return;
+    }
+
+    // Clicked outside image — deselect
+    if (selectedImageRef.current) {
+      rememberSelectedImage(null);
+      setTimeout(() => {
+        updateCaptionsList();
+        positionCaptionsDirectly();
+      }, 50);
+    }
+  }, [rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
+
+  const handleContainerDblClick = useCallback((ev) => {
+    if (disableImageWrap) return; // Do not open image info pop-up on double click for rooms!
+    const img = ev.target.closest && ev.target.closest('img');
+    const quill = editorRef.current?.getEditor();
+    if (!quill || !img || !quill.root.contains(img)) return;
+    openAltModal(
+      {
+        alt: img.getAttribute('alt') || '',
+        title: img.getAttribute('title') || '',
+        caption: img.hasAttribute('data-caption') ? (img.getAttribute('data-caption') || '') : (img.getAttribute('title') || ''),
+        borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
+      },
+      (newData) => {
+        const blot = Quill.find(img);
+        if (blot) {
+          const index = quill.getIndex(blot);
+          quill.formatText(index, 1, 'alt', newData.alt, 'user');
+          quill.formatText(index, 1, 'title', newData.title, 'user');
+          quill.formatText(index, 1, 'caption', newData.caption, 'user');
+          quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
+          quill.update('user');
+          setTimeout(() => {
+            updateCaptionsList();
+            positionCaptionsDirectly();
+          }, 50);
+        }
+      }
+    );
+  }, [disableImageWrap, openAltModal, updateCaptionsList, positionCaptionsDirectly]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
-
-    const handleContainerClick = (ev) => {
-      // If clicking inside the resizer overlay or wrap toolbar, do not deselect
-      if (resizerOverlayRef.current && resizerOverlayRef.current.contains(ev.target)) {
-        return;
-      }
-
-      const img = ev.target.closest && ev.target.closest('img');
-      const quill = editorRef.current?.getEditor();
-      if (!quill) return;
-
-      if (img && quill.root.contains(img)) {
-        selectedImageRef.current = img;
-        setSelectedImage(img);
-        setImageWrapMode(img.getAttribute('data-wrap') || 'none');
-        return;
-      }
-
-      // Clicked outside image — deselect
-      if (selectedImageRef.current) {
-        selectedImageRef.current = null;
-        setSelectedImage(null);
-        setImageWrapMode('none');
-        setTimeout(() => {
-          updateCaptionsList();
-          positionCaptionsDirectly();
-        }, 50);
-      }
-    };
-
-    const handleContainerDblClick = (ev) => {
-      if (disableImageWrap) return; // Do not open image info pop-up on double click for rooms!
-      const img = ev.target.closest && ev.target.closest('img');
-      const quill = editorRef.current?.getEditor();
-      if (!quill || !img || !quill.root.contains(img)) return;
-      openAltModal(
-        {
-          alt: img.getAttribute('alt') || '',
-          title: img.getAttribute('title') || '',
-          caption: img.hasAttribute('data-caption') ? (img.getAttribute('data-caption') || '') : (img.getAttribute('title') || ''),
-          borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
-        },
-        (newData) => {
-          const blot = Quill.find(img);
-          if (blot) {
-            const index = quill.getIndex(blot);
-            quill.formatText(index, 1, 'alt', newData.alt, 'user');
-            quill.formatText(index, 1, 'title', newData.title, 'user');
-            quill.formatText(index, 1, 'caption', newData.caption, 'user');
-            quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
-            quill.update('user');
-            setTimeout(() => {
-              updateCaptionsList();
-              positionCaptionsDirectly();
-            }, 50);
-          }
-        }
-      );
-    };
-
     const container = containerRef.current;
     container.addEventListener('click', handleContainerClick);
     container.addEventListener('dblclick', handleContainerDblClick);
-    containerClickRef.current = handleContainerClick;
-
     return () => {
       container.removeEventListener('click', handleContainerClick);
       container.removeEventListener('dblclick', handleContainerDblClick);
     };
-  }, [isReady, disableImageWrap, updateCaptionsList, positionCaptionsDirectly]);
+  }, [isReady, handleContainerClick, handleContainerDblClick]);
 
   const fileInputRef = useRef(null);
+
+  const handleOnChange = useCallback((content, delta, source, editor) => {
+    if (props.onChange) {
+      if (source !== 'user') return;
+
+      const escapedUrlApi = URL_API.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
+      let relativeContent = content.replace(regex, 'src="/$1"');
+      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
+
+      const shouldStripInlineFontSize = hasResponsive || className.includes('describe-phone') || className.includes('describe-quote-text');
+      if (shouldStripInlineFontSize) {
+        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+          const cleaned = stripFontSizeFromStyle(styleContent);
+          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+        });
+      } else {
+        // Clean up custom responsive scaling variables/properties from HTML before saving to database
+        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+          const cleaned = cleanStyleForSave(styleContent);
+          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+        });
+      }
+
+      if (typeof props.value === "string" && relativeContent === props.value) {
+        return;
+      }
+
+      lastRelativeContentRef.current = relativeContent;
+      props.onChange(relativeContent, delta, source, editor);
+    }
+  }, [props.onChange, props.value, className, hasResponsive]);
+
+  const syncImageEditChange = useCallback((quill) => {
+    if (!quill) return;
+    handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+  }, [handleOnChange]);
 
   const customModules = React.useMemo(() => {
     if (!modules) return null;
@@ -1562,6 +1681,27 @@ const QuillWrapper = forwardRef(({
           }
           showAlert("Vui lòng chọn một hình ảnh trước khi chỉnh sửa thuộc tính.");
         },
+        align: function (value) {
+          const quill = this.quill;
+          const currentImg = getActiveImage();
+
+          if (currentImg && quill?.root?.contains(currentImg)) {
+            const mode = value === 'right' ? 'right' : value === 'center' ? 'none' : 'left';
+            const wrapMode = applyImageWrapDom(currentImg, mode);
+            syncImageEditChange(quill);
+
+            setImageWrapMode(wrapMode);
+            setTimeout(() => {
+              updateResizerRect();
+              updateCaptionsList();
+              positionCaptionsDirectly();
+              positionResizerDirectly();
+            }, 50);
+            return;
+          }
+
+          quill.format('align', value);
+        },
         color: function (value) {
           if (value === 'custom-color') {
             let picker = document.getElementById('quill-custom-color-picker');
@@ -1631,7 +1771,19 @@ const QuillWrapper = forwardRef(({
       }
     };
     return mods;
-  }, [modules, disableImageWrap, hasLineHeight, hasTranslateY]);
+  }, [
+    modules,
+    disableImageWrap,
+    hasLineHeight,
+    hasTranslateY,
+    applyImageWrapDom,
+    getActiveImage,
+    syncImageEditChange,
+    updateResizerRect,
+    updateCaptionsList,
+    positionCaptionsDirectly,
+    positionResizerDirectly
+  ]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -1685,7 +1837,7 @@ const QuillWrapper = forwardRef(({
   const handleResizeStart = (e, direction) => {
     e.preventDefault();
     e.stopPropagation();
-    const img = selectedImageRef.current;
+    const img = getActiveImage();
     if (!img) return;
 
     const startX = e.clientX;
@@ -1693,19 +1845,9 @@ const QuillWrapper = forwardRef(({
     // Use getBoundingClientRect().width to get the rendered width (including borders for border-box sizing)
     const initialRect = img.getBoundingClientRect();
     const startWidth = initialRect.width;
-    const startHeight = initialRect.height;
-    const aspectRatio = startWidth / startHeight;
     const containerWidth = containerRef.current.clientWidth;
 
-    // Get initial positions relative to the container once
-    const imgRect = img.getBoundingClientRect();
-    const wrapperRect = containerRef.current.getBoundingClientRect();
-    const startTop = imgRect.top - wrapperRect.top;
-    const startLeft = imgRect.left - wrapperRect.left;
-
     const isRight = direction.includes('right');
-    const isLeft = direction.includes('left');
-    const isTop = direction.includes('top');
 
     // Keep track of the active width to avoid reading clientWidth (which excludes border widths under border-box)
     let currentWidth = startWidth;
@@ -1716,27 +1858,10 @@ const QuillWrapper = forwardRef(({
       newWidth = Math.max(50, Math.min(newWidth, containerWidth));
 
       currentWidth = newWidth;
-      const newHeight = newWidth / aspectRatio;
-
-      let newLeft = startLeft;
-      if (isLeft) {
-        newLeft = startLeft + (startWidth - newWidth);
-      }
-
-      let newTop = startTop;
-      if (isTop) {
-        newTop = startTop + (startHeight - newHeight);
-      }
 
       img.style.width = `${newWidth}px`;
       img.style.height = 'auto';
-
-      if (resizerOverlayRef.current) {
-        resizerOverlayRef.current.style.top = `${newTop}px`;
-        resizerOverlayRef.current.style.left = `${newLeft}px`;
-        resizerOverlayRef.current.style.width = `${newWidth}px`;
-        resizerOverlayRef.current.style.height = `${newHeight}px`;
-      }
+      positionResizerDirectly();
       positionCaptionsDirectly();
     };
 
@@ -1751,15 +1876,8 @@ const QuillWrapper = forwardRef(({
       img.setAttribute('width', widthValue);
 
       const quill = editorRef.current?.getEditor();
-      const currentImg = selectedImageRef.current;
-
-      if (quill && currentImg) {
-        const blot = Quill.find(currentImg);
-        if (blot) {
-          const index = quill.getIndex(blot);
-          quill.formatText(index, 1, 'width', widthValue, 'user');
-          quill.setSelection(index, 1, 'user');
-        }
+      if (quill) {
+        syncImageEditChange(quill);
       }
 
       updateResizerRect();
@@ -1772,38 +1890,24 @@ const QuillWrapper = forwardRef(({
   };
 
   const handleImageWrap = useCallback((mode) => {
-    const img = selectedImageRef.current;
+    const img = getActiveImage();
     if (!img) return;
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
 
-    // Directly set DOM attribute to ensure visual style updates immediately
-    img.setAttribute('data-wrap', mode || 'none');
-
-    // Apply wrap style via the blot
-    const blot = Quill.find(img);
-    if (blot) {
-      if (typeof blot.format === 'function') {
-        blot.format('wrap', mode);
-      } else {
-        const index = quill.getIndex(blot);
-        quill.formatText(index, 1, 'wrap', mode, 'user');
-      }
-      quill.update('user');
-    } else {
-      quill.update('user');
-    }
-    setImageWrapMode(mode);
+    const wrapMode = applyImageWrapDom(img, mode);
+    syncImageEditChange(quill);
+    setImageWrapMode(wrapMode);
     setTimeout(() => {
       updateResizerRect();
       updateCaptionsList();
       positionCaptionsDirectly();
       positionResizerDirectly();
     }, 50);
-  }, [updateResizerRect, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly]);
+  }, [getActiveImage, applyImageWrapDom, syncImageEditChange, updateResizerRect, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly]);
 
   const handleDeleteImage = useCallback(() => {
-    const img = selectedImageRef.current;
+    const img = getActiveImage();
     if (!img) return;
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
@@ -1811,15 +1915,17 @@ const QuillWrapper = forwardRef(({
     if (blot) {
       const index = quill.getIndex(blot);
       quill.deleteText(index, 1, 'user');
-      selectedImageRef.current = null;
-      setSelectedImage(null);
-      setImageWrapMode('none');
-      setTimeout(() => {
-        updateCaptionsList();
-        positionCaptionsDirectly();
-      }, 50);
+    } else {
+      img.remove();
     }
-  }, [updateCaptionsList, positionCaptionsDirectly]);
+    syncImageEditChange(quill);
+    rememberSelectedImage(null);
+    setResizerRect(null);
+    setTimeout(() => {
+      updateCaptionsList();
+      positionCaptionsDirectly();
+    }, 50);
+  }, [getActiveImage, syncImageEditChange, rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
 
   useEffect(() => {
     if (!selectedImage) return;
@@ -1939,44 +2045,12 @@ const QuillWrapper = forwardRef(({
     );
   };
 
-  const handleOnChange = useCallback((content, delta, source, editor) => {
-    if (props.onChange) {
-      if (source !== 'user') return;
-
-      const escapedUrlApi = URL_API.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
-      let relativeContent = content.replace(regex, 'src="/$1"');
-      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
-
-      const isSimpleField = className.includes('describe-phone') || className.includes('describe-quote-text');
-      if (isSimpleField) {
-        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-          const cleaned = stripFontSizeFromStyle(styleContent);
-          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
-        });
-      } else {
-        // Clean up custom responsive scaling variables/properties from HTML before saving to database
-        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-          const cleaned = cleanStyleForSave(styleContent);
-          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
-        });
-      }
-
-      if (typeof props.value === "string" && relativeContent === props.value) {
-        return;
-      }
-
-      lastRelativeContentRef.current = relativeContent;
-      props.onChange(relativeContent, delta, source, editor);
-    }
-  }, [props.onChange, props.value, className]);
-
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
     let val = props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
-    const isSimpleField = className.includes('describe-phone') || className.includes('describe-quote-text');
-    if (isSimpleField) {
+    const shouldStripInlineFontSize = hasResponsive || className.includes('describe-phone') || className.includes('describe-quote-text');
+    if (shouldStripInlineFontSize) {
       val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
         const cleaned = stripFontSizeFromStyle(styleContent);
         return cleaned ? `style=${quote}${cleaned}${quote}` : "";
@@ -1990,12 +2064,21 @@ const QuillWrapper = forwardRef(({
     }
 
     return val;
-  }, [props.value, className]);
+  }, [props.value, className, hasResponsive]);
 
   let editorValue = absoluteValue;
-  if (editorRef.current && props.value === lastRelativeContentRef.current) {
+  let isFocused = false;
+  let currentEditor = null;
+  try {
+    currentEditor = editorRef.current?.getEditor?.();
+    isFocused = !!currentEditor?.hasFocus?.();
+  } catch (e) {
+    currentEditor = null;
+  }
+  const hasSelectedImage = !!selectedImageRef.current;
+  if (currentEditor && (isFocused || hasSelectedImage || props.value === lastRelativeContentRef.current)) {
     try {
-      editorValue = editorRef.current.getEditor().root.innerHTML;
+      editorValue = currentEditor.root.innerHTML;
     } catch (e) {
       editorValue = absoluteValue;
     }
@@ -2362,6 +2445,10 @@ const QuillWrapper = forwardRef(({
       )}
       <style dangerouslySetInnerHTML={{
         __html: `
+        .quill-wrapper-container {
+          position: relative !important;
+        }
+
         ${(dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || [])).map(f => `
           .quill-wrapper-container [style*="font-family: ${f.slug}"],
           .quill-wrapper-container [style*="font-family:${f.slug}"],
@@ -3329,10 +3416,10 @@ const QuillWrapper = forwardRef(({
         }
       `}} />
 
-      {resizerRect && (
+      {isMounted && resizerRect && createPortal((
         <div
           ref={resizerOverlayRef}
-          className="absolute"
+          className="fixed"
           style={{
             top: resizerRect.top,
             left: resizerRect.left,
@@ -3340,14 +3427,14 @@ const QuillWrapper = forwardRef(({
             height: resizerRect.height,
             border: '2px solid #1A94FF',
             boxShadow: '0 0 10px rgba(26, 148, 255, 0.3)',
-            pointerEvents: 'none',
-            zIndex: 2000,
+            pointerEvents: 'auto',
+            zIndex: 10000,
           }}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
           {/* Text Wrapping Toolbar */}
-          <div className="wrap-toolbar" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="wrap-toolbar" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
             {!disableImageWrap && (
               <>
                 <button
@@ -3418,7 +3505,7 @@ const QuillWrapper = forwardRef(({
             <div
               key={handle.dir}
               className="resizer-handle"
-              style={{ ...handle.style, cursor: handle.cursor }}
+              style={{ ...handle.style, cursor: handle.cursor, pointerEvents: 'auto' }}
               onMouseDown={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -3427,7 +3514,7 @@ const QuillWrapper = forwardRef(({
             />
           ))}
         </div>
-      )}
+      ), document.body)}
 
       {captions.map((cap, idx) => (
         <div
