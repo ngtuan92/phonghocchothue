@@ -423,6 +423,7 @@ const QuillWrapper = forwardRef(({
   const [imageWrapMode, setImageWrapMode] = useState('none');
   const [resizerRect, setResizerRect] = useState(null);
   const resizerOverlayRef = useRef(null);
+  const resizeDragRef = useRef(false);
   const containerClickRef = useRef(null);
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
@@ -447,10 +448,14 @@ const QuillWrapper = forwardRef(({
   }, [getImageWrapMode]);
 
   const rememberSelectedImage = useCallback((img) => {
-    selectedImageRef.current = img;
-    selectedImageSrcRef.current = img?.getAttribute('src') || "";
-    setSelectedImage(img || null);
-    setImageWrapMode(img?.getAttribute('data-wrap') || 'none');
+    const nextImage = img || null;
+    const nextSrc = nextImage?.getAttribute('src') || "";
+    const nextWrap = nextImage?.getAttribute('data-wrap') || 'none';
+
+    selectedImageRef.current = nextImage;
+    selectedImageSrcRef.current = nextSrc;
+    setSelectedImage((prev) => (prev === nextImage ? prev : nextImage));
+    setImageWrapMode((prev) => (prev === nextWrap ? prev : nextWrap));
   }, []);
 
   const getActiveImage = useCallback(() => {
@@ -585,7 +590,7 @@ const QuillWrapper = forwardRef(({
   const syncSelectedImageRect = useCallback(() => {
     let img = selectedImageRef.current;
     if (!img || !containerRef.current) {
-      setResizerRect(null);
+      setResizerRect((prev) => (prev === null ? prev : null));
       return;
     }
 
@@ -597,12 +602,13 @@ const QuillWrapper = forwardRef(({
         : null;
       if (nextImg) {
         img = nextImg;
-        rememberSelectedImage(nextImg);
+        selectedImageRef.current = nextImg;
+        selectedImageSrcRef.current = nextImg.getAttribute('src') || "";
       }
     }
 
     if (!img.isConnected) {
-      setResizerRect(null);
+      setResizerRect((prev) => (prev === null ? prev : null));
       return;
     }
 
@@ -613,19 +619,28 @@ const QuillWrapper = forwardRef(({
       const isOutside = editorRect && (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
 
       if (isOutside || imgRect.width === 0 || imgRect.height === 0) {
-        setResizerRect(null);
+        setResizerRect((prev) => (prev === null ? prev : null));
       } else {
-        setResizerRect({
+        const nextRect = {
           top: imgRect.top,
           left: imgRect.left,
           width: imgRect.width,
           height: imgRect.height
-        });
+        };
+        setResizerRect((prev) => (
+          prev &&
+          Math.abs(prev.top - nextRect.top) < 0.5 &&
+          Math.abs(prev.left - nextRect.left) < 0.5 &&
+          Math.abs(prev.width - nextRect.width) < 0.5 &&
+          Math.abs(prev.height - nextRect.height) < 0.5
+            ? prev
+            : nextRect
+        ));
       }
     } catch (e) {
-      setResizerRect(null);
+      setResizerRect((prev) => (prev === null ? prev : null));
     }
-  }, [rememberSelectedImage]);
+  }, []);
 
   useEffect(() => {
     positionCaptionsDirectly();
@@ -1434,7 +1449,7 @@ const QuillWrapper = forwardRef(({
         window.removeEventListener('scroll', schedulePosition, true);
       };
     } else {
-      setResizerRect(null);
+      setResizerRect((prev) => (prev === null ? prev : null));
     }
   }, [selectedImage, syncSelectedImageRect, updateCaptionsList, positionResizerDirectly, positionCaptionsDirectly]);
 
@@ -1834,13 +1849,13 @@ const QuillWrapper = forwardRef(({
     }
   };
 
-  const handleResizeStart = (e, direction) => {
+  const handleResizeStart = (e, direction, imageOverride = null) => {
     e.preventDefault();
     e.stopPropagation();
-    const img = getActiveImage();
+    if (resizeDragRef.current) return;
+    const img = imageOverride || getActiveImage();
     if (!img) return;
-
-    e.currentTarget?.setPointerCapture?.(e.pointerId);
+    resizeDragRef.current = true;
 
     const initialRect = img.getBoundingClientRect();
     const startWidth = initialRect.width;
@@ -1864,16 +1879,19 @@ const QuillWrapper = forwardRef(({
       positionCaptionsDirectly();
     };
 
-    const onPointerMove = (moveEvent) => {
+    const onDragMove = (moveEvent) => {
       moveEvent.preventDefault();
       const deltaX = moveEvent.clientX - startX;
       applyWidth(isRight ? startWidth + deltaX : startWidth - deltaX);
     };
 
-    const onPointerUp = () => {
-      document.removeEventListener('pointermove', onPointerMove, true);
-      document.removeEventListener('pointerup', onPointerUp, true);
-      document.removeEventListener('pointercancel', onPointerUp, true);
+    const onDragEnd = () => {
+      document.removeEventListener('pointermove', onDragMove, true);
+      document.removeEventListener('pointerup', onDragEnd, true);
+      document.removeEventListener('pointercancel', onDragEnd, true);
+      document.removeEventListener('mousemove', onDragMove, true);
+      document.removeEventListener('mouseup', onDragEnd, true);
+      resizeDragRef.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
 
@@ -1894,46 +1912,12 @@ const QuillWrapper = forwardRef(({
       positionResizerDirectly();
     };
 
-    document.addEventListener('pointermove', onPointerMove, true);
-    document.addEventListener('pointerup', onPointerUp, true);
-    document.addEventListener('pointercancel', onPointerUp, true);
+    document.addEventListener('pointermove', onDragMove, true);
+    document.addEventListener('pointerup', onDragEnd, true);
+    document.addEventListener('pointercancel', onDragEnd, true);
+    document.addEventListener('mousemove', onDragMove, true);
+    document.addEventListener('mouseup', onDragEnd, true);
   };
-
-  useEffect(() => {
-    const overlay = resizerOverlayRef.current;
-    if (!overlay || !resizerRect) return;
-
-    const getDirectionFromPointer = (event) => {
-      const handle = event.target?.closest?.('.resizer-handle');
-      if (handle && overlay.contains(handle)) return handle.dataset.dir;
-
-      const rect = overlay.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      const hit = 34;
-      const nearLeft = x <= hit;
-      const nearRight = rect.width - x <= hit;
-      const nearTop = y <= hit;
-      const nearBottom = rect.height - y <= hit;
-
-      if (nearLeft && nearTop) return 'top-left';
-      if (nearRight && nearTop) return 'top-right';
-      if (nearLeft && nearBottom) return 'bottom-left';
-      if (nearRight && nearBottom) return 'bottom-right';
-      return null;
-    };
-
-    const handlePointerDown = (event) => {
-      const direction = getDirectionFromPointer(event);
-      if (!direction) return;
-      handleResizeStart(event, direction);
-    };
-
-    overlay.addEventListener('pointerdown', handlePointerDown, true);
-    return () => {
-      overlay.removeEventListener('pointerdown', handlePointerDown, true);
-    };
-  }, [resizerRect, selectedImage]);
 
   const handleImageWrap = useCallback((mode) => {
     const img = getActiveImage();
@@ -2121,8 +2105,7 @@ const QuillWrapper = forwardRef(({
   } catch (e) {
     currentEditor = null;
   }
-  const hasSelectedImage = !!selectedImageRef.current;
-  if (currentEditor && (isFocused || hasSelectedImage || props.value === lastRelativeContentRef.current)) {
+  if (currentEditor && (isFocused || props.value === lastRelativeContentRef.current)) {
     try {
       editorValue = currentEditor.root.innerHTML;
     } catch (e) {
@@ -3159,8 +3142,8 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor h6 { font-size: 1rem; }
         .resizer-handle {
           position: absolute;
-          width: 24px;
-          height: 24px;
+          width: 30px;
+          height: 30px;
           background: white;
           border: 2px solid #1A94FF;
           border-radius: 50%;
@@ -3544,16 +3527,26 @@ const QuillWrapper = forwardRef(({
 
           {/* Resize Handles */}
           {[
-            { dir: 'top-left', cursor: 'nwse-resize', style: { top: -12, left: -12 } },
-            { dir: 'top-right', cursor: 'nesw-resize', style: { top: -12, right: -12 } },
-            { dir: 'bottom-left', cursor: 'nesw-resize', style: { bottom: -12, left: -12 } },
-            { dir: 'bottom-right', cursor: 'nwse-resize', style: { bottom: -12, right: -12 } }
+            { dir: 'top-left', cursor: 'nwse-resize', style: { top: -15, left: -15 } },
+            { dir: 'top-right', cursor: 'nesw-resize', style: { top: -15, right: -15 } },
+            { dir: 'bottom-left', cursor: 'nesw-resize', style: { bottom: -15, left: -15 } },
+            { dir: 'bottom-right', cursor: 'nwse-resize', style: { bottom: -15, right: -15 } }
           ].map((handle) => (
             <div
               key={handle.dir}
               data-dir={handle.dir}
               className="resizer-handle"
               style={{ ...handle.style, cursor: handle.cursor, pointerEvents: 'auto' }}
+              onPointerDown={(e) => {
+                const activeImg = getActiveImage();
+                if (!activeImg) return;
+                handleResizeStart(e, handle.dir, activeImg);
+              }}
+              onMouseDown={(e) => {
+                const activeImg = getActiveImage();
+                if (!activeImg) return;
+                handleResizeStart(e, handle.dir, activeImg);
+              }}
             />
           ))}
         </div>
