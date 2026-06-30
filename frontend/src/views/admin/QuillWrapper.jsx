@@ -271,7 +271,7 @@ if (typeof window !== "undefined" && Quill) {
 const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
   "color", "background", "list", "align", "link", "image", "wrap",
-  "alt", "title", "caption", "borderRadius"
+  "alt", "title", "caption", "borderRadius", "width"
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -1872,24 +1872,53 @@ const QuillWrapper = forwardRef(({
     event.stopPropagation();
     if (resizeDragRef.current) return;
 
-    const img = imageOverride || getActiveImage() || selectedImage;
+    const startImg = imageOverride || getActiveImage() || selectedImage;
     const quill = editorRef.current?.getEditor();
     const editor = containerRef.current?.querySelector('.ql-editor');
-    if (!img || !img.isConnected || !editor) return;
+    if (!startImg || !startImg.isConnected || !editor) return;
+
+    const resizeImageSrc = startImg.getAttribute('src') || "";
+    let liveResizeImage = startImg;
+    const getResizeImage = () => {
+      if (liveResizeImage && liveResizeImage.isConnected && liveResizeImage.getBoundingClientRect().width > 0) {
+        return liveResizeImage;
+      }
+
+      if (resizeImageSrc) {
+        const match = Array.from(editor.querySelectorAll('img')).find((candidate) => (
+          candidate.getAttribute('src') === resizeImageSrc && candidate.getBoundingClientRect().width > 0
+        ));
+        if (match) {
+          liveResizeImage = match;
+          rememberSelectedImage(match);
+          return match;
+        }
+      }
+
+      const selected = getActiveImage();
+      if (selected && selected.isConnected) {
+        liveResizeImage = selected;
+        return selected;
+      }
+
+      return liveResizeImage;
+    };
 
     resizeDragRef.current = true;
-    enterImageEditMode(img, quill);
+    enterImageEditMode(startImg, quill);
 
-    const startRect = img.getBoundingClientRect();
+    const startRect = startImg.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
     const minWidth = Math.min(24, Math.max(1, editorRect.width || startRect.width || 1));
     const maxWidth = Math.max(minWidth, editorRect.width || containerRef.current?.clientWidth || startRect.width || minWidth);
-    const startWidth = Math.max(minWidth, Math.min(startRect.width || img.clientWidth || minWidth, maxWidth));
+    const startWidth = Math.max(minWidth, Math.min(startRect.width || startImg.clientWidth || minWidth, maxWidth));
+    const startHeight = Math.max(1, startRect.height || startImg.clientHeight || 1);
+    const aspectRatio = startWidth / startHeight;
     const startX = event.clientX;
+    const startY = event.clientY;
     const isLeftHandle = direction.includes('left');
+    const isTopHandle = direction.includes('top');
     const pointerId = event.pointerId;
-    const moveEventName = typeof pointerId === 'number' ? 'pointermove' : 'mousemove';
-    const endEventName = typeof pointerId === 'number' ? 'pointerup' : 'mouseup';
     const previousCursor = document.body.style.cursor;
     const previousUserSelect = document.body.style.userSelect;
     let currentWidth = startWidth;
@@ -1907,14 +1936,23 @@ const QuillWrapper = forwardRef(({
 
     const setImageWidth = (width, unit = 'px') => {
       const value = unit === '%' ? `${width}%` : `${Math.round(width)}px`;
+      const img = getResizeImage();
+      if (!img || !img.isConnected) return;
       img.style.setProperty('width', value, 'important');
       img.style.setProperty('height', 'auto', 'important');
       img.setAttribute('width', value);
+      liveResizeImage = img;
     };
 
-    const applyClientX = (clientX) => {
+    const applyPointerPosition = (clientX, clientY) => {
       const deltaX = clientX - startX;
-      const nextWidth = isLeftHandle ? startWidth - deltaX : startWidth + deltaX;
+      const deltaY = clientY - startY;
+      const nextWidthFromX = isLeftHandle ? startWidth - deltaX : startWidth + deltaX;
+      const nextHeight = isTopHandle ? startHeight - deltaY : startHeight + deltaY;
+      const nextWidthFromY = nextHeight * aspectRatio;
+      const xWeight = Math.abs(deltaX);
+      const yWeight = Math.abs(deltaY);
+      const nextWidth = yWeight > xWeight ? nextWidthFromY : nextWidthFromX;
       currentWidth = Math.max(minWidth, Math.min(nextWidth, maxWidth));
       setImageWidth(currentWidth);
       scheduleChromeSync();
@@ -1924,11 +1962,13 @@ const QuillWrapper = forwardRef(({
       if (didCommit) return;
       didCommit = true;
 
-      const widthPercent = Math.max(1, Math.min(100, Math.round((currentWidth / maxWidth) * 100)));
-      const widthValue = `${widthPercent}%`;
+      const widthValue = `${Math.round(currentWidth)}px`;
+      const img = getResizeImage();
+      if (!img || !img.isConnected) return;
       img.style.setProperty('width', widthValue, 'important');
       img.style.setProperty('height', 'auto', 'important');
       img.setAttribute('width', widthValue);
+      liveResizeImage = img;
 
       if (quill) {
         try {
@@ -1949,10 +1989,20 @@ const QuillWrapper = forwardRef(({
     };
 
     const cleanup = (shouldCommit = true) => {
-      document.removeEventListener(moveEventName, onMove, true);
-      document.removeEventListener(endEventName, onEnd, true);
+      document.removeEventListener('pointermove', onMove, true);
+      document.removeEventListener('pointerup', onEnd, true);
+      document.removeEventListener('pointercancel', onCancel, true);
+      document.removeEventListener('mousemove', onMove, true);
+      document.removeEventListener('mouseup', onEnd, true);
+      window.removeEventListener('pointermove', onMove, true);
+      window.removeEventListener('pointerup', onEnd, true);
+      window.removeEventListener('pointercancel', onCancel, true);
+      window.removeEventListener('mousemove', onMove, true);
+      window.removeEventListener('mouseup', onEnd, true);
       if (typeof pointerId === 'number') {
-        document.removeEventListener('pointercancel', onCancel, true);
+        try {
+          event.currentTarget?.releasePointerCapture?.(pointerId);
+        } catch { /* ignore */ }
       }
       if (frameId) {
         window.cancelAnimationFrame(frameId);
@@ -1968,19 +2018,31 @@ const QuillWrapper = forwardRef(({
     };
 
     function onMove(moveEvent) {
-      if (typeof pointerId === 'number' && moveEvent.pointerId !== pointerId) return;
+      if (
+        typeof pointerId === 'number' &&
+        typeof moveEvent.pointerId === 'number' &&
+        moveEvent.pointerId !== pointerId
+      ) return;
       moveEvent.preventDefault();
-      applyClientX(moveEvent.clientX);
+      applyPointerPosition(moveEvent.clientX, moveEvent.clientY);
     }
 
     function onEnd(endEvent) {
-      if (typeof pointerId === 'number' && endEvent.pointerId !== pointerId) return;
+      if (
+        typeof pointerId === 'number' &&
+        typeof endEvent.pointerId === 'number' &&
+        endEvent.pointerId !== pointerId
+      ) return;
       endEvent.preventDefault();
       cleanup(true);
     }
 
     function onCancel(cancelEvent) {
-      if (typeof pointerId === 'number' && cancelEvent.pointerId !== pointerId) return;
+      if (
+        typeof pointerId === 'number' &&
+        typeof cancelEvent.pointerId === 'number' &&
+        cancelEvent.pointerId !== pointerId
+      ) return;
       cleanup(true);
     }
 
@@ -1995,14 +2057,20 @@ const QuillWrapper = forwardRef(({
 
 
     imageResizeSessionRef.current = { cleanup };
-    document.addEventListener(moveEventName, onMove, true);
-    document.addEventListener(endEventName, onEnd, true);
-    if (typeof pointerId === 'number') {
-      document.addEventListener('pointercancel', onCancel, true);
-    }
+    document.addEventListener('pointermove', onMove, true);
+    document.addEventListener('pointerup', onEnd, true);
+    document.addEventListener('pointercancel', onCancel, true);
+    document.addEventListener('mousemove', onMove, true);
+    document.addEventListener('mouseup', onEnd, true);
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onEnd, true);
+    window.addEventListener('pointercancel', onCancel, true);
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onEnd, true);
   }, [
     enterImageEditMode,
     getActiveImage,
+    rememberSelectedImage,
     positionCaptionsDirectly,
     positionResizerDirectly,
     selectedImage,
@@ -2023,6 +2091,96 @@ const QuillWrapper = forwardRef(({
     if (nearRight) return isTopHalf ? 'top-right' : 'bottom-right';
     return null;
   }, []);
+
+  const getDirectionFromRect = useCallback((event, rect) => {
+    if (!rect) return null;
+    const threshold = 36;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const nearLeft = x >= -threshold && x <= threshold;
+    const nearRight = x >= rect.width - threshold && x <= rect.width + threshold;
+    const nearTop = y >= -threshold && y <= threshold;
+    const nearBottom = y >= rect.height - threshold && y <= rect.height + threshold;
+
+    if (nearLeft && nearTop) return 'top-left';
+    if (nearRight && nearTop) return 'top-right';
+    if (nearLeft && nearBottom) return 'bottom-left';
+    if (nearRight && nearBottom) return 'bottom-right';
+    return null;
+  }, []);
+
+  useEffect(() => {
+    if (!resizerRect || !resizerOverlayRef.current) return;
+
+    const overlay = resizerOverlayRef.current;
+    const startResizeFromNativeEvent = (event) => {
+      const target = event.target;
+      const handle = target?.closest?.('.resizer-handle');
+      const direction = handle?.getAttribute('data-dir') || getOverlayResizeDirection(event);
+      if (!direction) return;
+
+      handleResizeStart(event, direction);
+    };
+
+    overlay.addEventListener('pointerdown', startResizeFromNativeEvent, true);
+    overlay.addEventListener('mousedown', startResizeFromNativeEvent, true);
+
+    return () => {
+      overlay.removeEventListener('pointerdown', startResizeFromNativeEvent, true);
+      overlay.removeEventListener('mousedown', startResizeFromNativeEvent, true);
+    };
+  }, [getOverlayResizeDirection, handleResizeStart, resizerRect]);
+
+  useEffect(() => {
+    if (!resizerRect) return;
+
+    const startResizeFromDocument = (event) => {
+      if (resizeDragRef.current) return;
+      const direction = getDirectionFromRect(event, resizerRect);
+      if (!direction) return;
+
+      const target = event.target;
+      const isEditorImage = target?.closest?.('.ql-editor img');
+      const isOverlay = resizerOverlayRef.current?.contains(target);
+      if (!isEditorImage && !isOverlay) return;
+
+      handleResizeStart(event, direction);
+    };
+
+    document.addEventListener('pointerdown', startResizeFromDocument, true);
+    document.addEventListener('mousedown', startResizeFromDocument, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', startResizeFromDocument, true);
+      document.removeEventListener('mousedown', startResizeFromDocument, true);
+    };
+  }, [getDirectionFromRect, handleResizeStart, resizerRect]);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    const startResizeFromSelectedImageCorner = (event) => {
+      if (resizeDragRef.current) return;
+      const img = getActiveImage();
+      if (!img || !img.isConnected) return;
+
+      const rect = img.getBoundingClientRect();
+      const direction = getDirectionFromRect(event, rect);
+      if (!direction) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      handleResizeStart(event, direction, img);
+    };
+
+    document.addEventListener('pointerdown', startResizeFromSelectedImageCorner, true);
+    document.addEventListener('mousedown', startResizeFromSelectedImageCorner, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', startResizeFromSelectedImageCorner, true);
+      document.removeEventListener('mousedown', startResizeFromSelectedImageCorner, true);
+    };
+  }, [getActiveImage, getDirectionFromRect, handleResizeStart, isReady]);
 
   const getImageResizeDirection = useCallback((event, img) => {
     const rect = img.getBoundingClientRect();
@@ -2058,7 +2216,7 @@ const QuillWrapper = forwardRef(({
 
       const direction = getImageResizeDirection(event, img);
       if (direction) {
-        handleResizeStart(event, direction, img);
+        handleResizeStart(event.nativeEvent || event, direction, img);
         return;
       }
 
@@ -3656,6 +3814,7 @@ const QuillWrapper = forwardRef(({
         <div
           ref={resizerOverlayRef}
           className="fixed"
+          draggable={false}
           style={{
             top: resizerRect.top,
             left: resizerRect.left,
@@ -3664,14 +3823,17 @@ const QuillWrapper = forwardRef(({
             border: '2px solid #1A94FF',
             boxShadow: '0 0 10px rgba(26, 148, 255, 0.3)',
             pointerEvents: 'auto',
+            touchAction: 'none',
+            userSelect: 'none',
             zIndex: 10000,
           }}
           onClick={(e) => e.stopPropagation()}
+          onDragStart={(e) => e.preventDefault()}
           onPointerDown={(e) => {
             if (e.target !== e.currentTarget) return;
             const direction = getOverlayResizeDirection(e);
             if (direction) {
-              handleResizeStart(e, direction);
+              handleResizeStart(e.nativeEvent || e, direction);
             } else {
               e.stopPropagation();
             }
@@ -3680,7 +3842,7 @@ const QuillWrapper = forwardRef(({
             if (e.target !== e.currentTarget) return;
             const direction = getOverlayResizeDirection(e);
             if (direction) {
-              handleResizeStart(e, direction);
+              handleResizeStart(e.nativeEvent || e, direction);
             } else {
               e.stopPropagation();
             }
@@ -3759,12 +3921,14 @@ const QuillWrapper = forwardRef(({
               key={handle.dir}
               data-dir={handle.dir}
               className="resizer-handle"
+              draggable={false}
               style={{ ...handle.style, cursor: handle.cursor, pointerEvents: 'auto' }}
+              onDragStart={(e) => e.preventDefault()}
               onPointerDown={(e) => {
-                handleResizeStart(e, handle.dir);
+                handleResizeStart(e.nativeEvent || e, handle.dir);
               }}
               onMouseDown={(e) => {
-                handleResizeStart(e, handle.dir);
+                handleResizeStart(e.nativeEvent || e, handle.dir);
               }}
             />
           ))}
