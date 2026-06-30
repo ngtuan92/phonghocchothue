@@ -224,7 +224,7 @@ const IMAGE_RECOMMENDATIONS = {
   "logo-page-detail": "Khuyên dùng: 200x200px (Tỉ lệ 1:1, dạng vuông/tròn)",
   "icon-goc": "Khuyên dùng: 64x64px hoặc 128x128px (Dạng icon)",
   "bgTitle": "Khuyên dùng: Chiều rộng 500px (Tự động chỉnh chiều cao theo tỉ lệ gốc của ảnh)",
-  "describe-frame-image": "Khuyên dùng: 1200x415px (Tỉ lệ ~ 2.88:1, Khung nền chính trên Desktop)",
+  "describe-frame-image": "Khuyên dùng: 1200x400px (Tỉ lệ ~ 3:1, Khung nền chính trên Desktop)",
   "describe-frame-image-mobile": "Khuyên dùng: 450x245px (Tỉ lệ ~ 1.83:1, Khung nền chính trên Mobile)",
   "nurseryImg": "Khuyên dùng: 1920x450px hoặc 1920x600px (Ảnh banner rộng)",
   "background": "Khuyên dùng: 1920x1080px (Ảnh nền trang web)",

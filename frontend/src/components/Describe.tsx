@@ -140,7 +140,7 @@ const Describe = () => {
                     <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[4px] md:-translate-y-[5px] lg:-translate-y-[6px]">
                         {describeFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[260px] md:h-[345px] lg:h-[440px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
                                 <img
