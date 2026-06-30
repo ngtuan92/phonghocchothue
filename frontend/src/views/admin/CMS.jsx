@@ -74,83 +74,102 @@ const getPlainText = (html) => {
     .trim();
 };
 
-const LazyQuillWrapper = React.forwardRef(({ minHeight = "120px", ...props }, ref) => {
-  const containerRef = useRef(null);
-  const cancelQueuedMountRef = useRef(null);
-  const [shouldRender, setShouldRender] = useState(false);
+const LazyQuillWrapper = React.memo(
+  React.forwardRef(({ minHeight = "120px", ...props }, ref) => {
+    const containerRef = useRef(null);
+    const cancelQueuedMountRef = useRef(null);
+    const [shouldRender, setShouldRender] = useState(false);
 
-  useEffect(() => {
-    if (shouldRender) return;
-    const node = containerRef.current;
-    if (!node || typeof window === "undefined") return;
+    useEffect(() => {
+      if (shouldRender) return;
+      const node = containerRef.current;
+      if (!node || typeof window === "undefined") return;
 
-    const renderNow = () => {
-      if (cancelQueuedMountRef.current) return;
-      cancelQueuedMountRef.current = enqueueQuillMount(() => {
-        setShouldRender(true);
-      });
-    };
+      const renderNow = () => {
+        if (cancelQueuedMountRef.current) return;
+        cancelQueuedMountRef.current = enqueueQuillMount(() => {
+          setShouldRender(true);
+        });
+      };
 
-    const frameId = window.requestAnimationFrame(() => {
-      const rect = node.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      if (rect.top < viewportHeight + 200 && rect.bottom > -200) {
-        renderNow();
-      }
-    });
-
-    if (!("IntersectionObserver" in window)) {
-      renderNow();
-      return () => window.cancelAnimationFrame(frameId);
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+      const frameId = window.requestAnimationFrame(() => {
+        const rect = node.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        if (rect.top < viewportHeight + 200 && rect.bottom > -200) {
           renderNow();
-          observer.disconnect();
         }
-      },
-      { root: null, rootMargin: "200px 0px", threshold: 0.01 }
+      });
+
+      if (!("IntersectionObserver" in window)) {
+        renderNow();
+        return () => window.cancelAnimationFrame(frameId);
+      }
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            renderNow();
+            observer.disconnect();
+          }
+        },
+        { root: null, rootMargin: "200px 0px", threshold: 0.01 }
+      );
+
+      observer.observe(node);
+      return () => {
+        observer.disconnect();
+        window.cancelAnimationFrame(frameId);
+        cancelQueuedMountRef.current?.();
+        cancelQueuedMountRef.current = null;
+      };
+    }, [shouldRender]);
+
+    const previewText = getPlainText(props.value);
+
+    return (
+      <div ref={containerRef}>
+        {shouldRender ? (
+          <QuillWrapper ref={ref} minHeight={minHeight} {...props} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              if (cancelQueuedMountRef.current) return;
+              cancelQueuedMountRef.current = enqueueQuillMount(() => {
+                setShouldRender(true);
+              });
+            }}
+            className="block w-full rounded-xl border border-gray-100 bg-gray-50/70 p-4 text-left text-sm text-navy-700 transition-colors hover:border-primary/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+            style={{ minHeight }}
+          >
+            {previewText ? (
+              <span className="line-clamp-4">{previewText}</span>
+            ) : (
+              <span className="text-gray-400">{props.placeholder || "Nhập nội dung..."}</span>
+            )}
+          </button>
+        )}
+      </div>
     );
-
-    observer.observe(node);
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(frameId);
-      cancelQueuedMountRef.current?.();
-      cancelQueuedMountRef.current = null;
-    };
-  }, [shouldRender]);
-
-  const previewText = getPlainText(props.value);
-
-  return (
-    <div ref={containerRef}>
-      {shouldRender ? (
-        <QuillWrapper ref={ref} minHeight={minHeight} {...props} />
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            if (cancelQueuedMountRef.current) return;
-            cancelQueuedMountRef.current = enqueueQuillMount(() => {
-              setShouldRender(true);
-            });
-          }}
-          className="block w-full rounded-xl border border-gray-100 bg-gray-50/70 p-4 text-left text-sm text-navy-700 transition-colors hover:border-primary/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-          style={{ minHeight }}
-        >
-          {previewText ? (
-            <span className="line-clamp-4">{previewText}</span>
-          ) : (
-            <span className="text-gray-400">{props.placeholder || "Nhập nội dung..."}</span>
-          )}
-        </button>
-      )}
-    </div>
-  );
-});
+  }),
+  (prevProps, nextProps) => {
+    return (
+      prevProps.value === nextProps.value &&
+      prevProps.lineHeight === nextProps.lineHeight &&
+      prevProps.lineHeightMobile === nextProps.lineHeightMobile &&
+      prevProps.fontSize === nextProps.fontSize &&
+      prevProps.fontSizeMobile === nextProps.fontSizeMobile &&
+      prevProps.translateY === nextProps.translateY &&
+      prevProps.translateYMobile === nextProps.translateYMobile &&
+      prevProps.className === nextProps.className &&
+      prevProps.editorClassName === nextProps.editorClassName &&
+      prevProps.placeholder === nextProps.placeholder &&
+      prevProps.minHeight === nextProps.minHeight &&
+      prevProps.hasResponsiveFontSize === nextProps.hasResponsiveFontSize &&
+      prevProps.theme === nextProps.theme
+    );
+  }
+);
 
 LazyQuillWrapper.displayName = "LazyQuillWrapper";
 LazyQuillWrapper.propTypes = {

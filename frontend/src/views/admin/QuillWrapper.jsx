@@ -3768,4 +3768,24 @@ const QuillWrapper = forwardRef(({
 });
 
 QuillWrapper.displayName = "QuillWrapper";
-export default QuillWrapper;
+
+const MemoizedQuillWrapper = React.memo(QuillWrapper, (prevProps, nextProps) => {
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.lineHeight === nextProps.lineHeight &&
+    prevProps.lineHeightMobile === nextProps.lineHeightMobile &&
+    prevProps.fontSize === nextProps.fontSize &&
+    prevProps.fontSizeMobile === nextProps.fontSizeMobile &&
+    prevProps.translateY === nextProps.translateY &&
+    prevProps.translateYMobile === nextProps.translateYMobile &&
+    prevProps.className === nextProps.className &&
+    prevProps.editorClassName === nextProps.editorClassName &&
+    prevProps.placeholder === nextProps.placeholder &&
+    prevProps.minHeight === nextProps.minHeight &&
+    prevProps.hasResponsiveFontSize === nextProps.hasResponsiveFontSize &&
+    prevProps.theme === nextProps.theme
+  );
+});
+
+MemoizedQuillWrapper.displayName = "MemoizedQuillWrapper";
+export default MemoizedQuillWrapper;
