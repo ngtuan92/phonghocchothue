@@ -140,14 +140,14 @@ const Describe = () => {
                     <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[4px] md:-translate-y-[5px] lg:-translate-y-[6px]">
                         {describeFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] bottom-[-8px] md:bottom-[-10px] lg:bottom-[-12px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[260px] md:h-[345px] lg:h-[440px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
                                 <img
                                     src={buildUrl(describeFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100"
-                                    style={{ borderRadius: frameBorderRadius }}
+                                    className="w-full h-full object-contain opacity-100"
+                                    style={{ borderRadius: frameBorderRadius, objectPosition: "center top" }}
                                 />
                             </div>
                         )}
@@ -214,13 +214,13 @@ const Describe = () => {
                     <div className="relative w-full flex flex-col items-center">
                         {activeMobileFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[38px] bottom-[5px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="absolute z-[-1] top-[38px] h-[280px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
                                     src={buildUrl(activeMobileFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-contain object-top opacity-100"
+                                    className="w-full h-full object-contain opacity-100"
                                     style={{ borderRadius: activeMobileFrameRadius, objectPosition: "center top" }}
                                 />
                             </div>
@@ -315,9 +315,8 @@ const Describe = () => {
 
                     <div className="md:col-span-6 w-full flex justify-center relative">
                         <div
-                            className={`w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden ${
-                                galleryRadius !== "0px" ? "shadow-sm border-2 border-red-500" : ""
-                            }`}
+                            className={`w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden ${galleryRadius !== "0px" ? "shadow-sm border-2 border-red-500" : ""
+                                }`}
                             style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}
                         >
                             <Fade

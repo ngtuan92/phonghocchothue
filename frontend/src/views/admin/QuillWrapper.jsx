@@ -1840,39 +1840,48 @@ const QuillWrapper = forwardRef(({
     const img = getActiveImage();
     if (!img) return;
 
-    const startX = e.clientX;
+    e.currentTarget?.setPointerCapture?.(e.pointerId);
 
-    // Use getBoundingClientRect().width to get the rendered width (including borders for border-box sizing)
     const initialRect = img.getBoundingClientRect();
     const startWidth = initialRect.width;
-    const containerWidth = containerRef.current.clientWidth;
-
+    const editor = containerRef.current?.querySelector('.ql-editor');
+    const editorRect = editor?.getBoundingClientRect();
+    const maxWidth = Math.max(80, editorRect?.width || containerRef.current?.clientWidth || startWidth);
+    const minWidth = Math.min(80, maxWidth);
+    const startX = e.clientX;
     const isRight = direction.includes('right');
-
-    // Keep track of the active width to avoid reading clientWidth (which excludes border widths under border-box)
     let currentWidth = startWidth;
 
-    const onMouseMove = (moveEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      let newWidth = isRight ? startWidth + deltaX : startWidth - deltaX;
-      newWidth = Math.max(50, Math.min(newWidth, containerWidth));
+    document.body.style.cursor = direction.includes('right') === direction.includes('top') ? 'nesw-resize' : 'nwse-resize';
+    document.body.style.userSelect = 'none';
+    img.style.setProperty('height', 'auto', 'important');
 
-      currentWidth = newWidth;
-
-      img.style.width = `${newWidth}px`;
-      img.style.height = 'auto';
+    const applyWidth = (width) => {
+      currentWidth = Math.max(minWidth, Math.min(width, maxWidth));
+      img.style.setProperty('width', `${currentWidth}px`, 'important');
+      img.setAttribute('width', `${Math.round(currentWidth)}px`);
       positionResizerDirectly();
       positionCaptionsDirectly();
     };
 
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+    const onPointerMove = (moveEvent) => {
+      moveEvent.preventDefault();
+      const deltaX = moveEvent.clientX - startX;
+      applyWidth(isRight ? startWidth + deltaX : startWidth - deltaX);
+    };
 
-      const percentageWidth = Math.round((currentWidth / containerWidth) * 100);
+    const onPointerUp = () => {
+      document.removeEventListener('pointermove', onPointerMove, true);
+      document.removeEventListener('pointerup', onPointerUp, true);
+      document.removeEventListener('pointercancel', onPointerUp, true);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+
+      const percentageWidth = Math.round((currentWidth / maxWidth) * 100);
       const widthValue = percentageWidth >= 95 ? "100%" : `${Math.round(currentWidth)}px`;
 
-      img.style.width = widthValue;
+      img.style.setProperty('width', widthValue, 'important');
+      img.style.setProperty('height', 'auto', 'important');
       img.setAttribute('width', widthValue);
 
       const quill = editorRef.current?.getEditor();
@@ -1885,9 +1894,46 @@ const QuillWrapper = forwardRef(({
       positionResizerDirectly();
     };
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('pointermove', onPointerMove, true);
+    document.addEventListener('pointerup', onPointerUp, true);
+    document.addEventListener('pointercancel', onPointerUp, true);
   };
+
+  useEffect(() => {
+    const overlay = resizerOverlayRef.current;
+    if (!overlay || !resizerRect) return;
+
+    const getDirectionFromPointer = (event) => {
+      const handle = event.target?.closest?.('.resizer-handle');
+      if (handle && overlay.contains(handle)) return handle.dataset.dir;
+
+      const rect = overlay.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const hit = 34;
+      const nearLeft = x <= hit;
+      const nearRight = rect.width - x <= hit;
+      const nearTop = y <= hit;
+      const nearBottom = rect.height - y <= hit;
+
+      if (nearLeft && nearTop) return 'top-left';
+      if (nearRight && nearTop) return 'top-right';
+      if (nearLeft && nearBottom) return 'bottom-left';
+      if (nearRight && nearBottom) return 'bottom-right';
+      return null;
+    };
+
+    const handlePointerDown = (event) => {
+      const direction = getDirectionFromPointer(event);
+      if (!direction) return;
+      handleResizeStart(event, direction);
+    };
+
+    overlay.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      overlay.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [resizerRect, selectedImage]);
 
   const handleImageWrap = useCallback((mode) => {
     const img = getActiveImage();
@@ -3121,6 +3167,7 @@ const QuillWrapper = forwardRef(({
           pointer-events: auto;
           box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           z-index: 2001;
+          touch-action: none;
           transition: transform 0.15s ease, background 0.15s ease;
         }
         .resizer-handle:hover {
@@ -3504,13 +3551,9 @@ const QuillWrapper = forwardRef(({
           ].map((handle) => (
             <div
               key={handle.dir}
+              data-dir={handle.dir}
               className="resizer-handle"
               style={{ ...handle.style, cursor: handle.cursor, pointerEvents: 'auto' }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleResizeStart(e, handle.dir);
-              }}
             />
           ))}
         </div>
