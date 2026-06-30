@@ -214,7 +214,7 @@ const Describe = () => {
                     <div className="relative w-full flex flex-col items-center">
                         {activeMobileFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[38px] h-[245px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="absolute z-[-1] top-[38px] h-[230px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
