@@ -288,8 +288,8 @@ const getImagePreviewStyle = (key) => {
       return {
         wrapperClass: "w-full border border-gray-100 bg-transparent",
         imgClass: "w-full h-full object-fill block",
-        aspectRatio: "2.25/1",
-        maxWidth: "400px",
+        aspectRatio: "420/310",
+        maxWidth: "420px",
       };
     case "describe-h2-image":
       return {
