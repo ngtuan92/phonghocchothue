@@ -88,11 +88,11 @@ const ProductCard = ({ product }: { product?: Product }) => {
           nextEl: ".swiper-button-next-custom",
           prevEl: ".swiper-button-prev-custom",
         }}
-        autoplay={{
+        autoplay={products && products.length > 4 ? {
           delay: 5000,
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
-        }}
+        } : false}
         breakpoints={{
           320: { slidesPerView: 1, spaceBetween: 10 },
           480: { slidesPerView: 1.2, spaceBetween: 10 },

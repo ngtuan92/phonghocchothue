@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay, Grid } from "swiper/modules";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Image from "next/image";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import { useSliders } from "@/hooks/api/useSlider";
@@ -11,7 +11,6 @@ import RichTextRenderer from "./RichTextRenderer";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import "swiper/css/grid";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -31,6 +30,16 @@ const Gallery: React.FC = () => {
   const { data: sliderData = [] } = useSliders("spaces");
 
   const desktopSwiperRef = React.useRef<any>(null);
+
+  // Helper to chunk array for 2 rows layout (without using Swiper Grid module which crashes React DOM on unmount)
+  const chunkArray = (arr: any[], size: number) => {
+    const chunked = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunked.push(arr.slice(i, i + size));
+    }
+    return chunked;
+  };
+  const desktopChunks = chunkArray(sliderData, 2);
 
   const handleDesktopPrev = () => {
     if (desktopSwiperRef.current) {
@@ -133,51 +142,51 @@ const Gallery: React.FC = () => {
             <div className="relative group/gallery w-full md:px-10 lg:px-0 aspect-[3/2] lg:aspect-[1100/491]">
               <div className="w-full h-full hidden lg:block">
                 <Swiper
-                  modules={[Navigation, Pagination, Autoplay, Grid]}
-                  grid={{
-                    rows: 2,
-                    fill: "row",
-                  }}
+                  modules={[Navigation, Pagination, Autoplay]}
                   spaceBetween={20}
                   slidesPerView={3}
                   slidesPerGroup={3}
                   onSwiper={(swiper) => {
                     desktopSwiperRef.current = swiper;
                   }}
-                  autoplay={{ delay: 6000, disableOnInteraction: false }}
+                  autoplay={desktopChunks.length > 3 ? { delay: 6000, disableOnInteraction: false } : false}
                   loop={false}
                   observer={true}
                   observeParents={true}
                   className="w-full h-full gallery-swiper bg-transparent"
                   style={{ backgroundColor: "transparent" }}
                 >
-                  {sliderData.map((item: any, index: number) => {
-                    const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
-                    return (
-                      <SwiperSlide key={`desktop-${index}`} className="h-full lg:!h-[calc((100%-20px)/2)] bg-transparent" style={{ backgroundColor: "transparent" }}>
-                        <div
-                          className={`relative w-full h-full overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
-                            hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
-                          }`}
-                          style={{
-                            ['--mobile-radius' as any]: mobileImageBorderRadius,
-                            ['--desktop-radius' as any]: galleryRadius,
-                            backgroundColor: "transparent",
-                          }}
-                        >
-                          <Image
-                            src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
-                            alt={`Ảnh không gian ${index + 1}`}
-                            fill
-                            className="object-cover bg-transparent"
-                            sizes="33vw"
-                            quality={90}
-                            style={{ backgroundColor: "transparent" }}
-                          />
-                        </div>
-                      </SwiperSlide>
-                    );
-                  })}
+                  {desktopChunks.map((chunk: any[], chunkIndex: number) => (
+                    <SwiperSlide key={`desktop-chunk-${chunkIndex}`} className="h-full flex flex-col justify-between gap-[20px] bg-transparent" style={{ backgroundColor: "transparent" }}>
+                      {chunk.map((item: any, itemIndex: number) => {
+                        const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
+                        const globalIndex = chunkIndex * 2 + itemIndex;
+                        return (
+                          <div
+                            key={`desktop-item-${itemIndex}`}
+                            className={`relative w-full h-[calc((100%-20px)/2)] overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
+                              hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
+                            }`}
+                            style={{
+                              ['--mobile-radius' as any]: mobileImageBorderRadius,
+                              ['--desktop-radius' as any]: galleryRadius,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            <Image
+                              src={`${URL_API}${item.image.replace(/\\/g, "/")}`}
+                              alt={`Ảnh không gian ${globalIndex + 1}`}
+                              fill
+                              className="object-cover bg-transparent"
+                              sizes="33vw"
+                              quality={90}
+                              style={{ backgroundColor: "transparent" }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </SwiperSlide>
+                  ))}
                 </Swiper>
               </div>
 
@@ -192,7 +201,7 @@ const Gallery: React.FC = () => {
                     nextEl: ".gallery-mobile-next",
                     prevEl: ".gallery-mobile-prev",
                   }}
-                  autoplay={{ delay: 6000, disableOnInteraction: false }}
+                  autoplay={sliderData.length > 1 ? { delay: 6000, disableOnInteraction: false } : false}
                   loop={sliderData && sliderData.length > 1}
                   observer={true}
                   observeParents={true}

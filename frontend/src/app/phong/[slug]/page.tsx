@@ -866,18 +866,6 @@ export default function DetailPage() {
                    .ckeditor-content img {
                     height: auto !important;
                   }
-                  .room-detail-content img {
-                    display: block !important;
-                    margin-left: 0 !important;
-                    margin-right: auto !important;
-                    float: none !important;
-                  }
-                  .room-detail-content .image-wrapper {
-                    margin-left: 0 !important;
-                    margin-right: auto !important;
-                    display: block !important;
-                    float: none !important;
-                  }
                 }
               `
             }} />

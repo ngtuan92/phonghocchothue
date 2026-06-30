@@ -67,8 +67,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     let processedHtml = preserveNbsp ? sanitized : sanitized.replace(/&nbsp;/g, " ");
 
-    processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)\s*<\/\1>/gi, "$3");
-    processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)\s*<\/\1>/gi, "$3");
+    processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
+    processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
 
     processedHtml = processedHtml.replace(/<img([^>]*?)src=["']([^"']+?)["']/gi, (match: string, attributes: string, src: string) => {
       let resolvedSrc = src;

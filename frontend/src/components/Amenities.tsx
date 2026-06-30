@@ -38,10 +38,10 @@ const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: st
         fadeEffect={{ crossFade: true }}
         slidesPerView={1}
         loop={data && data.length > 1}
-        autoplay={{
+        autoplay={data && data.length > 1 ? {
           delay: 4000,
           disableOnInteraction: false,
-        }}
+        } : false}
         className="w-full h-full bg-transparent"
         style={{ backgroundColor: "transparent" }}
       >

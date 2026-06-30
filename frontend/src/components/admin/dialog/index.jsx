@@ -726,7 +726,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                    value={roomDescription}
                    onChange={(val) => setIfChanged(setRoomDescription, val)}
                    placeholder="Nhập mô tả ngắn về phòng..."
-                   disableImageWrap={true}
                    lineHeight={roomLineHeight}
                    lineHeightMobile={roomLineHeightMobile}
                    fontSize={roomFontSize}
