@@ -137,10 +137,10 @@ const Describe = () => {
         <div className="mb-[64px] sm:mb-36 main-container overflow-x-hidden">
             <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
-                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[30px] md:-translate-y-[45px] lg:-translate-y-[60px]">
+                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[60px] md:-translate-y-[45px] lg:-translate-y-[30px]">
                         {describeFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] aspect-[3/1] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
                                 <img
@@ -214,7 +214,7 @@ const Describe = () => {
                     <div className="relative w-full flex flex-col items-center -translate-y-[30px]">
                         {activeMobileFrameImage && (
                             <div
-                                className="absolute z-[-1] top-[38px] h-[310px] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] sm:max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img

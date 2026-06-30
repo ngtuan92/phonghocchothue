@@ -19,7 +19,7 @@ import {
 } from "react-icons/md";
 import dynamic from "next/dynamic";
 import PropTypes from "prop-types";
-import { Input, Textarea, Typography } from "@material-tailwind/react";
+import { Typography } from "@material-tailwind/react";
 import { handleInvalidToken } from "../../utils/helpers";
 import { showToastSuccess, showToastError } from "../../helpers/toast";
 import fetchData from "../../axios";
@@ -1130,7 +1130,7 @@ export default function CMS() {
 
             <div className="max-w-[200px]">
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bo góc (px)</label>
-              <Input
+              <input
                 type="text"
                 placeholder="Ví dụ: 8, 12, 20"
                 value={config.borderRadius || ""}
@@ -1140,8 +1140,7 @@ export default function CMS() {
                     prev.map((c) => (c.key === config.key ? { ...c, borderRadius: val } : c))
                   );
                 }}
-                className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700"
-                labelProps={{ className: "hidden" }}
+                className="w-full px-3 py-2 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -1178,7 +1177,7 @@ export default function CMS() {
           <div className="space-y-4">
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tên bài hát</label>
-              <Input
+              <input
                 type="text"
                 placeholder="Nhập tên bài hát..."
                 value={config.musicName || ""}
@@ -1188,8 +1187,7 @@ export default function CMS() {
                     prev.map((c) => (c.key === config.key ? { ...c, musicName: val } : c))
                   );
                 }}
-                className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700 bg-white"
-                labelProps={{ className: "hidden" }}
+                className="w-full px-3 py-2 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
               />
             </div>
             <div>
@@ -1236,23 +1234,21 @@ export default function CMS() {
 
     if (config.type === "text") {
       return (
-        <Input
+        <input
           type="text"
           value={config.content || ""}
           onChange={(e) => onContentChange(e.target.value)}
-          className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700 bg-white"
-          labelProps={{ className: "hidden" }}
+          className="w-full px-4 py-2.5 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
         />
       );
     }
 
     return (
-      <Textarea
+      <textarea
         value={config.content || ""}
         onChange={(e) => onContentChange(e.target.value)}
         rows={5}
-        className="!border-gray-100 focus:!border-primary !rounded-xl text-navy-700"
-        labelProps={{ className: "hidden" }}
+        className="w-full px-4 py-2.5 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
       />
     );
   };

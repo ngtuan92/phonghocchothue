@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Input, Textarea, Typography, Button } from "@material-tailwind/react";
+import { Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 import Cropper from "react-easy-crop";
 import { showToastError } from "@/helpers/toast";
@@ -355,16 +355,17 @@ export default function BlogForm({ data, onSave, onCancel }) {
                         variant="outlined" 
                         className="rounded-xl border-gray-300 text-gray-700 font-bold px-4"
                         onClick={() => setIsAddingNew(true)}
+                        type="button"
                       >
                         + Mới
                       </Button>
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <Input
+                      <input
+                        type="text"
                         placeholder="Nhập chuyên mục mới..."
-                        className="!border-gray-300 focus:!border-primary !bg-white"
-                        labelProps={{ className: "hidden" }}
+                        className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         autoFocus
@@ -374,6 +375,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                         variant="text" 
                         className="rounded-xl text-red-500 font-bold px-4"
                         onClick={() => setIsAddingNew(false)}
+                        type="button"
                       >
                         Hủy
                       </Button>
@@ -479,11 +481,10 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     Tên tác giả
                   </Typography>
                 </div>
-                <Input
-                  size="md"
+                <input
+                  type="text"
                   placeholder="Hoa Học Trò"
-                  className="!border-gray-300 focus:!border-primary !bg-white text-foreground font-medium"
-                  labelProps={{ className: "hidden" }}
+                  className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
                   value={formData.authorName}
                   onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
                 />

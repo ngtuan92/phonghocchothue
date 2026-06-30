@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import Modal from "@/components/admin/Modal";
-import { Input, Button } from "@material-tailwind/react";
+import { Button } from "@material-tailwind/react";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
@@ -204,12 +204,16 @@ if (typeof window !== "undefined" && Quill) {
     const borderRadiusAttributor = new StyleAttributor("borderRadius", "border-radius", {
       scope: Parchment.Scope.INLINE
     });
+    const widthAttributor = new StyleAttributor("width", "width", {
+      scope: Parchment.Scope.INLINE
+    });
 
     Quill.register(altAttributor, true);
     Quill.register(titleAttributor, true);
     Quill.register(captionAttributor, true);
     Quill.register(wrapAttributor, true);
     Quill.register(borderRadiusAttributor, true);
+    Quill.register(widthAttributor, true);
   }
 
 
@@ -407,6 +411,7 @@ const QuillWrapper = forwardRef(({
   const editorRef = useRef(null);
   const containerRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const [syncTrigger, setSyncTrigger] = useState(false);
   const [showSpacingPopup, setShowSpacingPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [showFontSizePopup, setShowFontSizePopup] = useState(false);
@@ -424,11 +429,12 @@ const QuillWrapper = forwardRef(({
   const [resizerRect, setResizerRect] = useState(null);
   const resizerOverlayRef = useRef(null);
   const resizeDragRef = useRef(false);
-  const containerClickRef = useRef(null);
+  const imageResizeSessionRef = useRef(null);
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
   const lastRelativeContentRef = useRef("");
-
+  const localEditorHtmlRef = useRef(null);
+  const isUserEditingRef = useRef(false);
   const getImageWrapMode = useCallback((mode) => {
     if (mode === 'right') return 'right';
     if (mode === 'center' || mode === 'none' || !mode) return 'none';
@@ -457,6 +463,16 @@ const QuillWrapper = forwardRef(({
     setSelectedImage((prev) => (prev === nextImage ? prev : nextImage));
     setImageWrapMode((prev) => (prev === nextWrap ? prev : nextWrap));
   }, []);
+
+  const enterImageEditMode = useCallback((img, quill) => {
+    rememberSelectedImage(img);
+    if (!quill) return;
+    try {
+      quill.setSelection(null, 'silent');
+      quill.blur();
+    } catch { /* ignore */ }
+
+  }, [rememberSelectedImage]);
 
   const getActiveImage = useCallback(() => {
     const editor = containerRef.current?.querySelector('.ql-editor');
@@ -583,20 +599,21 @@ const QuillWrapper = forwardRef(({
         } else {
           resizer.style.display = width === 0 || height === 0 ? 'none' : 'block';
         }
-      } catch (e) { }
+      } catch { /* ignore */ }
     }
   }, []);
 
   const syncSelectedImageRect = useCallback(() => {
     let img = selectedImageRef.current;
-    if (!img || !containerRef.current) {
+    const container = containerRef.current;
+    if (!img || !container) {
       setResizerRect((prev) => (prev === null ? prev : null));
       return;
     }
 
     if (!img.isConnected) {
       const src = img.getAttribute('src');
-      const editor = containerRef.current.querySelector('.ql-editor');
+      const editor = container.querySelector('.ql-editor');
       const nextImg = src && editor
         ? Array.from(editor.querySelectorAll('img')).find(i => i.getAttribute('src') === src)
         : null;
@@ -614,7 +631,7 @@ const QuillWrapper = forwardRef(({
 
     try {
       const imgRect = img.getBoundingClientRect();
-      const editor = containerRef.current.querySelector('.ql-editor');
+      const editor = container.querySelector('.ql-editor');
       const editorRect = editor?.getBoundingClientRect();
       const isOutside = editorRect && (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
 
@@ -637,7 +654,7 @@ const QuillWrapper = forwardRef(({
             : nextRect
         ));
       }
-    } catch (e) {
+    } catch {
       setResizerRect((prev) => (prev === null ? prev : null));
     }
   }, []);
@@ -657,10 +674,13 @@ const QuillWrapper = forwardRef(({
         selection = { index: 0, length: 0 };
       }
       format = selection ? quill.getFormat(selection) : {};
-    } catch (e) { }
+    } catch { /* ignore */ }
 
     const size = format.size;
-    const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+    const container = containerRef.current;
+    if (!container) return;
+
+    const sizePickers = container.querySelectorAll('.ql-size.ql-picker');
     sizePickers.forEach(picker => {
       const label = picker.querySelector('.ql-picker-label');
       if (!label) return;
@@ -696,16 +716,16 @@ const QuillWrapper = forwardRef(({
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
 
-    // ── Giữ highlight selection khi click toolbar (như Word/Google Docs) ──
+    // Keep highlight selection when clicking toolbar.
     const container = containerRef.current;
 
     const handleMousedown = (e) => {
       const toolbar = container.querySelector('.ql-toolbar');
       if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
-        // Không block các input/textarea bên trong toolbar (search font, size input...)
+        // Do not block inputs/textareas inside toolbar.
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-        // Cho phép cuộn các danh sách dropdown khi kéo thanh cuộn
+        // Allow scrolling dropdown lists when dragging their scrollbar.
         const isScrollbarClick = e.target.scrollHeight > e.target.clientHeight && e.offsetX > e.target.clientWidth;
         if (isScrollbarClick) return;
 
@@ -716,7 +736,7 @@ const QuillWrapper = forwardRef(({
             savedSelectionRef.current = sel;
           }
         }
-        // Ngăn editor mất focus khi click toolbar
+        // Prevent editor from losing focus when clicking toolbar.
         e.preventDefault();
       }
     };
@@ -730,12 +750,12 @@ const QuillWrapper = forwardRef(({
         if (quillInstance) {
           const saved = savedSelectionRef.current;
           if (saved) {
-            // Đợi Quill xử lý format xong rồi mới restore
+            // Wait for Quill to apply the format before restoring selection.
             setTimeout(() => {
               try {
                 quillInstance.focus();
                 quillInstance.setSelection(saved.index, saved.length);
-              } catch (e2) { }
+              } catch { /* ignore */ }
             }, 0);
           }
         }
@@ -762,7 +782,7 @@ const QuillWrapper = forwardRef(({
           setTimeout(() => {
             try {
               toolbar.update(null);
-            } catch (e) { }
+            } catch { /* ignore */ }
           }, 10);
         }
       });
@@ -801,7 +821,7 @@ const QuillWrapper = forwardRef(({
       if (toolbar) {
         try {
           toolbar.update(null);
-        } catch (e) { }
+        } catch { /* ignore */ }
       }
     }, 100);
 
@@ -830,7 +850,7 @@ const QuillWrapper = forwardRef(({
         if (!picker.querySelector('.font-search-wrapper')) {
           const wrapper = document.createElement('div');
           wrapper.className = 'font-search-wrapper';
-          wrapper.innerHTML = '<input type="text" placeholder="Tìm kiếm font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
+          wrapper.innerHTML = '<input type="text" placeholder="Search font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
           wrapper.style.padding = '8px';
           wrapper.style.position = 'sticky';
           wrapper.style.top = '0';
@@ -875,7 +895,10 @@ const QuillWrapper = forwardRef(({
     if (!isReady || !containerRef.current) return;
 
     const initDropdown = () => {
-      const toolbar = containerRef.current.querySelector('.ql-toolbar');
+      const container = containerRef.current;
+      if (!container) return;
+
+      const toolbar = container.querySelector('.ql-toolbar');
       if (!toolbar) return;
 
       const formats = Array.from(toolbar.children).filter(el => el.classList.contains('ql-formats'));
@@ -931,19 +954,19 @@ const QuillWrapper = forwardRef(({
     getEditor: () => {
       try {
         return editorRef.current?.getEditor();
-      } catch (e) {
+      } catch {
         return null;
       }
     },
     focus: () => {
       try {
         editorRef.current?.focus();
-      } catch (e) { }
+      } catch { /* ignore */ }
     },
     blur: () => {
       try {
         editorRef.current?.blur();
-      } catch (e) { }
+      } catch { /* ignore */ }
     },
   }));
 
@@ -1049,6 +1072,7 @@ const QuillWrapper = forwardRef(({
 
   const hasLineHeight = !!onChangeLineHeight;
   const hasTranslateY = !!onChangeTranslateY;
+  const isSimpleTextField = className.includes('describe-phone') || className.includes('describe-quote-text');
 
   useEffect(() => {
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
@@ -1085,88 +1109,47 @@ const QuillWrapper = forwardRef(({
     };
 
     // Run sync initially if the editor is already present
-    const qlEditor = containerRef.current.querySelector('.ql-editor');
+    const qlEditor = containerRef.current?.querySelector('.ql-editor');
+    if (!qlEditor) return;
     if (qlEditor) {
       syncEditorState(qlEditor);
     }
 
-    // Set up a unified MutationObserver on the stable containerRef to observe all subtree modifications and attributes
-    const observer = new MutationObserver(() => {
-      const activeEditor = containerRef.current?.querySelector('.ql-editor');
-      if (activeEditor) {
-        observer.disconnect();
-        syncEditorState(activeEditor);
-        observer.observe(containerRef.current, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['class', 'style']
-        });
-      }
-    });
-
-    observer.observe(containerRef.current, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'style']
-    });
-
-    // Also register Quill text/selection change listeners for high-frequency updates
-    let currentEditor = null;
-    const onTextChange = () => {
-      const activeEditor = containerRef.current?.querySelector('.ql-editor');
-      if (activeEditor) syncEditorState(activeEditor);
-    };
-    const onSelectionChange = () => {
-      const activeEditor = containerRef.current?.querySelector('.ql-editor');
-      if (activeEditor) syncEditorState(activeEditor);
-    };
-
-    const isSimpleField = className.includes('describe-phone') || className.includes('describe-quote-text');
+    const quill = editorRef.current?.getEditor();
     let handlePaste = null;
 
-    const quill = editorRef.current?.getEditor();
-    if (quill) {
-      quill.on('text-change', onTextChange);
-      quill.on('selection-change', onSelectionChange);
-      currentEditor = quill;
-
-      if (isSimpleField) {
-        handlePaste = (e) => {
-          e.preventDefault();
-          const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-          const range = quill.getSelection();
-          if (range) {
-            quill.insertText(range.index, text);
-            quill.setSelection(range.index + text.length);
-          } else {
-            quill.setText(text);
-          }
-        };
-        quill.root.addEventListener('paste', handlePaste);
-      }
+    if (isSimpleTextField && quill) {
+      handlePaste = (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+        const range = quill.getSelection();
+        if (range) {
+          quill.insertText(range.index, text);
+          quill.setSelection(range.index + text.length);
+        } else {
+          quill.setText(text);
+        }
+      };
+      quill.root.addEventListener('paste', handlePaste);
     }
 
     return () => {
-      observer.disconnect();
-      if (currentEditor) {
-        currentEditor.off('text-change', onTextChange);
-        currentEditor.off('selection-change', onSelectionChange);
-        if (handlePaste) {
-          try {
-            currentEditor.root.removeEventListener('paste', handlePaste);
-          } catch (err) {}
-        }
+      if (handlePaste && quill) {
+        try {
+          quill.root.removeEventListener('paste', handlePaste);
+        } catch { /* ignore */ }
       }
     };
-  }, [isReady, editorClassName, className]);
+  }, [isReady, editorClassName, isSimpleTextField]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
 
     const initSizeInput = () => {
-      const sizePickers = containerRef.current.querySelectorAll('.ql-size.ql-picker');
+      const container = containerRef.current;
+      if (!container) return;
+
+      const sizePickers = container.querySelectorAll('.ql-size.ql-picker');
       sizePickers.forEach(picker => {
         const label = picker.querySelector('.ql-picker-label');
         if (!label || label.getAttribute('data-input-initialized')) return;
@@ -1182,7 +1165,7 @@ const QuillWrapper = forwardRef(({
                 try {
                   const sel = quill.getSelection();
                   format = sel ? quill.getFormat(sel) : {};
-                } catch (e) { }
+                } catch { /* ignore */ }
                 const size = format.size;
                 if (size) {
                   const sizeVal = Array.isArray(size) ? size[0] : size;
@@ -1213,7 +1196,7 @@ const QuillWrapper = forwardRef(({
           try {
             const sel = quill.getSelection();
             format = sel ? quill.getFormat(sel) : {};
-          } catch (e) { }
+          } catch { /* ignore */ }
           if (format.size) {
             const sizeVal = Array.isArray(format.size) ? format.size[0] : format.size;
             if (typeof sizeVal === 'string') {
@@ -1257,7 +1240,7 @@ const QuillWrapper = forwardRef(({
           try {
             const sel = quill.getSelection();
             currentFormat = sel ? quill.getFormat(sel) : {};
-          } catch (e) { }
+          } catch { /* ignore */ }
           let currentSizeVal = '16';
           if (currentFormat && currentFormat.size) {
             currentSizeVal = currentFormat.size.replace('px', '');
@@ -1273,7 +1256,7 @@ const QuillWrapper = forwardRef(({
           const applySizeAndClose = () => {
             let val = input.value.trim();
             if (val) {
-              // Hỗ trợ cả số nguyên và số thập phân tự động thêm px (ví dụ: 15 hoặc 15.5)
+              // Supports integer and decimal values, then appends px automatically.
               if (/^\d+(\.\d+)?$/.test(val)) {
                 val = `${val}px`;
               }
@@ -1323,8 +1306,8 @@ const QuillWrapper = forwardRef(({
 
           wrapper.innerHTML = `
             <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
-              <input type="text" placeholder="Nhập cỡ..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; height: 26px; line-height: 26px; color: #333; background: #fff;" />
-              <span class="custom-size-dropdown-apply-btn" style="width: 26px; height: 26px; min-width: 26px; flex-shrink: 0; background: #799f85; color: #fff; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; line-height: 26px; text-align: center; font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s;" title="Áp dụng">✓</span>
+              <input type="text" placeholder="Size..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; height: 26px; line-height: 26px; color: #333; background: #fff;" />
+              <span class="custom-size-dropdown-apply-btn" style="width: 26px; height: 26px; min-width: 26px; flex-shrink: 0; background: #799f85; color: #fff; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; line-height: 26px; text-align: center; font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s;" title="Apply">OK</span>
             </div>
           `;
 
@@ -1382,7 +1365,7 @@ const QuillWrapper = forwardRef(({
               const sel = currentQuill.getSelection();
               currentFormat = sel ? currentQuill.getFormat(sel) : {};
             }
-          } catch (e) { }
+          } catch { /* ignore */ }
           if (currentFormat && currentFormat.size) {
             const cleanSize = typeof currentFormat.size === 'string' ? currentFormat.size.replace('px', '') : '';
             input.value = cleanSize;
@@ -1464,11 +1447,11 @@ const QuillWrapper = forwardRef(({
     if (!quill) return;
 
     if (img && quill.root.contains(img)) {
-      rememberSelectedImage(img);
+      enterImageEditMode(img, quill);
       return;
     }
 
-    // Clicked outside image — deselect
+    // Clicked outside image: deselect.
     if (selectedImageRef.current) {
       rememberSelectedImage(null);
       setTimeout(() => {
@@ -1476,7 +1459,7 @@ const QuillWrapper = forwardRef(({
         positionCaptionsDirectly();
       }, 50);
     }
-  }, [rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
+  }, [enterImageEditMode, rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
 
   const handleContainerDblClick = useCallback((ev) => {
     if (disableImageWrap) return; // Do not open image info pop-up on double click for rooms!
@@ -1524,11 +1507,13 @@ const QuillWrapper = forwardRef(({
   const handleOnChange = useCallback((content, delta, source, editor) => {
     if (props.onChange) {
       if (source !== 'user') return;
+      isUserEditingRef.current = true;
+      localEditorHtmlRef.current = content;
 
-      const escapedUrlApi = URL_API.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp(`src=["']${escapedUrlApi}(assets\/[^"']+)["']`, 'gi');
+      const escapedUrlApi = URL_API.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`src=["']${escapedUrlApi}(assets/[^"']+)["']`, 'gi');
       let relativeContent = content.replace(regex, 'src="/$1"');
-      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^\/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
+      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
       const shouldStripInlineFontSize = hasResponsive || className.includes('describe-phone') || className.includes('describe-quote-text');
       if (shouldStripInlineFontSize) {
@@ -1555,6 +1540,11 @@ const QuillWrapper = forwardRef(({
 
   const syncImageEditChange = useCallback((quill) => {
     if (!quill) return;
+    try {
+      quill.setSelection(null, 'silent');
+      quill.blur();
+    } catch { /* ignore */ }
+
     handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
   }, [handleOnChange]);
 
@@ -1694,7 +1684,7 @@ const QuillWrapper = forwardRef(({
               return;
             }
           }
-          showAlert("Vui lòng chọn một hình ảnh trước khi chỉnh sửa thuộc tính.");
+          showAlert("Please select an image before editing image properties.");
         },
         align: function (value) {
           const quill = this.quill;
@@ -1715,7 +1705,19 @@ const QuillWrapper = forwardRef(({
             return;
           }
 
-          quill.format('align', value);
+          const range = quill.getSelection() || savedSelectionRef.current;
+          if (range) {
+            try {
+              quill.setSelection(range.index, range.length, 'silent');
+            } catch { /* ignore */ }
+          }
+          quill.format('align', value, 'user');
+          window.setTimeout(() => {
+            try {
+              localEditorHtmlRef.current = quill.root.innerHTML;
+              handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+            } catch { /* ignore */ }
+          }, 0);
         },
         color: function (value) {
           if (value === 'custom-color') {
@@ -1731,7 +1733,7 @@ const QuillWrapper = forwardRef(({
               picker.style.pointerEvents = 'none';
               document.body.appendChild(picker);
             }
-            // Định vị input ẩn ngay dưới nút bấm để hộp thoại màu của trình duyệt mở đúng vị trí dưới nút màu
+            // Position hidden color input below the toolbar button.
             const expandedPicker = document.querySelector('.ql-color.ql-expanded');
             if (expandedPicker) {
               const rect = expandedPicker.getBoundingClientRect();
@@ -1764,7 +1766,7 @@ const QuillWrapper = forwardRef(({
               picker.style.pointerEvents = 'none';
               document.body.appendChild(picker);
             }
-            // Định vị input ẩn ngay dưới nút bấm để hộp thoại màu của trình duyệt mở đúng vị trí dưới nút màu
+            // Position hidden color input below the toolbar button.
             const expandedPicker = document.querySelector('.ql-background.ql-expanded');
             if (expandedPicker) {
               const rect = expandedPicker.getBoundingClientRect();
@@ -1794,6 +1796,7 @@ const QuillWrapper = forwardRef(({
     applyImageWrapDom,
     getActiveImage,
     syncImageEditChange,
+    handleOnChange,
     updateResizerRect,
     updateCaptionsList,
     positionCaptionsDirectly,
@@ -1839,71 +1842,89 @@ const QuillWrapper = forwardRef(({
           });
         }
       } else {
-        showAlert("Lỗi tải ảnh");
+        showAlert("Image upload failed");
       }
     } catch (error) {
       console.error(error);
-      showAlert("Lỗi kết nối");
+      showAlert("Connection failed");
     } finally {
       e.target.value = "";
     }
   };
 
-  const handleResizeStart = (e, direction, imageOverride = null) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleResizeStart = useCallback((event, direction, imageOverride = null) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (resizeDragRef.current) return;
-    const img = imageOverride || getActiveImage();
-    if (!img) return;
-    resizeDragRef.current = true;
 
-    const initialRect = img.getBoundingClientRect();
-    const startWidth = initialRect.width;
+    const img = imageOverride || getActiveImage() || selectedImage;
+    const quill = editorRef.current?.getEditor();
     const editor = containerRef.current?.querySelector('.ql-editor');
-    const editorRect = editor?.getBoundingClientRect();
-    const maxWidth = Math.max(80, editorRect?.width || containerRef.current?.clientWidth || startWidth);
-    const minWidth = Math.min(80, maxWidth);
-    const startX = e.clientX;
-    const isRight = direction.includes('right');
+    if (!img || !img.isConnected || !editor) return;
+
+    resizeDragRef.current = true;
+    enterImageEditMode(img, quill);
+
+    const startRect = img.getBoundingClientRect();
+    const editorRect = editor.getBoundingClientRect();
+    const minWidth = Math.min(24, Math.max(1, editorRect.width || startRect.width || 1));
+    const maxWidth = Math.max(minWidth, editorRect.width || containerRef.current?.clientWidth || startRect.width || minWidth);
+    const startWidth = Math.max(minWidth, Math.min(startRect.width || img.clientWidth || minWidth, maxWidth));
+    const startX = event.clientX;
+    const isLeftHandle = direction.includes('left');
+    const pointerId = event.pointerId;
+    const moveEventName = typeof pointerId === 'number' ? 'pointermove' : 'mousemove';
+    const endEventName = typeof pointerId === 'number' ? 'pointerup' : 'mouseup';
+    const previousCursor = document.body.style.cursor;
+    const previousUserSelect = document.body.style.userSelect;
     let currentWidth = startWidth;
+    let frameId = 0;
+    let didCommit = false;
 
-    document.body.style.cursor = direction.includes('right') === direction.includes('top') ? 'nesw-resize' : 'nwse-resize';
-    document.body.style.userSelect = 'none';
-    img.style.setProperty('height', 'auto', 'important');
-
-    const applyWidth = (width) => {
-      currentWidth = Math.max(minWidth, Math.min(width, maxWidth));
-      img.style.setProperty('width', `${currentWidth}px`, 'important');
-      img.setAttribute('width', `${Math.round(currentWidth)}px`);
-      positionResizerDirectly();
-      positionCaptionsDirectly();
+    const scheduleChromeSync = () => {
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        positionResizerDirectly();
+        positionCaptionsDirectly();
+      });
     };
 
-    const onDragMove = (moveEvent) => {
-      moveEvent.preventDefault();
-      const deltaX = moveEvent.clientX - startX;
-      applyWidth(isRight ? startWidth + deltaX : startWidth - deltaX);
+    const setImageWidth = (width, unit = 'px') => {
+      const value = unit === '%' ? `${width}%` : `${Math.round(width)}px`;
+      img.style.setProperty('width', value, 'important');
+      img.style.setProperty('height', 'auto', 'important');
+      img.setAttribute('width', value);
     };
 
-    const onDragEnd = () => {
-      document.removeEventListener('pointermove', onDragMove, true);
-      document.removeEventListener('pointerup', onDragEnd, true);
-      document.removeEventListener('pointercancel', onDragEnd, true);
-      document.removeEventListener('mousemove', onDragMove, true);
-      document.removeEventListener('mouseup', onDragEnd, true);
-      resizeDragRef.current = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+    const applyClientX = (clientX) => {
+      const deltaX = clientX - startX;
+      const nextWidth = isLeftHandle ? startWidth - deltaX : startWidth + deltaX;
+      currentWidth = Math.max(minWidth, Math.min(nextWidth, maxWidth));
+      setImageWidth(currentWidth);
+      scheduleChromeSync();
+    };
 
-      const percentageWidth = Math.round((currentWidth / maxWidth) * 100);
-      const widthValue = percentageWidth >= 95 ? "100%" : `${Math.round(currentWidth)}px`;
+    const commitResize = () => {
+      if (didCommit) return;
+      didCommit = true;
 
+      const widthPercent = Math.max(1, Math.min(100, Math.round((currentWidth / maxWidth) * 100)));
+      const widthValue = `${widthPercent}%`;
       img.style.setProperty('width', widthValue, 'important');
       img.style.setProperty('height', 'auto', 'important');
       img.setAttribute('width', widthValue);
 
-      const quill = editorRef.current?.getEditor();
       if (quill) {
+        try {
+          const blot = Quill.find(img);
+          if (blot) {
+            const index = quill.getIndex(blot);
+            quill.formatText(index, 1, 'width', widthValue, 'silent');
+            quill.update('silent');
+          }
+        } catch { /* ignore */ }
+
         syncImageEditChange(quill);
       }
 
@@ -1912,12 +1933,147 @@ const QuillWrapper = forwardRef(({
       positionResizerDirectly();
     };
 
-    document.addEventListener('pointermove', onDragMove, true);
-    document.addEventListener('pointerup', onDragEnd, true);
-    document.addEventListener('pointercancel', onDragEnd, true);
-    document.addEventListener('mousemove', onDragMove, true);
-    document.addEventListener('mouseup', onDragEnd, true);
-  };
+    const cleanup = (shouldCommit = true) => {
+      document.removeEventListener(moveEventName, onMove, true);
+      document.removeEventListener(endEventName, onEnd, true);
+      if (typeof pointerId === 'number') {
+        document.removeEventListener('pointercancel', onCancel, true);
+      }
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousUserSelect;
+      resizeDragRef.current = false;
+      imageResizeSessionRef.current = null;
+      if (shouldCommit) {
+        commitResize();
+      }
+    };
+
+    function onMove(moveEvent) {
+      if (typeof pointerId === 'number' && moveEvent.pointerId !== pointerId) return;
+      moveEvent.preventDefault();
+      applyClientX(moveEvent.clientX);
+    }
+
+    function onEnd(endEvent) {
+      if (typeof pointerId === 'number' && endEvent.pointerId !== pointerId) return;
+      endEvent.preventDefault();
+      cleanup(true);
+    }
+
+    function onCancel(cancelEvent) {
+      if (typeof pointerId === 'number' && cancelEvent.pointerId !== pointerId) return;
+      cleanup(true);
+    }
+
+    document.body.style.cursor = direction.includes('right') === direction.includes('top') ? 'nesw-resize' : 'nwse-resize';
+    document.body.style.userSelect = 'none';
+    setImageWidth(currentWidth);
+    positionResizerDirectly();
+
+    try {
+      event.currentTarget?.setPointerCapture?.(pointerId);
+    } catch { /* ignore */ }
+
+
+    imageResizeSessionRef.current = { cleanup };
+    document.addEventListener(moveEventName, onMove, true);
+    document.addEventListener(endEventName, onEnd, true);
+    if (typeof pointerId === 'number') {
+      document.addEventListener('pointercancel', onCancel, true);
+    }
+  }, [
+    enterImageEditMode,
+    getActiveImage,
+    positionCaptionsDirectly,
+    positionResizerDirectly,
+    selectedImage,
+    syncImageEditChange,
+    updateResizerRect
+  ]);
+
+  const getOverlayResizeDirection = useCallback((event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const threshold = 28;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const nearLeft = x <= threshold;
+    const nearRight = x >= rect.width - threshold;
+    const isTopHalf = y <= rect.height / 2;
+
+    if (nearLeft) return isTopHalf ? 'top-left' : 'bottom-left';
+    if (nearRight) return isTopHalf ? 'top-right' : 'bottom-right';
+    return null;
+  }, []);
+
+  const getImageResizeDirection = useCallback((event, img) => {
+    const rect = img.getBoundingClientRect();
+    const threshold = 28;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const nearLeft = x <= threshold;
+    const nearRight = x >= rect.width - threshold;
+    const nearTop = y <= threshold;
+    const nearBottom = y >= rect.height - threshold;
+
+    if (nearLeft && nearTop) return 'top-left';
+    if (nearRight && nearTop) return 'top-right';
+    if (nearLeft && nearBottom) return 'bottom-left';
+    if (nearRight && nearBottom) return 'bottom-right';
+    if (nearLeft) return y <= rect.height / 2 ? 'top-left' : 'bottom-left';
+    if (nearRight) return y <= rect.height / 2 ? 'top-right' : 'bottom-right';
+    return null;
+  }, []);
+
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
+    const container = containerRef.current;
+
+    const activateImageFromPointer = (event) => {
+      if (resizerOverlayRef.current?.contains(event.target)) return;
+
+      const img = event.target.closest && event.target.closest('img');
+      const quill = editorRef.current?.getEditor();
+      if (!img || !quill || !quill.root.contains(img)) return;
+
+      enterImageEditMode(img, quill);
+
+      const direction = getImageResizeDirection(event, img);
+      if (direction) {
+        handleResizeStart(event, direction, img);
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        updateResizerRect();
+        positionCaptionsDirectly();
+        positionResizerDirectly();
+      });
+    };
+
+    container.addEventListener('pointerdown', activateImageFromPointer, true);
+    container.addEventListener('mousedown', activateImageFromPointer, true);
+    return () => {
+      container.removeEventListener('pointerdown', activateImageFromPointer, true);
+      container.removeEventListener('mousedown', activateImageFromPointer, true);
+    };
+  }, [
+    enterImageEditMode,
+    getImageResizeDirection,
+    handleResizeStart,
+    isReady,
+    positionCaptionsDirectly,
+    positionResizerDirectly,
+    updateResizerRect
+  ]);
+  useEffect(() => {
+    return () => {
+      imageResizeSessionRef.current?.cleanup?.(false);
+    };
+  }, []);
 
   const handleImageWrap = useCallback((mode) => {
     const img = getActiveImage();
@@ -1980,7 +2136,7 @@ const QuillWrapper = forwardRef(({
         <Modal
           isOpen={alertConfig.isOpen}
           onClose={() => setAlertConfig({ ...alertConfig, isOpen: false })}
-          title="Thông báo"
+          title="Notice"
           maxWidth="max-w-sm"
         >
           <div className="text-center space-y-6">
@@ -1992,7 +2148,7 @@ const QuillWrapper = forwardRef(({
               onClick={() => setAlertConfig({ ...alertConfig, isOpen: false })}
               className="w-full py-4 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-blue-600 transition-all active:scale-95 shadow-xl shadow-blue-100"
             >
-              Đã hiểu
+              Got it
             </Button>
           </div>
         </Modal>
@@ -2000,54 +2156,50 @@ const QuillWrapper = forwardRef(({
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title="Thông tin hình ảnh"
+          title="Image info"
           maxWidth="max-w-md"
         >
           <div className="space-y-6">
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Mô tả ảnh (SEO - Thẻ Alt)</label>
-              <Input
-                size="lg"
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Alt text (SEO)</label>
+              <input
+                type="text"
                 autoFocus
-                placeholder="Ví dụ: phòng học cho thuê đà nẵng..."
-                className="!border-gray-300 focus:!border-primary !bg-white"
-                labelProps={{ className: "hidden" }}
+                placeholder="Example: classroom for rent in Da Nang..."
+                className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.alt}
                 onChange={(e) => setModalData({ ...modalData, alt: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Hiển thị khi hover chuột (Thẻ Title)</label>
-              <Input
-                size="lg"
-                placeholder="Ví dụ: Di chuột vào ảnh sẽ hiện dòng chữ này..."
-                className="!border-gray-300 focus:!border-primary !bg-white"
-                labelProps={{ className: "hidden" }}
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Hover tooltip (Title)</label>
+              <input
+                type="text"
+                placeholder="Example: Hover over image to show this text..."
+                className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.title}
                 onChange={(e) => setModalData({ ...modalData, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Chú thích hiển thị dưới ảnh</label>
-              <Input
-                size="lg"
-                placeholder="Ví dụ: Không gian phòng học hiện đại..."
-                className="!border-gray-300 focus:!border-primary !bg-white"
-                labelProps={{ className: "hidden" }}
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Caption shown below image</label>
+              <input
+                type="text"
+                placeholder="Example: Modern classroom space..."
+                className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.caption}
                 onChange={(e) => setModalData({ ...modalData, caption: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Bo góc ảnh (ví dụ: 8px, 16px, 50%)</label>
-              <Input
-                size="lg"
-                placeholder="Ví dụ: 12px hoặc 24px..."
-                className="!border-gray-300 focus:!border-primary !bg-white"
-                labelProps={{ className: "hidden" }}
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Image border radius (e.g. 8px, 16px, 50%)</label>
+              <input
+                type="text"
+                placeholder="Example: 12px or 24px..."
+                className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.borderRadius || ""}
                 onChange={(e) => setModalData({ ...modalData, borderRadius: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
@@ -2059,14 +2211,13 @@ const QuillWrapper = forwardRef(({
                 onClick={() => setIsModalOpen(false)}
                 className="flex-1 px-6 py-4 border-2 border-gray-100 text-gray-500 text-sm font-bold rounded-2xl hover:bg-gray-50 hover:text-red-500 transition-all active:scale-95"
               >
-                Hủy bỏ
-              </button>
+                Cancel</button>
               <Button
                 type="button"
                 onClick={() => handleModalSubmit()}
                 className="flex-1 px-6 py-4 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-blue-600 shadow-xl shadow-blue-100 transition-all active:scale-95"
               >
-                Xác nhận
+                Confirm
               </Button>
             </div>
           </div>
@@ -2096,22 +2247,46 @@ const QuillWrapper = forwardRef(({
     return val;
   }, [props.value, className, hasResponsive]);
 
-  let editorValue = absoluteValue;
+  const handleBlur = useCallback(() => {
+    isUserEditingRef.current = false;
+    localEditorHtmlRef.current = null;
+    setSyncTrigger(prev => !prev);
+  }, []);
+
+  useEffect(() => {
+    let isFocused = false;
+    try {
+      isFocused = !!editorRef.current?.getEditor?.()?.hasFocus?.();
+    } catch {
+      isFocused = false;
+    }
+
+    if (!isFocused && props.value !== lastRelativeContentRef.current) {
+      isUserEditingRef.current = false;
+      localEditorHtmlRef.current = null;
+    }
+  }, [props.value, syncTrigger]);
+
+  let editorValue = localEditorHtmlRef.current ?? absoluteValue;
   let isFocused = false;
   let currentEditor = null;
   try {
     currentEditor = editorRef.current?.getEditor?.();
     isFocused = !!currentEditor?.hasFocus?.();
-  } catch (e) {
+  } catch {
     currentEditor = null;
   }
-  if (currentEditor && (isFocused || props.value === lastRelativeContentRef.current)) {
+
+  const hasSelectedImage = !!selectedImageRef.current;
+  if (currentEditor && (isFocused || hasSelectedImage || isUserEditingRef.current || props.value === lastRelativeContentRef.current)) {
     try {
-      editorValue = currentEditor.root.innerHTML;
-    } catch (e) {
-      editorValue = absoluteValue;
+      editorValue = localEditorHtmlRef.current || currentEditor.root.innerHTML;
+    } catch {
+      editorValue = localEditorHtmlRef.current ?? absoluteValue;
     }
   }
+
+  const { formats: quillFormats, ...quillProps } = props;
 
   useEffect(() => {
     if (!showSpacingPopup) return;
@@ -2196,22 +2371,22 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Line spacing</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => setShowSpacingPopup(false)}
             >
-              ✕
+              x
             </button>
           </div>
           <div className="space-y-3">
             <div className="space-y-2">
               <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
+                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Desktop (px)</label>
                 <input
                   type="text"
-                  placeholder="Mặc định. VD: 32"
+                  placeholder="Default. Ex: 32"
                   value={lineHeight || ""}
                   onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
@@ -2219,10 +2394,10 @@ const QuillWrapper = forwardRef(({
                 />
               </div>
               <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
+                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Mobile (px)</label>
                 <input
                   type="text"
-                  placeholder="Mặc định. VD: 24"
+                  placeholder="Default. Ex: 24"
                   value={lineHeightMobile || ""}
                   onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
@@ -2237,7 +2412,7 @@ const QuillWrapper = forwardRef(({
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => setShowSpacingPopup(false)}
               >
-                Xác nhận
+                Confirm
               </button>
             </div>
           </div>
@@ -2255,20 +2430,20 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cỡ chữ</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Font size</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => setShowFontSizePopup(false)}
             >
-              ✕
+              x
             </button>
           </div>
           <div className="space-y-4">
             {/* Desktop size control */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
-                🖥️ Desktop
+                Desktop
               </span>
               <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
                 <button
@@ -2280,7 +2455,7 @@ const QuillWrapper = forwardRef(({
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
                 >
-                  −
+                  -
                 </button>
                 <div className="relative">
                   <input
@@ -2329,7 +2504,7 @@ const QuillWrapper = forwardRef(({
             {/* Mobile size control */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
-                📱 Mobile
+                Mobile
               </span>
               <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
                 <button
@@ -2341,7 +2516,7 @@ const QuillWrapper = forwardRef(({
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
                 >
-                  −
+                  -
                 </button>
                 <div className="relative">
                   <input
@@ -2401,21 +2576,21 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cấu hình dịch dòng</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Text shift</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => setShowTranslatePopup(false)}
             >
-              ✕
+              x
             </button>
           </div>
           <div className="space-y-3">
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>🖥️ Desktop (px)</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Desktop (px)</label>
               <input
                 type="text"
-                placeholder="VD: -20 hoặc 10"
+                placeholder="Ex: -20 or 10"
                 value={translateY || ""}
                 onChange={(e) => onChangeTranslateY && onChangeTranslateY(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
@@ -2423,10 +2598,10 @@ const QuillWrapper = forwardRef(({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>📱 Mobile (px)</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Mobile (px)</label>
               <input
                 type="text"
-                placeholder="VD: -10 hoặc 5"
+                placeholder="Ex: -10 or 5"
                 value={translateYMobile || ""}
                 onChange={(e) => onChangeTranslateYMobile && onChangeTranslateYMobile(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
@@ -2440,7 +2615,7 @@ const QuillWrapper = forwardRef(({
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => setShowTranslatePopup(false)}
               >
-                Xác nhận
+                Confirm
               </button>
             </div>
           </div>
@@ -2458,18 +2633,18 @@ const QuillWrapper = forwardRef(({
         <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
           <div className="flex flex-col items-center gap-2">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Đang khởi tạo trình soạn thảo...</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading editor...</span>
           </div>
         </div>
       ) : (
         <ReactQuill
-          key={dynamicFonts.map(f => f.name).join(',')}
           ref={editorRef}
-          {...props}
+          {...quillProps}
           value={editorValue}
           onChange={handleOnChange}
+          onBlur={handleBlur}
           modules={customModules}
-          formats={props.formats || FORMATS}
+          formats={quillFormats || FORMATS}
         />
       )}
       <style dangerouslySetInnerHTML={{
@@ -2764,7 +2939,7 @@ const QuillWrapper = forwardRef(({
         }
         .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"]::after,
         .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"]::after {
-          content: "Tự chọn màu" !important;
+          content: "Custom color" !important;
           font-family: 'Inter', sans-serif !important;
           font-size: 10px !important;
           color: white !important;
@@ -2830,7 +3005,7 @@ const QuillWrapper = forwardRef(({
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
           }
         }
-        /* Giữ màu highlight selection khi editor mất focus tạm thời (click toolbar) */
+        /* Preserve selection highlight briefly after toolbar clicks. */
         .ql-editor::selection,
         .ql-editor *::selection {
           background-color: #b3d4fc !important;
@@ -3045,9 +3220,19 @@ const QuillWrapper = forwardRef(({
           display: block !important;
           width: 100% !important;
         }
+        .ql-snow .ql-picker.ql-font .ql-picker-label {
+          font-size: 0 !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label::before {
+          font-size: 12px !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before {
+          content: 'Inter' !important;
+          font-family: 'Inter', sans-serif !important;
+        }
         .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="macdinh"]::before,
         .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="macdinh"]::before { 
-          content: 'Mặc định (Inter)' !important; 
+          content: 'Inter' !important;
           font-family: 'Inter', sans-serif !important;
         }
         ${dynamicFonts.filter(font => font.fileUrl).map(font => `
@@ -3076,7 +3261,7 @@ const QuillWrapper = forwardRef(({
           }
         `).join('\n')}
         .ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
-        .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Mặc định' !important; }
+        .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { content: 'Default' !important; }
         
         .ql-snow .ql-picker.ql-size .ql-picker-label[data-display-value]::before {
           content: attr(data-display-value) !important;
@@ -3461,7 +3646,24 @@ const QuillWrapper = forwardRef(({
             zIndex: 10000,
           }}
           onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            const direction = getOverlayResizeDirection(e);
+            if (direction) {
+              handleResizeStart(e, direction);
+            } else {
+              e.stopPropagation();
+            }
+          }}
+          onMouseDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            const direction = getOverlayResizeDirection(e);
+            if (direction) {
+              handleResizeStart(e, direction);
+            } else {
+              e.stopPropagation();
+            }
+          }}
         >
           {/* Text Wrapping Toolbar */}
           <div className="wrap-toolbar" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
@@ -3470,7 +3672,7 @@ const QuillWrapper = forwardRef(({
                 <button
                   type="button"
                   className={`wrap-btn${imageWrapMode === 'left' ? ' active' : ''}`}
-                  title="Chữ bao quanh - Trái"
+                  title="Wrap left"
                   onClick={(e) => { e.stopPropagation(); handleImageWrap('left'); }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -3484,7 +3686,7 @@ const QuillWrapper = forwardRef(({
                 <button
                   type="button"
                   className={`wrap-btn${imageWrapMode === 'none' ? ' active' : ''}`}
-                  title="Căn giữa - Không bao quanh"
+                  title="Center - no wrap"
                   onClick={(e) => { e.stopPropagation(); handleImageWrap('none'); }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -3496,7 +3698,7 @@ const QuillWrapper = forwardRef(({
                 <button
                   type="button"
                   className={`wrap-btn${imageWrapMode === 'right' ? ' active' : ''}`}
-                  title="Chữ bao quanh - Phải"
+                  title="Wrap right"
                   onClick={(e) => { e.stopPropagation(); handleImageWrap('right'); }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -3513,7 +3715,7 @@ const QuillWrapper = forwardRef(({
             <button
               type="button"
               className="wrap-btn delete-btn"
-              title="Xóa hình ảnh"
+              title="Delete image"
               onClick={(e) => { e.stopPropagation(); handleDeleteImage(); }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -3538,14 +3740,10 @@ const QuillWrapper = forwardRef(({
               className="resizer-handle"
               style={{ ...handle.style, cursor: handle.cursor, pointerEvents: 'auto' }}
               onPointerDown={(e) => {
-                const activeImg = getActiveImage();
-                if (!activeImg) return;
-                handleResizeStart(e, handle.dir, activeImg);
+                handleResizeStart(e, handle.dir);
               }}
               onMouseDown={(e) => {
-                const activeImg = getActiveImage();
-                if (!activeImg) return;
-                handleResizeStart(e, handle.dir, activeImg);
+                handleResizeStart(e, handle.dir);
               }}
             />
           ))}

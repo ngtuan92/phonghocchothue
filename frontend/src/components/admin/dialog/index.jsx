@@ -7,8 +7,6 @@ import {
   CardFooter,
   DialogHeader,
   Typography,
-  Input,
-  Textarea,
   Button,
   Checkbox,
 } from "@material-tailwind/react";
@@ -22,7 +20,6 @@ const QuillWrapper = dynamic(
   { ssr: false }
 );
 import "react-quill-new/dist/quill.snow.css";
-
 
 // eslint-disable-next-line no-undef
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
@@ -483,14 +480,15 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="room-slug" className="block text-sm font-medium text-gray-700 mb-2">
                   Slug <span className="text-red-500">*</span>
                 </label>
-                <Input
+                <input
                   id="room-slug"
-                  size="lg"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
+                  type="text"
+                  className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border rounded-xl focus:outline-none transition-colors ${
+                    errors.roomSlug ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#15803d]"
+                  }`}
                   value={roomSlug}
                   onChange={handleRoomSlugChange}
                   placeholder="vi-du-ten-phong"
-                  error={!!errors.roomSlug}
                 />
                 {errors.roomSlug && (
                   <Typography variant="small" color="red" className="mt-1 flex items-center gap-1">
@@ -610,17 +608,13 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
               </p>
               <div className="flex flex-col gap-3">
                 <div className="relative">
-                  <Input
+                  <input
                     id="single-image"
                     type="file"
-                    size="lg"
-                    className="file-input cursor-pointer"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-green-50 file:text-[#15803d] hover:file:bg-green-100 transition-all cursor-pointer"
                     onChange={handleSingleImageChange}
                     accept="image/*"
                   />
-                  <div className="absolute inset-0 flex items-center justify-end pr-3 pointer-events-none">
-                    <span className="text-sm text-gray-500">📁 Chọn ảnh</span>
-                  </div>
                 </div>
                 {errors.image && (
                   <Typography variant="small" color="red" className="flex items-center gap-1">
@@ -660,13 +654,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
               </p>
               <Card className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
                 <div className="flex flex-col gap-4">
-                  <Input
+                  <input
                     id="multiple-images"
                     type="file"
                     accept="image/*"
                     multiple
-                    size="lg"
-                    className="cursor-pointer"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-green-50 file:text-[#15803d] hover:file:bg-green-100 transition-all cursor-pointer"
                     onChange={handleMultipleImagesChange}
                   />
                   {multipleImages.length > 0 && (
@@ -788,10 +781,10 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="seo-title" className="block text-sm font-medium text-gray-700 mb-2">
                   SEO Title
                 </label>
-                <Input
+                <input
                   id="seo-title"
-                  size="lg"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
+                  type="text"
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoTitle}
                   onChange={handleSeoTitleChange}
                   placeholder="Tiêu đề SEO cho trang phòng..."
@@ -802,9 +795,9 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="seo-description" className="block text-sm font-medium text-gray-700 mb-2">
                   SEO Description
                 </label>
-                <Textarea
+                <textarea
                   id="seo-description"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoDescription}
                   onChange={handleSeoDescriptionChange}
                   placeholder="Mô tả SEO cho công cụ tìm kiếm..."
@@ -816,10 +809,10 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <label htmlFor="seo-keywords" className="block text-sm font-medium text-gray-700 mb-2">
                   SEO Keywords
                 </label>
-                <Input
+                <input
                   id="seo-keywords"
-                  size="lg"
-                  className="!border-gray-300 focus:!border-blue-500 placeholder:!text-gray-600"
+                  type="text"
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoKeywords}
                   onChange={handleSeoKeywordsChange}
                   placeholder="Từ khóa cách nhau bởi dấu phẩy (ví dụ: phòng cho thuê, homestay, nghỉ dưỡng)"
@@ -831,11 +824,10 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   SEO Image
                 </label>
                 <div className="flex flex-col gap-3">
-                  <Input
+                  <input
                     id="seo-image"
                     type="file"
-                    size="lg"
-                    className="file-input cursor-pointer"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-green-50 file:text-[#15803d] hover:file:bg-green-100 transition-all cursor-pointer"
                     onChange={handleSeoImageChange}
                     accept="image/*"
                   />

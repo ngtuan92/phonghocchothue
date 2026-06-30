@@ -1,16 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { MdClose } from "react-icons/md";
 
 const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-2xl" }) => {
+  const prevIsOpen = useRef(false);
+
   useEffect(() => {
-    if (isOpen) {
+    // Only change overflow when isOpen actually changes state, not on re-renders
+    if (isOpen && !prevIsOpen.current) {
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+    } else if (!isOpen && prevIsOpen.current) {
+      document.body.style.overflow = "";
     }
+    prevIsOpen.current = isOpen;
+
     return () => {
-      document.body.style.overflow = "unset";
+      // Only cleanup if we were the one who set overflow hidden
+      if (prevIsOpen.current) {
+        document.body.style.overflow = "";
+      }
     };
   }, [isOpen]);
 

@@ -3,9 +3,6 @@ import {
   Card,
   CardBody,
   Button,
-  Input,
-  Textarea,
-  Switch,
   IconButton,
 } from "@material-tailwind/react";
 import { useRouter } from "next/navigation";
@@ -165,12 +162,12 @@ export default function RedirectPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   From URL (đường dẫn cũ) <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  size="lg"
+                <input
+                  type="text"
                   value={form.fromPath}
                   onChange={(e) => handleChange("fromPath", e.target.value)}
                   placeholder="/phong/san-pham-1"
-                  className="!border-gray-300 focus:!border-[#15803d]"
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                 />
                 <p className="text-[11px] text-gray-500 mt-1">
                   Chỉ nhập path, không cần domain. Ví dụ: /phong/san-pham-1
@@ -182,12 +179,12 @@ export default function RedirectPage() {
                   To URL (đường dẫn mới){" "}
                   <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  size="lg"
+                <input
+                  type="text"
                   value={form.toPath}
                   onChange={(e) => handleChange("toPath", e.target.value)}
                   placeholder="/phong/san-pham-new"
-                  className="!border-gray-300 focus:!border-[#15803d]"
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -223,12 +220,12 @@ export default function RedirectPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ghi chú (tùy chọn)
                 </label>
-                <Textarea
+                <textarea
                   rows={3}
                   value={form.note}
                   onChange={(e) => handleChange("note", e.target.value)}
                   placeholder="Ví dụ: Redirect cho chiến dịch cũ, URL cũ đã chạy quảng cáo..."
-                  className="!border-gray-300 focus:!border-[#15803d]"
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                 />
               </div>
 
