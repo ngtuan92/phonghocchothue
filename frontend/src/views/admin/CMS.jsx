@@ -715,6 +715,9 @@ export default function CMS() {
   const restoreConfigCardPosition = (snapshot) => {
     if (!snapshot || typeof window === "undefined") return;
 
+    const startedAt = Date.now();
+    let frameId = 0;
+
     const restore = () => {
       const element = configCardRefs.current[snapshot.key];
       if (!element) return;
@@ -723,12 +726,17 @@ export default function CMS() {
       if (Math.abs(deltaTop) > 0.5) {
         window.scrollBy(0, deltaTop);
       }
+
+      if (Date.now() - startedAt < 900) {
+        frameId = window.requestAnimationFrame(restore);
+      }
     };
 
-    window.requestAnimationFrame(() => {
+    frameId = window.requestAnimationFrame(restore);
+    window.setTimeout(() => {
+      if (frameId) window.cancelAnimationFrame(frameId);
       restore();
-      window.requestAnimationFrame(restore);
-    });
+    }, 950);
   };
 
 
@@ -1151,6 +1159,7 @@ export default function CMS() {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
       const isAboutSection = config.section === "about" || activeSection === "about" || (SECTION_KEY_MAP.about && SECTION_KEY_MAP.about.includes(config.key));
+      const commitOnBlurOnly = config.key === "describe-phone";
       return (
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
           <LazyQuillWrapper
@@ -1181,6 +1190,12 @@ export default function CMS() {
             theme="snow"
             value={config.content || ""}
             onChange={onContentChange}
+            onDraftChange={(val) => {
+              configDraftsRef.current[config.key] = val;
+              if (hasMeaningfulHtml(val)) {
+                lastNonEmptyContentRef.current[config.key] = val;
+              }
+            }}
             onBlur={(val) => commitDraftField(config, val)}
             lineHeight={config.lineHeight}
             lineHeightMobile={config.lineHeightMobile}
@@ -1222,6 +1237,7 @@ export default function CMS() {
              editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
              minHeight={minHeight}
              hasResponsiveFontSize={true}
+             commitOnBlurOnly={commitOnBlurOnly}
           />
         </div>
       );

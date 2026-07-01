@@ -406,6 +406,8 @@ const QuillWrapper = forwardRef(({
   className = "",
   editorClassName = "",
   hasResponsiveFontSize,
+  commitOnBlurOnly = false,
+  onDraftChange,
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -419,6 +421,7 @@ const QuillWrapper = forwardRef(({
   const [activeDropdown, setActiveDropdown] = useState(null); // 'desktop' | 'mobile' | null
   const [showTranslatePopup, setShowTranslatePopup] = useState(false);
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
+  const [controlDrafts, setControlDrafts] = useState({});
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -432,6 +435,7 @@ const QuillWrapper = forwardRef(({
   const imageResizeSessionRef = useRef(null);
   const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
+  const typingSelectionRef = useRef(null);
   const lastRelativeContentRef = useRef("");
   const localEditorHtmlRef = useRef(null);
   const isUserEditingRef = useRef(false);
@@ -447,6 +451,49 @@ const QuillWrapper = forwardRef(({
       onChange(value);
     }
   }, []);
+  const getControlValue = useCallback((key, value) => (
+    commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, key)
+      ? controlDrafts[key]
+      : (value || "")
+  ), [commitOnBlurOnly, controlDrafts]);
+  const updateControlValue = useCallback((key, value, onChange, signed = false) => {
+    const isAllowed = signed
+      ? (value === "" || value === "-" || /^-?\d+$/.test(value))
+      : (value === "" || /^\d+$/.test(value));
+    if (!isAllowed) return;
+
+    if (commitOnBlurOnly) {
+      setControlDrafts((prev) => ({ ...prev, [key]: value }));
+      return;
+    }
+
+    onChange?.(value);
+  }, [commitOnBlurOnly]);
+  const commitControlDrafts = useCallback(() => {
+    if (!commitOnBlurOnly) return;
+    const callbacks = {
+      lineHeight: onChangeLineHeight,
+      lineHeightMobile: onChangeLineHeightMobile,
+      fontSize: onChangeFontSize,
+      fontSizeMobile: onChangeFontSizeMobile,
+      translateY: onChangeTranslateY,
+      translateYMobile: onChangeTranslateYMobile,
+    };
+
+    Object.entries(controlDrafts).forEach(([key, value]) => {
+      callbacks[key]?.(value);
+    });
+    setControlDrafts({});
+  }, [
+    commitOnBlurOnly,
+    controlDrafts,
+    onChangeLineHeight,
+    onChangeLineHeightMobile,
+    onChangeFontSize,
+    onChangeFontSizeMobile,
+    onChangeTranslateY,
+    onChangeTranslateYMobile,
+  ]);
   const focusWithoutScroll = useCallback((target) => {
     if (!target || typeof window === 'undefined') return;
 
@@ -1728,9 +1775,71 @@ const QuillWrapper = forwardRef(({
       }
 
       lastRelativeContentRef.current = relativeContent;
+      if (commitOnBlurOnly) {
+        onDraftChange?.(relativeContent);
+        const previousSelection = typingSelectionRef.current;
+        window.requestAnimationFrame(() => {
+          try {
+            const quill = editorRef.current?.getEditor?.();
+            if (!quill || !quill.hasFocus?.() || !previousSelection) return;
+            const currentSelection = quill.getSelection();
+            const insertedLength = Array.isArray(delta?.ops)
+              ? delta.ops.reduce((total, op) => {
+                  if (typeof op.insert === 'string') return total + op.insert.length;
+                  return op.insert ? total + 1 : total;
+                }, 0)
+              : 0;
+            const nextIndex = Math.min(
+              Math.max(previousSelection.index + Math.max(insertedLength, 1), 0),
+              Math.max(quill.getLength() - 1, 0)
+            );
+
+            if (currentSelection && currentSelection.index === 0 && previousSelection.index > 0) {
+              quill.setSelection(nextIndex, 0, 'silent');
+            }
+          } catch { /* ignore */ }
+        });
+        return;
+      }
+
       props.onChange(relativeContent, delta, source, editor);
     }
-  }, [props.onChange, props.value, className, hasResponsive]);
+  }, [props.onChange, props.value, className, hasResponsive, commitOnBlurOnly, onDraftChange]);
+
+  useEffect(() => {
+    if (!commitOnBlurOnly || !isReady) return;
+    const quill = editorRef.current?.getEditor?.();
+    if (!quill) return;
+
+    const rememberTypingSelection = () => {
+      try {
+        const selection = quill.getSelection();
+        if (selection) {
+          typingSelectionRef.current = selection;
+        }
+      } catch { /* ignore */ }
+    };
+
+    const handleSelectionChange = (range) => {
+      if (range) {
+        typingSelectionRef.current = range;
+      }
+    };
+
+    quill.root.addEventListener('beforeinput', rememberTypingSelection, true);
+    quill.root.addEventListener('keydown', rememberTypingSelection, true);
+    quill.root.addEventListener('mouseup', rememberTypingSelection, true);
+    quill.root.addEventListener('keyup', rememberTypingSelection, true);
+    quill.on('selection-change', handleSelectionChange);
+
+    return () => {
+      quill.root.removeEventListener('beforeinput', rememberTypingSelection, true);
+      quill.root.removeEventListener('keydown', rememberTypingSelection, true);
+      quill.root.removeEventListener('mouseup', rememberTypingSelection, true);
+      quill.root.removeEventListener('keyup', rememberTypingSelection, true);
+      quill.off('selection-change', handleSelectionChange);
+    };
+  }, [commitOnBlurOnly, isReady]);
 
   const syncImageEditChange = useCallback((quill) => {
     if (!quill) return;
@@ -2546,6 +2655,12 @@ const QuillWrapper = forwardRef(({
   }
 
   const { formats: quillFormats, ...quillProps } = props;
+  const effectiveLineHeight = getControlValue('lineHeight', lineHeight);
+  const effectiveLineHeightMobile = getControlValue('lineHeightMobile', lineHeightMobile);
+  const effectiveFontSize = getControlValue('fontSize', fontSize);
+  const effectiveFontSizeMobile = getControlValue('fontSizeMobile', fontSizeMobile);
+  const effectiveTranslateY = getControlValue('translateY', translateY);
+  const effectiveTranslateYMobile = getControlValue('translateYMobile', translateYMobile);
 
   useEffect(() => {
     if (!showSpacingPopup) return;
@@ -2553,12 +2668,13 @@ const QuillWrapper = forwardRef(({
       const popup = containerRef.current?.querySelector('.ql-line-height-popup');
       const button = containerRef.current?.querySelector('.ql-line-height');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
+        commitControlDrafts();
         setShowSpacingPopup(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showSpacingPopup]);
+  }, [showSpacingPopup, commitControlDrafts]);
 
   useEffect(() => {
     if (!showFontSizePopup) return;
@@ -2566,12 +2682,13 @@ const QuillWrapper = forwardRef(({
       const popup = containerRef.current?.querySelector('.ql-font-size-popup');
       const button = containerRef.current?.querySelector('.ql-font-size-custom');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
+        commitControlDrafts();
         setShowFontSizePopup(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showFontSizePopup]);
+  }, [showFontSizePopup, commitControlDrafts]);
 
   useEffect(() => {
     if (!activeDropdown) return;
@@ -2592,12 +2709,13 @@ const QuillWrapper = forwardRef(({
       const popup = containerRef.current?.querySelector('.ql-translate-y-popup');
       const button = containerRef.current?.querySelector('.ql-translate-y');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
+        commitControlDrafts();
         setShowTranslatePopup(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showTranslatePopup]);
+  }, [showTranslatePopup, commitControlDrafts]);
 
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
@@ -2609,12 +2727,12 @@ const QuillWrapper = forwardRef(({
         '--quill-toolbar-top': toolbarTop,
         '--quill-editor-max-height': maxHeight,
         '--quill-editor-min-height': minHeight,
-        '--custom-line-height': lineHeight && !String(lineHeight).trim().startsWith("-") ? (/^\d+$/.test(String(lineHeight).trim()) ? `${lineHeight}px` : lineHeight) : undefined,
-        '--custom-line-height-mobile': lineHeightMobile && !String(lineHeightMobile).trim().startsWith("-") ? (/^\d+$/.test(String(lineHeightMobile).trim()) ? `${lineHeightMobile}px` : lineHeightMobile) : undefined,
-        '--fs-desktop': fontSize ? (/^\d+$/.test(String(fontSize).trim()) ? `${fontSize}px` : fontSize) : undefined,
-        '--fs-mobile': fontSizeMobile ? (/^\d+$/.test(String(fontSizeMobile).trim()) ? `${fontSizeMobile}px` : fontSizeMobile) : undefined,
-        '--translate-y': translateY ? (/^-?\d+$/.test(String(translateY).trim()) ? `${translateY}px` : translateY) : undefined,
-        '--translate-y-mobile': translateYMobile ? (/^-?\d+$/.test(String(translateYMobile).trim()) ? `${translateYMobile}px` : translateYMobile) : undefined,
+        '--custom-line-height': effectiveLineHeight && !String(effectiveLineHeight).trim().startsWith("-") ? (/^\d+$/.test(String(effectiveLineHeight).trim()) ? `${effectiveLineHeight}px` : effectiveLineHeight) : undefined,
+        '--custom-line-height-mobile': effectiveLineHeightMobile && !String(effectiveLineHeightMobile).trim().startsWith("-") ? (/^\d+$/.test(String(effectiveLineHeightMobile).trim()) ? `${effectiveLineHeightMobile}px` : effectiveLineHeightMobile) : undefined,
+        '--fs-desktop': effectiveFontSize ? (/^\d+$/.test(String(effectiveFontSize).trim()) ? `${effectiveFontSize}px` : effectiveFontSize) : undefined,
+        '--fs-mobile': effectiveFontSizeMobile ? (/^\d+$/.test(String(effectiveFontSizeMobile).trim()) ? `${effectiveFontSizeMobile}px` : effectiveFontSizeMobile) : undefined,
+        '--translate-y': effectiveTranslateY ? (/^-?\d+$/.test(String(effectiveTranslateY).trim()) ? `${effectiveTranslateY}px` : effectiveTranslateY) : undefined,
+        '--translate-y-mobile': effectiveTranslateYMobile ? (/^-?\d+$/.test(String(effectiveTranslateYMobile).trim()) ? `${effectiveTranslateYMobile}px` : effectiveTranslateYMobile) : undefined,
       }}
     >
       {renderModals()}
@@ -2634,7 +2752,10 @@ const QuillWrapper = forwardRef(({
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => setShowSpacingPopup(false)}
+              onClick={() => {
+                commitControlDrafts();
+                setShowSpacingPopup(false);
+              }}
             >
               x
             </button>
@@ -2647,8 +2768,8 @@ const QuillWrapper = forwardRef(({
                   type="text"
                   inputMode="numeric"
                   placeholder="Default. Ex: 32"
-                  value={lineHeight || ""}
-                  onChange={(e) => handleUnsignedIntegerChange(e.target.value, onChangeLineHeight)}
+                  value={effectiveLineHeight}
+                  onChange={(e) => updateControlValue('lineHeight', e.target.value, onChangeLineHeight)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
@@ -2659,8 +2780,8 @@ const QuillWrapper = forwardRef(({
                   type="text"
                   inputMode="numeric"
                   placeholder="Default. Ex: 24"
-                  value={lineHeightMobile || ""}
-                  onChange={(e) => handleUnsignedIntegerChange(e.target.value, onChangeLineHeightMobile)}
+                  value={effectiveLineHeightMobile}
+                  onChange={(e) => updateControlValue('lineHeightMobile', e.target.value, onChangeLineHeightMobile)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
@@ -2671,7 +2792,10 @@ const QuillWrapper = forwardRef(({
               <button
                 type="button"
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
-                onClick={() => setShowSpacingPopup(false)}
+                onClick={() => {
+                  commitControlDrafts();
+                  setShowSpacingPopup(false);
+                }}
               >
                 Confirm
               </button>
@@ -2695,7 +2819,10 @@ const QuillWrapper = forwardRef(({
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => setShowFontSizePopup(false)}
+              onClick={() => {
+                commitControlDrafts();
+                setShowFontSizePopup(false);
+              }}
             >
               x
             </button>
@@ -2711,8 +2838,8 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(fontSize) || 16;
-                    if (onChangeFontSize) onChangeFontSize(Math.max(1, current - 1).toString());
+                    const current = parseInt(effectiveFontSize) || 16;
+                    updateControlValue('fontSize', Math.max(1, current - 1).toString(), onChangeFontSize);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
                 >
@@ -2721,8 +2848,8 @@ const QuillWrapper = forwardRef(({
                 <div className="relative">
                   <input
                     type="text"
-                    value={fontSize || ""}
-                    onChange={(e) => onChangeFontSize && onChangeFontSize(e.target.value)}
+                    value={effectiveFontSize}
+                    onChange={(e) => updateControlValue('fontSize', e.target.value, onChangeFontSize)}
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveDropdown(prev => prev === 'desktop' ? null : 'desktop');
@@ -2737,10 +2864,10 @@ const QuillWrapper = forwardRef(({
                         <div
                           key={sz}
                           onClick={() => {
-                            if (onChangeFontSize) onChangeFontSize(sz.toString());
+                            updateControlValue('fontSize', sz.toString(), onChangeFontSize);
                             setActiveDropdown(null);
                           }}
-                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(fontSize) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
+                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(effectiveFontSize) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
                         >
                           {sz}
                         </div>
@@ -2752,8 +2879,8 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(fontSize) || 16;
-                    if (onChangeFontSize) onChangeFontSize((current + 1).toString());
+                    const current = parseInt(effectiveFontSize) || 16;
+                    updateControlValue('fontSize', (current + 1).toString(), onChangeFontSize);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
                 >
@@ -2772,8 +2899,8 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(fontSizeMobile) || 13;
-                    if (onChangeFontSizeMobile) onChangeFontSizeMobile(Math.max(1, current - 1).toString());
+                    const current = parseInt(effectiveFontSizeMobile) || 13;
+                    updateControlValue('fontSizeMobile', Math.max(1, current - 1).toString(), onChangeFontSizeMobile);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
                 >
@@ -2782,8 +2909,8 @@ const QuillWrapper = forwardRef(({
                 <div className="relative">
                   <input
                     type="text"
-                    value={fontSizeMobile || ""}
-                    onChange={(e) => onChangeFontSizeMobile && onChangeFontSizeMobile(e.target.value)}
+                    value={effectiveFontSizeMobile}
+                    onChange={(e) => updateControlValue('fontSizeMobile', e.target.value, onChangeFontSizeMobile)}
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveDropdown(prev => prev === 'mobile' ? null : 'mobile');
@@ -2798,10 +2925,10 @@ const QuillWrapper = forwardRef(({
                         <div
                           key={sz}
                           onClick={() => {
-                            if (onChangeFontSizeMobile) onChangeFontSizeMobile(sz.toString());
+                            updateControlValue('fontSizeMobile', sz.toString(), onChangeFontSizeMobile);
                             setActiveDropdown(null);
                           }}
-                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(fontSizeMobile) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
+                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(effectiveFontSizeMobile) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
                         >
                           {sz}
                         </div>
@@ -2813,8 +2940,8 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(fontSizeMobile) || 13;
-                    if (onChangeFontSizeMobile) onChangeFontSizeMobile((current + 1).toString());
+                    const current = parseInt(effectiveFontSizeMobile) || 13;
+                    updateControlValue('fontSizeMobile', (current + 1).toString(), onChangeFontSizeMobile);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
                 >
@@ -2841,7 +2968,10 @@ const QuillWrapper = forwardRef(({
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => setShowTranslatePopup(false)}
+              onClick={() => {
+                commitControlDrafts();
+                setShowTranslatePopup(false);
+              }}
             >
               x
             </button>
@@ -2853,8 +2983,8 @@ const QuillWrapper = forwardRef(({
                 type="text"
                 inputMode="numeric"
                 placeholder="Ex: -20 or 10"
-                value={translateY || ""}
-                onChange={(e) => handleSignedIntegerChange(e.target.value, onChangeTranslateY)}
+                value={effectiveTranslateY}
+                onChange={(e) => updateControlValue('translateY', e.target.value, onChangeTranslateY, true)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -2865,8 +2995,8 @@ const QuillWrapper = forwardRef(({
                 type="text"
                 inputMode="numeric"
                 placeholder="Ex: -10 or 5"
-                value={translateYMobile || ""}
-                onChange={(e) => handleSignedIntegerChange(e.target.value, onChangeTranslateYMobile)}
+                value={effectiveTranslateYMobile}
+                onChange={(e) => updateControlValue('translateYMobile', e.target.value, onChangeTranslateYMobile, true)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -2876,7 +3006,10 @@ const QuillWrapper = forwardRef(({
               <button
                 type="button"
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
-                onClick={() => setShowTranslatePopup(false)}
+                onClick={() => {
+                  commitControlDrafts();
+                  setShowTranslatePopup(false);
+                }}
               >
                 Confirm
               </button>
@@ -4045,6 +4178,7 @@ const MemoizedQuillWrapper = React.memo(QuillWrapper, (prevProps, nextProps) => 
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.minHeight === nextProps.minHeight &&
     prevProps.hasResponsiveFontSize === nextProps.hasResponsiveFontSize &&
+    prevProps.commitOnBlurOnly === nextProps.commitOnBlurOnly &&
     prevProps.theme === nextProps.theme
   );
 });
