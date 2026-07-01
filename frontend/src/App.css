@@ -115,15 +115,49 @@
   height: 258px;
 }
 
+@media (min-width: 640px) {
+  .describe-desktop-seo {
+    position: absolute !important;
+    left: 0;
+    right: 0;
+    top: 220px;
+    margin: 0 !important;
+  }
+
+  .describe-desktop-meta {
+    position: absolute !important;
+    left: 0;
+    right: 0;
+    top: 252px;
+    margin: 0 !important;
+  }
+}
+
 @media (min-width: 768px) {
   .describe-anchor-desktop {
     height: 385px;
+  }
+
+  .describe-desktop-seo {
+    top: 292px;
+  }
+
+  .describe-desktop-meta {
+    top: 330px;
   }
 }
 
 @media (min-width: 1024px) {
   .describe-anchor-desktop {
     height: 502px;
+  }
+
+  .describe-desktop-seo {
+    top: 392px;
+  }
+
+  .describe-desktop-meta {
+    top: 444px;
   }
 }
 
