@@ -135,19 +135,19 @@ const Describe = () => {
 
     return (
         <div className="mb-[64px] sm:mb-36 main-container overflow-x-hidden">
-            <div className="describe-hero-stage relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
+            <div className="describe-stage relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
-                    <div className="describe-hero-content relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[24px] md:-translate-y-[25px] lg:-translate-y-[26px]">
+                    <div className="describe-anchor describe-anchor-desktop relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[14px] md:-translate-y-[15px] lg:-translate-y-[16px]">
                         {describeFrameImage && (
                             <div
-                                className="describe-hero-frame absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="describe-frame absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
                                 <img
                                     src={buildUrl(describeFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100"
-                                    style={{ borderRadius: frameBorderRadius, objectPosition: "center center" }}
+                                    className="w-full h-full object-contain opacity-100"
+                                    style={{ borderRadius: frameBorderRadius, objectPosition: "center top" }}
                                 />
                             </div>
                         )}
@@ -211,17 +211,17 @@ const Describe = () => {
                 </div>
 
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-0 pb-0">
-                    <div className="describe-hero-content-mobile relative w-full flex flex-col items-center -translate-y-[10px]">
+                    <div className="describe-anchor describe-anchor-mobile relative w-full flex flex-col items-center -translate-y-[10px]">
                         {activeMobileFrameImage && (
                             <div
-                                className="describe-hero-frame-mobile absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="describe-frame-mobile absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
                                     src={buildUrl(activeMobileFrameImage)}
                                     alt="Frame"
-                                    className="w-full h-full object-fill opacity-100"
-                                    style={{ borderRadius: activeMobileFrameRadius, objectPosition: "center center" }}
+                                    className="w-full h-full object-contain opacity-100"
+                                    style={{ borderRadius: activeMobileFrameRadius, objectPosition: "center top" }}
                                 />
                             </div>
                         )}
