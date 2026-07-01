@@ -577,6 +577,27 @@ const QuillWrapper = forwardRef(({
     });
   }, []);
 
+  const getVisibleImageRect = useCallback((imgRect, editorRect) => {
+    if (!editorRect) {
+      return {
+        top: imgRect.top,
+        left: imgRect.left,
+        width: imgRect.width,
+        height: imgRect.height
+      };
+    }
+
+    const top = Math.max(imgRect.top, editorRect.top);
+    const left = Math.max(imgRect.left, editorRect.left);
+    const right = Math.min(imgRect.right, editorRect.right);
+    const bottom = Math.min(imgRect.bottom, editorRect.bottom);
+    const width = Math.max(0, right - left);
+    const height = Math.max(0, bottom - top);
+
+    if (width <= 1 || height <= 1) return null;
+    return { top, left, width, height };
+  }, []);
+
   const positionResizerDirectly = useCallback(() => {
     const img = selectedImageRef.current;
     const resizer = resizerOverlayRef.current;
@@ -595,13 +616,22 @@ const QuillWrapper = forwardRef(({
         if (editor) {
           const editorRect = editor.getBoundingClientRect();
           const isOutside = imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom || width === 0 || height === 0;
-          resizer.style.display = isOutside ? 'none' : 'block';
+          const visibleRect = getVisibleImageRect(imgRect, editorRect);
+          if (isOutside || !visibleRect) {
+            resizer.style.display = 'none';
+          } else {
+            resizer.style.top = `${visibleRect.top}px`;
+            resizer.style.left = `${visibleRect.left}px`;
+            resizer.style.width = `${visibleRect.width}px`;
+            resizer.style.height = `${visibleRect.height}px`;
+            resizer.style.display = 'block';
+          }
         } else {
           resizer.style.display = width === 0 || height === 0 ? 'none' : 'block';
         }
       } catch { /* ignore */ }
     }
-  }, []);
+  }, [getVisibleImageRect]);
 
   const syncSelectedImageRect = useCallback(() => {
     let img = selectedImageRef.current;
@@ -634,15 +664,16 @@ const QuillWrapper = forwardRef(({
       const editor = container.querySelector('.ql-editor');
       const editorRect = editor?.getBoundingClientRect();
       const isOutside = editorRect && (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
+      const visibleRect = getVisibleImageRect(imgRect, editorRect);
 
-      if (isOutside || imgRect.width === 0 || imgRect.height === 0) {
+      if (isOutside || !visibleRect || imgRect.width === 0 || imgRect.height === 0) {
         setResizerRect((prev) => (prev === null ? prev : null));
       } else {
         const nextRect = {
-          top: imgRect.top,
-          left: imgRect.left,
-          width: imgRect.width,
-          height: imgRect.height
+          top: visibleRect.top,
+          left: visibleRect.left,
+          width: visibleRect.width,
+          height: visibleRect.height
         };
         setResizerRect((prev) => (
           prev &&
@@ -657,7 +688,7 @@ const QuillWrapper = forwardRef(({
     } catch {
       setResizerRect((prev) => (prev === null ? prev : null));
     }
-  }, []);
+  }, [getVisibleImageRect]);
 
   useEffect(() => {
     positionCaptionsDirectly();
@@ -791,6 +822,7 @@ const QuillWrapper = forwardRef(({
     const handleScrollOrResize = () => {
       try {
         if (!quill.root.querySelector('img')) return;
+        syncSelectedImageRect();
         positionCaptionsDirectly();
         positionResizerDirectly();
       } catch { /* ignore */ }
@@ -819,6 +851,7 @@ const QuillWrapper = forwardRef(({
 
     window.addEventListener('scroll', handleScrollOrResize, true);
     window.addEventListener('resize', handleScrollOrResize);
+    quill.root.addEventListener('scroll', handleScrollOrResize, true);
 
     const resizeObserver = new ResizeObserver(handleScrollOrResize);
     resizeObserver.observe(quill.root);
@@ -845,12 +878,13 @@ const QuillWrapper = forwardRef(({
       container.removeEventListener('mouseup', handleMouseup, true);
       window.removeEventListener('scroll', handleScrollOrResize, true);
       window.removeEventListener('resize', handleScrollOrResize);
+      quill.root.removeEventListener('scroll', handleScrollOrResize, true);
       resizeObserver.disconnect();
       quill.off('selection-change', updateSizePickerLabel);
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
     };
-  }, [isReady, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly, updateSizePickerLabel]);
+  }, [isReady, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly, syncSelectedImageRect, updateSizePickerLabel]);
 
 
 
@@ -1434,6 +1468,7 @@ const QuillWrapper = forwardRef(({
         if (frameId) return;
         frameId = window.requestAnimationFrame(() => {
           frameId = 0;
+          syncSelectedImageRect();
           positionResizerDirectly();
           positionCaptionsDirectly();
         });
@@ -1441,10 +1476,13 @@ const QuillWrapper = forwardRef(({
 
       window.addEventListener('resize', schedulePosition);
       window.addEventListener('scroll', schedulePosition, true);
+      const editor = containerRef.current?.querySelector('.ql-editor');
+      editor?.addEventListener('scroll', schedulePosition, true);
       return () => {
         if (frameId) window.cancelAnimationFrame(frameId);
         window.removeEventListener('resize', schedulePosition);
         window.removeEventListener('scroll', schedulePosition, true);
+        editor?.removeEventListener('scroll', schedulePosition, true);
       };
     } else {
       setResizerRect((prev) => (prev === null ? prev : null));
@@ -1910,7 +1948,14 @@ const QuillWrapper = forwardRef(({
     const startRect = startImg.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
     const minWidth = Math.min(24, Math.max(1, editorRect.width || startRect.width || 1));
-    const maxWidth = Math.max(minWidth, editorRect.width || containerRef.current?.clientWidth || startRect.width || minWidth);
+    const maxWidth = Math.max(
+      minWidth,
+      startImg.naturalWidth || 0,
+      (editorRect.width || 0) * 3,
+      (containerRef.current?.clientWidth || 0) * 3,
+      startRect.width || 0,
+      2000
+    );
     const startWidth = Math.max(minWidth, Math.min(startRect.width || startImg.clientWidth || minWidth, maxWidth));
     const startHeight = Math.max(1, startRect.height || startImg.clientHeight || 1);
     const aspectRatio = startWidth / startHeight;
@@ -1925,10 +1970,35 @@ const QuillWrapper = forwardRef(({
     let frameId = 0;
     let didCommit = false;
 
+    const syncOverlayToImage = () => {
+      const img = getResizeImage();
+      if (!img || !img.isConnected) return;
+      const imgRect = img.getBoundingClientRect();
+      const width = Math.max(0, imgRect.width);
+      const height = Math.max(0, imgRect.height);
+
+      setResizerRect((prev) => {
+        const next = {
+          top: imgRect.top,
+          left: imgRect.left,
+          width,
+          height
+        };
+        return (
+          prev &&
+          Math.abs(prev.top - next.top) < 0.5 &&
+          Math.abs(prev.left - next.left) < 0.5 &&
+          Math.abs(prev.width - next.width) < 0.5 &&
+          Math.abs(prev.height - next.height) < 0.5
+        ) ? prev : next;
+      });
+    };
+
     const scheduleChromeSync = () => {
       if (frameId) return;
       frameId = window.requestAnimationFrame(() => {
         frameId = 0;
+        syncOverlayToImage();
         positionResizerDirectly();
         positionCaptionsDirectly();
       });
@@ -1944,10 +2014,22 @@ const QuillWrapper = forwardRef(({
       liveResizeImage = img;
     };
 
+    const isCenteredImage = () => {
+      const img = getResizeImage();
+      if (!img) return false;
+      const wrapMode = img.getAttribute('data-wrap') || 'none';
+      if (wrapMode !== 'none') return false;
+      const style = window.getComputedStyle(img);
+      return style.display === 'block' && style.marginLeft === 'auto' && style.marginRight === 'auto';
+    };
+
     const applyPointerPosition = (clientX, clientY) => {
       const deltaX = clientX - startX;
       const deltaY = clientY - startY;
-      const nextWidthFromX = isLeftHandle ? startWidth - deltaX : startWidth + deltaX;
+      const edgeMultiplier = isCenteredImage() ? 2 : 1;
+      const nextWidthFromX = isLeftHandle
+        ? startWidth - (deltaX * edgeMultiplier)
+        : startWidth + (deltaX * edgeMultiplier);
       const nextHeight = isTopHandle ? startHeight - deltaY : startHeight + deltaY;
       const nextWidthFromY = nextHeight * aspectRatio;
       const xWeight = Math.abs(deltaX);
@@ -1971,15 +2053,6 @@ const QuillWrapper = forwardRef(({
       liveResizeImage = img;
 
       if (quill) {
-        try {
-          const blot = Quill.find(img);
-          if (blot) {
-            const index = quill.getIndex(blot);
-            quill.formatText(index, 1, 'width', widthValue, 'silent');
-            quill.update('silent');
-          }
-        } catch { /* ignore */ }
-
         syncImageEditChange(quill);
       }
 
@@ -2010,11 +2083,11 @@ const QuillWrapper = forwardRef(({
       }
       document.body.style.cursor = previousCursor;
       document.body.style.userSelect = previousUserSelect;
-      resizeDragRef.current = false;
-      imageResizeSessionRef.current = null;
       if (shouldCommit) {
         commitResize();
       }
+      resizeDragRef.current = false;
+      imageResizeSessionRef.current = null;
     };
 
     function onMove(moveEvent) {
@@ -2049,6 +2122,7 @@ const QuillWrapper = forwardRef(({
     document.body.style.cursor = direction.includes('right') === direction.includes('top') ? 'nesw-resize' : 'nwse-resize';
     document.body.style.userSelect = 'none';
     setImageWidth(currentWidth);
+    syncOverlayToImage();
     positionResizerDirectly();
 
     try {
@@ -2078,129 +2152,6 @@ const QuillWrapper = forwardRef(({
     updateResizerRect
   ]);
 
-  const getOverlayResizeDirection = useCallback((event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const threshold = 28;
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const nearLeft = x <= threshold;
-    const nearRight = x >= rect.width - threshold;
-    const isTopHalf = y <= rect.height / 2;
-
-    if (nearLeft) return isTopHalf ? 'top-left' : 'bottom-left';
-    if (nearRight) return isTopHalf ? 'top-right' : 'bottom-right';
-    return null;
-  }, []);
-
-  const getDirectionFromRect = useCallback((event, rect) => {
-    if (!rect) return null;
-    const threshold = 36;
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const nearLeft = x >= -threshold && x <= threshold;
-    const nearRight = x >= rect.width - threshold && x <= rect.width + threshold;
-    const nearTop = y >= -threshold && y <= threshold;
-    const nearBottom = y >= rect.height - threshold && y <= rect.height + threshold;
-
-    if (nearLeft && nearTop) return 'top-left';
-    if (nearRight && nearTop) return 'top-right';
-    if (nearLeft && nearBottom) return 'bottom-left';
-    if (nearRight && nearBottom) return 'bottom-right';
-    return null;
-  }, []);
-
-  useEffect(() => {
-    if (!resizerRect || !resizerOverlayRef.current) return;
-
-    const overlay = resizerOverlayRef.current;
-    const startResizeFromNativeEvent = (event) => {
-      const target = event.target;
-      const handle = target?.closest?.('.resizer-handle');
-      const direction = handle?.getAttribute('data-dir') || getOverlayResizeDirection(event);
-      if (!direction) return;
-
-      handleResizeStart(event, direction);
-    };
-
-    overlay.addEventListener('pointerdown', startResizeFromNativeEvent, true);
-    overlay.addEventListener('mousedown', startResizeFromNativeEvent, true);
-
-    return () => {
-      overlay.removeEventListener('pointerdown', startResizeFromNativeEvent, true);
-      overlay.removeEventListener('mousedown', startResizeFromNativeEvent, true);
-    };
-  }, [getOverlayResizeDirection, handleResizeStart, resizerRect]);
-
-  useEffect(() => {
-    if (!resizerRect) return;
-
-    const startResizeFromDocument = (event) => {
-      if (resizeDragRef.current) return;
-      const direction = getDirectionFromRect(event, resizerRect);
-      if (!direction) return;
-
-      const target = event.target;
-      const isEditorImage = target?.closest?.('.ql-editor img');
-      const isOverlay = resizerOverlayRef.current?.contains(target);
-      if (!isEditorImage && !isOverlay) return;
-
-      handleResizeStart(event, direction);
-    };
-
-    document.addEventListener('pointerdown', startResizeFromDocument, true);
-    document.addEventListener('mousedown', startResizeFromDocument, true);
-
-    return () => {
-      document.removeEventListener('pointerdown', startResizeFromDocument, true);
-      document.removeEventListener('mousedown', startResizeFromDocument, true);
-    };
-  }, [getDirectionFromRect, handleResizeStart, resizerRect]);
-
-  useEffect(() => {
-    if (!isReady) return;
-
-    const startResizeFromSelectedImageCorner = (event) => {
-      if (resizeDragRef.current) return;
-      const img = getActiveImage();
-      if (!img || !img.isConnected) return;
-
-      const rect = img.getBoundingClientRect();
-      const direction = getDirectionFromRect(event, rect);
-      if (!direction) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      handleResizeStart(event, direction, img);
-    };
-
-    document.addEventListener('pointerdown', startResizeFromSelectedImageCorner, true);
-    document.addEventListener('mousedown', startResizeFromSelectedImageCorner, true);
-
-    return () => {
-      document.removeEventListener('pointerdown', startResizeFromSelectedImageCorner, true);
-      document.removeEventListener('mousedown', startResizeFromSelectedImageCorner, true);
-    };
-  }, [getActiveImage, getDirectionFromRect, handleResizeStart, isReady]);
-
-  const getImageResizeDirection = useCallback((event, img) => {
-    const rect = img.getBoundingClientRect();
-    const threshold = 28;
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const nearLeft = x <= threshold;
-    const nearRight = x >= rect.width - threshold;
-    const nearTop = y <= threshold;
-    const nearBottom = y >= rect.height - threshold;
-
-    if (nearLeft && nearTop) return 'top-left';
-    if (nearRight && nearTop) return 'top-right';
-    if (nearLeft && nearBottom) return 'bottom-left';
-    if (nearRight && nearBottom) return 'bottom-right';
-    if (nearLeft) return y <= rect.height / 2 ? 'top-left' : 'bottom-left';
-    if (nearRight) return y <= rect.height / 2 ? 'top-right' : 'bottom-right';
-    return null;
-  }, []);
-
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
     const container = containerRef.current;
@@ -2213,12 +2164,6 @@ const QuillWrapper = forwardRef(({
       if (!img || !quill || !quill.root.contains(img)) return;
 
       enterImageEditMode(img, quill);
-
-      const direction = getImageResizeDirection(event, img);
-      if (direction) {
-        handleResizeStart(event.nativeEvent || event, direction, img);
-        return;
-      }
 
       window.requestAnimationFrame(() => {
         updateResizerRect();
@@ -2235,8 +2180,6 @@ const QuillWrapper = forwardRef(({
     };
   }, [
     enterImageEditMode,
-    getImageResizeDirection,
-    handleResizeStart,
     isReady,
     positionCaptionsDirectly,
     positionResizerDirectly,
@@ -3353,7 +3296,7 @@ const QuillWrapper = forwardRef(({
           transition: border-color 0.2s ease;
           border: 4px solid transparent;
           display: inline-block;
-          max-width: 100%;
+          max-width: none !important;
         }
         .ql-editor img:hover {
           border-color: rgba(26, 148, 255, 0.3);
@@ -3500,8 +3443,8 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor h6 { font-size: 1rem; }
         .resizer-handle {
           position: absolute;
-          width: 30px;
-          height: 30px;
+          width: 36px;
+          height: 36px;
           background: white;
           border: 2px solid #1A94FF;
           border-radius: 50%;
@@ -3509,10 +3452,9 @@ const QuillWrapper = forwardRef(({
           box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           z-index: 2001;
           touch-action: none;
-          transition: transform 0.15s ease, background 0.15s ease;
+          transition: background 0.15s ease;
         }
         .resizer-handle:hover {
-          transform: scale(1.1);
           background: #f0f7ff;
         }
         /* Text Wrapping Toolbar */
@@ -3829,24 +3771,8 @@ const QuillWrapper = forwardRef(({
           }}
           onClick={(e) => e.stopPropagation()}
           onDragStart={(e) => e.preventDefault()}
-          onPointerDown={(e) => {
-            if (e.target !== e.currentTarget) return;
-            const direction = getOverlayResizeDirection(e);
-            if (direction) {
-              handleResizeStart(e.nativeEvent || e, direction);
-            } else {
-              e.stopPropagation();
-            }
-          }}
-          onMouseDown={(e) => {
-            if (e.target !== e.currentTarget) return;
-            const direction = getOverlayResizeDirection(e);
-            if (direction) {
-              handleResizeStart(e.nativeEvent || e, direction);
-            } else {
-              e.stopPropagation();
-            }
-          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           {/* Text Wrapping Toolbar */}
           <div className="wrap-toolbar" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
@@ -3925,9 +3851,13 @@ const QuillWrapper = forwardRef(({
               style={{ ...handle.style, cursor: handle.cursor, pointerEvents: 'auto' }}
               onDragStart={(e) => e.preventDefault()}
               onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 handleResizeStart(e.nativeEvent || e, handle.dir);
               }}
               onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 handleResizeStart(e.nativeEvent || e, handle.dir);
               }}
             />
