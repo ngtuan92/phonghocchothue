@@ -232,6 +232,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     return /^-?\d+(\.\d+)?$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
   };
 
+  const normalizeLineHeight = (value: string) => {
+    const cleanValue = String(value).trim();
+    if (cleanValue.startsWith("-")) return "";
+    return /^\d+(\.\d+)?$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
+  };
+
   const customStyles = useMemo(() => {
     const styles: React.CSSProperties & Record<string, any> = {
       wordBreak: "normal",
@@ -242,10 +248,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       display: Component === "span" ? "inline" : "block",
     };
     if (activeLineHeight) {
-      styles['--custom-line-height' as any] = normalizeCssSize(activeLineHeight);
+      const normalized = normalizeLineHeight(activeLineHeight);
+      if (normalized) styles['--custom-line-height' as any] = normalized;
     }
     if (activeLineHeightMobile) {
-      styles['--custom-line-height-mobile' as any] = normalizeCssSize(activeLineHeightMobile);
+      const normalized = normalizeLineHeight(activeLineHeightMobile);
+      if (normalized) styles['--custom-line-height-mobile' as any] = normalized;
     }
     if (activeFontSize) {
       styles['--fs-desktop' as any] = normalizeCssSize(activeFontSize);

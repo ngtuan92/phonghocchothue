@@ -731,7 +731,7 @@ export default function DetailPage() {
             className="mt-8 w-auto border-b-2 border-[#003a6a] px-0 flex justify-start mx-[40px] sm:mx-20"
             id="about"
           >
-            <span className="px-4 py-2 bg-[#003a6a] text-white uppercase poppins-bold text-sm sm:text-lg">
+            <span className="px-4 py-2 bg-[#003a6a] text-white poppins-bold text-sm sm:text-lg">
               Chi tiết
             </span>
           </div>

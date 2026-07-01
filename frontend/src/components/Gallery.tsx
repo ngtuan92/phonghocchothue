@@ -157,14 +157,18 @@ const Gallery: React.FC = () => {
                   style={{ backgroundColor: "transparent" }}
                 >
                   {desktopChunks.map((chunk: any[], chunkIndex: number) => (
-                    <SwiperSlide key={`desktop-chunk-${chunkIndex}`} className="h-full flex flex-col justify-between gap-[20px] bg-transparent" style={{ backgroundColor: "transparent" }}>
+                    <SwiperSlide
+                      key={`desktop-chunk-${chunkIndex}`}
+                      className="h-full bg-transparent"
+                      style={{ backgroundColor: "transparent", display: "flex", flexDirection: "column", gap: "20px" }}
+                    >
                       {chunk.map((item: any, itemIndex: number) => {
                         const hasSpacesBorder = galleryRadius !== "0px" || mobileImageBorderRadius !== "0px";
                         const globalIndex = chunkIndex * 2 + itemIndex;
                         return (
                           <div
                             key={`desktop-item-${itemIndex}`}
-                            className={`relative w-full h-[calc((100%-20px)/2)] overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
+                            className={`relative w-full flex-1 min-h-0 overflow-hidden group/item transition-all duration-300 md:duration-500 gallery-swiper-slide-container ${
                               hasSpacesBorder ? "border border-[#799f851a] md:border-2 md:border-white/50" : "border-0"
                             }`}
                             style={{

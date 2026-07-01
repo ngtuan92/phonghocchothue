@@ -435,6 +435,114 @@ const QuillWrapper = forwardRef(({
   const lastRelativeContentRef = useRef("");
   const localEditorHtmlRef = useRef(null);
   const isUserEditingRef = useRef(false);
+  const handleSignedIntegerChange = useCallback((value, onChange) => {
+    if (!onChange) return;
+    if (value === "" || value === "-" || /^-?\d+$/.test(value)) {
+      onChange(value);
+    }
+  }, []);
+  const handleUnsignedIntegerChange = useCallback((value, onChange) => {
+    if (!onChange) return;
+    if (value === "" || /^\d+$/.test(value)) {
+      onChange(value);
+    }
+  }, []);
+  const focusWithoutScroll = useCallback((target) => {
+    if (!target || typeof window === 'undefined') return;
+
+    const root = target.root || target.getEditor?.()?.root || target;
+    const scrollParents = [window];
+    let current = root instanceof HTMLElement ? root.parentElement : null;
+
+    while (current && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      if (
+        (/(auto|scroll|overlay)/.test(style.overflowY) && current.scrollHeight > current.clientHeight) ||
+        (/(auto|scroll|overlay)/.test(style.overflowX) && current.scrollWidth > current.clientWidth)
+      ) {
+        scrollParents.push(current);
+      }
+      current = current.parentElement;
+    }
+
+    const positions = scrollParents.map((element) => (
+      element === window
+        ? { element, top: window.scrollY, left: window.scrollX }
+        : { element, top: element.scrollTop, left: element.scrollLeft }
+    ));
+
+    try {
+      if (root instanceof HTMLElement) {
+        root.focus({ preventScroll: true });
+      } else if (typeof target.focus === 'function') {
+        target.focus();
+      }
+    } catch {
+      try {
+        target.focus?.();
+      } catch { /* ignore */ }
+    }
+
+    const restore = () => {
+      positions.forEach(({ element, top, left }) => {
+        if (element === window) {
+          window.scrollTo(left, top);
+        } else {
+          element.scrollTop = top;
+          element.scrollLeft = left;
+        }
+      });
+    };
+
+    restore();
+    window.requestAnimationFrame(restore);
+  }, []);
+
+  const preserveScrollAround = useCallback((root, action) => {
+    if (typeof window === 'undefined') {
+      action?.();
+      return;
+    }
+
+    const scrollParents = [window];
+    let current = root instanceof HTMLElement ? root.parentElement : null;
+
+    while (current && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      if (
+        (/(auto|scroll|overlay)/.test(style.overflowY) && current.scrollHeight > current.clientHeight) ||
+        (/(auto|scroll|overlay)/.test(style.overflowX) && current.scrollWidth > current.clientWidth)
+      ) {
+        scrollParents.push(current);
+      }
+      current = current.parentElement;
+    }
+
+    const positions = scrollParents.map((element) => (
+      element === window
+        ? { element, top: window.scrollY, left: window.scrollX }
+        : { element, top: element.scrollTop, left: element.scrollLeft }
+    ));
+
+    const restore = () => {
+      positions.forEach(({ element, top, left }) => {
+        if (element === window) {
+          window.scrollTo(left, top);
+        } else {
+          element.scrollTop = top;
+          element.scrollLeft = left;
+        }
+      });
+    };
+
+    try {
+      action?.();
+    } finally {
+      restore();
+      window.requestAnimationFrame(restore);
+    }
+  }, []);
+
   const getImageWrapMode = useCallback((mode) => {
     if (mode === 'right') return 'right';
     if (mode === 'center' || mode === 'none' || !mode) return 'none';
@@ -784,7 +892,7 @@ const QuillWrapper = forwardRef(({
             // Wait for Quill to apply the format before restoring selection.
             setTimeout(() => {
               try {
-                quillInstance.focus();
+                focusWithoutScroll(quillInstance);
                 quillInstance.setSelection(saved.index, saved.length);
               } catch { /* ignore */ }
             }, 0);
@@ -1009,7 +1117,7 @@ const QuillWrapper = forwardRef(({
     },
     focus: () => {
       try {
-        editorRef.current?.focus();
+        focusWithoutScroll(editorRef.current);
       } catch { /* ignore */ }
     },
     blur: () => {
@@ -1132,6 +1240,39 @@ const QuillWrapper = forwardRef(({
       setIsReady(true);
     }
   }, [dynamicFonts, hasResponsive, hasLineHeight, hasTranslateY]);
+
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
+    const quill = editorRef.current?.getEditor();
+    if (!quill || quill.__preventAdminScrollIntoView) return;
+
+    const originalScrollSelectionIntoView = quill.scrollSelectionIntoView?.bind(quill);
+    const originalSelectionScrollIntoView = quill.selection?.scrollIntoView?.bind(quill.selection);
+
+    if (originalScrollSelectionIntoView) {
+      quill.scrollSelectionIntoView = (...args) => {
+        preserveScrollAround(quill.root, () => originalScrollSelectionIntoView(...args));
+      };
+    }
+
+    if (originalSelectionScrollIntoView) {
+      quill.selection.scrollIntoView = (...args) => {
+        preserveScrollAround(quill.root, () => originalSelectionScrollIntoView(...args));
+      };
+    }
+
+    quill.__preventAdminScrollIntoView = true;
+
+    return () => {
+      if (originalScrollSelectionIntoView) {
+        quill.scrollSelectionIntoView = originalScrollSelectionIntoView;
+      }
+      if (originalSelectionScrollIntoView && quill.selection) {
+        quill.selection.scrollIntoView = originalSelectionScrollIntoView;
+      }
+      delete quill.__preventAdminScrollIntoView;
+    };
+  }, [isReady, preserveScrollAround]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1299,7 +1440,7 @@ const QuillWrapper = forwardRef(({
           label.style.display = 'none';
           picker.insertBefore(input, label);
 
-          input.focus();
+          input.focus({ preventScroll: true });
           input.select();
 
           const applySizeAndClose = () => {
@@ -1309,7 +1450,7 @@ const QuillWrapper = forwardRef(({
               if (/^\d+(\.\d+)?$/.test(val)) {
                 val = `${val}px`;
               }
-              quill.focus();
+              focusWithoutScroll(quill);
               quill.format('size', val);
             }
             input.remove();
@@ -1394,7 +1535,7 @@ const QuillWrapper = forwardRef(({
 
               const savedSel = savedSelectionRef.current;
               if (savedSel) {
-                quillInstance.focus();
+                focusWithoutScroll(quillInstance);
                 quillInstance.setSelection(savedSel.index, savedSel.length);
               }
 
@@ -2280,7 +2421,6 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Alt text (SEO)</label>
               <input
                 type="text"
-                autoFocus
                 placeholder="Example: classroom for rent in Da Nang..."
                 className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.alt}
@@ -2364,10 +2504,13 @@ const QuillWrapper = forwardRef(({
   }, [props.value, className, hasResponsive]);
 
   const handleBlur = useCallback(() => {
+    if (props.onBlur && lastRelativeContentRef.current != null) {
+      props.onBlur(lastRelativeContentRef.current);
+    }
     isUserEditingRef.current = false;
     localEditorHtmlRef.current = null;
     setSyncTrigger(prev => !prev);
-  }, []);
+  }, [props.onBlur]);
 
   useEffect(() => {
     let isFocused = false;
@@ -2466,8 +2609,8 @@ const QuillWrapper = forwardRef(({
         '--quill-toolbar-top': toolbarTop,
         '--quill-editor-max-height': maxHeight,
         '--quill-editor-min-height': minHeight,
-        '--custom-line-height': lineHeight ? (/^\d+$/.test(String(lineHeight).trim()) ? `${lineHeight}px` : lineHeight) : undefined,
-        '--custom-line-height-mobile': lineHeightMobile ? (/^\d+$/.test(String(lineHeightMobile).trim()) ? `${lineHeightMobile}px` : lineHeightMobile) : undefined,
+        '--custom-line-height': lineHeight && !String(lineHeight).trim().startsWith("-") ? (/^\d+$/.test(String(lineHeight).trim()) ? `${lineHeight}px` : lineHeight) : undefined,
+        '--custom-line-height-mobile': lineHeightMobile && !String(lineHeightMobile).trim().startsWith("-") ? (/^\d+$/.test(String(lineHeightMobile).trim()) ? `${lineHeightMobile}px` : lineHeightMobile) : undefined,
         '--fs-desktop': fontSize ? (/^\d+$/.test(String(fontSize).trim()) ? `${fontSize}px` : fontSize) : undefined,
         '--fs-mobile': fontSizeMobile ? (/^\d+$/.test(String(fontSizeMobile).trim()) ? `${fontSizeMobile}px` : fontSizeMobile) : undefined,
         '--translate-y': translateY ? (/^-?\d+$/.test(String(translateY).trim()) ? `${translateY}px` : translateY) : undefined,
@@ -2502,9 +2645,10 @@ const QuillWrapper = forwardRef(({
                 <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Desktop (px)</label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   placeholder="Default. Ex: 32"
                   value={lineHeight || ""}
-                  onChange={(e) => onChangeLineHeight && onChangeLineHeight(e.target.value)}
+                  onChange={(e) => handleUnsignedIntegerChange(e.target.value, onChangeLineHeight)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
@@ -2513,9 +2657,10 @@ const QuillWrapper = forwardRef(({
                 <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Mobile (px)</label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   placeholder="Default. Ex: 24"
                   value={lineHeightMobile || ""}
-                  onChange={(e) => onChangeLineHeightMobile && onChangeLineHeightMobile(e.target.value)}
+                  onChange={(e) => handleUnsignedIntegerChange(e.target.value, onChangeLineHeightMobile)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
@@ -2706,9 +2851,10 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Desktop (px)</label>
               <input
                 type="text"
+                inputMode="numeric"
                 placeholder="Ex: -20 or 10"
                 value={translateY || ""}
-                onChange={(e) => onChangeTranslateY && onChangeTranslateY(e.target.value)}
+                onChange={(e) => handleSignedIntegerChange(e.target.value, onChangeTranslateY)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -2717,9 +2863,10 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Mobile (px)</label>
               <input
                 type="text"
+                inputMode="numeric"
                 placeholder="Ex: -10 or 5"
                 value={translateYMobile || ""}
-                onChange={(e) => onChangeTranslateYMobile && onChangeTranslateYMobile(e.target.value)}
+                onChange={(e) => handleSignedIntegerChange(e.target.value, onChangeTranslateYMobile)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />

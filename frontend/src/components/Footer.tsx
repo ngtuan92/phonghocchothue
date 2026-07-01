@@ -44,7 +44,6 @@ const Footer = () => {
             <div className="flex items-center mb-2">
               <FontAwesomeIcon icon={faPhone} className="mr-3 text-center flex-shrink-0" />
               <div className="flex flex-wrap items-center gap-1">
-                <span className="whitespace-nowrap">Điện thoại: </span>
                 <RichTextRenderer html={phone} configKey="phone" as="span" className="inline-rich-text" />
               </div>
             </div>
@@ -56,7 +55,6 @@ const Footer = () => {
                 className="mr-2 text-center flex-shrink-0"
               />
               <div className="flex flex-wrap items-center gap-1">
-                <span className="whitespace-nowrap">Email: </span>
                 <a href={`mailto:${stripHtmlAndCss(email)}`} className="break-all">
                   <RichTextRenderer html={email} configKey="email" as="span" className="inline-rich-text" />
                 </a>

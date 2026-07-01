@@ -368,7 +368,6 @@ export default function BlogForm({ data, onSave, onCancel }) {
                         className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        autoFocus
                       />
                       <Button 
                         size="sm"

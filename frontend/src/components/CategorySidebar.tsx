@@ -54,7 +54,7 @@ export default function CategorySidebar({
   return (
     <div className="lg:sticky lg:top-24 space-y-12">
       <div>
-        <h3 className="text-sm font-bold text-[#563c39] uppercase tracking-widest mb-6 flex items-center gap-3">
+        <h3 className="text-sm font-bold text-[#563c39] mb-6 flex items-center gap-3">
           <span className="w-8 h-px bg-[#e57f7f]" />
           Danh mục
         </h3>

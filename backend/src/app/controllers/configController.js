@@ -5,6 +5,17 @@ const { uploadFile } = require('../../util/upload-file')
 const { mutipleConvertToObject } = require('../../util/convert');
 const { getOrSetCache, redis } = require('../../util/cacheUtil');
 
+const hasMeaningfulHtml = (value) => {
+    if (typeof value !== 'string') return false;
+    return value
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/\s+/g, '')
+        .length > 0;
+};
+
 function processConfigs(plainConfigs) {
     const faqListConfig = plainConfigs.find(c => c.key === 'faq_list');
     if (faqListConfig && faqListConfig.content) {
@@ -176,6 +187,8 @@ class ConfigController {
                 if (image) {
                     content_new = await uploadFile(image, 'configs', image.name);
                 }
+            } else if (config.type === 'richtext' && !hasMeaningfulHtml(content) && hasMeaningfulHtml(config.content)) {
+                content_new = config.content;
             }
 
             await config.update({

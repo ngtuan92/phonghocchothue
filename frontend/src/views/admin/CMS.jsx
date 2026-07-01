@@ -392,6 +392,7 @@ export default function CMS() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [configs, setConfigs] = useState([]);
+  const configDraftsRef = useRef({});
   const [activeSection, setActiveSection] = useState("about");
   const [openAdd, setOpenAdd] = useState(false);
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
@@ -399,6 +400,8 @@ export default function CMS() {
   const [sliders, setSliders] = useState([]);
   const [amenitySliders, setAmenitySliders] = useState([]);
   const [dynamicFonts, setDynamicFonts] = useState([]);
+  const configCardRefs = useRef({});
+  const lastNonEmptyContentRef = useRef({});
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
@@ -667,17 +670,55 @@ export default function CMS() {
     return () => clearTimeout(timeoutId);
   }, [activeSection, configs.length]);
 
-  const loadConfigs = async () => {
-    setIsLoading(true);
+  const loadConfigs = async ({ showLoading = true } = {}) => {
+    if (showLoading) setIsLoading(true);
     try {
       const res = await fetchData(`${URL_API}api/config?noCache=true`, "GET");
-      setConfigs(res.data || []);
+      configDraftsRef.current = {};
+      const nextConfigs = res.data || [];
+      nextConfigs.forEach((config) => {
+        if (isRichConfig(config) && hasMeaningfulHtml(config.content)) {
+          lastNonEmptyContentRef.current[config.key] = config.content;
+        }
+      });
+      setConfigs(nextConfigs);
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") handleInvalidToken(router);
       showToastError("Không thể tải dữ liệu cấu hình");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
+  };
+
+  const rememberConfigCardPosition = (key) => {
+    if (typeof window === "undefined") return null;
+
+    const element = configCardRefs.current[key];
+    if (!element) return null;
+
+    return {
+      key,
+      top: element.getBoundingClientRect().top,
+    };
+  };
+
+  const restoreConfigCardPosition = (snapshot) => {
+    if (!snapshot || typeof window === "undefined") return;
+
+    const restore = () => {
+      const element = configCardRefs.current[snapshot.key];
+      if (!element) return;
+
+      const deltaTop = element.getBoundingClientRect().top - snapshot.top;
+      if (Math.abs(deltaTop) > 0.5) {
+        window.scrollBy(0, deltaTop);
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      restore();
+      window.requestAnimationFrame(restore);
+    });
   };
 
 
@@ -801,36 +842,89 @@ export default function CMS() {
     }
   };
 
-  const updateField = (key, value) => {
+  const isRichConfig = (config) => {
+    const keyLower = String(config.key || "").toLowerCase();
+    return config.type === "richtext" || keyLower.includes("decription") || keyLower.includes("description") || keyLower.includes("content");
+  };
+
+  const hasMeaningfulHtml = (value) => {
+    if (typeof value !== "string") return false;
+    return value
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\s+/g, "")
+      .length > 0;
+  };
+
+  const updateField = (config, value) => {
+    if (isRichConfig(config)) {
+      if (hasMeaningfulHtml(value)) {
+        lastNonEmptyContentRef.current[config.key] = value;
+      } else if (hasMeaningfulHtml(config.content)) {
+        return;
+      }
+      configDraftsRef.current[config.key] = value;
+    }
+
+    const key = config.key;
     setConfigs((prev) => prev.map((c) => (c.key === key ? { ...c, content: value } : c)));
   };
 
-  const saveConfig = async (config) => {
-    setSavingKey(config.key);
-    const fd = new FormData();
-    if ((config.type === "image" || config.type === "music") && config._file) {
-      fd.set("content", config._file);
-    } else {
-      fd.set("content", config.content ?? "");
+  const commitDraftField = (config, value) => {
+    if (!isRichConfig(config)) return;
+    if (!hasMeaningfulHtml(value) && hasMeaningfulHtml(config.content)) return;
+
+    configDraftsRef.current[config.key] = value;
+    if (hasMeaningfulHtml(value)) {
+      lastNonEmptyContentRef.current[config.key] = value;
     }
-    fd.append("type", config.type);
-    fd.append("section", config.section || activeSection);
-    fd.append("borderRadius", config.borderRadius || "");
-    fd.append("lineHeight", config.lineHeight || "");
-    fd.append("lineHeightMobile", config.lineHeightMobile || "");
-    fd.append("fontSize", config.fontSize || "");
-    fd.append("fontSizeMobile", config.fontSizeMobile || "");
-    fd.append("translateY", config.translateY || "");
-    fd.append("translateYMobile", config.translateYMobile || "");
-    if (config.type === "music") {
-      fd.append("musicName", config.musicName || "");
+    setConfigs((prev) =>
+      prev.map((c) => (c.key === config.key ? { ...c, content: value } : c))
+    );
+  };
+
+  const saveConfig = async (config) => {
+    const latestConfig = configs.find((c) => c.key === config.key) || config;
+    const configToSave = {
+      ...latestConfig,
+      content: Object.prototype.hasOwnProperty.call(configDraftsRef.current, config.key)
+        ? configDraftsRef.current[config.key]
+        : latestConfig.content,
+    };
+    if (isRichConfig(configToSave) && !hasMeaningfulHtml(configToSave.content)) {
+      configToSave.content = lastNonEmptyContentRef.current[configToSave.key] || latestConfig.content || "";
+    }
+    const scrollSnapshot = rememberConfigCardPosition(configToSave.key);
+
+    setSavingKey(configToSave.key);
+    const fd = new FormData();
+    if ((configToSave.type === "image" || configToSave.type === "music") && configToSave._file) {
+      fd.set("content", configToSave._file);
+    } else {
+      fd.set("content", configToSave.content ?? "");
+    }
+    fd.append("type", configToSave.type);
+    fd.append("section", configToSave.section || activeSection);
+    fd.append("borderRadius", configToSave.borderRadius || "");
+    fd.append("lineHeight", configToSave.lineHeight || "");
+    fd.append("lineHeightMobile", configToSave.lineHeightMobile || "");
+    fd.append("fontSize", configToSave.fontSize || "");
+    fd.append("fontSizeMobile", configToSave.fontSizeMobile || "");
+    fd.append("translateY", configToSave.translateY || "");
+    fd.append("translateYMobile", configToSave.translateYMobile || "");
+    if (configToSave.type === "music") {
+      fd.append("musicName", configToSave.musicName || "");
     }
     try {
-      await fetchData(`${URL_API}api/config/update/${config.key}`, "PUT", fd, {
+      await fetchData(`${URL_API}api/config/update/${configToSave.key}`, "PUT", fd, {
         "Content-Type": "multipart/form-data",
       });
-      showToastSuccess(`Đã lưu "${KEY_LABEL_MAP[config.key] || config.key}"`);
-      loadConfigs();
+      delete configDraftsRef.current[configToSave.key];
+      showToastSuccess(`Đã lưu "${KEY_LABEL_MAP[configToSave.key] || configToSave.key}"`);
+      await loadConfigs({ showLoading: false });
+      restoreConfigCardPosition(scrollSnapshot);
     } catch {
       showToastError("Lưu thất bại, vui lòng thử lại");
     } finally {
@@ -1077,6 +1171,7 @@ export default function CMS() {
             theme="snow"
             value={config.content || ""}
             onChange={onContentChange}
+            onBlur={(val) => commitDraftField(config, val)}
             lineHeight={config.lineHeight}
             lineHeightMobile={config.lineHeightMobile}
             fontSize={config.fontSize}
@@ -1324,6 +1419,10 @@ export default function CMS() {
               {sectionConfigs.map((config) => (
                 <div
                   key={config.key}
+                  ref={(node) => {
+                    if (node) configCardRefs.current[config.key] = node;
+                    else delete configCardRefs.current[config.key];
+                  }}
                   className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-visible hover:shadow-md transition-shadow duration-300"
                 >
                   <div className="flex items-center justify-between px-3 py-3 md:px-6 md:py-4 bg-gray-50/10 border-b border-gray-50">
@@ -1338,7 +1437,7 @@ export default function CMS() {
                   </div>
 
                   <div className="p-3 md:p-6">
-                    {renderEditor(config, (val) => updateField(config.key, val))}
+                    {renderEditor(config, (val) => updateField(config, val))}
                     <div className="flex justify-end mt-3 md:mt-4">
                       <button
                         onClick={() => saveConfig(config)}

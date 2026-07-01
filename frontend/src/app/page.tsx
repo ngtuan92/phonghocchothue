@@ -344,7 +344,7 @@ export default function Home() {
           {notificationLink && (
             <a
               href={notificationLink}
-              className="inline-block cursor-pointer mt-2 font-bold px-3 bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none py-1 uppercase text-xs transition-all duration-300 ease-in-out"
+              className="inline-block cursor-pointer mt-2 font-bold px-3 bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none py-1 text-xs transition-all duration-300 ease-in-out"
             >
               <RichTextRenderer
                 html={textBtnNotication}

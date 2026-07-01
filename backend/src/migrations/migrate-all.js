@@ -16,7 +16,8 @@ const migrationFiles = [
   "update-products-and-configs-seo.js",
   "add-responsive-settings-to-products-and-blogs.js",
   "add-blog-title-excerpt-font-sizes.js",
-  "add-product-name-font-sizes.js"
+  "add-product-name-font-sizes.js",
+  "strip-inline-font-size-from-responsive-configs.js"
 ];
 
 console.log("=== BẮT ĐẦU CHẠY TẤT CẢ CÁC MIGRATIONS ===");

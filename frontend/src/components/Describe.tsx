@@ -137,7 +137,7 @@ const Describe = () => {
         <div className="mb-[64px] sm:mb-36 main-container overflow-x-hidden">
             <div className="relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
-                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center translate-y-[6px] md:translate-y-[5px] lg:translate-y-[4px]">
+                    <div className="relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[14px] md:-translate-y-[15px] lg:-translate-y-[16px]">
                         {describeFrameImage && (
                             <div
                                 className="absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
@@ -167,7 +167,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"
-                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] tracking-[-0.05em] leading-none text-[#f8ebdb] uppercase opacity-60 flex items-center justify-center transform -translate-x-[15px] md:-translate-x-[10px] sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
+                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] leading-none text-[#f8ebdb] opacity-60 flex items-center justify-center transform -translate-x-[15px] md:-translate-x-[10px] sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
                                 />
                             </div>
 
@@ -184,17 +184,17 @@ const Describe = () => {
                             <RichTextRenderer
                                 html={normalizeSeoH1Html(h1Text)}
                                 configKey="seo-h1-main"
-                                className="title-sub-text text-[10px] md:text-xs lg:text-[14px] py-0.5 px-4 inline-block w-full max-w-[95%] tracking-[0.1em] md:tracking-[0.4em] uppercase text-[#563c39] text-center"
+                                className="inline-block w-full max-w-[95%] !normal-case [&_*]:!normal-case text-[#563c39] text-center"
                                 as="h1"
                             />
                         </div>
 
                         <div className="w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
-                            <span className="text-lg md:text-[24px] lg:text-[26px] font-bold tracking-[0.25em] text-[#563c39] font-wide whitespace-nowrap flex items-center">
+                            <span className="text-lg md:text-[24px] lg:text-[26px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center">
                                 <RichTextRenderer
                                     html={describePhone}
                                     configKey="describe-phone"
-                                    className="inline-block [&_*]:inline hero-phone-text"
+                                    className="inline-block [&_*]:inline !tracking-normal [&_*]:!tracking-normal hero-phone-text"
                                     as="span"
                                 />
                             </span>
@@ -202,7 +202,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
-                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0"
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal"
                                     as="span"
                                 />
                             </div>
@@ -258,18 +258,18 @@ const Describe = () => {
                             <RichTextRenderer
                                 html={normalizeSeoH1Html(h1Text)}
                                 configKey="seo-h1-main"
-                                className="title-sub-text text-[clamp(6px,2.2vw,10px)] pt-1.5 pb-[3px] px-2 inline-block w-auto max-w-[95%] tracking-normal xs:tracking-[0.1em] uppercase text-[#563c39] text-center !pl-0 !pr-0"
+                                className="inline-block w-auto max-w-[95%] !normal-case [&_*]:!normal-case text-[#563c39] text-center"
                                 as="p"
                             />
                         </div>
 
                         <div className="w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-[-2px] relative z-10">
                             <div className="flex-shrink-0 flex items-center">
-                                <span className="text-[10px] font-bold tracking-[0.05em] text-[#563c39] font-wide whitespace-nowrap flex items-center">
+                                <span className="text-[10px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center">
                                     <RichTextRenderer
                                         html={describePhone}
                                         configKey="describe-phone"
-                                        className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 hero-phone-text"
+                                        className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
                                         as="span"
                                     />
                                 </span>
@@ -278,7 +278,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
-                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[11px] hero-slogan-text"
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[11px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
                                     as="span"
                                 />
                             </div>

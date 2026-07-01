@@ -300,10 +300,8 @@
 
 .title-bg-text {
   font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: -0.05em !important;
   opacity: 0.12;
   color: #d4908a;
-  text-transform: uppercase;
   z-index: 0;
   line-height: 0.75 !important;
   font-weight: 400;
@@ -358,7 +356,6 @@
 
 .title-sub-text {
   font-family: 'Montserrat', sans-serif;
-  letter-spacing: 0.5em;
   font-weight: 300;
   color: #563c39;
   display: block !important;
@@ -366,16 +363,6 @@
   text-align: center !important;
   line-height: 1.35 !important;
   white-space: nowrap !important;
-  padding-left: 0.5em !important;
-  padding-right: 0 !important;
-}
-
-@media (min-width: 768px) {
-  .title-sub-text {
-    letter-spacing: 0.4em !important;
-    padding-left: 0.4em !important;
-    padding-right: 0 !important;
-  }
 }
 
 .title-quote-text {
@@ -603,20 +590,20 @@
   margin-top: 0;
 }
 
-.rich-text-renderer h1,
-.rich-text-renderer h2,
-.rich-text-renderer h3,
-.rich-text-renderer h4,
-.rich-text-renderer h5,
-.rich-text-renderer h6 {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1,
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2,
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3,
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4,
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h5,
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h6 {
   color: #563c39;
   line-height: 1.4;
   margin-bottom: 1.0rem;
   font-weight: 400;
 }
 
-.rich-text-renderer h1,
-.rich-text-renderer h2 {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1,
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 {
   clear: both !important;
 }
 
@@ -627,25 +614,25 @@
   clear: none !important;
 }
 
-.rich-text-renderer h1:has(+ p),
-.rich-text-renderer h2:has(+ p),
-.rich-text-renderer h3:has(+ p) {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1:has(+ p),
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2:has(+ p),
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3:has(+ p) {
   margin-bottom: 0.5rem !important;
 }
 
-.rich-text-renderer h1 {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1 {
   font-size: 1.8rem;
 }
 
-.rich-text-renderer h2 {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 {
   font-size: 2rem;
 }
 
-.rich-text-renderer h3 {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3 {
   font-size: 1.5rem;
 }
 
-.rich-text-renderer h4 {
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4 {
   font-size: 1.5rem;
 }
 
@@ -687,7 +674,6 @@
 .hover-product-title-rich.rich-text-renderer span,
 .hover-product-title-rich.rich-text-renderer * {
   color: white !important;
-  text-transform: uppercase !important;
   font-weight: 700 !important;
   font-size: 1.125rem !important;
   margin-bottom: 0 !important;
@@ -696,8 +682,6 @@
   font-family: inherit !important;
 }
 
-.describe-h2-wrapper .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
-.describe-h2-wrapper.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
 .blog-hero-title .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
 .blog-hero-title.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]) {
   font-size: clamp(24px, 4vw, 38px) !important;
@@ -711,16 +695,14 @@
 
 @media (max-width: 767px) {
 
-  .rich-text-renderer h1:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h1 *:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h2:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h2 *:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h3:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h3 *:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h4:not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer h4 *:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1 *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3 *:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4:not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4 *:not([style*="--fs"]):not([style*="font-size"]),
   .blog-hero-title .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
   .blog-hero-title.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 18px !important;
@@ -931,7 +913,6 @@
   font-size: 19vw !important;
   line-height: 1.6 !important;
   font-weight: 900 !important;
-  text-transform: uppercase !important;
   display: block !important;
   text-align: center !important;
 }
@@ -1061,8 +1042,6 @@
   .title-sub-text span,
   .title-sub-text p {
     font-size: clamp(9px, 2.7vw, 14px) !important;
-    letter-spacing: 0.05em !important;
-    padding-left: 0.15em !important;
     text-align: center !important;
   }
 
@@ -1208,22 +1187,12 @@
 
 @media (max-width: 767px) {
 
-  .describe-h2-wrapper h1:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper h1 *:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper h2:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper h2 *:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper h3:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper h3 *:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper p:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper span:not([style*="--fs"]):not([style*="font-size"]),
-  .describe-h2-wrapper div:not([style*="--fs"]):not([style*="font-size"]),
   h3.text-lg.font-bold:not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 18px !important;
     line-height: 1.2 !important;
     margin-bottom: 4px !important;
     margin-top: 2px !important;
     font-weight: 400 !important;
-    text-transform: none !important;
   }
 
   .decoration-image-wrapper {
@@ -1243,13 +1212,6 @@
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-
-  .describe-h2-wrapper span[style*="font-size"],
-  .describe-h2-wrapper *[style*="font-size"] {
-    font-size: 22px !important;
-    line-height: 1.3 !important;
-  }
-
   .rich-text-renderer h1+h1,
   .rich-text-renderer h1+h2,
   .rich-text-renderer h2+h1,
@@ -1260,14 +1222,12 @@
     margin-top: 0 !important;
   }
 
-  .rich-text-renderer .ql-size-huge,
-  .describe-h2-wrapper .ql-size-huge {
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-huge {
     font-size: 1.4em !important;
     line-height: 1.2 !important;
   }
 
-  .rich-text-renderer .ql-size-large,
-  .describe-h2-wrapper .ql-size-large {
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-large {
     font-size: 1.2em !important;
     line-height: 1.2 !important;
   }
@@ -1333,7 +1293,6 @@
     font-size: clamp(60px, 19vw, 90px) !important;
     line-height: 0.85 !important;
     white-space: nowrap !important;
-    letter-spacing: -0.05em !important;
     font-family: 'Bebas Neue', sans-serif;
     transform: scaleY(1.25) !important;
     -webkit-text-size-adjust: 100% !important;
@@ -1353,7 +1312,6 @@
     text-align: center !important;
     width: auto !important;
     max-width: none !important;
-    letter-spacing: inherit !important;
     -webkit-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
   }
