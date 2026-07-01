@@ -352,6 +352,16 @@ const TYPE_OPTIONS = [
 
 const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "", fontSizeMobile: "", fontSize: "", translateY: "", translateYMobile: "" };
 
+const normalizeResponsiveConfigFields = (config) => ({
+  ...config,
+  lineHeight: config.lineHeight ?? config.line_height ?? "",
+  lineHeightMobile: config.lineHeightMobile ?? config.line_height_mobile ?? "",
+  fontSize: config.fontSize ?? config.font_size ?? "",
+  fontSizeMobile: config.fontSizeMobile ?? config.font_size_mobile ?? "",
+  translateY: config.translateY ?? config.translate_y ?? "",
+  translateYMobile: config.translateYMobile ?? config.translate_y_mobile ?? "",
+});
+
 const getRadiusStyle = (val) => {
   if (!val) return "0px";
   const cleanVal = String(val).trim();
@@ -675,7 +685,7 @@ export default function CMS() {
     try {
       const res = await fetchData(`${URL_API}api/config?noCache=true`, "GET");
       configDraftsRef.current = {};
-      const nextConfigs = res.data || [];
+      const nextConfigs = (res.data || []).map(normalizeResponsiveConfigFields);
       nextConfigs.forEach((config) => {
         if (isRichConfig(config) && hasMeaningfulHtml(config.content)) {
           lastNonEmptyContentRef.current[config.key] = config.content;

@@ -5,6 +5,7 @@ const fs = require("fs");
 const migrationFiles = [
   "sync-database.js",
   "add-font-size-mobile-to-configs.js",
+  "add-line-height-mobile-to-configs.js",
   "add-translate-y-to-configs.js",
   "add-slug-to-products.js",
   "add-color-btn-purple-configs.js",
