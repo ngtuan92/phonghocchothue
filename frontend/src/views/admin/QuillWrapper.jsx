@@ -423,7 +423,6 @@ const QuillWrapper = forwardRef(({
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [showFontSizePopup, setShowFontSizePopup] = useState(false);
   const [fontSizePopupPosition, setFontSizePopupPosition] = useState({ top: 0, left: 0 });
-  const [activeDropdown, setActiveDropdown] = useState(null); // 'desktop' | 'mobile' | null
   const [showTranslatePopup, setShowTranslatePopup] = useState(false);
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
   const [controlDrafts, setControlDrafts] = useState({});
@@ -2807,19 +2806,6 @@ const QuillWrapper = forwardRef(({
   }, [showFontSizePopup, commitControlDrafts, preserveAdminScrollDuring]);
 
   useEffect(() => {
-    if (!activeDropdown) return;
-    const handleOutsideClick = (e) => {
-      const popup = containerRef.current?.querySelector('.ql-font-size-popup');
-      if (popup && popup.contains(e.target)) {
-        return;
-      }
-      setActiveDropdown(null);
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [activeDropdown]);
-
-  useEffect(() => {
     if (!showTranslatePopup) return;
     const handleOutsideClick = (e) => {
       const popup = containerRef.current?.querySelector('.ql-translate-y-popup');
@@ -2866,7 +2852,7 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Line spacing</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -2883,11 +2869,11 @@ const QuillWrapper = forwardRef(({
           <div className="space-y-3">
             <div className="space-y-2">
               <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Desktop (px)</label>
+                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Máy tính (px)</label>
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="Default. Ex: 32"
+                  placeholder="Mặc định. VD: 32"
                   value={effectiveLineHeight}
                   onChange={(e) => updateControlValue('lineHeight', e.target.value, onChangeLineHeight)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
@@ -2895,11 +2881,11 @@ const QuillWrapper = forwardRef(({
                 />
               </div>
               <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Mobile (px)</label>
+                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="Default. Ex: 24"
+                  placeholder="Mặc định. VD: 24"
                   value={effectiveLineHeightMobile}
                   onChange={(e) => updateControlValue('lineHeightMobile', e.target.value, onChangeLineHeightMobile)}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
@@ -2919,7 +2905,7 @@ const QuillWrapper = forwardRef(({
                   });
                 }}
               >
-                Confirm
+                Xác nhận
               </button>
             </div>
           </div>
@@ -2937,7 +2923,7 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Font size</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cỡ chữ</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -2955,7 +2941,7 @@ const QuillWrapper = forwardRef(({
             {/* Desktop size control */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
-                Desktop
+                Máy tính
               </span>
               <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
                 <button
@@ -2974,30 +2960,10 @@ const QuillWrapper = forwardRef(({
                     type="text"
                     value={effectiveFontSize}
                     onChange={(e) => updateControlValue('fontSize', e.target.value, onChangeFontSize)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveDropdown(prev => prev === 'desktop' ? null : 'desktop');
-                    }}
                     onMouseDown={(e) => e.stopPropagation()}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="16"
                   />
-                  {activeDropdown === 'desktop' && (
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto z-[3500] w-14 scrollbar-thin">
-                      {[8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72, 96].map((sz) => (
-                        <div
-                          key={sz}
-                          onClick={() => {
-                            updateControlValue('fontSize', sz.toString(), onChangeFontSize);
-                            setActiveDropdown(null);
-                          }}
-                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(effectiveFontSize) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
-                        >
-                          {sz}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 <button
                   type="button"
@@ -3016,7 +2982,7 @@ const QuillWrapper = forwardRef(({
             {/* Mobile size control */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
-                Mobile
+                Điện thoại
               </span>
               <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
                 <button
@@ -3035,30 +3001,10 @@ const QuillWrapper = forwardRef(({
                     type="text"
                     value={effectiveFontSizeMobile}
                     onChange={(e) => updateControlValue('fontSizeMobile', e.target.value, onChangeFontSizeMobile)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveDropdown(prev => prev === 'mobile' ? null : 'mobile');
-                    }}
                     onMouseDown={(e) => e.stopPropagation()}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="13"
                   />
-                  {activeDropdown === 'mobile' && (
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto z-[3500] w-14 scrollbar-thin">
-                      {[8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72, 96].map((sz) => (
-                        <div
-                          key={sz}
-                          onClick={() => {
-                            updateControlValue('fontSizeMobile', sz.toString(), onChangeFontSizeMobile);
-                            setActiveDropdown(null);
-                          }}
-                          className={`py-1 text-center text-[11px] hover:bg-primary/10 hover:text-primary cursor-pointer font-medium ${parseInt(effectiveFontSizeMobile) === sz ? 'bg-primary/5 text-primary font-bold' : 'text-gray-700'}`}
-                        >
-                          {sz}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 <button
                   type="button"
@@ -3088,7 +3034,7 @@ const QuillWrapper = forwardRef(({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Text shift</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Dịch chữ</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -3104,11 +3050,11 @@ const QuillWrapper = forwardRef(({
           </div>
           <div className="space-y-3">
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Desktop (px)</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Máy tính (px)</label>
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="Ex: -20 or 10"
+                placeholder="VD: -20 hoặc 10"
                 value={effectiveTranslateY}
                 onChange={(e) => updateControlValue('translateY', e.target.value, onChangeTranslateY, true)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
@@ -3116,11 +3062,11 @@ const QuillWrapper = forwardRef(({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Mobile (px)</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="Ex: -10 or 5"
+                placeholder="VD: -10 hoặc 5"
                 value={effectiveTranslateYMobile}
                 onChange={(e) => updateControlValue('translateYMobile', e.target.value, onChangeTranslateYMobile, true)}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
@@ -3139,7 +3085,7 @@ const QuillWrapper = forwardRef(({
                   });
                 }}
               >
-                Confirm
+                Xác nhận
               </button>
             </div>
           </div>
