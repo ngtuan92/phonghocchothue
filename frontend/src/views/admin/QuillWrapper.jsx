@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+﻿/* eslint-disable react/prop-types */
 /* global process */
 import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -281,6 +281,43 @@ const FORMATS = [
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
 
+const mapGoogleFont = (font) => ({
+  name: font.name.trim(),
+  slug: slugify(font.name),
+  family: font.name.trim()
+});
+
+const mapLocalFont = (font) => ({
+  name: font.display_name,
+  slug: font.font_family,
+  family: font.font_family,
+  fileUrl: resolveAssetUrl(font.file_url),
+  fileType: font.file_type
+});
+
+const fetchEditorFonts = async () => {
+  const googleRes = await fetch(`${URL_API}api/fonts`);
+  let googleFonts = [];
+  if (googleRes.ok) {
+    const data = await googleRes.json();
+    googleFonts = data
+      .map(mapGoogleFont);
+  }
+
+  const localRes = await fetch(`${URL_API}api/fonts/local`);
+  let localFonts = [];
+  if (localRes.ok) {
+    const result = await localRes.json();
+    if (result.success && Array.isArray(result.data)) {
+      localFonts = result.data
+        .filter(f => f.status === 'active')
+        .map(mapLocalFont);
+    }
+  }
+
+  return [...googleFonts, ...localFonts].sort((a, b) => a.name.localeCompare(b.name));
+};
+
 const stripFontSizeFromStyle = (styleContent) => {
   return styleContent
     .split(';')
@@ -413,6 +450,7 @@ const QuillWrapper = forwardRef(({
   hasResponsiveFontSize,
   commitOnBlurOnly = false,
   onDraftChange,
+  onControlDraftChange,
   ...props
 }, ref) => {
   const editorRef = useRef(null);
@@ -428,6 +466,8 @@ const QuillWrapper = forwardRef(({
   const [controlDrafts, setControlDrafts] = useState({});
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
+  const fontSearchValueRef = useRef("");
+  const fontSearchDropdownOpenRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const selectedImageRef = useRef(null);
@@ -478,11 +518,12 @@ const QuillWrapper = forwardRef(({
     const nextValue = normalizeUnsignedControlValue(key, value);
     if (commitOnBlurOnly) {
       setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      onControlDraftChange?.(key, nextValue);
       return;
     }
 
     onChange?.(nextValue);
-  }, [commitOnBlurOnly, normalizeUnsignedControlValue]);
+  }, [commitOnBlurOnly, normalizeUnsignedControlValue, onControlDraftChange]);
   const commitControlDrafts = useCallback(() => {
     if (!commitOnBlurOnly) return;
     const callbacks = {
@@ -651,6 +692,11 @@ const QuillWrapper = forwardRef(({
     window.setTimeout(restore, 50);
     window.setTimeout(restore, 150);
   }, [preserveScrollAround]);
+
+  const keepPopupInteractionStable = useCallback((event) => {
+    event.stopPropagation();
+    preserveAdminScrollDuring();
+  }, [preserveAdminScrollDuring]);
 
   const getImageWrapMode = useCallback((mode) => {
     if (mode === 'right') return 'right';
@@ -1111,9 +1157,6 @@ const QuillWrapper = forwardRef(({
     focusWithoutScroll,
     setSelectionWithoutScroll,
   ]);
-
-
-
   useEffect(() => {
     if (!isReady) return;
 
@@ -1122,10 +1165,101 @@ const QuillWrapper = forwardRef(({
       if (!pickers) return;
 
       pickers.forEach(picker => {
+        const bindFontSearch = (wrapper) => {
+          const input = wrapper.querySelector('input');
+          if (!input) return;
+          const fontPicker = picker.closest('.ql-font.ql-picker');
+
+          const keepFontPickerOpen = () => {
+            fontSearchDropdownOpenRef.current = true;
+            fontPicker?.classList.add('ql-expanded');
+            input.focus?.();
+          };
+
+          const filterVisibleItems = (value) => {
+            const search = value.trim().toLowerCase();
+            const normalizedSearch = search.replace(/[-_ ]/g, '');
+            const items = picker.querySelectorAll('.ql-picker-item');
+            items.forEach(item => {
+              const rawVal = item.getAttribute('data-value') || 'macdinh';
+              const dataLabel = item.getAttribute('data-label') || item.getAttribute('aria-label') || '';
+              const searchable = `${rawVal} ${item.textContent || ''} ${dataLabel}`.toLowerCase();
+              const tokens = searchable
+                .split(/[\s\-_]+/)
+                .map(token => token.trim())
+                .filter(Boolean);
+              const compact = searchable.replace(/[-_ ]/g, '');
+              const isVisible =
+                !normalizedSearch ||
+                tokens.some(token => token.startsWith(search)) ||
+                compact.startsWith(normalizedSearch) ||
+                rawVal === 'macdinh';
+              item.classList.toggle('font-search-hidden', !isVisible);
+              if (isVisible) {
+                item.style.removeProperty('display');
+                item.removeAttribute('hidden');
+              } else {
+                item.style.setProperty('display', 'none', 'important');
+                item.setAttribute('hidden', 'hidden');
+              }
+            });
+          };
+
+          input.__applyFontSearch = filterVisibleItems;
+          input.value = fontSearchValueRef.current;
+          filterVisibleItems(input.value);
+          if (wrapper.dataset.fontSearchEventsBound !== 'true') {
+            wrapper.dataset.fontSearchEventsBound = 'true';
+            ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach((eventName) => {
+              wrapper.addEventListener(eventName, (event) => {
+                event.stopPropagation();
+                keepFontPickerOpen();
+                window.setTimeout(keepFontPickerOpen, 0);
+              }, true);
+            });
+          }
+          input.onclick = (e) => {
+            e.stopPropagation();
+            keepFontPickerOpen();
+          };
+          input.onmousedown = (e) => {
+            e.stopPropagation();
+            keepFontPickerOpen();
+          };
+          input.onfocus = () => {
+            keepFontPickerOpen();
+          };
+          input.onkeydown = (e) => {
+            e.stopPropagation();
+            keepFontPickerOpen();
+            if (e.key === 'Enter') e.preventDefault();
+            window.setTimeout(() => input.__applyFontSearch?.(input.value), 0);
+          };
+          const handleSearchInput = (e) => {
+            e.stopPropagation();
+            keepFontPickerOpen();
+            fontSearchValueRef.current = e.target.value;
+            input.__applyFontSearch?.(e.target.value);
+          };
+          input.oninput = handleSearchInput;
+          input.onkeyup = handleSearchInput;
+
+          if (picker.dataset.fontSearchDelegated !== 'true') {
+            picker.dataset.fontSearchDelegated = 'true';
+            picker.addEventListener('input', (event) => {
+              if (!event.target?.classList?.contains('font-search-input')) return;
+              event.stopPropagation();
+              keepFontPickerOpen();
+              fontSearchValueRef.current = event.target.value;
+              event.target.__applyFontSearch?.(event.target.value);
+            }, true);
+          }
+        };
+
         if (!picker.querySelector('.font-search-wrapper')) {
           const wrapper = document.createElement('div');
           wrapper.className = 'font-search-wrapper';
-          wrapper.innerHTML = '<input type="text" placeholder="Search font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
+          wrapper.innerHTML = '<style>.font-search-input::placeholder{color:#747880;font-weight:600;opacity:1;}.ql-picker-item.font-search-hidden{display:none!important;}</style><input type="text" placeholder="Tìm kiếm font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
           wrapper.style.padding = '8px';
           wrapper.style.position = 'sticky';
           wrapper.style.top = '0';
@@ -1134,37 +1268,18 @@ const QuillWrapper = forwardRef(({
           wrapper.style.borderBottom = '1px solid #f1f1f1';
           wrapper.style.marginBottom = '4px';
 
-          const input = wrapper.querySelector('input');
-          input.onclick = (e) => e.stopPropagation();
-          input.onmousedown = (e) => e.stopPropagation();
-          input.onkeydown = (e) => {
-            e.stopPropagation();
-            if (e.key === 'Enter') e.preventDefault();
-          };
-          input.onkeyup = (e) => {
-            e.stopPropagation();
-            const search = e.target.value.toLowerCase().replace(/[-_ ]/g, '');
-            const items = picker.querySelectorAll('.ql-picker-item');
-            items.forEach(item => {
-              const rawVal = item.getAttribute('data-value') || 'macdinh';
-              const val = rawVal.toLowerCase().replace(/[-_ ]/g, '');
-              const label = item.textContent ? item.textContent.toLowerCase().replace(/[-_ ]/g, '') : '';
-              if (val.includes(search) || label.includes(search) || rawVal === 'macdinh') {
-                item.style.display = 'block';
-              } else {
-                item.style.display = 'none';
-              }
-            });
-          };
-
-          picker.appendChild(wrapper);
+          picker.insertBefore(wrapper, picker.firstChild);
+          bindFontSearch(wrapper);
+        } else {
+          bindFontSearch(picker.querySelector('.font-search-wrapper'));
         }
       });
     };
 
+    initSearch();
     const interval = setInterval(initSearch, 1000);
     return () => clearInterval(interval);
-  }, [isReady]);
+  }, [isReady, dynamicFonts, modules]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1251,37 +1366,7 @@ const QuillWrapper = forwardRef(({
         if (!fetchPromise) {
           fetchPromise = (async () => {
             try {
-              const googleRes = await fetch(`${URL_API}api/fonts`);
-              let googleFonts = [];
-              if (googleRes.ok) {
-                const data = await googleRes.json();
-                googleFonts = data
-                  .filter(f => f.name.trim().toLowerCase() !== 'inter')
-                  .map(f => ({
-                    name: f.name.trim(),
-                    slug: slugify(f.name),
-                    family: f.name.trim()
-                  }));
-              }
-
-              const localRes = await fetch(`${URL_API}api/fonts/local`);
-              let localFonts = [];
-              if (localRes.ok) {
-                const result = await localRes.json();
-                if (result.success && Array.isArray(result.data)) {
-                  localFonts = result.data
-                    .filter(f => f.status === 'active')
-                    .map(f => ({
-                      name: f.display_name,
-                      slug: f.font_family,
-                      family: f.font_family,
-                      fileUrl: resolveAssetUrl(f.file_url),
-                      fileType: f.file_type
-                    }));
-                }
-              }
-              const combined = [...googleFonts, ...localFonts];
-              const sorted = combined.sort((a, b) => a.name.localeCompare(b.name));
+              const sorted = await fetchEditorFonts();
               const finalWhitelist = ['macdinh', ...sorted.map(f => f.slug)];
               if (typeof window !== "undefined" && Quill) {
                 const FontStyle = Quill.import("attributors/style/font");
@@ -1347,7 +1432,10 @@ const QuillWrapper = forwardRef(({
 
   const hasLineHeight = !!onChangeLineHeight;
   const hasTranslateY = !!onChangeTranslateY;
-  const isSimpleTextField = className.includes('describe-phone') || className.includes('describe-quote-text');
+  const isSimpleTextField =
+    className.includes('describe-phone') ||
+    className.includes('describe-quote-text') ||
+    className.includes('seo-h1-main');
 
   useEffect(() => {
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
@@ -1358,6 +1446,26 @@ const QuillWrapper = forwardRef(({
       setIsReady(true);
     }
   }, [dynamicFonts, hasResponsive, hasLineHeight, hasTranslateY]);
+
+  useEffect(() => {
+    if (!isReady || !fontSearchDropdownOpenRef.current) return;
+
+    const restoreFontSearch = () => {
+      const picker = containerRef.current?.querySelector('.ql-font.ql-picker');
+      if (!picker) return;
+
+      picker.classList.add('ql-expanded');
+      const input = picker.querySelector('.font-search-input');
+      if (input) {
+        input.value = fontSearchValueRef.current;
+        input.focus();
+      }
+    };
+
+    window.requestAnimationFrame(restoreFontSearch);
+    const timeout = window.setTimeout(restoreFontSearch, 80);
+    return () => window.clearTimeout(timeout);
+  }, [dynamicFonts, modules, isReady]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1827,7 +1935,7 @@ const QuillWrapper = forwardRef(({
       let relativeContent = content.replace(regex, 'src="/$1"');
       relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
-      const shouldStripInlineFontSize = hasResponsive || className.includes('describe-phone') || className.includes('describe-quote-text');
+      const shouldStripInlineFontSize = hasResponsive || isSimpleTextField;
       if (shouldStripInlineFontSize) {
         relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
           const cleaned = stripFontSizeFromStyle(styleContent);
@@ -1847,8 +1955,18 @@ const QuillWrapper = forwardRef(({
 
       lastRelativeContentRef.current = relativeContent;
       if (commitOnBlurOnly) {
+        const selectionAfterChange = (() => {
+          try {
+            return editor?.getSelection?.();
+          } catch {
+            return null;
+          }
+        })();
+        if (selectionAfterChange) {
+          typingSelectionRef.current = selectionAfterChange;
+        }
         onDraftChange?.(relativeContent);
-        const previousSelection = typingSelectionRef.current;
+        const previousSelection = selectionAfterChange || typingSelectionRef.current;
         window.requestAnimationFrame(() => {
           try {
             const quill = editorRef.current?.getEditor?.();
@@ -1875,7 +1993,7 @@ const QuillWrapper = forwardRef(({
 
       props.onChange(relativeContent, delta, source, editor);
     }
-  }, [props.onChange, props.value, className, hasResponsive, commitOnBlurOnly, onDraftChange, setSelectionWithoutScroll]);
+  }, [props.onChange, props.value, hasResponsive, isSimpleTextField, commitOnBlurOnly, onDraftChange, setSelectionWithoutScroll]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -1897,20 +2015,32 @@ const QuillWrapper = forwardRef(({
       }
     };
 
+    const preserveEditorInteractionScroll = () => {
+      preserveAdminScrollDuring();
+    };
+
     quill.root.addEventListener('beforeinput', rememberTypingSelection, true);
     quill.root.addEventListener('keydown', rememberTypingSelection, true);
+    quill.root.addEventListener('mousedown', preserveEditorInteractionScroll, true);
     quill.root.addEventListener('mouseup', rememberTypingSelection, true);
+    quill.root.addEventListener('mouseup', preserveEditorInteractionScroll, true);
+    quill.root.addEventListener('click', preserveEditorInteractionScroll, true);
+    quill.root.addEventListener('focus', preserveEditorInteractionScroll, true);
     quill.root.addEventListener('keyup', rememberTypingSelection, true);
     quill.on('selection-change', handleSelectionChange);
 
     return () => {
       quill.root.removeEventListener('beforeinput', rememberTypingSelection, true);
       quill.root.removeEventListener('keydown', rememberTypingSelection, true);
+      quill.root.removeEventListener('mousedown', preserveEditorInteractionScroll, true);
       quill.root.removeEventListener('mouseup', rememberTypingSelection, true);
+      quill.root.removeEventListener('mouseup', preserveEditorInteractionScroll, true);
+      quill.root.removeEventListener('click', preserveEditorInteractionScroll, true);
+      quill.root.removeEventListener('focus', preserveEditorInteractionScroll, true);
       quill.root.removeEventListener('keyup', rememberTypingSelection, true);
       quill.off('selection-change', handleSelectionChange);
     };
-  }, [commitOnBlurOnly, isReady]);
+  }, [commitOnBlurOnly, isReady, preserveAdminScrollDuring]);
 
   const syncImageEditChange = useCallback((quill) => {
     if (!quill) return;
@@ -2706,7 +2836,7 @@ const QuillWrapper = forwardRef(({
     if (!props.value || typeof props.value !== 'string') return props.value;
     let val = props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
-    const shouldStripInlineFontSize = hasResponsive || className.includes('describe-phone') || className.includes('describe-quote-text');
+    const shouldStripInlineFontSize = hasResponsive || isSimpleTextField;
     if (shouldStripInlineFontSize) {
       val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
         const cleaned = stripFontSizeFromStyle(styleContent);
@@ -2721,7 +2851,7 @@ const QuillWrapper = forwardRef(({
     }
 
     return val;
-  }, [props.value, className, hasResponsive]);
+  }, [props.value, hasResponsive, isSimpleTextField]);
 
   const handleBlur = useCallback(() => {
     if (props.onBlur && lastRelativeContentRef.current != null) {
@@ -2849,7 +2979,9 @@ const QuillWrapper = forwardRef(({
             left: Math.max(10, Math.min(safeNumber(popupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
             width: '200px'
           }}
+          onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
+          onDoubleClick={keepPopupInteractionStable}
         >
           <div className="flex justify-between items-center mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng</span>
@@ -2920,7 +3052,9 @@ const QuillWrapper = forwardRef(({
             left: Math.max(10, Math.min(safeNumber(fontSizePopupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
             width: '210px'
           }}
+          onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
+          onDoubleClick={keepPopupInteractionStable}
         >
           <div className="flex justify-between items-center mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cỡ chữ</span>
@@ -2960,7 +3094,10 @@ const QuillWrapper = forwardRef(({
                     type="text"
                     value={effectiveFontSize}
                     onChange={(e) => updateControlValue('fontSize', e.target.value, onChangeFontSize)}
-                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseDown={keepPopupInteractionStable}
+                    onClick={(e) => e.stopPropagation()}
+                    onDoubleClick={keepPopupInteractionStable}
+                    onFocus={() => preserveAdminScrollDuring()}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="16"
                   />
@@ -3001,7 +3138,10 @@ const QuillWrapper = forwardRef(({
                     type="text"
                     value={effectiveFontSizeMobile}
                     onChange={(e) => updateControlValue('fontSizeMobile', e.target.value, onChangeFontSizeMobile)}
-                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseDown={keepPopupInteractionStable}
+                    onClick={(e) => e.stopPropagation()}
+                    onDoubleClick={keepPopupInteractionStable}
+                    onFocus={() => preserveAdminScrollDuring()}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="13"
                   />

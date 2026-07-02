@@ -79,6 +79,22 @@ const LazyQuillWrapper = React.memo(
     const containerRef = useRef(null);
     const cancelQueuedMountRef = useRef(null);
     const [shouldRender, setShouldRender] = useState(false);
+    const getReservedHeight = () => {
+      const numericMinHeight = Number.parseFloat(minHeight);
+      if (!Number.isFinite(numericMinHeight)) return minHeight;
+      return `${numericMinHeight + 52}px`;
+    };
+
+    const preserveScrollAfterMount = () => {
+      if (typeof window === "undefined") return;
+      const top = window.scrollY;
+      const left = window.scrollX;
+      const restore = () => window.scrollTo(left, top);
+      window.requestAnimationFrame(restore);
+      window.setTimeout(restore, 50);
+      window.setTimeout(restore, 150);
+      window.setTimeout(restore, 300);
+    };
 
     useEffect(() => {
       if (shouldRender) return;
@@ -125,9 +141,10 @@ const LazyQuillWrapper = React.memo(
     }, [shouldRender]);
 
     const previewText = getPlainText(props.value);
+    const reservedMinHeight = getReservedHeight();
 
     return (
-      <div ref={containerRef}>
+      <div ref={containerRef} style={{ minHeight: reservedMinHeight, overflowAnchor: "none" }}>
         {shouldRender ? (
           <QuillWrapper ref={ref} minHeight={minHeight} {...props} />
         ) : (
@@ -135,12 +152,14 @@ const LazyQuillWrapper = React.memo(
             type="button"
             onClick={() => {
               if (cancelQueuedMountRef.current) return;
+              preserveScrollAfterMount();
               cancelQueuedMountRef.current = enqueueQuillMount(() => {
                 setShouldRender(true);
+                preserveScrollAfterMount();
               });
             }}
             className="block w-full rounded-xl border border-gray-100 bg-gray-50/70 p-4 text-left text-sm text-navy-700 transition-colors hover:border-primary/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-            style={{ minHeight }}
+            style={{ minHeight: reservedMinHeight }}
           >
             {previewText ? (
               <span className="line-clamp-4">{previewText}</span>
