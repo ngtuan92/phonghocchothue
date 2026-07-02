@@ -425,6 +425,7 @@ export default function CMS() {
   const [dynamicFonts, setDynamicFonts] = useState([]);
   const configCardRefs = useRef({});
   const lastNonEmptyContentRef = useRef({});
+  const faqEditorRefsRef = useRef({});
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
@@ -1107,6 +1108,47 @@ export default function CMS() {
         commitFAQData(newData);
       };
 
+      const registerFAQEditorRef = (index, field) => (node) => {
+        const key = `${index}:${field}`;
+        if (node) {
+          faqEditorRefsRef.current[key] = node;
+        } else {
+          delete faqEditorRefsRef.current[key];
+        }
+      };
+
+      const readFAQEditorHtml = (index, field) => {
+        try {
+          const quill = faqEditorRefsRef.current[`${index}:${field}`]?.getEditor?.();
+          return quill?.root?.innerHTML;
+        } catch {
+          return undefined;
+        }
+      };
+
+      const chooseFAQEditorValue = (editorValue, currentValue) => {
+        if (typeof editorValue !== "string") return currentValue;
+        if (!hasMeaningfulHtml(editorValue) && hasMeaningfulHtml(currentValue)) {
+          return currentValue;
+        }
+        return editorValue;
+      };
+
+      const syncFAQDraftFromEditors = () => {
+        const newData = [...getCurrentFAQData()];
+        newData.forEach((item, index) => {
+          const question = readFAQEditorHtml(index, "question");
+          const answer = readFAQEditorHtml(index, "answer");
+          newData[index] = {
+            ...item,
+            question: chooseFAQEditorValue(question, item.question || ""),
+            answer: chooseFAQEditorValue(answer, item.answer || ""),
+          };
+        });
+        setFAQDraft(newData);
+        return newData;
+      };
+
       const addFAQ = () => {
         const newData = [...getCurrentFAQData(), { question: "", answer: "" }];
         commitFAQData(newData);
@@ -1140,6 +1182,7 @@ export default function CMS() {
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
 
                     <LazyQuillWrapper
+                      ref={registerFAQEditorRef(index, "question")}
                       theme="snow"
                       className="faq-quill faq-quill-question"
                       editorClassName="faq-quill-question rich-text-renderer"
@@ -1170,6 +1213,7 @@ export default function CMS() {
                   <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Câu trả lời {index + 1}</label>
                   <div className="bg-white rounded-xl overflow-visible border border-gray-200 shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
                     <LazyQuillWrapper
+                      ref={registerFAQEditorRef(index, "answer")}
                       theme="snow"
                       className="faq-quill faq-quill-answer"
                       editorClassName="faq-quill-answer rich-text-renderer"
@@ -1200,7 +1244,10 @@ export default function CMS() {
               <div className="flex justify-end pt-2">
                 <button
                   type="button"
-                  onClick={() => saveConfig(config)}
+                  onClick={() => {
+                    syncFAQDraftFromEditors();
+                    saveConfig(config);
+                  }}
                   disabled={savingKey === config.key}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-100 transition-all hover:bg-green-700 active:scale-95 disabled:opacity-50 md:w-auto"
                 >
@@ -1230,7 +1277,7 @@ export default function CMS() {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
       const isAboutSection = config.section === "about" || activeSection === "about" || (SECTION_KEY_MAP.about && SECTION_KEY_MAP.about.includes(config.key));
-      const commitOnBlurOnly = ["describe-phone", "textNotication", "textBtnNotication"].includes(config.key);
+      const commitOnBlurOnly = true;
       const updateControlDraft = (field, value) => {
         configControlDraftsRef.current[config.key] = {
           ...(configControlDraftsRef.current[config.key] || {}),

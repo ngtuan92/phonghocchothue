@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
@@ -187,6 +187,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
     authorAvatar: "",
     ...data
   });
+  const quillDraftsRef = useRef({});
 
   const [previewImage, setPreviewImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -267,13 +268,23 @@ export default function BlogForm({ data, onSave, onCancel }) {
     }
   };
 
+  const updateRichField = (field, value) => {
+    quillDraftsRef.current[field] = value;
+  };
+
+  const commitRichField = (field, value) => {
+    quillDraftsRef.current[field] = value;
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.title || !getPlainText(formData.title).trim()) {
+    const currentFormData = { ...formData, ...quillDraftsRef.current };
+    if (!currentFormData.title || !getPlainText(currentFormData.title).trim()) {
       showToastError("Vui lòng nhập tiêu đề bài viết.");
       return;
     }
-    const submitData = { ...formData };
+    const submitData = { ...currentFormData };
     if (imageFile) {
       submitData.thumbnailFile = imageFile;
     }
@@ -300,7 +311,9 @@ export default function BlogForm({ data, onSave, onCancel }) {
                   <LazyQuillWrapper
                     theme="snow"
                     value={formData.title}
-                    onChange={(val) => setFormData({ ...formData, title: val })}
+                    onChange={(val) => commitRichField("title", val)}
+                    onDraftChange={(val) => updateRichField("title", val)}
+                    onBlur={(val) => commitRichField("title", val)}
                     className="min-h-[80px]"
                     minHeight="80px"
                     maxHeight="150px"
@@ -318,6 +331,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
                     onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
                     hasResponsiveFontSize={true}
+                    commitOnBlurOnly={true}
                   />
                 </div>
               </div>
@@ -410,7 +424,9 @@ export default function BlogForm({ data, onSave, onCancel }) {
                   <LazyQuillWrapper
                     theme="snow"
                     value={formData.excerpt}
-                    onChange={(val) => setFormData({ ...formData, excerpt: val })}
+                    onChange={(val) => commitRichField("excerpt", val)}
+                    onDraftChange={(val) => updateRichField("excerpt", val)}
+                    onBlur={(val) => commitRichField("excerpt", val)}
                     className="min-h-[120px]"
                     minHeight="120px"
                     maxHeight="200px"
@@ -428,6 +444,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
                     onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
                     hasResponsiveFontSize={true}
+                    commitOnBlurOnly={true}
                   />
                 </div>
               </div>
@@ -529,7 +546,9 @@ export default function BlogForm({ data, onSave, onCancel }) {
             <LazyQuillWrapper
               theme="snow"
               value={formData.content}
-              onChange={(val) => setFormData({ ...formData, content: val })}
+              onChange={(val) => commitRichField("content", val)}
+              onDraftChange={(val) => updateRichField("content", val)}
+              onBlur={(val) => commitRichField("content", val)}
               className="min-h-[400px]"
               isSticky={true}
               maxHeight="500px"
@@ -547,6 +566,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
               onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
               onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
               hasResponsiveFontSize={true}
+              commitOnBlurOnly={true}
             />
           </div>
         </div>
