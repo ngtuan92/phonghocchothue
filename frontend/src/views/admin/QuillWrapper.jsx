@@ -72,6 +72,11 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
           return delta;
         }]
       ]
+    },
+    history: {
+      delay: 700,
+      maxStack: 100,
+      userOnly: true
     }
   };
 };
@@ -451,24 +456,34 @@ const QuillWrapper = forwardRef(({
       onChange(value);
     }
   }, []);
+  const normalizeUnsignedControlValue = useCallback((key, value) => {
+    if (value === null || value === undefined) return "";
+    const text = String(value).trim();
+    if (!text) return "";
+    if (key !== 'translateY' && key !== 'translateYMobile' && /^0+(?:\.0+)?(?:px)?$/i.test(text)) {
+      return "";
+    }
+    return text;
+  }, []);
   const getControlValue = useCallback((key, value) => (
     commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, key)
-      ? controlDrafts[key]
-      : (value || "")
-  ), [commitOnBlurOnly, controlDrafts]);
+      ? normalizeUnsignedControlValue(key, controlDrafts[key])
+      : normalizeUnsignedControlValue(key, value)
+  ), [commitOnBlurOnly, controlDrafts, normalizeUnsignedControlValue]);
   const updateControlValue = useCallback((key, value, onChange, signed = false) => {
     const isAllowed = signed
       ? (value === "" || value === "-" || /^-?\d+$/.test(value))
       : (value === "" || /^\d+$/.test(value));
     if (!isAllowed) return;
 
+    const nextValue = normalizeUnsignedControlValue(key, value);
     if (commitOnBlurOnly) {
-      setControlDrafts((prev) => ({ ...prev, [key]: value }));
+      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       return;
     }
 
-    onChange?.(value);
-  }, [commitOnBlurOnly]);
+    onChange?.(nextValue);
+  }, [commitOnBlurOnly, normalizeUnsignedControlValue]);
   const commitControlDrafts = useCallback(() => {
     if (!commitOnBlurOnly) return;
     const callbacks = {
@@ -481,7 +496,7 @@ const QuillWrapper = forwardRef(({
     };
 
     Object.entries(controlDrafts).forEach(([key, value]) => {
-      callbacks[key]?.(value);
+      callbacks[key]?.(normalizeUnsignedControlValue(key, value));
     });
     setControlDrafts({});
   }, [
@@ -493,6 +508,7 @@ const QuillWrapper = forwardRef(({
     onChangeFontSizeMobile,
     onChangeTranslateY,
     onChangeTranslateYMobile,
+    normalizeUnsignedControlValue,
   ]);
   const focusWithoutScroll = useCallback((target) => {
     if (!target || typeof window === 'undefined') return;
@@ -589,6 +605,53 @@ const QuillWrapper = forwardRef(({
       window.requestAnimationFrame(restore);
     }
   }, []);
+
+  const setSelectionWithoutScroll = useCallback((quill, ...args) => {
+    if (!quill) return;
+    preserveScrollAround(quill.root, () => {
+      quill.setSelection(...args);
+    });
+  }, [preserveScrollAround]);
+
+  const preserveAdminScrollDuring = useCallback((action) => {
+    const root = containerRef.current;
+    preserveScrollAround(root, action);
+
+    if (typeof window === 'undefined' || !root) return;
+
+    const scrollParents = [window];
+    let current = root.parentElement;
+    while (current && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      if (
+        (/(auto|scroll|overlay)/.test(style.overflowY) && current.scrollHeight > current.clientHeight) ||
+        (/(auto|scroll|overlay)/.test(style.overflowX) && current.scrollWidth > current.clientWidth)
+      ) {
+        scrollParents.push(current);
+      }
+      current = current.parentElement;
+    }
+
+    const positions = scrollParents.map((element) => (
+      element === window
+        ? { element, top: window.scrollY, left: window.scrollX }
+        : { element, top: element.scrollTop, left: element.scrollLeft }
+    ));
+    const restore = () => {
+      positions.forEach(({ element, top, left }) => {
+        if (element === window) {
+          window.scrollTo(left, top);
+        } else {
+          element.scrollTop = top;
+          element.scrollLeft = left;
+        }
+      });
+    };
+
+    window.requestAnimationFrame(restore);
+    window.setTimeout(restore, 50);
+    window.setTimeout(restore, 150);
+  }, [preserveScrollAround]);
 
   const getImageWrapMode = useCallback((mode) => {
     if (mode === 'right') return 'right';
@@ -940,7 +1003,7 @@ const QuillWrapper = forwardRef(({
             setTimeout(() => {
               try {
                 focusWithoutScroll(quillInstance);
-                quillInstance.setSelection(saved.index, saved.length);
+                setSelectionWithoutScroll(quillInstance, saved.index, saved.length);
               } catch { /* ignore */ }
             }, 0);
           }
@@ -1039,7 +1102,16 @@ const QuillWrapper = forwardRef(({
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
     };
-  }, [isReady, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly, syncSelectedImageRect, updateSizePickerLabel]);
+  }, [
+    isReady,
+    updateCaptionsList,
+    positionCaptionsDirectly,
+    positionResizerDirectly,
+    syncSelectedImageRect,
+    updateSizePickerLabel,
+    focusWithoutScroll,
+    setSelectionWithoutScroll,
+  ]);
 
 
 
@@ -1362,7 +1434,7 @@ const QuillWrapper = forwardRef(({
         const range = quill.getSelection();
         if (range) {
           quill.insertText(range.index, text);
-          quill.setSelection(range.index + text.length);
+          setSelectionWithoutScroll(quill, range.index + text.length);
         } else {
           quill.setText(text);
         }
@@ -1377,7 +1449,7 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     };
-  }, [isReady, editorClassName, isSimpleTextField]);
+  }, [isReady, editorClassName, isSimpleTextField, setSelectionWithoutScroll]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
@@ -1583,7 +1655,7 @@ const QuillWrapper = forwardRef(({
               const savedSel = savedSelectionRef.current;
               if (savedSel) {
                 focusWithoutScroll(quillInstance);
-                quillInstance.setSelection(savedSel.index, savedSel.length);
+                setSelectionWithoutScroll(quillInstance, savedSel.index, savedSel.length);
               }
 
               quillInstance.format('size', val);
@@ -1615,7 +1687,7 @@ const QuillWrapper = forwardRef(({
 
     const interval = setInterval(initSizeInput, 1000);
     return () => clearInterval(interval);
-  }, [isReady, updateSizePickerLabel]);
+  }, [isReady, updateSizePickerLabel, focusWithoutScroll, setSelectionWithoutScroll]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ alt: "", title: "", caption: "", width: "", borderRadius: "" });
@@ -1795,7 +1867,7 @@ const QuillWrapper = forwardRef(({
             );
 
             if (currentSelection && currentSelection.index === 0 && previousSelection.index > 0) {
-              quill.setSelection(nextIndex, 0, 'silent');
+              setSelectionWithoutScroll(quill, nextIndex, 0, 'silent');
             }
           } catch { /* ignore */ }
         });
@@ -1804,7 +1876,7 @@ const QuillWrapper = forwardRef(({
 
       props.onChange(relativeContent, delta, source, editor);
     }
-  }, [props.onChange, props.value, className, hasResponsive, commitOnBlurOnly, onDraftChange]);
+  }, [props.onChange, props.value, className, hasResponsive, commitOnBlurOnly, onDraftChange, setSelectionWithoutScroll]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -1977,7 +2049,7 @@ const QuillWrapper = forwardRef(({
                   quill.formatText(index, 1, 'caption', newData.caption, 'user');
                   quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
                   quill.update('user');
-                  quill.setSelection(range);
+                  setSelectionWithoutScroll(quill, range);
                   setTimeout(() => {
                     updateCaptionsList();
                     positionCaptionsDirectly();
@@ -2011,7 +2083,7 @@ const QuillWrapper = forwardRef(({
           const range = quill.getSelection() || savedSelectionRef.current;
           if (range) {
             try {
-              quill.setSelection(range.index, range.length, 'silent');
+              setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
             } catch { /* ignore */ }
           }
           quill.format('align', value, 'user');
@@ -2029,7 +2101,7 @@ const QuillWrapper = forwardRef(({
             if (range) {
               try {
                 focusWithoutScroll(quill);
-                quill.setSelection(range.index, range.length, 'silent');
+                setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
                 savedSelectionRef.current = range;
               } catch { /* ignore */ }
             }
@@ -2081,7 +2153,7 @@ const QuillWrapper = forwardRef(({
             if (range) {
               try {
                 focusWithoutScroll(quill);
-                quill.setSelection(range.index, range.length, 'silent');
+                setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
                 savedSelectionRef.current = range;
               } catch { /* ignore */ }
             }
@@ -2139,6 +2211,7 @@ const QuillWrapper = forwardRef(({
     syncImageEditChange,
     handleOnChange,
     focusWithoutScroll,
+    setSelectionWithoutScroll,
     updateResizerRect,
     updateCaptionsList,
     positionCaptionsDirectly,
@@ -2707,13 +2780,15 @@ const QuillWrapper = forwardRef(({
       const popup = containerRef.current?.querySelector('.ql-line-height-popup');
       const button = containerRef.current?.querySelector('.ql-line-height');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
-        commitControlDrafts();
-        setShowSpacingPopup(false);
+        preserveAdminScrollDuring(() => {
+          commitControlDrafts();
+          setShowSpacingPopup(false);
+        });
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showSpacingPopup, commitControlDrafts]);
+  }, [showSpacingPopup, commitControlDrafts, preserveAdminScrollDuring]);
 
   useEffect(() => {
     if (!showFontSizePopup) return;
@@ -2721,13 +2796,15 @@ const QuillWrapper = forwardRef(({
       const popup = containerRef.current?.querySelector('.ql-font-size-popup');
       const button = containerRef.current?.querySelector('.ql-font-size-custom');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
-        commitControlDrafts();
-        setShowFontSizePopup(false);
+        preserveAdminScrollDuring(() => {
+          commitControlDrafts();
+          setShowFontSizePopup(false);
+        });
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showFontSizePopup, commitControlDrafts]);
+  }, [showFontSizePopup, commitControlDrafts, preserveAdminScrollDuring]);
 
   useEffect(() => {
     if (!activeDropdown) return;
@@ -2748,13 +2825,15 @@ const QuillWrapper = forwardRef(({
       const popup = containerRef.current?.querySelector('.ql-translate-y-popup');
       const button = containerRef.current?.querySelector('.ql-translate-y');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
-        commitControlDrafts();
-        setShowTranslatePopup(false);
+        preserveAdminScrollDuring(() => {
+          commitControlDrafts();
+          setShowTranslatePopup(false);
+        });
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showTranslatePopup, commitControlDrafts]);
+  }, [showTranslatePopup, commitControlDrafts, preserveAdminScrollDuring]);
 
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
@@ -2792,8 +2871,10 @@ const QuillWrapper = forwardRef(({
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
-                commitControlDrafts();
-                setShowSpacingPopup(false);
+                preserveAdminScrollDuring(() => {
+                  commitControlDrafts();
+                  setShowSpacingPopup(false);
+                });
               }}
             >
               x
@@ -2832,8 +2913,10 @@ const QuillWrapper = forwardRef(({
                 type="button"
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => {
-                  commitControlDrafts();
-                  setShowSpacingPopup(false);
+                  preserveAdminScrollDuring(() => {
+                    commitControlDrafts();
+                    setShowSpacingPopup(false);
+                  });
                 }}
               >
                 Confirm
@@ -2859,8 +2942,10 @@ const QuillWrapper = forwardRef(({
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
-                commitControlDrafts();
-                setShowFontSizePopup(false);
+                preserveAdminScrollDuring(() => {
+                  commitControlDrafts();
+                  setShowFontSizePopup(false);
+                });
               }}
             >
               x
@@ -3008,8 +3093,10 @@ const QuillWrapper = forwardRef(({
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
-                commitControlDrafts();
-                setShowTranslatePopup(false);
+                preserveAdminScrollDuring(() => {
+                  commitControlDrafts();
+                  setShowTranslatePopup(false);
+                });
               }}
             >
               x
@@ -3046,8 +3133,10 @@ const QuillWrapper = forwardRef(({
                 type="button"
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => {
-                  commitControlDrafts();
-                  setShowTranslatePopup(false);
+                  preserveAdminScrollDuring(() => {
+                    commitControlDrafts();
+                    setShowTranslatePopup(false);
+                  });
                 }}
               >
                 Confirm
@@ -3101,12 +3190,27 @@ const QuillWrapper = forwardRef(({
           min-height: var(--quill-editor-min-height, 120px) !important;
         }
 
+        .quill-wrapper-container .ql-editor.hero-phone-text {
+          padding-top: 28px !important;
+          min-height: calc(var(--quill-editor-min-height, 120px) + 28px) !important;
+        }
+
         .quill-wrapper-container[style*="--custom-line-height"] .ql-editor {
           line-height: var(--custom-line-height) !important;
+        }
+        @media (min-width: 768px) {
+          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text * {
+            line-height: max(var(--custom-line-height), 1.15em) !important;
+          }
         }
         @media (max-width: 767px) {
           .quill-wrapper-container[style*="--custom-line-height"] .ql-editor {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
+          }
+          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text * {
+            line-height: max(var(--custom-line-height-mobile, var(--custom-line-height)), 1.15em) !important;
           }
         }
         .quill-wrapper-container[style*="--translate-y"] .ql-editor {
@@ -4143,6 +4247,55 @@ const QuillWrapper = forwardRef(({
         }
         .ql-font-size-popup input {
           color: #000000 !important;
+        }
+
+        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text {
+          padding: 24px 18px 18px !important;
+          min-height: calc(var(--quill-editor-min-height, 120px) + 24px) !important;
+          box-sizing: border-box !important;
+          line-height: 1.35 !important;
+          overflow: visible !important;
+        }
+        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text,
+        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
+        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text {
+          line-height: 1.35 !important;
+        }
+        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text *,
+        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text p,
+        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text span {
+          line-height: 1.35 !important;
+          overflow: visible !important;
+        }
+        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text *,
+        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text *,
+        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text * {
+          line-height: 1.35 !important;
+          overflow: visible !important;
+        }
+        @media (min-width: 768px) {
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text *,
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text p,
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text span {
+            line-height: max(var(--custom-line-height), 1.35em) !important;
+            overflow: visible !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text *,
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text p,
+          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text span {
+            line-height: max(var(--custom-line-height-mobile, var(--custom-line-height)), 1.35em) !important;
+            overflow: visible !important;
+          }
+        }
+        .quill-wrapper-container.quill-editor-describe-phone .ql-toolbar.ql-snow + .ql-container.ql-snow {
+          margin-top: 18px !important;
+          border-top-left-radius: 12px !important;
+          border-top-right-radius: 12px !important;
+          overflow: visible !important;
         }
 
         .quill-wrapper-container,

@@ -352,14 +352,22 @@ const TYPE_OPTIONS = [
 
 const EMPTY_NEW_CONFIG = { key: "", type: "richtext", section: "about", content: "", lineHeight: "", lineHeightMobile: "", fontSizeMobile: "", fontSize: "", translateY: "", translateYMobile: "" };
 
+const normalizeOptionalControlValue = (value, { allowZero = false } = {}) => {
+  if (value === null || value === undefined) return "";
+  const text = String(value).trim();
+  if (!text) return "";
+  if (!allowZero && /^0+(?:\.0+)?(?:px)?$/i.test(text)) return "";
+  return text;
+};
+
 const normalizeResponsiveConfigFields = (config) => ({
   ...config,
-  lineHeight: config.lineHeight ?? config.line_height ?? "",
-  lineHeightMobile: config.lineHeightMobile ?? config.line_height_mobile ?? "",
-  fontSize: config.fontSize ?? config.font_size ?? "",
-  fontSizeMobile: config.fontSizeMobile ?? config.font_size_mobile ?? "",
-  translateY: config.translateY ?? config.translate_y ?? "",
-  translateYMobile: config.translateYMobile ?? config.translate_y_mobile ?? "",
+  lineHeight: normalizeOptionalControlValue(config.lineHeight ?? config.line_height),
+  lineHeightMobile: normalizeOptionalControlValue(config.lineHeightMobile ?? config.line_height_mobile),
+  fontSize: normalizeOptionalControlValue(config.fontSize ?? config.font_size),
+  fontSizeMobile: normalizeOptionalControlValue(config.fontSizeMobile ?? config.font_size_mobile),
+  translateY: normalizeOptionalControlValue(config.translateY ?? config.translate_y, { allowZero: true }),
+  translateYMobile: normalizeOptionalControlValue(config.translateYMobile ?? config.translate_y_mobile, { allowZero: true }),
 });
 
 const getRadiusStyle = (val) => {
