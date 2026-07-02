@@ -379,6 +379,10 @@ const getFrontendClass = (key) => {
       return "title-sub-text";
     case "describe-phone":
       return "hero-phone-text";
+    case "textNotication":
+      return "hero-notice-text";
+    case "textBtnNotication":
+      return "hero-notice-button-text";
     case "describe-quote-text":
       return "hero-slogan-text";
     case "textDecription":
@@ -403,6 +407,7 @@ export default function CMS() {
   const [isLoading, setIsLoading] = useState(false);
   const [configs, setConfigs] = useState([]);
   const configDraftsRef = useRef({});
+  const configControlDraftsRef = useRef({});
   const [activeSection, setActiveSection] = useState("about");
   const [openAdd, setOpenAdd] = useState(false);
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
@@ -685,6 +690,7 @@ export default function CMS() {
     try {
       const res = await fetchData(`${URL_API}api/config?noCache=true`, "GET");
       configDraftsRef.current = {};
+      configControlDraftsRef.current = {};
       const nextConfigs = (res.data || []).map(normalizeResponsiveConfigFields);
       nextConfigs.forEach((config) => {
         if (isRichConfig(config) && hasMeaningfulHtml(config.content)) {
@@ -905,8 +911,10 @@ export default function CMS() {
 
   const saveConfig = async (config) => {
     const latestConfig = configs.find((c) => c.key === config.key) || config;
+    const controlDrafts = configControlDraftsRef.current[config.key] || {};
     const configToSave = {
       ...latestConfig,
+      ...controlDrafts,
       content: Object.prototype.hasOwnProperty.call(configDraftsRef.current, config.key)
         ? configDraftsRef.current[config.key]
         : latestConfig.content,
@@ -940,6 +948,7 @@ export default function CMS() {
         "Content-Type": "multipart/form-data",
       });
       delete configDraftsRef.current[configToSave.key];
+      delete configControlDraftsRef.current[configToSave.key];
       showToastSuccess(`Đã lưu "${KEY_LABEL_MAP[configToSave.key] || configToSave.key}"`);
       await loadConfigs({ showLoading: false });
       restoreConfigCardPosition(scrollSnapshot);
@@ -1046,27 +1055,59 @@ export default function CMS() {
 
     if (config.key === "faq_list") {
       let faqData = [];
+      const faqContent = Object.prototype.hasOwnProperty.call(configDraftsRef.current, config.key)
+        ? configDraftsRef.current[config.key]
+        : config.content;
       try {
-        faqData = typeof config.content === 'string' ? JSON.parse(config.content || "[]") : (config.content || []);
+        faqData = typeof faqContent === 'string' ? JSON.parse(faqContent || "[]") : (faqContent || []);
       } catch (e) {
         faqData = [];
       }
 
-      const updateFAQ = (index, field, value) => {
-        const newData = [...faqData];
-        newData[index][field] = value;
-        onSaveInternal(JSON.stringify(newData));
+      const setFAQDraft = (nextData) => {
+        configDraftsRef.current[config.key] = JSON.stringify(nextData);
+      };
+
+      const commitFAQData = (nextData) => {
+        const nextContent = JSON.stringify(nextData);
+        configDraftsRef.current[config.key] = nextContent;
+        onSaveInternal(nextContent);
+      };
+
+      const getCurrentFAQData = () => {
+        try {
+          const draftContent = configDraftsRef.current[config.key];
+          return typeof draftContent === 'string' ? JSON.parse(draftContent || "[]") : (draftContent || faqData);
+        } catch {
+          return faqData;
+        }
+      };
+
+      const updateFAQ = (index, field, value, { commit = true } = {}) => {
+        const newData = [...getCurrentFAQData()];
+        newData[index] = { ...newData[index], [field]: value };
+        if (!commit) {
+          setFAQDraft(newData);
+          return;
+        }
+        commitFAQData(newData);
+      };
+
+      const commitFAQDraft = (index, field, value) => {
+        const newData = [...getCurrentFAQData()];
+        newData[index] = { ...newData[index], [field]: value };
+        commitFAQData(newData);
       };
 
       const addFAQ = () => {
-        const newData = [...faqData, { question: "", answer: "" }];
-        onSaveInternal(JSON.stringify(newData));
+        const newData = [...getCurrentFAQData(), { question: "", answer: "" }];
+        commitFAQData(newData);
       };
 
       const deleteFAQ = (index) => {
         if (!window.confirm("Xóa câu hỏi này?")) return;
-        const newData = faqData.filter((_, i) => i !== index);
-        onSaveInternal(JSON.stringify(newData));
+        const newData = getCurrentFAQData().filter((_, i) => i !== index);
+        commitFAQData(newData);
       };
 
       const onSaveInternal = (val) => {
@@ -1076,7 +1117,7 @@ export default function CMS() {
       return (
         <div className="space-y-6 overflow-visible">
           {faqData.map((item, index) => (
-            <div key={index} className="relative p-6 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-4 overflow-visible">
+            <div key={index} className="relative p-6 border-2 border-gray-300 rounded-2xl bg-white space-y-4 overflow-visible shadow-sm transition-colors hover:border-primary/60">
               <button
                 onClick={() => deleteFAQ(index)}
                 className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
@@ -1095,7 +1136,9 @@ export default function CMS() {
                       className="faq-quill faq-quill-question"
                       editorClassName="faq-quill-question rich-text-renderer"
                       value={item.question || ""}
-                      onChange={(val) => updateFAQ(index, "question", val)}
+                      onChange={(val) => updateFAQ(index, "question", val, { commit: false })}
+                      onDraftChange={(val) => updateFAQ(index, "question", val, { commit: false })}
+                      onBlur={(val) => commitFAQDraft(index, "question", val)}
                       placeholder="Nhập nội dung câu hỏi..."
                       lineHeight={item.qLineHeight}
                       lineHeightMobile={item.qLineHeightMobile}
@@ -1110,6 +1153,7 @@ export default function CMS() {
                       onChangeTranslateY={(val) => updateFAQ(index, "qTranslateY", val)}
                       onChangeTranslateYMobile={(val) => updateFAQ(index, "qTranslateYMobile", val)}
                       hasResponsiveFontSize={true}
+                      commitOnBlurOnly={true}
                     />
                   </div>
                 </div>
@@ -1122,7 +1166,9 @@ export default function CMS() {
                       className="faq-quill faq-quill-answer"
                       editorClassName="faq-quill-answer rich-text-renderer"
                       value={item.answer || ""}
-                      onChange={(val) => updateFAQ(index, "answer", val)}
+                      onChange={(val) => updateFAQ(index, "answer", val, { commit: false })}
+                      onDraftChange={(val) => updateFAQ(index, "answer", val, { commit: false })}
+                      onBlur={(val) => commitFAQDraft(index, "answer", val)}
                       placeholder="Nhập nội dung câu trả lời..."
                       lineHeight={item.aLineHeight}
                       lineHeightMobile={item.aLineHeightMobile}
@@ -1137,9 +1183,26 @@ export default function CMS() {
                       onChangeTranslateY={(val) => updateFAQ(index, "aTranslateY", val)}
                       onChangeTranslateYMobile={(val) => updateFAQ(index, "aTranslateYMobile", val)}
                       hasResponsiveFontSize={true}
+                      commitOnBlurOnly={true}
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => saveConfig(config)}
+                  disabled={savingKey === config.key}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-100 transition-all hover:bg-green-700 active:scale-95 disabled:opacity-50 md:w-auto"
+                >
+                  {savingKey === config.key ? (
+                    <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  ) : (
+                    <MdSave className="h-5 w-5" />
+                  )}
+                  {savingKey === config.key ? "Đang lưu..." : "Lưu câu hỏi này"}
+                </button>
               </div>
             </div>
           ))}
@@ -1159,7 +1222,13 @@ export default function CMS() {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
       const isAboutSection = config.section === "about" || activeSection === "about" || (SECTION_KEY_MAP.about && SECTION_KEY_MAP.about.includes(config.key));
-      const commitOnBlurOnly = config.key === "describe-phone";
+      const commitOnBlurOnly = ["describe-phone", "textNotication", "textBtnNotication"].includes(config.key);
+      const updateControlDraft = (field, value) => {
+        configControlDraftsRef.current[config.key] = {
+          ...(configControlDraftsRef.current[config.key] || {}),
+          [field]: value,
+        };
+      };
       return (
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
           <LazyQuillWrapper
@@ -1204,35 +1273,42 @@ export default function CMS() {
             translateY={config.translateY}
             translateYMobile={config.translateYMobile}
             onChangeLineHeight={(val) => {
+              updateControlDraft("lineHeight", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeight: val } : c))
               );
             }}
             onChangeLineHeightMobile={(val) => {
+              updateControlDraft("lineHeightMobile", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, lineHeightMobile: val } : c))
               );
             }}
             onChangeFontSize={(val) => {
+              updateControlDraft("fontSize", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, fontSize: val } : c))
               );
             }}
             onChangeFontSizeMobile={(val) => {
+              updateControlDraft("fontSizeMobile", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, fontSizeMobile: val } : c))
               );
             }}
             onChangeTranslateY={(val) => {
+              updateControlDraft("translateY", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, translateY: val } : c))
               );
             }}
             onChangeTranslateYMobile={(val) => {
+              updateControlDraft("translateYMobile", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, translateYMobile: val } : c))
               );
             }}
+            onControlDraftChange={updateControlDraft}
              className={`quill-editor-${config.key}`}
              editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
              minHeight={minHeight}
@@ -1464,20 +1540,22 @@ export default function CMS() {
 
                   <div className="p-3 md:p-6">
                     {renderEditor(config, (val) => updateField(config, val))}
-                    <div className="flex justify-end mt-3 md:mt-4">
-                      <button
-                        onClick={() => saveConfig(config)}
-                        disabled={savingKey === config.key}
-                        className="flex items-center justify-center gap-2 w-full md:w-auto px-6 md:px-14 py-2.5 md:py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
-                      >
-                        {savingKey === config.key ? (
-                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <MdSave className="h-5 w-5" />
-                        )}
-                        {savingKey === config.key ? "Đang lưu..." : "Lưu dữ liệu"}
-                      </button>
-                    </div>
+                    {config.key !== "faq_list" && (
+                      <div className="flex justify-end mt-3 md:mt-4">
+                        <button
+                          onClick={() => saveConfig(config)}
+                          disabled={savingKey === config.key}
+                          className="flex items-center justify-center gap-2 w-full md:w-auto px-6 md:px-14 py-2.5 md:py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-green-100"
+                        >
+                          {savingKey === config.key ? (
+                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <MdSave className="h-5 w-5" />
+                          )}
+                          {savingKey === config.key ? "Đang lưu..." : "Lưu dữ liệu"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

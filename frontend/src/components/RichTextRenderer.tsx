@@ -25,6 +25,52 @@ const ABOUT_KEYS = [
   "textDecription"
 ];
 
+const splitBackgroundFromStyle = (styleContent: string) => {
+  const kept: string[] = [];
+  const background: string[] = [];
+
+  styleContent.split(';').forEach((part) => {
+    const clean = part.trim();
+    if (!clean) return;
+    if (/^background(?:-color)?:/i.test(clean)) {
+      background.push(clean);
+    } else {
+      kept.push(clean);
+    }
+  });
+
+  return {
+    keptStyle: kept.join('; '),
+    backgroundStyle: background.join('; '),
+  };
+};
+
+const normalizeBlockHighlightHtml = (html: string) => {
+  if (!html) return html;
+
+  return html.replace(/<(p|h[1-6]|div)([^>]*)style=(["'])([^"']*background[^"']*)\3([^>]*)>([\s\S]*?)<\/\1>/gi, (
+    match: string,
+    tag: string,
+    beforeStyle: string,
+    quote: string,
+    styleContent: string,
+    afterStyle: string,
+    innerHtml: string
+  ) => {
+    const { keptStyle, backgroundStyle } = splitBackgroundFromStyle(styleContent);
+    if (!backgroundStyle) {
+      return match;
+    }
+
+    const styleAttr = keptStyle ? ` style=${quote}${keptStyle}${quote}` : "";
+    const attrs = `${beforeStyle || ""}${styleAttr}${afterStyle || ""}`;
+    const normalizedInner = /<span[^>]*style=["'][^"']*background/i.test(innerHtml)
+      ? innerHtml
+      : `<span style="${backgroundStyle}">${innerHtml}</span>`;
+    return `<${tag}${attrs}>${normalizedInner}</${tag}>`;
+  });
+};
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -208,7 +254,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       });
     }
 
-    return processedHtml;
+    return normalizeBlockHighlightHtml(processedHtml);
   }, [html, preserveNbsp, configKey]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
@@ -519,6 +565,124 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           .rich-text-renderer[style*="--custom-line-height-mobile"] h6 {
             line-height: var(--custom-line-height-mobile) !important;
           }
+        }
+        /* Fix: title-main-text với Dancing Script - cần line-height 1.8 để cover dấu tiếng Việt */
+        .rich-text-renderer.title-main-text,
+        .rich-text-renderer.title-main-text h1,
+        .rich-text-renderer.title-main-text h2,
+        .rich-text-renderer.title-main-text p {
+          line-height: 1.8 !important;
+          overflow: visible !important;
+        }
+        .rich-text-renderer.title-main-text [style*="background:"],
+        .rich-text-renderer.title-main-text [style*="background-color"],
+        .rich-text-renderer.title-bg-text [style*="background:"],
+        .rich-text-renderer.title-bg-text [style*="background-color"],
+        .rich-text-renderer.mobile-watermark-text [style*="background:"],
+        .rich-text-renderer.mobile-watermark-text [style*="background-color"] {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          min-height: 1.24em !important;
+          line-height: 1.12 !important;
+          padding: 0.06em 0.06em 0.16em !important;
+          vertical-align: middle !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+        }
+        .rich-text-renderer.title-main-text p[style*="background:"],
+        .rich-text-renderer.title-main-text p[style*="background-color"],
+        .rich-text-renderer.title-bg-text p[style*="background:"],
+        .rich-text-renderer.title-bg-text p[style*="background-color"],
+        .rich-text-renderer.mobile-watermark-text p[style*="background:"],
+        .rich-text-renderer.mobile-watermark-text p[style*="background-color"] {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: fit-content !important;
+          min-height: 1.24em !important;
+          line-height: 1.12 !important;
+          padding: 0.06em 0.06em 0.16em !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
+        .rich-text-renderer [style*="background:"],
+        .rich-text-renderer [style*="background-color"] {
+          display: inline !important;
+          min-height: 0 !important;
+          line-height: inherit !important;
+          padding: 0.04em 0.03em 0.12em !important;
+          vertical-align: baseline !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+        }
+        .rich-text-renderer p[style*="background:"],
+        .rich-text-renderer p[style*="background-color"],
+        .rich-text-renderer h1[style*="background:"],
+        .rich-text-renderer h1[style*="background-color"],
+        .rich-text-renderer h2[style*="background:"],
+        .rich-text-renderer h2[style*="background-color"],
+        .rich-text-renderer div[style*="background:"],
+        .rich-text-renderer div[style*="background-color"] {
+          display: inline !important;
+          width: auto !important;
+          min-height: 0 !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+        }
+        .rich-text-renderer span[style*="background:"],
+        .rich-text-renderer span[style*="background-color"],
+        .rich-text-renderer strong[style*="background:"],
+        .rich-text-renderer strong[style*="background-color"],
+        .rich-text-renderer em[style*="background:"],
+        .rich-text-renderer em[style*="background-color"] {
+          display: inline !important;
+          align-items: normal !important;
+          justify-content: normal !important;
+          width: auto !important;
+          min-height: 0 !important;
+          line-height: inherit !important;
+          padding-top: 0.15em !important;
+          padding-bottom: 0.15em !important;
+          margin: 0 !important;
+          vertical-align: baseline !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+        }
+        /* H1/H2/H3 highlight spans: use flex to center text vertically like Word */
+        .rich-text-renderer h1 span[style*="background:"],
+        .rich-text-renderer h1 span[style*="background-color"],
+        .rich-text-renderer h2 span[style*="background:"],
+        .rich-text-renderer h2 span[style*="background-color"],
+        .rich-text-renderer h3 span[style*="background:"],
+        .rich-text-renderer h3 span[style*="background-color"] {
+          display: inline-flex !important;
+          align-items: center !important;
+          vertical-align: middle !important;
+          padding: 0.12em 0.05em !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+        }
+        .rich-text-renderer.title-main-text span[style*="background"],
+        .rich-text-renderer.title-bg-text span[style*="background"],
+        .rich-text-renderer.mobile-watermark-text span[style*="background"],
+        .rich-text-renderer.title-main-text strong[style*="background"],
+        .rich-text-renderer.title-bg-text strong[style*="background"],
+        .rich-text-renderer.mobile-watermark-text strong[style*="background"],
+        .rich-text-renderer.title-main-text em[style*="background"],
+        .rich-text-renderer.title-bg-text em[style*="background"],
+        .rich-text-renderer.mobile-watermark-text em[style*="background"] {
+          display: inline-block !important;
+          align-items: normal !important;
+          justify-content: normal !important;
+          width: auto !important;
+          min-height: 1.23em !important;
+          line-height: 1.23 !important;
+          padding: 0.035em 0.025em !important;
+          margin: 0 !important;
+          vertical-align: middle !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
         }
       `}} />
     </>

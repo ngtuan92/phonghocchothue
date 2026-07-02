@@ -3229,6 +3229,29 @@ const QuillWrapper = forwardRef(({
           border: none !important;
         }
 
+        /* === Fix: title-main-text (H1) với decorative fonts như Dancing Script ===
+           Dancing Script có ascenders rất cao + dấu tiếng Việt (ê, ô, â + sắc/huyền)
+           vượt xa ra ngoài line-height 1.1~1.2. Cần line-height >= 1.8 để:
+           - Selection (bôi đen) cover hết chữ kể cả dấu mũ
+           - Background-color highlight bao hết phần trên/dưới của chữ
+        */
+        .quill-wrapper-container .ql-editor.title-main-text {
+          line-height: 1.8 !important;
+          overflow: visible !important;
+        }
+        .quill-wrapper-container .ql-editor.title-main-text h1,
+        .quill-wrapper-container .ql-editor.title-main-text h2,
+        .quill-wrapper-container .ql-editor.title-main-text p {
+          line-height: 1.8 !important;
+          overflow: visible !important;
+        }
+        .quill-wrapper-container .ql-editor.title-main-text h1 span,
+        .quill-wrapper-container .ql-editor.title-main-text h2 span,
+        .quill-wrapper-container .ql-editor.title-main-text p span,
+        .quill-wrapper-container .ql-editor.title-main-text span {
+          line-height: inherit !important;
+        }
+
         .quill-wrapper-container .ql-editor.title-bg-text,
         .quill-wrapper-container .ql-editor.mobile-watermark-text {
           font-family: 'Bebas Neue', sans-serif;
@@ -3241,6 +3264,53 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-editor.mobile-watermark-text * {
           line-height: inherit !important;
           text-transform: inherit !important;
+        }
+
+        /* === Đánh dấu màu nền (highlight) === */
+        /* General: all span[background-color] in any editor - wraps text like Word */
+        .quill-wrapper-container .ql-editor span[style*="background-color"] {
+          display: inline !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+          padding-top: 0.15em !important;
+          padding-bottom: 0.15em !important;
+          line-height: inherit !important;
+        }
+        /* For H1/H2/H3: use flex to center text inside highlight box */
+        .quill-wrapper-container .ql-editor h1 span[style*="background-color"],
+        .quill-wrapper-container .ql-editor h2 span[style*="background-color"],
+        .quill-wrapper-container .ql-editor h3 span[style*="background-color"] {
+          display: inline-flex !important;
+          align-items: center !important;
+          vertical-align: middle !important;
+          padding: 0.12em 0.05em !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+        }
+        /* Special decorative editors (title-main-text, title-bg-text, mobile-watermark) */
+        .quill-wrapper-container .ql-editor.title-main-text span[style*="background-color"],
+        .quill-wrapper-container .ql-editor.title-bg-text span[style*="background-color"],
+        .quill-wrapper-container .ql-editor.mobile-watermark-text span[style*="background-color"] {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          line-height: 1.12 !important;
+          padding: 0.08em 0.06em 0.14em !important;
+          vertical-align: middle !important;
+          box-decoration-break: clone !important;
+          -webkit-box-decoration-break: clone !important;
+        }
+        .quill-wrapper-container .ql-editor.title-main-text p[style*="background-color"],
+        .quill-wrapper-container .ql-editor.title-bg-text p[style*="background-color"],
+        .quill-wrapper-container .ql-editor.mobile-watermark-text p[style*="background-color"] {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          line-height: 1.12 !important;
+          padding: 0.08em 0.06em 0.14em !important;
+          width: fit-content !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
         }
 
         @media (max-width: 767px) {
@@ -3303,7 +3373,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-main-text .font-cursive,
           .quill-wrapper-container .ql-editor.title-main-text span {
             font-size: 36px !important;
-            line-height: 1.1 !important;
+            line-height: 1.8 !important;
             margin-bottom: 0 !important;
             margin-top: 0 !important;
           }
@@ -3448,6 +3518,17 @@ const QuillWrapper = forwardRef(({
         }
         .ql-editor::-moz-selection,
         .ql-editor *::-moz-selection {
+          background-color: #b3d4fc !important;
+          color: inherit !important;
+        }
+        /* Ensure h1/h2 large-font text is also highlighted correctly */
+        .ql-editor h1::selection, .ql-editor h1 *::selection,
+        .ql-editor h2::selection, .ql-editor h2 *::selection {
+          background-color: #b3d4fc !important;
+          color: inherit !important;
+        }
+        .ql-editor h1::-moz-selection, .ql-editor h1 *::-moz-selection,
+        .ql-editor h2::-moz-selection, .ql-editor h2 *::-moz-selection {
           background-color: #b3d4fc !important;
           color: inherit !important;
         }
