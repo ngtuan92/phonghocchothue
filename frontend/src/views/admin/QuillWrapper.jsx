@@ -2023,6 +2023,25 @@ const QuillWrapper = forwardRef(({
           }, 0);
         },
         color: function (value) {
+          const quill = this.quill;
+          const applyColor = (nextValue) => {
+            const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+            if (range) {
+              try {
+                focusWithoutScroll(quill);
+                quill.setSelection(range.index, range.length, 'silent');
+                savedSelectionRef.current = range;
+              } catch { /* ignore */ }
+            }
+            quill.format('color', nextValue || false, 'user');
+            window.setTimeout(() => {
+              try {
+                localEditorHtmlRef.current = quill.root.innerHTML;
+                handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              } catch { /* ignore */ }
+            }, 0);
+          };
+
           if (value === 'custom-color') {
             let picker = document.getElementById('quill-custom-color-picker');
             if (!picker) {
@@ -2048,14 +2067,33 @@ const QuillWrapper = forwardRef(({
               picker.value = currentFormat.color;
             }
             picker.onchange = () => {
-              this.quill.format('color', picker.value);
+              applyColor(picker.value);
             };
             picker.click();
           } else {
-            this.quill.format('color', value);
+            applyColor(value);
           }
         },
         background: function (value) {
+          const quill = this.quill;
+          const applyBackground = (nextValue) => {
+            const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+            if (range) {
+              try {
+                focusWithoutScroll(quill);
+                quill.setSelection(range.index, range.length, 'silent');
+                savedSelectionRef.current = range;
+              } catch { /* ignore */ }
+            }
+            quill.format('background', nextValue || false, 'user');
+            window.setTimeout(() => {
+              try {
+                localEditorHtmlRef.current = quill.root.innerHTML;
+                handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              } catch { /* ignore */ }
+            }, 0);
+          };
+
           if (value === 'custom-color') {
             let picker = document.getElementById('quill-custom-bg-picker');
             if (!picker) {
@@ -2081,11 +2119,11 @@ const QuillWrapper = forwardRef(({
               picker.value = currentFormat.background;
             }
             picker.onchange = () => {
-              this.quill.format('background', picker.value);
+              applyBackground(picker.value);
             };
             picker.click();
           } else {
-            this.quill.format('background', value);
+            applyBackground(value);
           }
         }
       }
@@ -2100,6 +2138,7 @@ const QuillWrapper = forwardRef(({
     getActiveImage,
     syncImageEditChange,
     handleOnChange,
+    focusWithoutScroll,
     updateResizerRect,
     updateCaptionsList,
     positionCaptionsDirectly,
