@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types, no-unused-vars */
 /* global process */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   MdAdd,
@@ -174,6 +174,71 @@ const LazyQuillWrapper = React.memo(
 LazyQuillWrapper.displayName = "LazyQuillWrapper";
 LazyQuillWrapper.propTypes = {
   minHeight: PropTypes.string,
+};
+
+const DraftTextField = React.memo(function DraftTextField({
+  value = "",
+  onCommit,
+  className,
+  textarea = false,
+  rows = 5,
+  commitOnEnter = true,
+  ...props
+}) {
+  const [draft, setDraft] = useState(value || "");
+  const focusedRef = useRef(false);
+  const lastCommittedRef = useRef(value || "");
+
+  useEffect(() => {
+    const nextValue = value || "";
+    lastCommittedRef.current = nextValue;
+    if (!focusedRef.current) {
+      setDraft(nextValue);
+    }
+  }, [value]);
+
+  const commit = useCallback(() => {
+    focusedRef.current = false;
+    if (draft !== lastCommittedRef.current) {
+      lastCommittedRef.current = draft;
+      onCommit?.(draft);
+    }
+  }, [draft, onCommit]);
+
+  const sharedProps = {
+    ...props,
+    value: draft,
+    className,
+    onFocus: (event) => {
+      focusedRef.current = true;
+      props.onFocus?.(event);
+    },
+    onChange: (event) => {
+      setDraft(event.target.value);
+      props.onChange?.(event);
+    },
+    onBlur: (event) => {
+      commit();
+      props.onBlur?.(event);
+    },
+    onKeyDown: (event) => {
+      if (commitOnEnter && event.key === "Enter" && !event.shiftKey && !textarea) {
+        event.currentTarget.blur();
+      }
+      props.onKeyDown?.(event);
+    },
+  };
+
+  return textarea ? <textarea {...sharedProps} rows={rows} /> : <input {...sharedProps} />;
+});
+
+DraftTextField.propTypes = {
+  value: PropTypes.string,
+  onCommit: PropTypes.func,
+  className: PropTypes.string,
+  textarea: PropTypes.bool,
+  rows: PropTypes.number,
+  commitOnEnter: PropTypes.bool,
 };
 
 const SECTIONS = [
@@ -1401,12 +1466,11 @@ export default function CMS() {
 
             <div className="max-w-[200px]">
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bo góc (px)</label>
-              <input
+              <DraftTextField
                 type="text"
                 placeholder="Ví dụ: 8, 12, 20"
                 value={config.borderRadius || ""}
-                onChange={(e) => {
-                  const val = e.target.value;
+                onCommit={(val) => {
                   setConfigs((prev) =>
                     prev.map((c) => (c.key === config.key ? { ...c, borderRadius: val } : c))
                   );
@@ -1448,12 +1512,11 @@ export default function CMS() {
           <div className="space-y-4">
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tên bài hát</label>
-              <input
+              <DraftTextField
                 type="text"
                 placeholder="Nhập tên bài hát..."
                 value={config.musicName || ""}
-                onChange={(e) => {
-                  const val = e.target.value;
+                onCommit={(val) => {
                   setConfigs((prev) =>
                     prev.map((c) => (c.key === config.key ? { ...c, musicName: val } : c))
                   );
@@ -1505,20 +1568,22 @@ export default function CMS() {
 
     if (config.type === "text") {
       return (
-        <input
+        <DraftTextField
           type="text"
           value={config.content || ""}
-          onChange={(e) => onContentChange(e.target.value)}
+          onCommit={onContentChange}
           className="w-full px-4 py-2.5 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
         />
       );
     }
 
     return (
-      <textarea
+      <DraftTextField
+        textarea
         value={config.content || ""}
-        onChange={(e) => onContentChange(e.target.value)}
+        onCommit={onContentChange}
         rows={5}
+        commitOnEnter={false}
         className="w-full px-4 py-2.5 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
       />
     );
@@ -1628,11 +1693,11 @@ export default function CMS() {
                       {gallerySliderRadiusConfig && (
                         <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
                           <span className="text-[11px] font-bold text-gray-500 whitespace-nowrap">Bo góc ảnh:</span>
-                          <input
+                          <DraftTextField
                             type="text"
                             placeholder="0"
                             value={gallerySliderRadiusConfig.content || ""}
-                            onChange={(e) => updateField("gallery-slider-radius", e.target.value)}
+                            onCommit={(val) => updateField(gallerySliderRadiusConfig, val)}
                             className="w-14 h-8 text-center text-xs font-bold text-navy-700 border border-gray-200 rounded-lg focus:outline-none focus:border-primary"
                           />
                           <span className="text-[11px] font-bold text-gray-500">px</span>
@@ -1740,11 +1805,11 @@ export default function CMS() {
                         {amenitiesSliderRadiusConfig && (
                           <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
                             <span className="text-[11px] font-bold text-gray-500 whitespace-nowrap">Bo góc ảnh:</span>
-                            <input
+                            <DraftTextField
                               type="text"
                               placeholder="0"
                               value={amenitiesSliderRadiusConfig.content || ""}
-                              onChange={(e) => updateField("amenities-slider-radius", e.target.value)}
+                              onCommit={(val) => updateField(amenitiesSliderRadiusConfig, val)}
                               className="w-14 h-8 text-center text-xs font-bold text-navy-700 border border-gray-200 rounded-lg focus:outline-none focus:border-primary"
                             />
                             <span className="text-[11px] font-bold text-gray-500">px</span>

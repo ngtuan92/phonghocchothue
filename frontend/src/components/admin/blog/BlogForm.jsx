@@ -460,16 +460,16 @@ export default function BlogForm({ data, onSave, onCancel }) {
                 </Typography>
               </div>
               <Typography variant="small" className="text-[10px] text-black font-medium mb-3">
-                Khuyên dùng: Tỷ lệ 3:2 hoặc 4:3 (Ví dụ: 1200x800px).
+                Khuyên dùng: Tỷ lệ 16:9 (Ví dụ: 1200x675px).
               </Typography>
               
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50/50 group transition-all hover:border-primary">
+              <div className="relative aspect-video overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50/50 group">
                 {previewImage ? (
                   <>
                     <img
                       src={previewImage}
                       alt="Preview"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                       <label className="cursor-pointer bg-white text-foreground px-5 py-2 rounded-xl text-xs font-bold shadow-2xl hover:bg-gray-100 transition-all active:scale-95">
@@ -479,12 +479,12 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     </div>
                   </>
                 ) : (
-                  <label className="flex flex-col items-center justify-center cursor-pointer w-full h-full py-10 text-center">
+                  <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer py-10 text-center">
                     <div className="bg-white p-4 rounded-2xl shadow-sm mb-3">
                       <MdCloudUpload className="h-10 w-10 text-primary" />
                     </div>
                     <span className="text-xs font-bold text-gray-700 uppercase">Tải ảnh bài viết</span>
-                    <span className="text-[10px] text-black mt-2 font-medium">Khuyên dùng: 1200x800px</span>
+                    <span className="text-[10px] text-black mt-2 font-medium">Khuyên dùng: 1200x675px</span>
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </label>
                 )}
@@ -591,7 +591,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
       </div>
       {/* Cropper Modal */}
       {showCropper && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleCropCancel} />
           <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl z-10 overflow-hidden border border-gray-100 flex flex-col h-[500px]">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
