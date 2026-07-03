@@ -3,11 +3,23 @@
  * @param {string} text - Text cần chuyển thành slug
  * @returns {string} - Slug đã được format
  */
+function normalizeSlugSource(text) {
+  return text
+    .toString()
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;|\u00a0/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&[a-z0-9#]+;/gi, ' ');
+}
+
 function createSlug(text) {
   if (!text) return '';
   
-  return text
-    .toString()
+  return normalizeSlugSource(text)
     .toLowerCase()
     .trim()
     .normalize('NFD') // Chuyển đổi ký tự có dấu thành không dấu

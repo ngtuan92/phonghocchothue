@@ -799,6 +799,17 @@ export default function CMS() {
     }
   };
 
+  const applySavedConfigLocally = (savedConfig) => {
+    const normalizedSavedConfig = normalizeResponsiveConfigFields(savedConfig);
+    setConfigs((prev) =>
+      prev.map((config) =>
+        config.key === normalizedSavedConfig.key
+          ? { ...config, ...normalizedSavedConfig, _file: undefined }
+          : config
+      )
+    );
+  };
+
   const rememberConfigCardPosition = (key) => {
     if (typeof window === "undefined") return null;
 
@@ -1037,14 +1048,21 @@ export default function CMS() {
       fd.append("musicName", configToSave.musicName || "");
     }
     try {
-      await fetchData(`${URL_API}api/config/update/${configToSave.key}`, "PUT", fd, {
+      const res = await fetchData(`${URL_API}api/config/update/${configToSave.key}`, "PUT", fd, {
         "Content-Type": "multipart/form-data",
       });
       delete configDraftsRef.current[configToSave.key];
       delete configControlDraftsRef.current[configToSave.key];
       showToastSuccess(`Đã lưu "${KEY_LABEL_MAP[configToSave.key] || configToSave.key}"`);
-      await loadConfigs({ showLoading: false });
-      restoreConfigCardPosition(scrollSnapshot);
+      if (configToSave.type === "image" || configToSave.type === "music") {
+        await loadConfigs({ showLoading: false });
+        restoreConfigCardPosition(scrollSnapshot);
+      } else {
+        const responseConfig = res?.data && !Array.isArray(res.data) && typeof res.data === "object"
+          ? res.data
+          : configToSave;
+        applySavedConfigLocally({ ...configToSave, ...responseConfig });
+      }
     } catch {
       showToastError("Lưu thất bại, vui lòng thử lại");
     } finally {

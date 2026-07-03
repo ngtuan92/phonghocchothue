@@ -19,6 +19,10 @@ export interface Blog {
   publishedAt: string;
   lineHeight?: string;
   lineHeightMobile?: string;
+  excerptLineHeight?: string;
+  excerptLineHeightMobile?: string;
+  excerptTranslateY?: string;
+  excerptTranslateYMobile?: string;
   fontSize?: string;
   fontSizeMobile?: string;
   titleFontSize?: string;

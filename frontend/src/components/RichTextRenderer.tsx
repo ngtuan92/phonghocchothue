@@ -194,6 +194,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       }
       return match;
     });
+
+    processedHtml = processedHtml.replace(
+      /<p[^>]*>\s*(<div class="image-wrapper(?: image-wrap-(?:left|right))?"[^>]*><img[^>]*>(?:<div class="image-caption">[\s\S]*?<\/div>)?<\/div>)\s*<\/p>/gi,
+      '$2'
+    );
+
     const cleanStyleForRender = (styleContent: string) => {
       const parts = styleContent.split(';');
       let activeSize = null;
@@ -401,7 +407,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           display: block !important;
           float: none !important;
           margin: 0 !important;
-          margin-bottom: 36px !important;
+          margin-bottom: 42px !important;
         }
         /* Caption in floated wrappers: position absolute to match admin editor */
         .rich-text-renderer .image-wrap-left .image-caption,
@@ -446,18 +452,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           clear: both !important;
         }
         
-        /* Force headings to clear floats so they start below floated images/captions */
-        .rich-text-renderer h1,
-        .rich-text-renderer h2 {
-          clear: both !important;
-        }
-        .rich-text-renderer .image-wrap-left + h1,
-        .rich-text-renderer .image-wrap-left + h2,
-        .rich-text-renderer .image-wrap-right + h1,
-        .rich-text-renderer .image-wrap-right + h2 {
-          clear: none !important;
-        }
-        
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
           .rich-text-renderer img[data-wrap="left"],
@@ -493,7 +487,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           }
           .rich-text-renderer .image-caption {
             font-size: 12px !important;
-            margin-top: 4px !important;
+            margin-top: 8px !important;
             margin-bottom: 10px !important;
           }
           /* On mobile, reset caption back to static (no float, no absolute) */
@@ -501,7 +495,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
             font-size: 12px !important;
-            margin-top: 4px !important;
+            margin-top: 8px !important;
             margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-wrap-left img,
@@ -514,7 +508,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           text-align: center;
           font-size: 14px;
           color: #666;
-          margin-top: 8px;
+          margin-top: 12px;
           margin-bottom: 0;
           font-style: italic;
           line-height: 1.4;
@@ -571,7 +565,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         .rich-text-renderer.title-main-text h1,
         .rich-text-renderer.title-main-text h2,
         .rich-text-renderer.title-main-text p {
-          line-height: 1.8 !important;
           overflow: visible !important;
         }
         .rich-text-renderer.title-main-text [style*="background:"],

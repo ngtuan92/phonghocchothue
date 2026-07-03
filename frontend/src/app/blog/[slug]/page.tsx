@@ -300,10 +300,10 @@ export default function BlogDetail() {
                       className="inline-rich-text" 
                       fontSize={blog.excerptFontSize}
                       fontSizeMobile={blog.excerptFontSizeMobile}
-                      lineHeight={blog.lineHeight}
-                      lineHeightMobile={blog.lineHeightMobile}
-                      translateY={blog.translateY}
-                      translateYMobile={blog.translateYMobile}
+                      lineHeight={blog.excerptLineHeight}
+                      lineHeightMobile={blog.excerptLineHeightMobile}
+                      translateY={blog.excerptTranslateY}
+                      translateYMobile={blog.excerptTranslateYMobile}
                     />
                     <span className="text-[#b8c7b0] text-3xl font-serif ml-1 sm:hidden leading-none">”</span>
                   </div>

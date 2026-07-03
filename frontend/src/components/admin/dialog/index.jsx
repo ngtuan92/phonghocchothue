@@ -719,6 +719,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                    value={roomDescription}
                    onChange={(val) => setIfChanged(setRoomDescription, val)}
                    placeholder="Nhập mô tả ngắn về phòng..."
+                   isBlogEditor={true}
+                   commitOnBlurOnly={true}
                    lineHeight={roomLineHeight}
                    lineHeightMobile={roomLineHeightMobile}
                    fontSize={roomFontSize}
@@ -747,6 +749,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                    value={roomContent}
                    onChange={(val) => setIfChanged(setRoomContent, val)}
                    placeholder="Nhập mô tả chi tiết về phòng..."
+                   isBlogEditor={true}
+                   commitOnBlurOnly={true}
                    isSticky={true}
                    maxHeight="500px"
                    lineHeight={roomLineHeight}

@@ -548,7 +548,7 @@
   display: block !important;
   float: none !important;
   margin: 0 !important;
-  margin-bottom: 36px !important;
+  margin-bottom: 42px !important;
 }
 
 /* Caption in floated wrappers: position absolute to match admin editor */
@@ -638,7 +638,7 @@
 
   .rich-text-renderer .image-caption {
     font-size: 12px !important;
-    margin-top: 4px !important;
+    margin-top: 8px !important;
     margin-bottom: 6px !important;
   }
 
@@ -647,7 +647,7 @@
   .rich-text-renderer .image-wrap-right .image-caption {
     position: static !important;
     font-size: 12px !important;
-    margin-top: 4px !important;
+    margin-top: 8px !important;
     margin-bottom: 6px !important;
   }
 
@@ -682,21 +682,8 @@
 .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h5,
 .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h6 {
   color: #563c39;
-  line-height: 1.4;
   margin-bottom: 1.0rem;
   font-weight: 400;
-}
-
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1,
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 {
-  clear: both !important;
-}
-
-.rich-text-renderer .image-wrap-left+h1,
-.rich-text-renderer .image-wrap-left+h2,
-.rich-text-renderer .image-wrap-right+h1,
-.rich-text-renderer .image-wrap-right+h2 {
-  clear: none !important;
 }
 
 .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1:has(+ p),
@@ -723,7 +710,6 @@
 
 .rich-text-renderer p {
   font-family: 'Montserrat', sans-serif;
-  line-height: 1.6;
   color: #323232;
   margin-bottom: 0.5rem;
   font-weight: 400;
@@ -763,7 +749,6 @@
   font-size: 1.125rem !important;
   margin-bottom: 0 !important;
   margin-top: 0 !important;
-  line-height: 1.4 !important;
   font-family: inherit !important;
 }
 
@@ -790,8 +775,6 @@
   .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4 *:not([style*="--fs"]):not([style*="font-size"]),
   .blog-hero-title .rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]),
   .blog-hero-title.rich-text-renderer *:not([style*="--fs"]):not([style*="font-size"]) {
-    font-size: 18px !important;
-    line-height: 1.2 !important;
     margin-bottom: 5px !important;
     margin-top: 0 !important;
   }
@@ -904,18 +887,6 @@
     margin-top: 0 !important;
     margin-bottom: 1.0rem !important;
     font-weight: 400 !important;
-  }
-
-  .blog-content h1,
-  .blog-content h2 {
-    clear: both !important;
-  }
-
-  .blog-content .image-wrap-left+h1,
-  .blog-content .image-wrap-left+h2,
-  .blog-content .image-wrap-right+h1,
-  .blog-content .image-wrap-right+h2 {
-    clear: none !important;
   }
 
   .blog-content h1 {
@@ -1105,7 +1076,6 @@
   .title-main-text p span,
   .title-main-text p .font-cursive {
     font-size: clamp(22px, 6.8vw, 28px) !important;
-    line-height: 1.6 !important;
     display: block !important;
     margin-top: 5px !important;
     margin-bottom: 5px !important;
@@ -1273,8 +1243,6 @@
 @media (max-width: 767px) {
 
   h3.text-lg.font-bold:not([style*="--fs"]):not([style*="font-size"]) {
-    font-size: 18px !important;
-    line-height: 1.2 !important;
     margin-bottom: 4px !important;
     margin-top: 2px !important;
     font-weight: 400 !important;
@@ -1309,12 +1277,10 @@
 
   .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-huge {
     font-size: 1.4em !important;
-    line-height: 1.2 !important;
   }
 
   .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-large {
     font-size: 1.2em !important;
-    line-height: 1.2 !important;
   }
 
   .title-main-text h1,
@@ -1324,7 +1290,6 @@
   .title-main-text .font-cursive,
   .title-main-text span {
     font-size: 36px !important;
-    line-height: 1.35 !important;
     margin-bottom: 0 !important;
     margin-top: 0 !important;
   }
@@ -1344,7 +1309,6 @@
 
   .describe-description-wrapper p,
   .rich-text-renderer:not(.notification-rich-text):not(.notification-button-rich-text) p {
-    line-height: 1.4 !important;
     margin-bottom: 2px !important;
   }
 
@@ -1689,12 +1653,6 @@ footer .rich-text-renderer * {
     font-size: var(--fs-mobile) !important;
   }
 
-  .rich-text-renderer.hero-phone-text[style*="--fs-mobile"],
-  .rich-text-renderer.hero-phone-text[style*="--fs-mobile"] *,
-  .rich-text-renderer.hero-slogan-text[style*="--fs-mobile"],
-  .rich-text-renderer.hero-slogan-text[style*="--fs-mobile"] * {
-    line-height: 1.2 !important;
-  }
 }
 
 /* Custom line-height scaling in RichTextRenderer */
@@ -1844,12 +1802,6 @@ footer .rich-text-renderer * {
     font-size: var(--fs-desktop) !important;
   }
 
-  .rich-text-renderer.hero-phone-text[style*="--fs-desktop"],
-  .rich-text-renderer.hero-phone-text[style*="--fs-desktop"] *,
-  .rich-text-renderer.hero-slogan-text[style*="--fs-desktop"],
-  .rich-text-renderer.hero-slogan-text[style*="--fs-desktop"] * {
-    line-height: 1.2 !important;
-  }
 }
 
 .title-main-text [style*="background:"],

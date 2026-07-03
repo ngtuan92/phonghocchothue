@@ -431,18 +431,18 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     minHeight="120px"
                     maxHeight="200px"
                     placeholder="Mô tả ngắn gọn nội dung bài viết để thu hút người đọc…"
-                    lineHeight={formData.lineHeight}
-                    lineHeightMobile={formData.lineHeightMobile}
+                    lineHeight={formData.excerptLineHeight}
+                    lineHeightMobile={formData.excerptLineHeightMobile}
                     fontSize={formData.excerptFontSize}
                     fontSizeMobile={formData.excerptFontSizeMobile}
-                    translateY={formData.translateY}
-                    translateYMobile={formData.translateYMobile}
-                    onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
-                    onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
+                    translateY={formData.excerptTranslateY}
+                    translateYMobile={formData.excerptTranslateYMobile}
+                    onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, excerptLineHeight: val }))}
+                    onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, excerptLineHeightMobile: val }))}
                     onChangeFontSize={(val) => setFormData(prev => ({ ...prev, excerptFontSize: val }))}
                     onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, excerptFontSizeMobile: val }))}
-                    onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
-                    onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
+                    onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, excerptTranslateY: val }))}
+                    onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, excerptTranslateYMobile: val }))}
                     hasResponsiveFontSize={true}
                     commitOnBlurOnly={true}
                   />

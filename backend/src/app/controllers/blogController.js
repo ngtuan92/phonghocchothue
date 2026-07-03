@@ -1,5 +1,5 @@
 const BlogModel = require('../models/blogModel');
-const { createUniqueSlug } = require('../../util/slug');
+const { createSlug, createUniqueSlug } = require('../../util/slug');
 const { redis, getOrSetCache } = require('../../util/cacheUtil');
 const { sequelize, Sequelize } = require('../../config/db');
 const { Op } = Sequelize;
@@ -16,6 +16,10 @@ const ensureBlogFontColumns = async () => {
         { name: "title_font_size_mobile", type: Sequelize.STRING(50) },
         { name: "excerpt_font_size", type: Sequelize.STRING(50) },
         { name: "excerpt_font_size_mobile", type: Sequelize.STRING(50) },
+        { name: "excerpt_line_height", type: Sequelize.STRING(50) },
+        { name: "excerpt_line_height_mobile", type: Sequelize.STRING(50) },
+        { name: "excerpt_translate_y", type: Sequelize.STRING(50) },
+        { name: "excerpt_translate_y_mobile", type: Sequelize.STRING(50) },
     ];
 
     for (const col of columnsToAdd) {
@@ -111,7 +115,7 @@ class BlogController {
     async store(req, res) {
         try {
             await ensureBlogFontColumns();
-            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, titleFontSize, titleFontSizeMobile, excerptFontSize, excerptFontSizeMobile, translateY, translateYMobile } = req.body;
+            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, titleFontSize, titleFontSizeMobile, excerptFontSize, excerptFontSizeMobile, excerptLineHeight, excerptLineHeightMobile, excerptTranslateY, excerptTranslateYMobile, translateY, translateYMobile } = req.body;
             const slug = await createUniqueSlug(title, async (s) => {
                 return await BlogModel.findOne({ where: { slug: s } });
             });
@@ -135,6 +139,10 @@ class BlogController {
                 titleFontSizeMobile,
                 excerptFontSize,
                 excerptFontSizeMobile,
+                excerptLineHeight,
+                excerptLineHeightMobile,
+                excerptTranslateY,
+                excerptTranslateYMobile,
                 translateY,
                 translateYMobile
             });
@@ -151,7 +159,7 @@ class BlogController {
         try {
             await ensureBlogFontColumns();
             const { id } = req.params;
-            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, titleFontSize, titleFontSizeMobile, excerptFontSize, excerptFontSizeMobile, translateY, translateYMobile } = req.body;
+            const { title, content, thumbnail, category, authorName, authorAvatar, status, excerpt, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, titleFontSize, titleFontSizeMobile, excerptFontSize, excerptFontSizeMobile, excerptLineHeight, excerptLineHeightMobile, excerptTranslateY, excerptTranslateYMobile, translateY, translateYMobile } = req.body;
 
             const blog = await BlogModel.findByPk(id);
             if (!blog) {
@@ -175,11 +183,16 @@ class BlogController {
                 titleFontSizeMobile,
                 excerptFontSize,
                 excerptFontSizeMobile,
+                excerptLineHeight,
+                excerptLineHeightMobile,
+                excerptTranslateY,
+                excerptTranslateYMobile,
                 translateY,
                 translateYMobile
             };
             
-            if (title && title !== blog.title) {
+            const cleanTitleSlug = title ? createSlug(title) : '';
+            if (title && (title !== blog.title || (cleanTitleSlug && cleanTitleSlug !== blog.slug))) {
                 updateData.slug = await createUniqueSlug(title, async (s) => {
                     return await BlogModel.findOne({ where: { slug: s, id: { [Op.ne]: id } } });
                 });
