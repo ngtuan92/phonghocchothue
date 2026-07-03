@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 
 const getDOMPurify = () => {
@@ -274,6 +274,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const activeFontSizeMobile = fontSizeMobile || contextFontSizeMobile;
   const activeTranslateY = translateY || contextTranslateY;
   const activeTranslateYMobile = translateYMobile || contextTranslateYMobile;
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   const normalizeCssSize = (value: string) => {
     const cleanValue = String(value).trim();
@@ -287,6 +288,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   };
 
   const customStyles = useMemo(() => {
+    const viewportFontSize = isMobileViewport
+      ? activeFontSizeMobile || activeFontSize
+      : activeFontSize || activeFontSizeMobile;
     const styles: React.CSSProperties & Record<string, any> = {
       wordBreak: "normal",
       overflowWrap: "break-word",
@@ -309,6 +313,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (activeFontSizeMobile) {
       styles['--fs-mobile' as any] = normalizeCssSize(activeFontSizeMobile);
     }
+    if (viewportFontSize) {
+      const normalized = normalizeCssSize(viewportFontSize);
+      styles['--fs' as any] = normalized;
+      styles.fontSize = normalized;
+    }
     if (activeTranslateY) {
       styles['--translate-y' as any] = normalizeCssSize(activeTranslateY);
     }
@@ -319,7 +328,19 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+    syncViewport();
+    mediaQuery.addEventListener?.('change', syncViewport);
+    mediaQuery.addListener?.(syncViewport);
+    return () => {
+      mediaQuery.removeEventListener?.('change', syncViewport);
+      mediaQuery.removeListener?.(syncViewport);
+    };
+  }, []);
 
   if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`} style={customStyles}>{fallback}</Component> : null;
 

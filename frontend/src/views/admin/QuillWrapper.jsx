@@ -3218,11 +3218,25 @@ const QuillWrapper = forwardRef(({
   const globalTranslateYMobile = commitOnBlurOnly && shouldPreviewControlDraft('translateYMobile') && Object.prototype.hasOwnProperty.call(controlDrafts, 'translateYMobile')
     ? normalizeUnsignedControlValue('translateYMobile', controlDrafts.translateYMobile)
     : normalizeUnsignedControlValue('translateYMobile', translateYMobile);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const toCssUnit = useCallback((value, allowNegative = false) => {
     const text = String(value || '').trim();
     if (!text) return undefined;
     const integerPattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
     return integerPattern.test(text) ? `${text}px` : text;
+  }, []);
+  const activeViewportFontSize = toCssUnit(isMobileViewport ? globalFontSizeMobile || globalFontSize : globalFontSize || globalFontSizeMobile);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+    syncViewport();
+    mediaQuery.addEventListener?.('change', syncViewport);
+    mediaQuery.addListener?.(syncViewport);
+    return () => {
+      mediaQuery.removeEventListener?.('change', syncViewport);
+      mediaQuery.removeListener?.(syncViewport);
+    };
   }, []);
 
   useEffect(() => {
@@ -3230,12 +3244,10 @@ const QuillWrapper = forwardRef(({
     if (!editor) return;
 
     const applyEditorSize = () => {
-      const isMobile = window.matchMedia('(max-width: 767px)').matches;
-      const nextSize = toCssUnit(isMobile ? globalFontSizeMobile || globalFontSize : globalFontSize || globalFontSizeMobile);
       const targets = [editor, ...editor.querySelectorAll('*')];
       targets.forEach((node) => {
-        if (nextSize) {
-          node.style.fontSize = nextSize;
+        if (activeViewportFontSize) {
+          node.style.fontSize = activeViewportFontSize;
         } else {
           node.style.fontSize = '';
         }
@@ -3243,14 +3255,7 @@ const QuillWrapper = forwardRef(({
     };
 
     applyEditorSize();
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
-    mediaQuery.addEventListener?.('change', applyEditorSize);
-    mediaQuery.addListener?.(applyEditorSize);
-    return () => {
-      mediaQuery.removeEventListener?.('change', applyEditorSize);
-      mediaQuery.removeListener?.(applyEditorSize);
-    };
-  }, [editorValue, globalFontSize, globalFontSizeMobile, toCssUnit]);
+  }, [activeViewportFontSize, editorValue]);
 
   useEffect(() => {
     if (!showSpacingPopup) return;
@@ -3314,6 +3319,8 @@ const QuillWrapper = forwardRef(({
         '--custom-line-height-mobile': globalLineHeightMobile && !String(globalLineHeightMobile).trim().startsWith("-") ? toCssUnit(globalLineHeightMobile) : undefined,
         '--fs-desktop': toCssUnit(globalFontSize),
         '--fs-mobile': toCssUnit(globalFontSizeMobile),
+        '--fs': activeViewportFontSize,
+        fontSize: activeViewportFontSize,
         '--translate-y': toCssUnit(globalTranslateY, true),
         '--translate-y-mobile': toCssUnit(globalTranslateYMobile, true),
       }}
