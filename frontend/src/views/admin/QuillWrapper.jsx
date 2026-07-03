@@ -3922,7 +3922,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-main-text p,
           .quill-wrapper-container .ql-editor.title-main-text p span,
           .quill-wrapper-container .ql-editor.title-main-text p .font-cursive {
-            font-size: clamp(22px, 6.8vw, 28px);
+            font-size: 28px;
             display: block !important;
             margin-top: 5px !important;
             margin-bottom: 5px !important;
@@ -3945,7 +3945,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-sub-text h1 *,
           .quill-wrapper-container .ql-editor.title-sub-text span,
           .quill-wrapper-container .ql-editor.title-sub-text p {
-            font-size: clamp(9px, 2.7vw, 14px);
+            font-size: 14px;
             letter-spacing: 0.05em !important;
             padding-left: 0.15em !important;
             text-align: center !important;
@@ -4870,7 +4870,7 @@ const QuillWrapper = forwardRef(({
           }
           .quill-wrapper-container .ql-editor.title-bg-text,
           .quill-wrapper-container .ql-editor.mobile-watermark-text {
-            font-size: clamp(60px, 19vw, 90px);
+            font-size: 90px;
           }
           .quill-wrapper-container .ql-editor.title-bg-text *,
           .quill-wrapper-container .ql-editor.mobile-watermark-text * {
