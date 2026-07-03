@@ -3218,6 +3218,39 @@ const QuillWrapper = forwardRef(({
   const globalTranslateYMobile = commitOnBlurOnly && shouldPreviewControlDraft('translateYMobile') && Object.prototype.hasOwnProperty.call(controlDrafts, 'translateYMobile')
     ? normalizeUnsignedControlValue('translateYMobile', controlDrafts.translateYMobile)
     : normalizeUnsignedControlValue('translateYMobile', translateYMobile);
+  const toCssUnit = useCallback((value, allowNegative = false) => {
+    const text = String(value || '').trim();
+    if (!text) return undefined;
+    const integerPattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
+    return integerPattern.test(text) ? `${text}px` : text;
+  }, []);
+
+  useEffect(() => {
+    const editor = containerRef.current?.querySelector('.ql-editor');
+    if (!editor) return;
+
+    const applyEditorSize = () => {
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      const nextSize = toCssUnit(isMobile ? globalFontSizeMobile || globalFontSize : globalFontSize || globalFontSizeMobile);
+      const targets = [editor, ...editor.querySelectorAll('*')];
+      targets.forEach((node) => {
+        if (nextSize) {
+          node.style.fontSize = nextSize;
+        } else {
+          node.style.fontSize = '';
+        }
+      });
+    };
+
+    applyEditorSize();
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    mediaQuery.addEventListener?.('change', applyEditorSize);
+    mediaQuery.addListener?.(applyEditorSize);
+    return () => {
+      mediaQuery.removeEventListener?.('change', applyEditorSize);
+      mediaQuery.removeListener?.(applyEditorSize);
+    };
+  }, [editorValue, globalFontSize, globalFontSizeMobile, toCssUnit]);
 
   useEffect(() => {
     if (!showSpacingPopup) return;
@@ -3277,12 +3310,12 @@ const QuillWrapper = forwardRef(({
         '--quill-toolbar-top': toolbarTop,
         '--quill-editor-max-height': maxHeight,
         '--quill-editor-min-height': minHeight,
-        '--custom-line-height': globalLineHeight && !String(globalLineHeight).trim().startsWith("-") ? (/^\d+$/.test(String(globalLineHeight).trim()) ? `${globalLineHeight}px` : globalLineHeight) : undefined,
-        '--custom-line-height-mobile': globalLineHeightMobile && !String(globalLineHeightMobile).trim().startsWith("-") ? (/^\d+$/.test(String(globalLineHeightMobile).trim()) ? `${globalLineHeightMobile}px` : globalLineHeightMobile) : undefined,
-        '--fs-desktop': globalFontSize ? (/^\d+$/.test(String(globalFontSize).trim()) ? `${globalFontSize}px` : globalFontSize) : undefined,
-        '--fs-mobile': globalFontSizeMobile ? (/^\d+$/.test(String(globalFontSizeMobile).trim()) ? `${globalFontSizeMobile}px` : globalFontSizeMobile) : undefined,
-        '--translate-y': globalTranslateY ? (/^-?\d+$/.test(String(globalTranslateY).trim()) ? `${globalTranslateY}px` : globalTranslateY) : undefined,
-        '--translate-y-mobile': globalTranslateYMobile ? (/^-?\d+$/.test(String(globalTranslateYMobile).trim()) ? `${globalTranslateYMobile}px` : globalTranslateYMobile) : undefined,
+        '--custom-line-height': globalLineHeight && !String(globalLineHeight).trim().startsWith("-") ? toCssUnit(globalLineHeight) : undefined,
+        '--custom-line-height-mobile': globalLineHeightMobile && !String(globalLineHeightMobile).trim().startsWith("-") ? toCssUnit(globalLineHeightMobile) : undefined,
+        '--fs-desktop': toCssUnit(globalFontSize),
+        '--fs-mobile': toCssUnit(globalFontSizeMobile),
+        '--translate-y': toCssUnit(globalTranslateY, true),
+        '--translate-y-mobile': toCssUnit(globalTranslateYMobile, true),
       }}
     >
       {renderModals()}
