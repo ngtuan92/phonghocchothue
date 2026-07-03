@@ -1316,8 +1316,8 @@
   .describe-description-wrapper p:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
   .describe-description-wrapper span:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
   .describe-description-wrapper *:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer:not(.notification-rich-text):not(.notification-button-rich-text) p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer:not(.notification-rich-text):not(.notification-button-rich-text) span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
+  .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
+  .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
     font-size: 13px;
   }
 
@@ -1651,7 +1651,7 @@ footer .rich-text-renderer * {
   .describe-h2-wrapper .rich-text-renderer[style*="--fs-mobile"] *,
   .describe-h2-wrapper.rich-text-renderer[style*="--fs-mobile"],
   .describe-h2-wrapper.rich-text-renderer[style*="--fs-mobile"] * {
-    font-size: var(--fs-mobile);
+    font-size: var(--fs-mobile) !important;
   }
 
 }
@@ -1782,7 +1782,7 @@ footer .rich-text-renderer * {
 
 @media (min-width: 768px) {
   .rich-text-renderer[style*="--fs-desktop"] {
-    font-size: var(--fs-desktop);
+    font-size: var(--fs-desktop) !important;
   }
 
   .rich-text-renderer[style*="--fs-desktop"] *,
@@ -1800,7 +1800,7 @@ footer .rich-text-renderer * {
   .describe-h2-wrapper .rich-text-renderer[style*="--fs-desktop"] *,
   .describe-h2-wrapper.rich-text-renderer[style*="--fs-desktop"],
   .describe-h2-wrapper.rich-text-renderer[style*="--fs-desktop"] * {
-    font-size: var(--fs-desktop);
+    font-size: var(--fs-desktop) !important;
   }
 
 }
