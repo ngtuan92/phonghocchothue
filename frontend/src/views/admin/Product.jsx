@@ -12,10 +12,6 @@ function Product() {
       accessor: "image",
     },
     {
-      Header: "Mô tả",
-      accessor: "content",
-    },
-    {
       Header: "Tình trạng",
       accessor: "status",
     },

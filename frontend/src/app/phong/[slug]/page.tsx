@@ -47,6 +47,7 @@ interface ProductData {
     equipment: any;
     price: any;
     content: string;
+    description?: string;
     lineHeight?: string;
     lineHeightMobile?: string;
     fontSize?: string;
@@ -160,6 +161,7 @@ export default function DetailPage() {
           equipment: "",
           price: 0,
           content: "",
+          description: "",
         },
       };
     }
@@ -174,6 +176,15 @@ export default function DetailPage() {
         equipment: product.equipment || "",
         price: product.price,
         content: product.content || product.description || "",
+        description: product.description || "",
+        lineHeight: product.lineHeight || "",
+        lineHeightMobile: product.lineHeightMobile || "",
+        fontSize: product.fontSize || "",
+        fontSizeMobile: product.fontSizeMobile || "",
+        nameFontSize: product.nameFontSize || "",
+        nameFontSizeMobile: product.nameFontSizeMobile || "",
+        translateY: product.translateY || "",
+        translateYMobile: product.translateYMobile || "",
       },
     };
   }, [product]);
@@ -695,7 +706,17 @@ export default function DetailPage() {
                 <li className="mb-1 sm:mb-1.5">
                   <span className="font-bold mr-1">Sức chứa:</span>
                   {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
-                    <RichTextRenderer html={productData.product.contains} className="inline-rich-text" as="span" />
+                    <RichTextRenderer
+                      html={productData.product.contains}
+                      className="inline-rich-text"
+                      as="span"
+                      fontSize={product.fontSize}
+                      fontSizeMobile={product.fontSizeMobile}
+                      lineHeight={product.lineHeight}
+                      lineHeightMobile={product.lineHeightMobile}
+                      translateY={product.translateY}
+                      translateYMobile={product.translateYMobile}
+                    />
                   ) : (
                     formatNumber(toNumber(productData.product.contains) || 0)
                   )}
@@ -703,7 +724,17 @@ export default function DetailPage() {
                 <li className="mb-1 sm:mb-1.5">
                   <span className="font-bold mr-1">Trang bị:</span>
                   {typeof productData.product.equipment === "string" && productData.product.equipment.includes("<") ? (
-                    <RichTextRenderer html={productData.product.equipment} className="inline-rich-text" as="span" />
+                    <RichTextRenderer
+                      html={productData.product.equipment}
+                      className="inline-rich-text"
+                      as="span"
+                      fontSize={product.fontSize}
+                      fontSizeMobile={product.fontSizeMobile}
+                      lineHeight={product.lineHeight}
+                      lineHeightMobile={product.lineHeightMobile}
+                      translateY={product.translateY}
+                      translateYMobile={product.translateYMobile}
+                    />
                   ) : (
                     productData.product.equipment
                   )}
@@ -712,7 +743,17 @@ export default function DetailPage() {
               <div className="text-xs sm:text-base mt-2 mb-4">
                 <span className="font-bold mr-1 text-stone-800">Giá:</span>
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
-                  <RichTextRenderer html={productData.product.price} className="inline-rich-text" as="span" />
+                  <RichTextRenderer
+                    html={productData.product.price}
+                    className="inline-rich-text"
+                    as="span"
+                    fontSize={product.fontSize}
+                    fontSizeMobile={product.fontSizeMobile}
+                    lineHeight={product.lineHeight}
+                    lineHeightMobile={product.lineHeightMobile}
+                    translateY={product.translateY}
+                    translateYMobile={product.translateYMobile}
+                  />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
                 )}

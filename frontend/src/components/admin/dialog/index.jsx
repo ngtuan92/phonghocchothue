@@ -63,6 +63,81 @@ const getPlainText = (html) => {
     .trim();
 };
 
+const toCssUnit = (value, allowNegative = false) => {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const pattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
+  return pattern.test(text) ? `${text}px` : text;
+};
+
+const stripCssUnit = (value) => String(value || "").trim().replace(/px$/i, "");
+
+const extractResponsiveControls = (html) => {
+  const empty = {
+    fontSize: "",
+    fontSizeMobile: "",
+    lineHeight: "",
+    lineHeightMobile: "",
+    translateY: "",
+    translateYMobile: "",
+  };
+  if (!html || typeof window === "undefined") return empty;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const styled = doc.body.firstElementChild?.querySelector("[style*='--fs'], [style*='--custom-line-height'], [style*='--translate-y']");
+  if (!styled) return empty;
+
+  return {
+    fontSize: stripCssUnit(styled.style.getPropertyValue("--fs-desktop")),
+    fontSizeMobile: stripCssUnit(styled.style.getPropertyValue("--fs-mobile")),
+    lineHeight: stripCssUnit(styled.style.getPropertyValue("--custom-line-height")),
+    lineHeightMobile: stripCssUnit(styled.style.getPropertyValue("--custom-line-height-mobile")),
+    translateY: stripCssUnit(styled.style.getPropertyValue("--translate-y")),
+    translateYMobile: stripCssUnit(styled.style.getPropertyValue("--translate-y-mobile")),
+  };
+};
+
+const decorateRichTextWithControls = (html, controls = {}) => {
+  if (!html || typeof window === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  let targets = Array.from(root.children).filter((node) => node instanceof HTMLElement);
+  if (targets.length === 0) {
+    const p = doc.createElement("p");
+    p.innerHTML = root.innerHTML;
+    root.innerHTML = "";
+    root.appendChild(p);
+    targets = [p];
+  }
+
+  const entries = [
+    ["--fs-desktop", toCssUnit(controls.fontSize)],
+    ["--fs-mobile", toCssUnit(controls.fontSizeMobile)],
+    ["--custom-line-height", toCssUnit(controls.lineHeight)],
+    ["--custom-line-height-mobile", toCssUnit(controls.lineHeightMobile)],
+    ["--translate-y", toCssUnit(controls.translateY, true)],
+    ["--translate-y-mobile", toCssUnit(controls.translateYMobile, true)],
+  ];
+
+  targets.forEach((target) => {
+    entries.forEach(([name, value]) => {
+      if (value) {
+        target.style.setProperty(name, value);
+      } else {
+        target.style.removeProperty(name);
+      }
+    });
+    if (!target.getAttribute("style")) {
+      target.removeAttribute("style");
+    }
+  });
+
+  return root.innerHTML;
+};
+
 function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   const containerRef = useRef(null);
   const cancelQueuedMountRef = useRef(null);
@@ -167,6 +242,24 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [roomLineHeightMobile, setRoomLineHeightMobile] = useState("");
   const [roomFontSize, setRoomFontSize] = useState("");
   const [roomFontSizeMobile, setRoomFontSizeMobile] = useState("");
+  const [roomPriceFontSize, setRoomPriceFontSize] = useState("");
+  const [roomPriceFontSizeMobile, setRoomPriceFontSizeMobile] = useState("");
+  const [roomPriceLineHeight, setRoomPriceLineHeight] = useState("");
+  const [roomPriceLineHeightMobile, setRoomPriceLineHeightMobile] = useState("");
+  const [roomPriceTranslateY, setRoomPriceTranslateY] = useState("");
+  const [roomPriceTranslateYMobile, setRoomPriceTranslateYMobile] = useState("");
+  const [roomEquipmentFontSize, setRoomEquipmentFontSize] = useState("");
+  const [roomEquipmentFontSizeMobile, setRoomEquipmentFontSizeMobile] = useState("");
+  const [roomEquipmentLineHeight, setRoomEquipmentLineHeight] = useState("");
+  const [roomEquipmentLineHeightMobile, setRoomEquipmentLineHeightMobile] = useState("");
+  const [roomEquipmentTranslateY, setRoomEquipmentTranslateY] = useState("");
+  const [roomEquipmentTranslateYMobile, setRoomEquipmentTranslateYMobile] = useState("");
+  const [roomContainsFontSize, setRoomContainsFontSize] = useState("");
+  const [roomContainsFontSizeMobile, setRoomContainsFontSizeMobile] = useState("");
+  const [roomContainsLineHeight, setRoomContainsLineHeight] = useState("");
+  const [roomContainsLineHeightMobile, setRoomContainsLineHeightMobile] = useState("");
+  const [roomContainsTranslateY, setRoomContainsTranslateY] = useState("");
+  const [roomContainsTranslateYMobile, setRoomContainsTranslateYMobile] = useState("");
   const [roomNameFontSize, setRoomNameFontSize] = useState("");
   const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
@@ -208,6 +301,27 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         setRoomLineHeightMobile(dataEdit.lineHeightMobile || "");
         setRoomFontSize(dataEdit.fontSize || "");
         setRoomFontSizeMobile(dataEdit.fontSizeMobile || "");
+        const priceControls = extractResponsiveControls(dataEdit.price || "");
+        const equipmentControls = extractResponsiveControls(dataEdit.equipment || "");
+        const containsControls = extractResponsiveControls(dataEdit.contains || "");
+        setRoomPriceFontSize(priceControls.fontSize || dataEdit.fontSize || "");
+        setRoomPriceFontSizeMobile(priceControls.fontSizeMobile || dataEdit.fontSizeMobile || "");
+        setRoomPriceLineHeight(priceControls.lineHeight || dataEdit.lineHeight || "");
+        setRoomPriceLineHeightMobile(priceControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
+        setRoomPriceTranslateY(priceControls.translateY || dataEdit.translateY || "");
+        setRoomPriceTranslateYMobile(priceControls.translateYMobile || dataEdit.translateYMobile || "");
+        setRoomEquipmentFontSize(equipmentControls.fontSize || dataEdit.fontSize || "");
+        setRoomEquipmentFontSizeMobile(equipmentControls.fontSizeMobile || dataEdit.fontSizeMobile || "");
+        setRoomEquipmentLineHeight(equipmentControls.lineHeight || dataEdit.lineHeight || "");
+        setRoomEquipmentLineHeightMobile(equipmentControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
+        setRoomEquipmentTranslateY(equipmentControls.translateY || dataEdit.translateY || "");
+        setRoomEquipmentTranslateYMobile(equipmentControls.translateYMobile || dataEdit.translateYMobile || "");
+        setRoomContainsFontSize(containsControls.fontSize || dataEdit.fontSize || "");
+        setRoomContainsFontSizeMobile(containsControls.fontSizeMobile || dataEdit.fontSizeMobile || "");
+        setRoomContainsLineHeight(containsControls.lineHeight || dataEdit.lineHeight || "");
+        setRoomContainsLineHeightMobile(containsControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
+        setRoomContainsTranslateY(containsControls.translateY || dataEdit.translateY || "");
+        setRoomContainsTranslateYMobile(containsControls.translateYMobile || dataEdit.translateYMobile || "");
         setRoomNameFontSize(dataEdit.nameFontSize || "");
         setRoomNameFontSizeMobile(dataEdit.nameFontSizeMobile || "");
         setRoomTranslateY(dataEdit.translateY || "");
@@ -250,6 +364,24 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         setRoomLineHeightMobile("");
         setRoomFontSize("");
         setRoomFontSizeMobile("");
+        setRoomPriceFontSize("");
+        setRoomPriceFontSizeMobile("");
+        setRoomPriceLineHeight("");
+        setRoomPriceLineHeightMobile("");
+        setRoomPriceTranslateY("");
+        setRoomPriceTranslateYMobile("");
+        setRoomEquipmentFontSize("");
+        setRoomEquipmentFontSizeMobile("");
+        setRoomEquipmentLineHeight("");
+        setRoomEquipmentLineHeightMobile("");
+        setRoomEquipmentTranslateY("");
+        setRoomEquipmentTranslateYMobile("");
+        setRoomContainsFontSize("");
+        setRoomContainsFontSizeMobile("");
+        setRoomContainsLineHeight("");
+        setRoomContainsLineHeightMobile("");
+        setRoomContainsTranslateY("");
+        setRoomContainsTranslateYMobile("");
         setRoomNameFontSize("");
         setRoomNameFontSizeMobile("");
         setRoomTranslateY("");
@@ -323,6 +455,30 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
 
   const handleSave = () => {
     if (validateInputs()) {
+      const price = decorateRichTextWithControls(roomPrice, {
+        fontSize: roomPriceFontSize,
+        fontSizeMobile: roomPriceFontSizeMobile,
+        lineHeight: roomPriceLineHeight,
+        lineHeightMobile: roomPriceLineHeightMobile,
+        translateY: roomPriceTranslateY,
+        translateYMobile: roomPriceTranslateYMobile,
+      });
+      const equipment = decorateRichTextWithControls(roomEquipment, {
+        fontSize: roomEquipmentFontSize,
+        fontSizeMobile: roomEquipmentFontSizeMobile,
+        lineHeight: roomEquipmentLineHeight,
+        lineHeightMobile: roomEquipmentLineHeightMobile,
+        translateY: roomEquipmentTranslateY,
+        translateYMobile: roomEquipmentTranslateYMobile,
+      });
+      const contains = decorateRichTextWithControls(roomContains, {
+        fontSize: roomContainsFontSize,
+        fontSizeMobile: roomContainsFontSizeMobile,
+        lineHeight: roomContainsLineHeight,
+        lineHeightMobile: roomContainsLineHeightMobile,
+        translateY: roomContainsTranslateY,
+        translateYMobile: roomContainsTranslateYMobile,
+      });
       const data = {
         name: roomName,
         name_rich: roomNameRich,
@@ -330,9 +486,9 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         imageDetail: multipleImages,
         content: roomContent,
         description: roomDescription,
-        equipment: roomEquipment,
-        price: roomPrice,
-        contains: roomContains,
+        equipment,
+        price,
+        contains,
         isSpecial: isChecked,
         status: isStatus ? 1 : 0,
         slug: roomSlug,
@@ -378,7 +534,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-200">
           <DialogHeader className="flex flex-col items-start p-0">
             <Typography className="text-2xl font-bold text-[#15803d]" variant="h4">
-              {id ? "✏️ Chỉnh sửa phòng" : "➕ Thêm phòng mới"}
+              {id ? "Chỉnh sửa phòng" : "Thêm phòng mới"}
             </Typography>
             <Typography variant="small" className="text-gray-500 mt-1">
               {id ? "Cập nhật thông tin phòng cho thuê" : "Điền thông tin để thêm phòng mới"}
@@ -453,6 +609,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                       setErrors((prev) => ({ ...prev, roomName: "" }));
                     }}
                     placeholder="Nhập tên phòng..."
+                    isBlogEditor={true}
                     lineHeight={roomLineHeight}
                     lineHeightMobile={roomLineHeightMobile}
                     fontSize={roomNameFontSize}
@@ -500,7 +657,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
               {/* Giá thuê */}
               <div>
                 <label htmlFor="room-price" className="block text-sm font-medium text-gray-700 mb-2">
-                  💰 Giá thuê (VNĐ)
+                  💵 Giá thuê (VNĐ)
                 </label>
                 <div id="room-price" className="product-dialog-quill product-dialog-quill--price">
                   <LazyQuillWrapper
@@ -509,19 +666,20 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomPrice}
                     onChange={(val) => setIfChanged(setRoomPrice, val)}
                     placeholder="Ví dụ: 80.000 đ/h..."
+                    isBlogEditor={true}
                     disableImageWrap={true}
-                    lineHeight={roomLineHeight}
-                    lineHeightMobile={roomLineHeightMobile}
-                    fontSize={roomFontSize}
-                    fontSizeMobile={roomFontSizeMobile}
-                    translateY={roomTranslateY}
-                    translateYMobile={roomTranslateYMobile}
-                    onChangeLineHeight={setRoomLineHeight}
-                    onChangeLineHeightMobile={setRoomLineHeightMobile}
-                    onChangeFontSize={setRoomFontSize}
-                    onChangeFontSizeMobile={setRoomFontSizeMobile}
-                    onChangeTranslateY={setRoomTranslateY}
-                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    lineHeight={roomPriceLineHeight}
+                    lineHeightMobile={roomPriceLineHeightMobile}
+                    fontSize={roomPriceFontSize}
+                    fontSizeMobile={roomPriceFontSizeMobile}
+                    translateY={roomPriceTranslateY}
+                    translateYMobile={roomPriceTranslateYMobile}
+                    onChangeLineHeight={setRoomPriceLineHeight}
+                    onChangeLineHeightMobile={setRoomPriceLineHeightMobile}
+                    onChangeFontSize={setRoomPriceFontSize}
+                    onChangeFontSizeMobile={setRoomPriceFontSizeMobile}
+                    onChangeTranslateY={setRoomPriceTranslateY}
+                    onChangeTranslateYMobile={setRoomPriceTranslateYMobile}
                     hasResponsiveFontSize={true}
                   />
                 </div>
@@ -539,19 +697,20 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomEquipment}
                     onChange={(val) => setIfChanged(setRoomEquipment, val)}
                     placeholder="Ví dụ: Máy chiếu, điều hòa, bảng trắng..."
+                    isBlogEditor={true}
                     disableImageWrap={true}
-                    lineHeight={roomLineHeight}
-                    lineHeightMobile={roomLineHeightMobile}
-                    fontSize={roomFontSize}
-                    fontSizeMobile={roomFontSizeMobile}
-                    translateY={roomTranslateY}
-                    translateYMobile={roomTranslateYMobile}
-                    onChangeLineHeight={setRoomLineHeight}
-                    onChangeLineHeightMobile={setRoomLineHeightMobile}
-                    onChangeFontSize={setRoomFontSize}
-                    onChangeFontSizeMobile={setRoomFontSizeMobile}
-                    onChangeTranslateY={setRoomTranslateY}
-                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    lineHeight={roomEquipmentLineHeight}
+                    lineHeightMobile={roomEquipmentLineHeightMobile}
+                    fontSize={roomEquipmentFontSize}
+                    fontSizeMobile={roomEquipmentFontSizeMobile}
+                    translateY={roomEquipmentTranslateY}
+                    translateYMobile={roomEquipmentTranslateYMobile}
+                    onChangeLineHeight={setRoomEquipmentLineHeight}
+                    onChangeLineHeightMobile={setRoomEquipmentLineHeightMobile}
+                    onChangeFontSize={setRoomEquipmentFontSize}
+                    onChangeFontSizeMobile={setRoomEquipmentFontSizeMobile}
+                    onChangeTranslateY={setRoomEquipmentTranslateY}
+                    onChangeTranslateYMobile={setRoomEquipmentTranslateYMobile}
                     hasResponsiveFontSize={true}
                   />
                 </div>
@@ -569,19 +728,20 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomContains}
                     onChange={(val) => setIfChanged(setRoomContains, val)}
                     placeholder="Ví dụ: Sức chứa 45 chỗ ngồi..."
+                    isBlogEditor={true}
                     disableImageWrap={true}
-                    lineHeight={roomLineHeight}
-                    lineHeightMobile={roomLineHeightMobile}
-                    fontSize={roomFontSize}
-                    fontSizeMobile={roomFontSizeMobile}
-                    translateY={roomTranslateY}
-                    translateYMobile={roomTranslateYMobile}
-                    onChangeLineHeight={setRoomLineHeight}
-                    onChangeLineHeightMobile={setRoomLineHeightMobile}
-                    onChangeFontSize={setRoomFontSize}
-                    onChangeFontSizeMobile={setRoomFontSizeMobile}
-                    onChangeTranslateY={setRoomTranslateY}
-                    onChangeTranslateYMobile={setRoomTranslateYMobile}
+                    lineHeight={roomContainsLineHeight}
+                    lineHeightMobile={roomContainsLineHeightMobile}
+                    fontSize={roomContainsFontSize}
+                    fontSizeMobile={roomContainsFontSizeMobile}
+                    translateY={roomContainsTranslateY}
+                    translateYMobile={roomContainsTranslateYMobile}
+                    onChangeLineHeight={setRoomContainsLineHeight}
+                    onChangeLineHeightMobile={setRoomContainsLineHeightMobile}
+                    onChangeFontSize={setRoomContainsFontSize}
+                    onChangeFontSizeMobile={setRoomContainsFontSizeMobile}
+                    onChangeTranslateY={setRoomContainsTranslateY}
+                    onChangeTranslateYMobile={setRoomContainsTranslateYMobile}
                     hasResponsiveFontSize={true}
                   />
                 </div>
@@ -592,7 +752,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           {/* Section 2: Hình ảnh */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-              <span className="text-xl">🖼️</span>
+              <span className="text-xl">Ảnh</span>
               <Typography variant="h6" className="font-semibold text-[#15803d]">
                 Hình ảnh
               </Typography>
@@ -604,7 +764,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Ảnh đại diện <span className="text-red-500">*</span>
               </label>
               <p className="mb-2 text-xs font-medium text-gray-500">
-                Khuyến nghị: 800 x 875px, tỷ lệ 32:35. Dùng ảnh dọc nhẹ, rõ chủ thể phòng.
+                Khuyên dùng: 800 x 875px, tỉ lệ 32:35. Dùng ảnh đẹp nhất, rõ chủ thể phòng.
               </p>
               <div className="flex flex-col gap-3">
                 <div className="relative">
@@ -637,8 +797,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                       onClick={removeSingleImage}
                       aria-label="Xóa ảnh"
                     >
-                      ✕
-                    </button>
+                      ×                    </button>
                   </div>
                 )}
               </div>
@@ -650,7 +809,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Ảnh chi tiết (có thể chọn nhiều)
               </label>
               <p className="mb-2 text-xs font-medium text-gray-500">
-                Khuyến nghị: 1200 x 675px, tỷ lệ 16:9. Chụp ngang để gallery hiển thị đều và không bị cắt nhiều.
+                Khuyên dùng: 1200 x 675px, tỉ lệ 16:9. Chụp ngang để gallery hiển thị đẹp và không bị cắt nhiều.
               </p>
               <Card className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
                 <div className="flex flex-col gap-4">
@@ -687,8 +846,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                               onClick={() => removeMultipleImage(index)}
                               aria-label={`Xóa ảnh ${index + 1}`}
                             >
-                              ✕
-                            </button>
+                              ×                            </button>
                           </div>
                         );
                       })}
@@ -708,35 +866,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
               </Typography>
             </div>
 
-            <div>
-              <label htmlFor="room-description" className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả ngắn
-              </label>
-              <div id="room-description" className="product-dialog-quill product-dialog-quill--description">
-                 <LazyQuillWrapper
-                   key={`quill-description-${id || 'new'}-${open}`}
-                   theme="snow"
-                   value={roomDescription}
-                   onChange={(val) => setIfChanged(setRoomDescription, val)}
-                   placeholder="Nhập mô tả ngắn về phòng..."
-                   isBlogEditor={true}
-                   commitOnBlurOnly={true}
-                   lineHeight={roomLineHeight}
-                   lineHeightMobile={roomLineHeightMobile}
-                   fontSize={roomFontSize}
-                   fontSizeMobile={roomFontSizeMobile}
-                   translateY={roomTranslateY}
-                   translateYMobile={roomTranslateYMobile}
-                   onChangeLineHeight={setRoomLineHeight}
-                   onChangeLineHeightMobile={setRoomLineHeightMobile}
-                   onChangeFontSize={setRoomFontSize}
-                   onChangeFontSizeMobile={setRoomFontSizeMobile}
-                   onChangeTranslateY={setRoomTranslateY}
-                   onChangeTranslateYMobile={setRoomTranslateYMobile}
-                   hasResponsiveFontSize={true}
-                 />
-              </div>
-            </div>
 
             <div>
               <label htmlFor="room-content" className="block text-sm font-medium text-gray-700 mb-2">
@@ -750,7 +879,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                    onChange={(val) => setIfChanged(setRoomContent, val)}
                    placeholder="Nhập mô tả chi tiết về phòng..."
                    isBlogEditor={true}
-                   commitOnBlurOnly={true}
                    isSticky={true}
                    maxHeight="500px"
                    lineHeight={roomLineHeight}
@@ -774,7 +902,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           {/* Section 4: SEO */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-              <span className="text-xl">🔍</span>
+              <span className="text-xl">SEO</span>
               <Typography variant="h6" className="font-semibold text-[#15803d]">
                 Thông tin SEO
               </Typography>
@@ -819,7 +947,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoKeywords}
                   onChange={handleSeoKeywordsChange}
-                  placeholder="Từ khóa cách nhau bởi dấu phẩy (ví dụ: phòng cho thuê, homestay, nghỉ dưỡng)"
+                  placeholder="Từ khóa cách nhau bằng dấu phẩy (ví dụ: phòng cho thuê, homestay, nghỉ dưỡng)"
                 />
               </div>
 
@@ -851,8 +979,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                         onClick={removeSeoImage}
                         aria-label="Xóa ảnh SEO"
                       >
-                        ✕
-                      </button>
+                        ×                      </button>
                     </div>
                   )}
                 </div>
@@ -863,7 +990,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           {/* Section 5: Trạng thái */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-              <span className="text-xl">⚙️</span>
+              <span className="text-xl">⭐</span>
               <Typography variant="h6" className="font-semibold text-[#15803d]">
                 Trạng thái
               </Typography>
@@ -879,7 +1006,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 />
                 <label htmlFor="checkbox-special" className="flex-1 cursor-pointer">
                   <Typography variant="h6" className="font-medium text-[#15803d]">
-                    ⭐ Phòng đặc biệt
+                    Phòng đặc biệt
                   </Typography>
                   <Typography variant="small" className="text-gray-500">
                     Đánh dấu phòng này là phòng nổi bật
@@ -896,7 +1023,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 />
                 <label htmlFor="checkbox-status" className="flex-1 cursor-pointer">
                   <Typography variant="h6" className="font-medium text-[#15803d]">
-                    ✅ Còn phòng
+                    Còn phòng
                   </Typography>
                   <Typography variant="small" className="text-gray-500">
                     Phòng đang còn trống và có thể cho thuê
@@ -953,9 +1080,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           .product-dialog-quill--contains .ql-editor {
             min-height: 80px;
           }
-          .product-dialog-quill--description .ql-editor {
-            min-height: 120px;
-          }
         ` }} />
 
         {/* Footer với nút lưu */}
@@ -971,7 +1095,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
             onClick={handleSave}
             className="px-8 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg shadow-md hover:from-green-700 hover:to-green-800 transition-all duration-200 transform hover:scale-105"
           >
-            💾 Lưu thông tin
+            Lưu thông tin
           </Button>
         </CardFooter>
       </Card>

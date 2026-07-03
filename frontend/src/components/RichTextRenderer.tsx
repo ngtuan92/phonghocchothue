@@ -202,7 +202,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     const cleanStyleForRender = (styleContent: string) => {
       const parts = styleContent.split(';');
-      let activeSize = null;
       let otherStyles: string[] = [];
 
       for (let part of parts) {
@@ -211,24 +210,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
         const fsMatch = part.match(/^--fs:\s*(.+)$/i);
         if (fsMatch) {
-          activeSize = fsMatch[1].trim();
-          continue;
-        }
-
-        const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
-        if (fontSizeMatch) {
           continue;
         }
 
         otherStyles.push(part);
       }
 
-      if (activeSize) {
-        const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
-        return othersStr.replace(/^;\s*/, '');
-      } else {
-        return otherStyles.join('; ');
-      }
+      return otherStyles.join('; ');
     };
 
     const stripFontSizeFromStyle = (styleContent: string) => {
@@ -359,6 +347,34 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           margin-right: auto;
           max-width: 100%;
           height: auto;
+        }
+        @media (min-width: 768px) {
+          .rich-text-renderer [style*="--fs-desktop"],
+          .rich-text-renderer [style*="--fs-desktop"] * {
+            font-size: var(--fs-desktop) !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .rich-text-renderer [style*="--fs-mobile"],
+          .rich-text-renderer [style*="--fs-mobile"] * {
+            font-size: var(--fs-mobile) !important;
+          }
+        }
+        .rich-text-renderer [style*="--custom-line-height"],
+        .rich-text-renderer [style*="--custom-line-height"] * {
+          line-height: var(--custom-line-height) !important;
+        }
+        .rich-text-renderer [style*="--translate-y"] {
+          transform: translateY(var(--translate-y)) !important;
+        }
+        @media (max-width: 767px) {
+          .rich-text-renderer [style*="--custom-line-height-mobile"],
+          .rich-text-renderer [style*="--custom-line-height-mobile"] * {
+            line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
+          }
+          .rich-text-renderer [style*="--translate-y-mobile"] {
+            transform: translateY(var(--translate-y-mobile, var(--translate-y, 0px))) !important;
+          }
         }
         /* Style for image wrappers */
         .rich-text-renderer .image-wrapper {

@@ -126,7 +126,6 @@ export default function BlogTable() {
         await createBlogMutation.mutateAsync(finalData);
         showToastSuccess("Thêm bài viết thành công");
       }
-      setOpenForm(false);
       refetch();
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") {

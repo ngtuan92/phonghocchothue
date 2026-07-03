@@ -12,10 +12,10 @@ function formatProductRichName(nameRich) {
   return nameRich;
 }
 
-let productNameFontColumnsReady = false;
+let productRichTextColumnsReady = false;
 
-const ensureProductNameFontColumns = async () => {
-  if (productNameFontColumnsReady) return;
+const ensureProductRichTextColumns = async () => {
+  if (productRichTextColumnsReady) return;
 
   const queryInterface = sequelize.getQueryInterface();
   const tableDescription = await queryInterface.describeTable("products");
@@ -33,13 +33,23 @@ const ensureProductNameFontColumns = async () => {
     }
   }
 
-  productNameFontColumnsReady = true;
+  const richTextColumns = ["description", "equipment", "contains", "price"];
+  for (const col of richTextColumns) {
+    if (tableDescription[col] && tableDescription[col].type && !/text/i.test(tableDescription[col].type)) {
+      await queryInterface.changeColumn("products", col, {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      });
+    }
+  }
+
+  productRichTextColumnsReady = true;
 };
 
 class ProductController {
   async index(req, res) {
     try {
-      await ensureProductNameFontColumns();
+      await ensureProductRichTextColumns();
       const { limit, light } = req.query;
       const isLightList = light === "true";
       const cacheKey = isLightList
@@ -82,7 +92,7 @@ class ProductController {
   }
 
   async edit(req, res) {
-    await ensureProductNameFontColumns();
+    await ensureProductRichTextColumns();
     productModel
       .findOne({
         attributes: [
@@ -143,7 +153,7 @@ class ProductController {
 
   async getById(req, res) {
     try {
-      await ensureProductNameFontColumns();
+      await ensureProductRichTextColumns();
       const { id } = req.params;
       const cacheKey = `product:detail:${id}`;
 
@@ -212,7 +222,7 @@ class ProductController {
   async update(req, res) {
     const { id } = req.params;
     try {
-      await ensureProductNameFontColumns();
+      await ensureProductRichTextColumns();
       const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, nameFontSize, nameFontSizeMobile, translateY, translateYMobile } = req.body;
 
       const files = req.files || {};
@@ -355,7 +365,7 @@ class ProductController {
 
   async save(req, res) {
     try {
-      await ensureProductNameFontColumns();
+      await ensureProductRichTextColumns();
       const { name, name_rich, content, description, equipment, status, price, unit, contains, isSpecial, seoTitle, seoDescription, seoKeywords, slug, lineHeight, lineHeightMobile, fontSize, fontSizeMobile, nameFontSize, nameFontSizeMobile, translateY, translateYMobile } = req.body;
       const { image, imageDetail, seoImage } = req.files || {};
 

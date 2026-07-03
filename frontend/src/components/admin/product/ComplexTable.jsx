@@ -169,7 +169,6 @@ export default function ComplexTable() {
         fetchDataFromAPI();
       }
     }
-    setOpen(false);
   };
 
   const columns = [
@@ -198,29 +197,6 @@ export default function ComplexTable() {
           />
         </p>
       ),
-    }),
-    columnHelper.accessor("description", {
-      id: "description",
-      header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">Mô tả</p>
-      ),
-      cell: (info) => {
-        const val = info.getValue() || "";
-        const plainText = val
-          .replace(/<[^>]*>/g, "")
-          .replace(/&nbsp;/g, " ")
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .trim();
-        return (
-          <p className="text-sm font-bold text-black truncate max-w-[200px]" title={plainText}>
-            {plainText}
-          </p>
-        );
-      },
     }),
     columnHelper.accessor("status", {
       id: "status",
