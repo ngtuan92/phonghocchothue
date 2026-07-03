@@ -386,12 +386,8 @@ const cleanStyleForSave = (styleContent) => {
       continue;
     }
 
-    const fontSizeMatch = part.match(/^font-size:\s*(.+)$/i);
+    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
     if (fontSizeMatch) {
-      const val = fontSizeMatch[1].trim();
-      if (val.toLowerCase() !== 'var(--fs)') {
-        fontSizeValue = val;
-      }
       continue;
     }
 
@@ -401,7 +397,7 @@ const cleanStyleForSave = (styleContent) => {
   const activeSize = fontSizeValue || customSizeValue;
   if (activeSize) {
     const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
-    return `font-size: ${activeSize}${othersStr}`;
+    return othersStr.replace(/^;\s*/, '');
   } else {
     return otherStyles.join('; ');
   }
@@ -423,12 +419,8 @@ const cleanStyleForEdit = (styleContent) => {
       continue;
     }
 
-    const fontSizeMatch = part.match(/^font-size:\s*(.+)$/i);
+    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
     if (fontSizeMatch) {
-      const val = fontSizeMatch[1].trim();
-      if (val.toLowerCase() !== 'var(--fs)') {
-        fontSizeValue = val;
-      }
       continue;
     }
 
@@ -438,7 +430,7 @@ const cleanStyleForEdit = (styleContent) => {
   const activeSize = fontSizeValue || customSizeValue;
   if (activeSize) {
     const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
-    return `font-size: ${activeSize}${othersStr}`;
+    return othersStr.replace(/^;\s*/, '');
   } else {
     return otherStyles.join('; ');
   }
@@ -2026,8 +2018,8 @@ const QuillWrapper = forwardRef(({
 
           wrapper.innerHTML = `
             <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
-              <input type="text" placeholder="Size..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; height: 26px; line-height: 26px; color: #333; background: #fff;" />
-              <span class="custom-size-dropdown-apply-btn" style="width: 26px; height: 26px; min-width: 26px; flex-shrink: 0; background: #799f85; color: #fff; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; line-height: 26px; text-align: center; font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s;" title="Apply">OK</span>
+              <input type="text" placeholder="Size..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; height: 26px; line-height: 26px; color: #333; background: #fff;" />
+              <span class="custom-size-dropdown-apply-btn" style="width: 26px; height: 26px; min-width: 26px; flex-shrink: 0; background: #799f85; color: #fff; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; line-height: 26px; text-align: center; font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s;" title="Apply">OK</span>
             </div>
           `;
 
@@ -3707,10 +3699,8 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 768px) {
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
-            font-size: var(--fs-desktop);
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor * {
-            font-size: var(--fs-desktop);
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
@@ -3728,7 +3718,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: var(--fs-desktop);
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"],
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"] *,
@@ -3742,13 +3731,11 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.hero-slogan-text *,
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.mobile-watermark-text,
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.mobile-watermark-text * {
-            font-size: var(--fs-desktop);
           }
         }
         @media (max-width: 767px) {
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor * {
-            font-size: var(--fs-mobile);
           }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
@@ -3766,7 +3753,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: var(--fs-mobile);
           }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"],
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"] *,
@@ -3780,7 +3766,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.hero-slogan-text *,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.mobile-watermark-text,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.mobile-watermark-text * {
-            font-size: var(--fs-mobile);
           }
         }
 
@@ -3880,14 +3865,12 @@ const QuillWrapper = forwardRef(({
         @media (max-width: 767px) {
           .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
           .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
-            font-size: inherit;
           }
 
           /* General paragraph & span fallbacks when no custom inline size is set */
           .quill-wrapper-container:not([style*="--fs-mobile"]) .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) p:not(h1 p):not(h2 p):not(h3 p):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container:not([style*="--fs-mobile"]) .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) span:not(h1 span):not(h2 span):not(h3 span):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container:not([style*="--fs-mobile"]) .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) *:not(h1):not(h1 *):not(h2):not(h2 *):not(h3):not(h3 *):not(h4):not(h4 *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: 13px;
           }
 
           /* Fallback sizes for Hero Phone and Hero Slogan when no custom inline size is set */
@@ -3895,7 +3878,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: 11px;
           }
 
           /* Standard heading scaling for other rich text editors on mobile */
@@ -3922,7 +3904,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-main-text p,
           .quill-wrapper-container .ql-editor.title-main-text p span,
           .quill-wrapper-container .ql-editor.title-main-text p .font-cursive {
-            font-size: 28px;
             display: block !important;
             margin-top: 5px !important;
             margin-bottom: 5px !important;
@@ -3933,7 +3914,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-main-text .ql-size-huge,
           .quill-wrapper-container .ql-editor.title-main-text .font-cursive,
           .quill-wrapper-container .ql-editor.title-main-text span {
-            font-size: 36px;
             margin-bottom: 0 !important;
             margin-top: 0 !important;
           }
@@ -3945,7 +3925,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-sub-text h1 *,
           .quill-wrapper-container .ql-editor.title-sub-text span,
           .quill-wrapper-container .ql-editor.title-sub-text p {
-            font-size: 14px;
             letter-spacing: 0.05em !important;
             padding-left: 0.15em !important;
             text-align: center !important;
@@ -4016,7 +3995,6 @@ const QuillWrapper = forwardRef(({
         .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"]::after {
           content: "Custom color" !important;
           font-family: 'Inter', sans-serif !important;
-          font-size: 10px;
           color: white !important;
           text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.9) !important;
           font-weight: 700 !important;
@@ -4028,7 +4006,6 @@ const QuillWrapper = forwardRef(({
 
         .quill-wrapper-container.is-blog-editor .ql-editor {
           font-family: 'Montserrat', sans-serif;
-          font-size: 1.05rem;
           line-height: 1.6;
           color: #323232;
           padding: 24px 20px !important;
@@ -4106,7 +4083,6 @@ const QuillWrapper = forwardRef(({
           color: #323232;
           margin: 0 0 0.5rem 0 !important;
           font-weight: 400;
-          font-size: 1.05rem;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor ul {
           list-style-type: disc !important;
@@ -4121,7 +4097,6 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor li {
           margin: 0.5rem 0 !important;
           line-height: 1.6 !important;
-          font-size: 1.05rem;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor strong {
           font-weight: 700 !important;
@@ -4321,7 +4296,6 @@ const QuillWrapper = forwardRef(({
           background: #fff !important;
           color: #111827 !important;
           font-family: system-ui, -apple-system, sans-serif !important;
-          font-size: 13px;
           line-height: 18px !important;
         }
         .ql-snow .ql-picker.ql-font .font-search-input::placeholder {
@@ -4341,10 +4315,8 @@ const QuillWrapper = forwardRef(({
           line-height: 20px !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label {
-          font-size: 0;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label::before {
-          font-size: 12px;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before {
           content: 'Inter' !important;
@@ -4439,12 +4411,6 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor h3:has(+ p) {
           margin-bottom: 0.5rem !important;
         }
-        .quill-wrapper-container.is-blog-editor .ql-editor h1 { font-size: 1.8rem; }
-        .quill-wrapper-container.is-blog-editor .ql-editor h2 { font-size: 2rem; }
-        .quill-wrapper-container.is-blog-editor .ql-editor h3 { font-size: 1.5rem; }
-        .quill-wrapper-container.is-blog-editor .ql-editor h4 { font-size: 1.5rem; }
-        .quill-wrapper-container.is-blog-editor .ql-editor h5 { font-size: 1.25rem; }
-        .quill-wrapper-container.is-blog-editor .ql-editor h6 { font-size: 1rem; }
         .resizer-handle {
           position: absolute;
           width: 36px;
@@ -4568,7 +4534,6 @@ const QuillWrapper = forwardRef(({
         .editor-image-caption {
           position: absolute !important;
           text-align: center !important;
-          font-size: 13px;
           color: #666666 !important;
           font-style: italic !important;
           line-height: 1.4 !important;
@@ -4595,7 +4560,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-toolbar.ql-snow,
           .quill-wrapper-container .ql-toolbar.ql-snow * {
             font-family: system-ui, -apple-system, sans-serif !important;
-            font-size: 12px;
             line-height: 1.4 !important;
             display: inline-block !important;
             width: auto !important;
@@ -4643,7 +4607,6 @@ const QuillWrapper = forwardRef(({
             width: 100% !important;
             height: 100% !important;
             padding: 0 8px !important;
-            font-size: 12px;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label svg {
@@ -4718,7 +4681,6 @@ const QuillWrapper = forwardRef(({
             width: 100% !important;
             padding: 8px 12px !important;
             text-align: left !important;
-            font-size: 13px;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-color.ql-expanded .ql-picker-options,
@@ -4870,11 +4832,9 @@ const QuillWrapper = forwardRef(({
           }
           .quill-wrapper-container .ql-editor.title-bg-text,
           .quill-wrapper-container .ql-editor.mobile-watermark-text {
-            font-size: 90px;
           }
           .quill-wrapper-container .ql-editor.title-bg-text *,
           .quill-wrapper-container .ql-editor.mobile-watermark-text * {
-            font-size: inherit;
           }
         }
 

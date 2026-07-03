@@ -215,12 +215,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           continue;
         }
 
-        const fontSizeMatch = part.match(/^font-size:\s*(.+)$/i);
+        const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
         if (fontSizeMatch) {
-          const val = fontSizeMatch[1].trim();
-          if (val.toLowerCase() !== 'var(--fs)') {
-            activeSize = val;
-          }
           continue;
         }
 
@@ -229,7 +225,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
       if (activeSize) {
         const othersStr = otherStyles.length > 0 ? `; ${otherStyles.join('; ')}` : '';
-        return `font-size: ${activeSize}${othersStr}`;
+        return othersStr.replace(/^;\s*/, '');
       } else {
         return otherStyles.join('; ');
       }
@@ -417,7 +413,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           left: 0 !important;
           right: 0 !important;
           text-align: center !important;
-          font-size: 13px;
           color: #666666 !important;
           font-style: italic !important;
           line-height: 1.4 !important;
@@ -486,7 +481,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-caption {
-            font-size: 12px;
             margin-top: 8px !important;
             margin-bottom: 10px !important;
           }
@@ -494,7 +488,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           .rich-text-renderer .image-wrap-left .image-caption,
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
-            font-size: 12px;
             margin-top: 8px !important;
             margin-bottom: 10px !important;
           }
@@ -506,7 +499,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         
         .image-caption {
           text-align: center;
-          font-size: 14px;
           color: #666;
           margin-top: 12px;
           margin-bottom: 0;

@@ -514,10 +514,7 @@ export default function CMS() {
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
     
-    .ql-size-small { font-size: 0.85rem !important; }
-    .ql-size-large { font-size: 2rem !important; }
-    .ql-size-huge { font-size: 5rem !important; }
-    .ql-size-super-huge { font-size: 19vw !important; line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
+    .ql-size-super-huge { line-height: 1 !important; font-weight: 900 !important; text-transform: uppercase !important; }
     
     .quill-wrapper-container {
       position: relative !important;
@@ -571,11 +568,9 @@ export default function CMS() {
     .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="super-huge"]::before { 
       content: 'Super Huge'; 
       font-weight: bold;
-      font-size: 3rem !important; 
     }
 
     .ql-snow .ql-picker.ql-size .ql-picker-label::before {
-      font-size: 13px !important;
       font-weight: normal !important;
       text-transform: none !important;
       line-height: 24px !important;
@@ -619,11 +614,9 @@ export default function CMS() {
     @media (max-width: 767px) {
       .faq-quill-question .ql-editor,
       .faq-quill-question .ql-editor * {
-        font-size: 17px !important;
       }
       .faq-quill-answer .ql-editor,
       .faq-quill-answer .ql-editor * {
-        font-size: 16px !important;
       }
 
       /* Mobile: thu nhỏ Quill toolbar */
@@ -648,10 +641,8 @@ export default function CMS() {
       }
       .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker {
         height: 22px !important;
-        font-size: 11px !important;
       }
       .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label {
-        font-size: 11px !important;
         padding: 0 4px !important;
       }
       .ql-snow .ql-picker.ql-font {
@@ -717,7 +708,7 @@ export default function CMS() {
         if (!picker.querySelector('.font-search-wrapper')) {
           const wrapper = document.createElement('div');
           wrapper.className = 'font-search-wrapper';
-          wrapper.innerHTML = '<input type="text" placeholder="Tìm kiếm font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
+          wrapper.innerHTML = '<input type="text" placeholder="Tìm kiếm font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
           wrapper.style.padding = '8px';
           wrapper.style.position = 'sticky';
           wrapper.style.top = '0';

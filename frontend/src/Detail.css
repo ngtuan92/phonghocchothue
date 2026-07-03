@@ -2,7 +2,6 @@
     position: relative;
     display: inline-block;
     padding: 10px 20px;
-    font-size: 16px;
     font-weight: bold;
     color: #fff;
     background-color: #003a6a;
@@ -11,7 +10,7 @@
     overflow: hidden;
     transition: background-color 0.3s ease;
   }
-  
+
   .detail-button::before {
     content: '';
     position: absolute;
@@ -23,12 +22,12 @@
     transform: translate(-50%, -50%) rotate(45deg);
     transition: width 0.3s ease, height 0.3s ease;
   }
-  
+
   .detail-button:hover::before {
     width: 0;
     height: 0;
   }
-  
+
   .detail-button:hover {
     background-color: #005bb5;
   }
