@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export const runtime = 'edge'
 import Image from "next/image";
@@ -764,54 +764,54 @@ export default function DetailPage() {
                   margin: 0.5rem 0 !important;
                   line-height: 1.6 !important;
                   display: list-item !important;
-                  font-size: 1rem !important;
+                  font-size: 1rem;
                 }
                 .ckeditor-content p {
                   margin: 1rem 0 !important;
                   line-height: 1.6 !important;
-                  font-size: 1rem !important;
+                  font-size: 1rem;
                 }
                 .ckeditor-content h1 {
                   margin: 1rem 0 1rem 0 !important;
                   line-height: 1.2 !important;
-                  font-size: 2rem !important;
+                  font-size: 2rem;
                 }
                 .ckeditor-content h2 {
                   margin: 1rem 0 1rem 0 !important;
                   line-height: 1.2 !important;
-                  font-size: 1.5rem !important;
+                  font-size: 1.5rem;
                 }
                 .ckeditor-content h3 {
                   margin: 1rem 0 1rem 0 !important;
                   line-height: 1.2 !important;
-                  font-size: 1.25rem !important;
+                  font-size: 1.25rem;
                 }
                 .ckeditor-content h4 {
                   margin: 1rem 0 1rem 0 !important;
                   line-height: 1.2 !important;
-                  font-size: 1.125rem !important;
+                  font-size: 1.125rem;
                 }
                 .ckeditor-content h5 {
                   margin: 1rem 0 1rem 0 !important;
                   line-height: 1.2 !important;
-                  font-size: 1rem !important;
+                  font-size: 1rem;
                 }
                 .ckeditor-content h6 {
                   margin: 1rem 0 1rem 0 !important;
                   line-height: 1.2 !important;
-                  font-size: 0.875rem !important;
+                  font-size: 0.875rem;
                 }
                 .ckeditor-content table {
                   width: 100% !important;
                   border-collapse: collapse !important;
                   margin: 1rem 0 !important;
-                  font-size: 1rem !important;
+                  font-size: 1rem;
                 }
                 .ckeditor-content table td,
                 .ckeditor-content table th {
                   padding: 0.5rem !important;
                   border: 1px solid #ddd !important;
-                  font-size: 1rem !important;
+                  font-size: 1rem;
                 }
                 .ckeditor-content a {
                   color: #2563eb !important;
@@ -832,36 +832,36 @@ export default function DetailPage() {
 
                   .ckeditor-content p,
                   .ckeditor-content li {
-                    font-size: 0.9rem !important;
+                    font-size: 0.9rem;
                     line-height: 1.6 !important;
                   }
 
                   .ckeditor-content h1 {
-                    font-size: 1.4rem !important;
+                    font-size: 1.4rem;
                   }
 
                   .ckeditor-content h2 {
-                    font-size: 1.25rem !important;
+                    font-size: 1.25rem;
                   }
 
                   .ckeditor-content h3 {
-                    font-size: 1.15rem !important;
+                    font-size: 1.15rem;
                   }
 
                   .ckeditor-content h4 {
-                    font-size: 1.05rem !important;
+                    font-size: 1.05rem;
                   }
 
                   .ckeditor-content h5 {
-                    font-size: 0.95rem !important;
+                    font-size: 0.95rem;
                   }
 
                   .ckeditor-content h6 {
-                    font-size: 0.9rem !important;
+                    font-size: 0.9rem;
                   }
 
                   .ckeditor-content table {
-                    font-size: 0.85rem !important;
+                    font-size: 0.85rem;
                   }
                    .ckeditor-content img {
                     height: auto !important;
@@ -898,4 +898,3 @@ export default function DetailPage() {
     </div>
   );
 }
-

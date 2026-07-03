@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+﻿/* eslint-disable react/prop-types */
 /* global process */
 import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -289,6 +289,8 @@ const FORMATS = [
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
 
+const DEFAULT_FONT_VALUE = "";
+
 const mapGoogleFont = (font) => ({
   name: font.name.trim(),
   slug: slugify(font.name),
@@ -354,6 +356,14 @@ const getFontFormat = (type) => {
 };
 
 const escapeCssString = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+
+const escapeCssAttributeValue = (value) => {
+  const text = String(value || "");
+  if (typeof window !== "undefined" && window.CSS?.escape) {
+    return window.CSS.escape(text);
+  }
+  return text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+};
 
 const safeNumber = (value, fallback = 0) => {
   const num = Number(value);
@@ -473,6 +483,7 @@ const QuillWrapper = forwardRef(({
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
   const [controlDrafts, setControlDrafts] = useState({});
   const [selectionControlDrafts, setSelectionControlDrafts] = useState({});
+  const [activeControlInputKey, setActiveControlInputKey] = useState(null);
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
   const fontSearchValueRef = useRef("");
@@ -669,6 +680,12 @@ const QuillWrapper = forwardRef(({
 
   const keepPopupInteractionStable = useCallback((event) => {
     event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    preserveAdminScrollDuring();
+  }, [preserveAdminScrollDuring]);
+
+  const focusControlInput = useCallback((key) => {
+    setActiveControlInputKey(key);
     preserveAdminScrollDuring();
   }, [preserveAdminScrollDuring]);
 
@@ -809,6 +826,12 @@ const QuillWrapper = forwardRef(({
   const handleControlInputBlur = useCallback(() => {
     if (suppressControlInputBlurRef.current) return;
     commitControlDrafts();
+    setActiveControlInputKey(null);
+  }, [commitControlDrafts]);
+
+  const commitControlInput = useCallback(() => {
+    commitControlDrafts();
+    setActiveControlInputKey(null);
   }, [commitControlDrafts]);
 
   const getImageWrapMode = useCallback((mode) => {
@@ -1076,7 +1099,7 @@ const QuillWrapper = forwardRef(({
 
     let format = {};
     try {
-      let selection = quill.getSelection();
+      let selection = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
       if (!selection && quill.getLength() > 0) {
         selection = { index: 0, length: 0 };
       }
@@ -1084,8 +1107,42 @@ const QuillWrapper = forwardRef(({
     } catch { /* ignore */ }
 
     const size = format.size;
+    const font = format.font;
     const container = containerRef.current;
     if (!container) return;
+
+    const fontPickers = container.querySelectorAll('.ql-font.ql-picker');
+    fontPickers.forEach(picker => {
+      const label = picker.querySelector('.ql-picker-label');
+      const select = picker.querySelector('select.ql-font');
+      if (!label) return;
+
+      const rawFontVal = Array.isArray(font) ? font[0] : font;
+      const fontVal = rawFontVal && rawFontVal !== 'macdinh' ? rawFontVal : DEFAULT_FONT_VALUE;
+      const selectedItem = picker.querySelector(`.ql-picker-item${fontVal ? `[data-value="${escapeCssAttributeValue(fontVal)}"]` : ':not([data-value])'}`);
+
+      picker.querySelectorAll('.ql-picker-item.ql-selected').forEach((item) => {
+        item.classList.remove('ql-selected');
+        item.removeAttribute('aria-selected');
+      });
+
+      if (selectedItem) {
+        selectedItem.classList.add('ql-selected');
+        selectedItem.setAttribute('aria-selected', 'true');
+      }
+
+      if (fontVal) {
+        label.setAttribute('data-value', fontVal);
+        select?.querySelectorAll('option').forEach((option) => {
+          option.selected = option.value === fontVal;
+        });
+      } else {
+        label.removeAttribute('data-value');
+        select?.querySelectorAll('option').forEach((option) => {
+          option.selected = option.value === DEFAULT_FONT_VALUE;
+        });
+      }
+    });
 
     const sizePickers = container.querySelectorAll('.ql-size.ql-picker');
     sizePickers.forEach(picker => {
@@ -1289,6 +1346,13 @@ const QuillWrapper = forwardRef(({
             fontPicker?.classList.add('ql-expanded');
             input.focus?.();
           };
+          const keepSearchInteraction = (event, { allowDefault = false } = {}) => {
+            if (!allowDefault) event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation?.();
+            keepFontPickerOpen();
+            window.setTimeout(keepFontPickerOpen, 0);
+          };
 
           const filterVisibleItems = (value) => {
             const search = value.trim().toLowerCase();
@@ -1324,33 +1388,34 @@ const QuillWrapper = forwardRef(({
           filterVisibleItems(input.value);
           if (wrapper.dataset.fontSearchEventsBound !== 'true') {
             wrapper.dataset.fontSearchEventsBound = 'true';
-            ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach((eventName) => {
+            ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach((eventName) => {
               wrapper.addEventListener(eventName, (event) => {
-                event.stopPropagation();
-                keepFontPickerOpen();
-                window.setTimeout(keepFontPickerOpen, 0);
+                keepSearchInteraction(event);
               }, true);
             });
           }
+          ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach((eventName) => {
+            input[`on${eventName}`] = (event) => keepSearchInteraction(event);
+          });
           input.onclick = (e) => {
-            e.stopPropagation();
-            keepFontPickerOpen();
+            keepSearchInteraction(e);
           };
           input.onmousedown = (e) => {
-            e.stopPropagation();
-            keepFontPickerOpen();
+            keepSearchInteraction(e);
           };
           input.onfocus = () => {
             keepFontPickerOpen();
           };
           input.onkeydown = (e) => {
             e.stopPropagation();
+            e.stopImmediatePropagation?.();
             keepFontPickerOpen();
             if (e.key === 'Enter') e.preventDefault();
             window.setTimeout(() => input.__applyFontSearch?.(input.value), 0);
           };
           const handleSearchInput = (e) => {
             e.stopPropagation();
+            e.stopImmediatePropagation?.();
             keepFontPickerOpen();
             fontSearchValueRef.current = e.target.value;
             input.__applyFontSearch?.(e.target.value);
@@ -1373,7 +1438,11 @@ const QuillWrapper = forwardRef(({
         if (!picker.querySelector('.font-search-wrapper')) {
           const wrapper = document.createElement('div');
           wrapper.className = 'font-search-wrapper';
-          wrapper.innerHTML = '<style>.font-search-input::placeholder{color:#747880;font-weight:600;opacity:1;}.ql-picker-item.font-search-hidden{display:none!important;}</style><input type="text" placeholder="Tìm kiếm font..." class="font-search-input" style="width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;" />';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Tìm kiếm font...';
+          input.className = 'font-search-input';
+          wrapper.appendChild(input);
           wrapper.style.padding = '8px';
           wrapper.style.position = 'sticky';
           wrapper.style.top = '0';
@@ -1422,27 +1491,32 @@ const QuillWrapper = forwardRef(({
           if (f === moreGroup) return; // Skip the moreGroup itself
 
           const hasColor = f.querySelector('.ql-color') || f.querySelector('.ql-background');
+          const hasInlineStyle = f.querySelector('.ql-bold') || f.querySelector('.ql-italic') || f.querySelector('.ql-underline') || f.querySelector('.ql-strike');
           const hasList = f.querySelector('.ql-list');
           const hasAlign = f.querySelector('.ql-align');
           const hasLinkImage = f.querySelector('.ql-link') || f.querySelector('.ql-image');
           const hasClean = f.querySelector('.ql-clean');
 
-          if (hasColor || hasList || hasAlign || hasLinkImage || hasClean) {
+          if (hasInlineStyle || hasColor || hasList || hasAlign || hasLinkImage || hasClean) {
             dropdown.appendChild(f);
           }
         });
       }
 
       const updateToolbarOverflow = () => {
+        if (toolbar.classList.contains('ql-toolbar-expanded')) return;
+
         toolbar.classList.remove('ql-toolbar-overflowing');
         const dropdownGroups = Array.from(dropdown.querySelectorAll(':scope > .ql-formats'));
         dropdownGroups.forEach((group) => group.classList.remove('ql-overflow-hidden'));
 
         requestAnimationFrame(() => {
-          const overflowBuffer = 8;
+          const moreButtonWidth = moreGroup.querySelector('.ql-more')?.getBoundingClientRect().width || 28;
+          const overflowBuffer = moreButtonWidth + 12;
           const isPastToolbar = () => {
             const toolbarRect = toolbar.getBoundingClientRect();
-            const toolbarRight = toolbarRect.right - overflowBuffer;
+            const containerRect = container.getBoundingClientRect();
+            const toolbarRight = Math.min(toolbarRect.right, containerRect.right) - overflowBuffer;
             const visibleGroups = Array.from(toolbar.querySelectorAll(':scope > .ql-formats, .ql-more-dropdown > .ql-formats:not(.ql-overflow-hidden)'));
             return visibleGroups.some((group) => group.getBoundingClientRect().right > toolbarRight);
           };
@@ -1464,7 +1538,6 @@ const QuillWrapper = forwardRef(({
 
       if (!toolbar.__overflowObserver) {
         const overflowObserver = new ResizeObserver(updateToolbarOverflow);
-        overflowObserver.observe(toolbar);
         overflowObserver.observe(container);
         toolbar.__overflowObserver = overflowObserver;
       }
@@ -1487,6 +1560,86 @@ const QuillWrapper = forwardRef(({
     return () => {
       clearInterval(interval);
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isReady]);
+
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
+
+    const toolbar = containerRef.current.querySelector('.ql-toolbar');
+    if (!toolbar || toolbar.__mobilePickerToggleBound) return;
+    toolbar.__mobilePickerToggleBound = true;
+
+    const isOverflowPicker = (picker) => (
+      picker?.classList?.contains('ql-picker') &&
+      (
+        picker.classList.contains('ql-color') ||
+        picker.classList.contains('ql-background') ||
+        picker.classList.contains('ql-color-picker') ||
+        picker.classList.contains('ql-background-picker') ||
+        picker.classList.contains('ql-align')
+      )
+    );
+    const closeSiblingPickers = (activePicker) => {
+      toolbar.querySelectorAll('.ql-picker').forEach((picker) => {
+        if (!isOverflowPicker(picker)) return;
+        if (picker !== activePicker) picker.classList.remove('ql-expanded');
+      });
+    };
+
+    const handlePickerLabelPointer = (event) => {
+      const label = event.target.closest?.('.ql-picker-label');
+      if (!label || !toolbar.contains(label)) return;
+
+      const picker = label.closest('.ql-picker');
+      if (!isOverflowPicker(picker)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+
+      const shouldOpen = !picker.classList.contains('ql-expanded');
+      closeSiblingPickers(picker);
+      picker.classList.toggle('ql-expanded', shouldOpen);
+      toolbar.classList.add('ql-toolbar-expanded');
+      if (shouldOpen && (
+        picker.classList.contains('ql-color') ||
+        picker.classList.contains('ql-background') ||
+        picker.classList.contains('ql-color-picker') ||
+        picker.classList.contains('ql-background-picker')
+      )) {
+        const labelRect = label.getBoundingClientRect();
+        const paletteHeight = 210;
+        const top = Math.max(12, Math.min(labelRect.bottom + 8, window.innerHeight - paletteHeight - 12));
+        picker.style.setProperty('--ql-mobile-palette-top', `${top}px`);
+        const options = picker.querySelector('.ql-picker-options');
+        options?.style.setProperty('width', '166px', 'important');
+        options?.style.setProperty('max-width', 'calc(100vw - 24px)', 'important');
+      }
+    };
+
+    const handlePickerItemClick = (event) => {
+      const item = event.target.closest?.('.ql-picker-item');
+      if (!item || !toolbar.contains(item)) return;
+
+      const ownerPicker = item.closest('.ql-picker');
+      if (!isOverflowPicker(ownerPicker)) return;
+
+      window.setTimeout(() => {
+        const picker = item.closest('.ql-picker');
+        picker?.classList.remove('ql-expanded');
+      }, 0);
+    };
+
+    toolbar.addEventListener('pointerdown', handlePickerLabelPointer, true);
+    toolbar.addEventListener('mousedown', handlePickerLabelPointer, true);
+    toolbar.addEventListener('click', handlePickerItemClick, true);
+
+    return () => {
+      toolbar.removeEventListener('pointerdown', handlePickerLabelPointer, true);
+      toolbar.removeEventListener('mousedown', handlePickerLabelPointer, true);
+      toolbar.removeEventListener('click', handlePickerItemClick, true);
+      toolbar.__mobilePickerToggleBound = false;
     };
   }, [isReady]);
 
@@ -1590,7 +1743,7 @@ const QuillWrapper = forwardRef(({
   useEffect(() => {
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
       const currentFonts = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
-      const toolbarFontValues = ['macdinh', ...currentFonts.map(f => f.slug)];
+      const toolbarFontValues = [false, ...currentFonts.map(f => f.slug)];
       const showSpacingAndTranslation = hasLineHeight || hasTranslateY;
       setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation));
       setIsReady(true);
@@ -3054,22 +3207,23 @@ const QuillWrapper = forwardRef(({
   const effectiveFontSizeMobile = getControlValue('fontSizeMobile', fontSizeMobile);
   const effectiveTranslateY = getControlValue('translateY', translateY);
   const effectiveTranslateYMobile = getControlValue('translateYMobile', translateYMobile);
-  const globalLineHeight = commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, 'lineHeight')
+  const shouldPreviewControlDraft = useCallback((key) => activeControlInputKey !== key, [activeControlInputKey]);
+  const globalLineHeight = commitOnBlurOnly && shouldPreviewControlDraft('lineHeight') && Object.prototype.hasOwnProperty.call(controlDrafts, 'lineHeight')
     ? normalizeUnsignedControlValue('lineHeight', controlDrafts.lineHeight)
     : normalizeUnsignedControlValue('lineHeight', lineHeight);
-  const globalLineHeightMobile = commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, 'lineHeightMobile')
+  const globalLineHeightMobile = commitOnBlurOnly && shouldPreviewControlDraft('lineHeightMobile') && Object.prototype.hasOwnProperty.call(controlDrafts, 'lineHeightMobile')
     ? normalizeUnsignedControlValue('lineHeightMobile', controlDrafts.lineHeightMobile)
     : normalizeUnsignedControlValue('lineHeightMobile', lineHeightMobile);
-  const globalFontSize = commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, 'fontSize')
+  const globalFontSize = commitOnBlurOnly && shouldPreviewControlDraft('fontSize') && Object.prototype.hasOwnProperty.call(controlDrafts, 'fontSize')
     ? normalizeUnsignedControlValue('fontSize', controlDrafts.fontSize)
     : normalizeUnsignedControlValue('fontSize', fontSize);
-  const globalFontSizeMobile = commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, 'fontSizeMobile')
+  const globalFontSizeMobile = commitOnBlurOnly && shouldPreviewControlDraft('fontSizeMobile') && Object.prototype.hasOwnProperty.call(controlDrafts, 'fontSizeMobile')
     ? normalizeUnsignedControlValue('fontSizeMobile', controlDrafts.fontSizeMobile)
     : normalizeUnsignedControlValue('fontSizeMobile', fontSizeMobile);
-  const globalTranslateY = commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, 'translateY')
+  const globalTranslateY = commitOnBlurOnly && shouldPreviewControlDraft('translateY') && Object.prototype.hasOwnProperty.call(controlDrafts, 'translateY')
     ? normalizeUnsignedControlValue('translateY', controlDrafts.translateY)
     : normalizeUnsignedControlValue('translateY', translateY);
-  const globalTranslateYMobile = commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, 'translateYMobile')
+  const globalTranslateYMobile = commitOnBlurOnly && shouldPreviewControlDraft('translateYMobile') && Object.prototype.hasOwnProperty.call(controlDrafts, 'translateYMobile')
     ? normalizeUnsignedControlValue('translateYMobile', controlDrafts.translateYMobile)
     : normalizeUnsignedControlValue('translateYMobile', translateYMobile);
 
@@ -3080,14 +3234,14 @@ const QuillWrapper = forwardRef(({
       const button = containerRef.current?.querySelector('.ql-line-height');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
         preserveAdminScrollDuring(() => {
-          commitControlDrafts();
+          commitControlInput();
           setShowSpacingPopup(false);
         });
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showSpacingPopup, commitControlDrafts, preserveAdminScrollDuring]);
+  }, [showSpacingPopup, commitControlInput, preserveAdminScrollDuring]);
 
   useEffect(() => {
     if (!showFontSizePopup) return;
@@ -3096,14 +3250,14 @@ const QuillWrapper = forwardRef(({
       const button = containerRef.current?.querySelector('.ql-font-size-custom');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
         preserveAdminScrollDuring(() => {
-          commitControlDrafts();
+          commitControlInput();
           setShowFontSizePopup(false);
         });
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showFontSizePopup, commitControlDrafts, preserveAdminScrollDuring]);
+  }, [showFontSizePopup, commitControlInput, preserveAdminScrollDuring]);
 
   useEffect(() => {
     if (!showTranslatePopup) return;
@@ -3112,14 +3266,14 @@ const QuillWrapper = forwardRef(({
       const button = containerRef.current?.querySelector('.ql-translate-y');
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
         preserveAdminScrollDuring(() => {
-          commitControlDrafts();
+          commitControlInput();
           setShowTranslatePopup(false);
         });
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showTranslatePopup, commitControlDrafts, preserveAdminScrollDuring]);
+  }, [showTranslatePopup, commitControlInput, preserveAdminScrollDuring]);
 
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
@@ -3160,7 +3314,7 @@ const QuillWrapper = forwardRef(({
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
                 preserveAdminScrollDuring(() => {
-                  commitControlDrafts();
+                  commitControlInput();
                   setShowSpacingPopup(false);
                 });
               }}
@@ -3181,13 +3335,12 @@ const QuillWrapper = forwardRef(({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      commitControlDrafts();
+                      commitControlInput();
                     }
                   }}
                   onBlur={handleControlInputBlur}
-                  onMouseDown={keepPopupInteractionStable}
                   onClick={(e) => e.stopPropagation()}
-                  onFocus={() => preserveAdminScrollDuring()}
+                  onFocus={() => focusControlInput('lineHeight')}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
@@ -3203,13 +3356,12 @@ const QuillWrapper = forwardRef(({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      commitControlDrafts();
+                      commitControlInput();
                     }
                   }}
                   onBlur={handleControlInputBlur}
-                  onMouseDown={keepPopupInteractionStable}
                   onClick={(e) => e.stopPropagation()}
-                  onFocus={() => preserveAdminScrollDuring()}
+                  onFocus={() => focusControlInput('lineHeightMobile')}
                   className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
                   style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 />
@@ -3222,8 +3374,8 @@ const QuillWrapper = forwardRef(({
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => {
                   preserveAdminScrollDuring(() => {
-                    commitControlDrafts();
-                    setShowSpacingPopup(false);
+                    commitControlInput();
+                  setShowSpacingPopup(false);
                   });
                 }}
               >
@@ -3253,7 +3405,7 @@ const QuillWrapper = forwardRef(({
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
                 preserveAdminScrollDuring(() => {
-                  commitControlDrafts();
+                  commitControlInput();
                   setShowFontSizePopup(false);
                 });
               }}
@@ -3287,14 +3439,13 @@ const QuillWrapper = forwardRef(({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        commitControlDrafts();
+                        commitControlInput();
                       }
                     }}
                     onBlur={handleControlInputBlur}
-                    onMouseDown={keepPopupInteractionStable}
                     onClick={(e) => e.stopPropagation()}
                     onDoubleClick={keepPopupInteractionStable}
-                    onFocus={() => preserveAdminScrollDuring()}
+                    onFocus={() => focusControlInput('fontSize')}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="16"
                   />
@@ -3338,14 +3489,13 @@ const QuillWrapper = forwardRef(({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        commitControlDrafts();
+                        commitControlInput();
                       }
                     }}
                     onBlur={handleControlInputBlur}
-                    onMouseDown={keepPopupInteractionStable}
                     onClick={(e) => e.stopPropagation()}
                     onDoubleClick={keepPopupInteractionStable}
-                    onFocus={() => preserveAdminScrollDuring()}
+                    onFocus={() => focusControlInput('fontSizeMobile')}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="13"
                   />
@@ -3386,7 +3536,7 @@ const QuillWrapper = forwardRef(({
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
                 preserveAdminScrollDuring(() => {
-                  commitControlDrafts();
+                  commitControlInput();
                   setShowTranslatePopup(false);
                 });
               }}
@@ -3399,20 +3549,20 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Máy tính (px)</label>
               <input
                 type="text"
-                inputMode="numeric"
+                inputMode="text"
+                pattern="-?[0-9]*"
                 placeholder="VD: -20 hoặc 10"
                 value={effectiveTranslateY}
                 onChange={(e) => updateControlDraftValue('translateY', e.target.value, true, e.currentTarget)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    commitControlDrafts();
+                    commitControlInput();
                   }
                 }}
                 onBlur={handleControlInputBlur}
-                onMouseDown={keepPopupInteractionStable}
                 onClick={(e) => e.stopPropagation()}
-                onFocus={() => preserveAdminScrollDuring()}
+                onFocus={() => focusControlInput('translateY')}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -3421,20 +3571,20 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
               <input
                 type="text"
-                inputMode="numeric"
+                inputMode="text"
+                pattern="-?[0-9]*"
                 placeholder="VD: -10 hoặc 5"
                 value={effectiveTranslateYMobile}
                 onChange={(e) => updateControlDraftValue('translateYMobile', e.target.value, true, e.currentTarget)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    commitControlDrafts();
+                    commitControlInput();
                   }
                 }}
                 onBlur={handleControlInputBlur}
-                onMouseDown={keepPopupInteractionStable}
                 onClick={(e) => e.stopPropagation()}
-                onFocus={() => preserveAdminScrollDuring()}
+                onFocus={() => focusControlInput('translateYMobile')}
                 className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
                 style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
               />
@@ -3446,8 +3596,8 @@ const QuillWrapper = forwardRef(({
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => {
                   preserveAdminScrollDuring(() => {
-                    commitControlDrafts();
-                    setShowTranslatePopup(false);
+                    commitControlInput();
+                  setShowTranslatePopup(false);
                   });
                 }}
               >
@@ -3557,10 +3707,10 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 768px) {
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
-            font-size: var(--fs-desktop) !important;
+            font-size: var(--fs-desktop);
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor * {
-            font-size: var(--fs-desktop) !important;
+            font-size: var(--fs-desktop);
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
@@ -3578,7 +3728,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: var(--fs-desktop) !important;
+            font-size: var(--fs-desktop);
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"],
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"] *,
@@ -3592,13 +3742,13 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.hero-slogan-text *,
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.mobile-watermark-text,
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor.mobile-watermark-text * {
-            font-size: var(--fs-desktop) !important;
+            font-size: var(--fs-desktop);
           }
         }
         @media (max-width: 767px) {
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor * {
-            font-size: var(--fs-mobile) !important;
+            font-size: var(--fs-mobile);
           }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
@@ -3616,7 +3766,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: var(--fs-mobile) !important;
+            font-size: var(--fs-mobile);
           }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"],
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"] *,
@@ -3630,7 +3780,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.hero-slogan-text *,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.mobile-watermark-text,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor.mobile-watermark-text * {
-            font-size: var(--fs-mobile) !important;
+            font-size: var(--fs-mobile);
           }
         }
 
@@ -3730,14 +3880,14 @@ const QuillWrapper = forwardRef(({
         @media (max-width: 767px) {
           .quill-wrapper-container .ql-editor.title-bg-text *[style*="font-size"],
           .quill-wrapper-container .ql-editor.mobile-watermark-text *[style*="font-size"] {
-            font-size: inherit !important;
+            font-size: inherit;
           }
 
           /* General paragraph & span fallbacks when no custom inline size is set */
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) p:not(h1 p):not(h2 p):not(h3 p):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) span:not(h1 span):not(h2 span):not(h3 span):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) *:not(h1):not(h1 *):not(h2):not(h2 *):not(h3):not(h3 *):not(h4):not(h4 *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: 13px !important;
+          .quill-wrapper-container:not([style*="--fs-mobile"]) .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) p:not(h1 p):not(h2 p):not(h3 p):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container:not([style*="--fs-mobile"]) .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) span:not(h1 span):not(h2 span):not(h3 span):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
+          .quill-wrapper-container:not([style*="--fs-mobile"]) .ql-editor:not(.title-main-text):not(.title-sub-text):not(.mobile-watermark-text):not(.title-bg-text) *:not(h1):not(h1 *):not(h2):not(h2 *):not(h3):not(h3 *):not(h4):not(h4 *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
+            font-size: 13px;
           }
 
           /* Fallback sizes for Hero Phone and Hero Slogan when no custom inline size is set */
@@ -3745,7 +3895,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-phone-text *:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-slogan-text:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) .ql-editor.hero-slogan-text *:not([style*="--fs"]):not([style*="font-size"]) {
-            font-size: 11px !important;
+            font-size: 11px;
           }
 
           /* Standard heading scaling for other rich text editors on mobile */
@@ -3772,7 +3922,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-main-text p,
           .quill-wrapper-container .ql-editor.title-main-text p span,
           .quill-wrapper-container .ql-editor.title-main-text p .font-cursive {
-            font-size: clamp(22px, 6.8vw, 28px) !important;
+            font-size: clamp(22px, 6.8vw, 28px);
             display: block !important;
             margin-top: 5px !important;
             margin-bottom: 5px !important;
@@ -3783,7 +3933,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-main-text .ql-size-huge,
           .quill-wrapper-container .ql-editor.title-main-text .font-cursive,
           .quill-wrapper-container .ql-editor.title-main-text span {
-            font-size: 36px !important;
+            font-size: 36px;
             margin-bottom: 0 !important;
             margin-top: 0 !important;
           }
@@ -3795,7 +3945,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-sub-text h1 *,
           .quill-wrapper-container .ql-editor.title-sub-text span,
           .quill-wrapper-container .ql-editor.title-sub-text p {
-            font-size: clamp(9px, 2.7vw, 14px) !important;
+            font-size: clamp(9px, 2.7vw, 14px);
             letter-spacing: 0.05em !important;
             padding-left: 0.15em !important;
             text-align: center !important;
@@ -3811,6 +3961,8 @@ const QuillWrapper = forwardRef(({
         .ql-snow .ql-picker-options {
           z-index: 100 !important;
         }
+        .ql-snow .ql-color.ql-expanded .ql-picker-options,
+        .ql-snow .ql-background.ql-expanded .ql-picker-options,
         .ql-snow .ql-color-picker.ql-expanded .ql-picker-options,
         .ql-snow .ql-background-picker.ql-expanded .ql-picker-options {
           width: 152px !important;
@@ -3820,6 +3972,8 @@ const QuillWrapper = forwardRef(({
           gap: 3px !important;
           z-index: 100 !important;
         }
+        .ql-snow .ql-color .ql-picker-options .ql-picker-item,
+        .ql-snow .ql-background .ql-picker-options .ql-picker-item,
         .ql-snow .ql-color-picker .ql-picker-options .ql-picker-item,
         .ql-snow .ql-background-picker .ql-picker-options .ql-picker-item {
           width: 16px !important;
@@ -3830,6 +3984,8 @@ const QuillWrapper = forwardRef(({
           float: none !important;
           display: block !important;
         }
+        .ql-snow .ql-color .ql-picker-options [data-value="custom-color"],
+        .ql-snow .ql-background .ql-picker-options [data-value="custom-color"],
         .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"],
         .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"] {
           background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff) !important;
@@ -3846,17 +4002,21 @@ const QuillWrapper = forwardRef(({
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
           transition: all 0.2s ease !important;
         }
+        .ql-snow .ql-color .ql-picker-options [data-value="custom-color"]:hover,
+        .ql-snow .ql-background .ql-picker-options [data-value="custom-color"]:hover,
         .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"]:hover,
         .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"]:hover {
           transform: translateY(-1px) !important;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
           border-color: #9ca3af !important;
         }
+        .ql-snow .ql-color .ql-picker-options [data-value="custom-color"]::after,
+        .ql-snow .ql-background .ql-picker-options [data-value="custom-color"]::after,
         .ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"]::after,
         .ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"]::after {
           content: "Custom color" !important;
           font-family: 'Inter', sans-serif !important;
-          font-size: 10px !important;
+          font-size: 10px;
           color: white !important;
           text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.9) !important;
           font-weight: 700 !important;
@@ -3961,7 +4121,7 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor li {
           margin: 0.5rem 0 !important;
           line-height: 1.6 !important;
-          font-size: 1.05rem !important;
+          font-size: 1.05rem;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor strong {
           font-weight: 700 !important;
@@ -4144,16 +4304,47 @@ const QuillWrapper = forwardRef(({
           overflow-y: auto !important;
           padding-top: 0 !important;
         }
+        .ql-snow .ql-picker.ql-font .font-search-wrapper {
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        .ql-snow .ql-picker.ql-font .font-search-input {
+          display: block !important;
+          width: 100% !important;
+          height: 34px !important;
+          padding: 8px 10px !important;
+          border: 1px solid #ddd !important;
+          border-radius: 6px !important;
+          outline: none !important;
+          box-sizing: border-box !important;
+          background: #fff !important;
+          color: #111827 !important;
+          font-family: system-ui, -apple-system, sans-serif !important;
+          font-size: 13px;
+          line-height: 18px !important;
+        }
+        .ql-snow .ql-picker.ql-font .font-search-input::placeholder {
+          color: #747880 !important;
+          font-weight: 600 !important;
+          opacity: 1 !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-item.font-search-hidden {
+          display: none !important;
+        }
         .ql-snow .ql-picker.ql-font .ql-picker-item {
           padding: 8px 12px !important;
           display: block !important;
           width: 100% !important;
+          min-height: 36px !important;
+          box-sizing: border-box !important;
+          line-height: 20px !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label {
-          font-size: 0 !important;
+          font-size: 0;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label::before {
-          font-size: 12px !important;
+          font-size: 12px;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before {
           content: 'Inter' !important;
@@ -4377,7 +4568,7 @@ const QuillWrapper = forwardRef(({
         .editor-image-caption {
           position: absolute !important;
           text-align: center !important;
-          font-size: 13px !important;
+          font-size: 13px;
           color: #666666 !important;
           font-style: italic !important;
           line-height: 1.4 !important;
@@ -4404,7 +4595,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-toolbar.ql-snow,
           .quill-wrapper-container .ql-toolbar.ql-snow * {
             font-family: system-ui, -apple-system, sans-serif !important;
-            font-size: 12px !important;
+            font-size: 12px;
             line-height: 1.4 !important;
             display: inline-block !important;
             width: auto !important;
@@ -4452,7 +4643,7 @@ const QuillWrapper = forwardRef(({
             width: 100% !important;
             height: 100% !important;
             padding: 0 8px !important;
-            font-size: 12px !important;
+            font-size: 12px;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-label svg {
@@ -4461,6 +4652,55 @@ const QuillWrapper = forwardRef(({
             height: 0 !important;
             margin: 0 !important;
             opacity: 0 !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-label svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-label svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-label svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-align .ql-picker-label svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-item svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-item svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-item svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-item svg,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-align .ql-picker-item svg {
+            display: block !important;
+            width: 16px !important;
+            height: 16px !important;
+            opacity: 1 !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-label,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-label,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-label,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-align .ql-picker-label {
+            justify-content: center !important;
+            width: 28px !important;
+            padding: 0 5px !important;
+            cursor: pointer !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker select,
+          .quill-wrapper-container .ql-toolbar.ql-snow select.ql-header,
+          .quill-wrapper-container .ql-toolbar.ql-snow select.ql-font,
+          .quill-wrapper-container .ql-toolbar.ql-snow select.ql-size,
+          .quill-wrapper-container .ql-toolbar.ql-snow select.ql-color,
+          .quill-wrapper-container .ql-toolbar.ql-snow select.ql-background,
+          .quill-wrapper-container .ql-toolbar.ql-snow select.ql-align {
+            position: absolute !important;
+            inset: 0 auto auto 0 !important;
+            display: block !important;
+            width: 0 !important;
+            height: 0 !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            appearance: none !important;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker-options {
@@ -4478,7 +4718,83 @@ const QuillWrapper = forwardRef(({
             width: 100% !important;
             padding: 8px 12px !important;
             text-align: left !important;
-            font-size: 13px !important;
+            font-size: 13px;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color.ql-expanded .ql-picker-options,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background.ql-expanded .ql-picker-options,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker.ql-expanded .ql-picker-options,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker.ql-expanded .ql-picker-options {
+            position: fixed !important;
+            left: max(12px, calc((100vw - 166px) / 2)) !important;
+            top: var(--ql-mobile-palette-top, 50%) !important;
+            right: auto !important;
+            display: grid !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            grid-template-columns: repeat(7, 18px) !important;
+            width: 166px !important;
+            max-width: calc(100vw - 24px) !important;
+            padding: 6px !important;
+            gap: 4px !important;
+            flex-direction: unset !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 8px !important;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18) !important;
+            overflow: hidden !important;
+            z-index: 2147483647 !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-options .ql-picker-item,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-options .ql-picker-item,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-options .ql-picker-item,
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-options .ql-picker-item {
+            width: 18px !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            padding: 0 !important;
+            border-radius: 4px !important;
+            box-sizing: border-box !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-options [data-value="custom-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-options [data-value="custom-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"] {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-align.ql-expanded .ql-picker-options {
+            position: fixed !important;
+            left: max(12px, calc((100vw - 96px) / 2)) !important;
+            right: auto !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, 34px) !important;
+            width: 96px !important;
+            min-width: 76px !important;
+            padding: 8px !important;
+            gap: 4px !important;
+            flex-direction: unset !important;
+          }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-align .ql-picker-options .ql-picker-item {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 34px !important;
+            height: 28px !important;
+            min-height: 28px !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
           }
           
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-formats-group {
@@ -4531,6 +4847,10 @@ const QuillWrapper = forwardRef(({
 
           .quill-wrapper-container .ql-toolbar.ql-snow {
             position: relative !important;
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
           }
           .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-overflowing .ql-more-formats-group {
             position: static !important;
@@ -4550,11 +4870,11 @@ const QuillWrapper = forwardRef(({
           }
           .quill-wrapper-container .ql-editor.title-bg-text,
           .quill-wrapper-container .ql-editor.mobile-watermark-text {
-            font-size: clamp(60px, 19vw, 90px) !important;
+            font-size: clamp(60px, 19vw, 90px);
           }
           .quill-wrapper-container .ql-editor.title-bg-text *,
           .quill-wrapper-container .ql-editor.mobile-watermark-text * {
-            font-size: inherit !important;
+            font-size: inherit;
           }
         }
 

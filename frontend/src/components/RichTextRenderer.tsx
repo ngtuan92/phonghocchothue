@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
@@ -417,7 +417,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           left: 0 !important;
           right: 0 !important;
           text-align: center !important;
-          font-size: 13px !important;
+          font-size: 13px;
           color: #666666 !important;
           font-style: italic !important;
           line-height: 1.4 !important;
@@ -486,7 +486,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             margin-bottom: 10px !important;
           }
           .rich-text-renderer .image-caption {
-            font-size: 12px !important;
+            font-size: 12px;
             margin-top: 8px !important;
             margin-bottom: 10px !important;
           }
@@ -494,7 +494,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           .rich-text-renderer .image-wrap-left .image-caption,
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
-            font-size: 12px !important;
+            font-size: 12px;
             margin-top: 8px !important;
             margin-bottom: 10px !important;
           }
