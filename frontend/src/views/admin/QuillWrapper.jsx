@@ -510,6 +510,13 @@ const removeEmptyStyledSpanElements = (root) => {
   });
 };
 
+const toCssUnit = (value, allowNegative = false) => {
+  const text = String(value || '').trim();
+  if (!text) return undefined;
+  const integerPattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
+  return integerPattern.test(text) ? `${text}px` : text;
+};
+
 const QuillWrapper = forwardRef(({
   lineHeight,
   lineHeightMobile,
@@ -1035,7 +1042,7 @@ const QuillWrapper = forwardRef(({
     if (cssValue) {
       root.style.setProperty(cssVar, cssValue);
     }
-  }, [toCssUnit]);
+  }, []);
 
   const applyAllPreviewControlStyles = useCallback(() => {
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
@@ -3710,12 +3717,6 @@ const QuillWrapper = forwardRef(({
   const previewFontSizeDesktop = globalFontSize;
   const previewFontSizeMobile = globalFontSizeMobile;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const toCssUnit = useCallback((value, allowNegative = false) => {
-    const text = String(value || '').trim();
-    if (!text) return undefined;
-    const integerPattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
-    return integerPattern.test(text) ? `${text}px` : text;
-  }, []);
   const activeViewportFontSize = toCssUnit(isMobileViewport ? previewFontSizeMobile || previewFontSizeDesktop : previewFontSizeDesktop || previewFontSizeMobile);
 
   useEffect(() => {
