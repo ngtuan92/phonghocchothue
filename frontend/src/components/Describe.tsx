@@ -79,7 +79,7 @@ const Describe = () => {
     const bgTitle = useConfigContentByKey("bgTitle");
     const logo = useConfigContentByKey("logo");
     const watermarkText = useConfigContentByKey("describe-bg-text");
-    const watermarkHtml = cleanWatermarkHtml(watermarkText) || "HOAHOCTRO";
+    const watermarkHtml = cleanWatermarkHtml(watermarkText);
     const describePhone = useConfigContentByKey("describe-phone");
     const describeQuoteText = useConfigContentByKey("describe-quote-text");
     const describeFrameImage = useConfigContentByKey("describe-frame-image");

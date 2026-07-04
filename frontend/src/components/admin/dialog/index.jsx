@@ -894,6 +894,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                    onChangeTranslateY={setRoomTranslateY}
                    onChangeTranslateYMobile={setRoomTranslateYMobile}
                    hasResponsiveFontSize={true}
+                   inlineSelectionControls={true}
                  />
               </div>
             </div>

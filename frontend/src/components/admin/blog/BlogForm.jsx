@@ -53,6 +53,78 @@ const getPlainText = (html) => {
     .trim();
 };
 
+const toCssUnit = (value, allowNegative = false) => {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const pattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
+  return pattern.test(text) ? `${text}px` : text;
+};
+
+const stripCssUnit = (value) => String(value || "").trim().replace(/px$/i, "");
+
+const extractResponsiveControls = (html) => {
+  const empty = {
+    fontSize: "",
+    fontSizeMobile: "",
+    lineHeight: "",
+    lineHeightMobile: "",
+    translateY: "",
+    translateYMobile: "",
+  };
+  if (!html || typeof window === "undefined") return empty;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const styled = doc.body.firstElementChild?.querySelector("[style*='--fs'], [style*='--custom-line-height'], [style*='--translate-y']");
+  if (!styled) return empty;
+
+  return {
+    fontSize: stripCssUnit(styled.style.getPropertyValue("--fs-desktop")),
+    fontSizeMobile: stripCssUnit(styled.style.getPropertyValue("--fs-mobile")),
+    lineHeight: stripCssUnit(styled.style.getPropertyValue("--custom-line-height")),
+    lineHeightMobile: stripCssUnit(styled.style.getPropertyValue("--custom-line-height-mobile")),
+    translateY: stripCssUnit(styled.style.getPropertyValue("--translate-y")),
+    translateYMobile: stripCssUnit(styled.style.getPropertyValue("--translate-y-mobile")),
+  };
+};
+
+const decorateRichTextWithControls = (html, controls = {}) => {
+  if (!html || typeof window === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  let targets = Array.from(root.children).filter((node) => node instanceof HTMLElement);
+  if (targets.length === 0) {
+    const p = doc.createElement("p");
+    p.innerHTML = root.innerHTML;
+    root.innerHTML = "";
+    root.appendChild(p);
+    targets = [p];
+  }
+
+  const entries = [
+    ["--fs-desktop", toCssUnit(controls.fontSize)],
+    ["--fs-mobile", toCssUnit(controls.fontSizeMobile)],
+    ["--custom-line-height", toCssUnit(controls.lineHeight)],
+    ["--custom-line-height-mobile", toCssUnit(controls.lineHeightMobile)],
+    ["--translate-y", toCssUnit(controls.translateY, true)],
+    ["--translate-y-mobile", toCssUnit(controls.translateYMobile, true)],
+  ];
+
+  targets.forEach((target) => {
+    entries.forEach(([name, value]) => {
+      if (value) {
+        target.style.setProperty(name, value);
+      } else {
+        target.style.removeProperty(name);
+      }
+    });
+  });
+
+  return root.innerHTML;
+};
+
 function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   const [shouldRender, setShouldRender] = useState(false);
   const containerRef = React.useRef(null);
@@ -176,6 +248,9 @@ const getCroppedImg = (imageSrc, croppedAreaPixels) => {
 };
 
 export default function BlogForm({ data, onSave, onCancel }) {
+  const titleControls = extractResponsiveControls(data?.title || "");
+  const excerptControls = extractResponsiveControls(data?.excerpt || "");
+  const contentControls = extractResponsiveControls(data?.content || "");
   const [formData, setFormData] = useState({
     title: "",
     category: "kien-thuc",
@@ -185,7 +260,21 @@ export default function BlogForm({ data, onSave, onCancel }) {
     thumbnail: "",
     authorName: "Hoa Học Trò",
     authorAvatar: "",
-    ...data
+    ...data,
+    titleFontSize: data?.titleFontSize || titleControls.fontSize || "",
+    titleFontSizeMobile: data?.titleFontSizeMobile || titleControls.fontSizeMobile || "",
+    excerptFontSize: data?.excerptFontSize || excerptControls.fontSize || "",
+    excerptFontSizeMobile: data?.excerptFontSizeMobile || excerptControls.fontSizeMobile || "",
+    excerptLineHeight: data?.excerptLineHeight || excerptControls.lineHeight || "",
+    excerptLineHeightMobile: data?.excerptLineHeightMobile || excerptControls.lineHeightMobile || "",
+    excerptTranslateY: data?.excerptTranslateY || excerptControls.translateY || "",
+    excerptTranslateYMobile: data?.excerptTranslateYMobile || excerptControls.translateYMobile || "",
+    fontSize: data?.fontSize || contentControls.fontSize || "",
+    fontSizeMobile: data?.fontSizeMobile || contentControls.fontSizeMobile || "",
+    lineHeight: data?.lineHeight || contentControls.lineHeight || titleControls.lineHeight || "",
+    lineHeightMobile: data?.lineHeightMobile || contentControls.lineHeightMobile || titleControls.lineHeightMobile || "",
+    translateY: data?.translateY || contentControls.translateY || titleControls.translateY || "",
+    translateYMobile: data?.translateYMobile || contentControls.translateYMobile || titleControls.translateYMobile || "",
   });
   const quillDraftsRef = useRef({});
 
@@ -284,7 +373,26 @@ export default function BlogForm({ data, onSave, onCancel }) {
       showToastError("Vui lòng nhập tiêu đề bài viết.");
       return;
     }
-    const submitData = { ...currentFormData };
+    const submitData = {
+      ...currentFormData,
+      title: decorateRichTextWithControls(currentFormData.title, {
+        fontSize: currentFormData.titleFontSize,
+        fontSizeMobile: currentFormData.titleFontSizeMobile,
+        lineHeight: currentFormData.lineHeight,
+        lineHeightMobile: currentFormData.lineHeightMobile,
+        translateY: currentFormData.translateY,
+        translateYMobile: currentFormData.translateYMobile,
+      }),
+      excerpt: decorateRichTextWithControls(currentFormData.excerpt, {
+        fontSize: currentFormData.excerptFontSize,
+        fontSizeMobile: currentFormData.excerptFontSizeMobile,
+        lineHeight: currentFormData.excerptLineHeight,
+        lineHeightMobile: currentFormData.excerptLineHeightMobile,
+        translateY: currentFormData.excerptTranslateY,
+        translateYMobile: currentFormData.excerptTranslateYMobile,
+      }),
+      content: currentFormData.content,
+    };
     if (imageFile) {
       submitData.thumbnailFile = imageFile;
     }
@@ -566,6 +674,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
               onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
               onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
               hasResponsiveFontSize={true}
+              inlineSelectionControls={true}
               commitOnBlurOnly={true}
             />
           </div>

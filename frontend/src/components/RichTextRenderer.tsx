@@ -350,13 +350,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
         @media (min-width: 768px) {
           .rich-text-renderer [style*="--fs-desktop"],
-          .rich-text-renderer [style*="--fs-desktop"] * {
+          .rich-text-renderer [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--fs-mobile"],
-          .rich-text-renderer [style*="--fs-mobile"] * {
+          .rich-text-renderer [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;
           }
         }
@@ -562,6 +562,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           width: auto !important;
           margin: 0 !important;
           padding: 0 !important;
+        }
+        .inline-rich-text > p:first-child,
+        .inline-rich-text > div:first-child {
+          display: inline !important;
         }
 
         .rich-text-renderer[style*="--custom-line-height"] *,

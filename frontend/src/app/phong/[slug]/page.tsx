@@ -699,12 +699,8 @@ export default function DetailPage() {
                   </p>
                 )}
               </div>
-              <p className="text-sm sm:text-lg text-foreground-100 raleway !font-bold mb-0">
-                Mô tả :
-              </p>
               <ul className="list-none pl-3 sm:pl-4 text-xs sm:text-base mt-1 pt-0 pb-1">
                 <li className="mb-1 sm:mb-1.5">
-                  <span className="font-bold mr-1">Sức chứa:</span>
                   {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
                     <RichTextRenderer
                       html={productData.product.contains}
@@ -722,7 +718,6 @@ export default function DetailPage() {
                   )}
                 </li>
                 <li className="mb-1 sm:mb-1.5">
-                  <span className="font-bold mr-1">Trang bị:</span>
                   {typeof productData.product.equipment === "string" && productData.product.equipment.includes("<") ? (
                     <RichTextRenderer
                       html={productData.product.equipment}
@@ -741,7 +736,6 @@ export default function DetailPage() {
                 </li>
               </ul>
               <div className="text-xs sm:text-base mt-2 mb-4">
-                <span className="font-bold mr-1 text-stone-800">Giá:</span>
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                   <RichTextRenderer
                     html={productData.product.price}
