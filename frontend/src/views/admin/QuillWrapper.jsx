@@ -404,17 +404,12 @@ const cleanStyleForSave = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
-    if (part.toLowerCase().startsWith('--fs-mobile')) {
+    if (part.toLowerCase().startsWith('--fs-mobile') || part.toLowerCase().startsWith('font-size')) {
       otherStyles.push(part);
       continue;
     }
 
     if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
-      continue;
-    }
-
-    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
-    if (fontSizeMatch) {
       continue;
     }
 
@@ -432,17 +427,12 @@ const cleanStyleForEdit = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
-    if (part.toLowerCase().startsWith('--fs-mobile')) {
+    if (part.toLowerCase().startsWith('--fs-mobile') || part.toLowerCase().startsWith('font-size')) {
       otherStyles.push(part);
       continue;
     }
 
     if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
-      continue;
-    }
-
-    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
-    if (fontSizeMatch) {
       continue;
     }
 
