@@ -426,6 +426,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     minHeight="80px"
                     maxHeight="150px"
                     placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
+                    disableImageWrap={true}
                     lineHeight={formData.lineHeight}
                     lineHeightMobile={formData.lineHeightMobile}
                     fontSize={formData.titleFontSize}
@@ -539,6 +540,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
                     minHeight="120px"
                     maxHeight="200px"
                     placeholder="Mô tả ngắn gọn nội dung bài viết để thu hút người đọc…"
+                    disableImageWrap={true}
                     lineHeight={formData.excerptLineHeight}
                     lineHeightMobile={formData.excerptLineHeightMobile}
                     fontSize={formData.excerptFontSize}

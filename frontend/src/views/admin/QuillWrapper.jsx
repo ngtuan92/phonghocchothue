@@ -1019,12 +1019,16 @@ const QuillWrapper = forwardRef(({
     }
     commitControlDrafts();
     setActiveControlInputKey(null);
-  }, [commitControlDrafts]);
+    activeControlInputKeyRef.current = null;
+    syncSelectionControlsFromFormat();
+  }, [commitControlDrafts, syncSelectionControlsFromFormat]);
 
   const commitControlInput = useCallback(() => {
     commitControlDrafts();
     setActiveControlInputKey(null);
-  }, [commitControlDrafts]);
+    activeControlInputKeyRef.current = null;
+    syncSelectionControlsFromFormat();
+  }, [commitControlDrafts, syncSelectionControlsFromFormat]);
 
   const getImageWrapMode = useCallback((mode) => {
     if (mode === 'right') return 'right';
@@ -2407,6 +2411,9 @@ const QuillWrapper = forwardRef(({
   }, [selectedImage, syncSelectedImageRect, updateCaptionsList, positionResizerDirectly, positionCaptionsDirectly]);
 
   const handleContainerClick = useCallback((ev) => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return;
+    }
     // If clicking inside the resizer overlay or wrap toolbar, do not deselect
     if (resizerOverlayRef.current && resizerOverlayRef.current.contains(ev.target)) {
       return;
@@ -2432,7 +2439,7 @@ const QuillWrapper = forwardRef(({
   }, [enterImageEditMode, getQuillEditor, rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
 
   const handleContainerDblClick = useCallback((ev) => {
-    if (disableImageWrap) return; // Do not open image info pop-up on double click for rooms!
+    if (disableImageWrap || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
     const img = ev.target.closest && ev.target.closest('img');
     const quill = getQuillEditor();
     if (!quill || !img || !quill.root.contains(img)) return;
@@ -5023,6 +5030,21 @@ const QuillWrapper = forwardRef(({
         }
 
         @media (max-width: 767px) {
+          /* Hide resizer overlay and wrap toolbar on mobile viewports in admin */
+          .editor-image-resizer-overlay {
+            display: none !important;
+          }
+          /* Force editor images to display as full-width block elements on mobile, matching frontend */
+          .quill-wrapper-container .ql-editor img {
+            float: none !important;
+            display: block !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+
           /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
           .quill-wrapper-container .ql-toolbar.ql-snow,
           .quill-wrapper-container .ql-toolbar.ql-snow * {
@@ -5435,7 +5457,7 @@ const QuillWrapper = forwardRef(({
       {isMounted && resizerRect && createPortal((
         <div
           ref={resizerOverlayRef}
-          className="fixed"
+          className="fixed editor-image-resizer-overlay"
           draggable={false}
           style={{
             top: resizerRect.top,

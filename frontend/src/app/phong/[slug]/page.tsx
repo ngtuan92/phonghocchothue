@@ -701,7 +701,7 @@ export default function DetailPage() {
               </div>
               <div className="room-summary-desc pl-3 sm:pl-4 text-xs sm:text-base mt-1 pt-0 pb-1">
                 {/* Fallback for contains if it has old data */}
-                {productData.product.contains && String(productData.product.contains).trim() && String(productData.product.contains).trim() !== "0" && (
+                {!!(productData.product.contains && String(productData.product.contains).trim() && String(productData.product.contains).trim() !== "0") && (
                   <div className="mb-1 sm:mb-1.5">
                     {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
                       <RichTextRenderer
@@ -785,14 +785,32 @@ export default function DetailPage() {
                   margin: 0.5rem 0 !important;
                 }
                 .room-summary-desc ol {
-                  list-style-type: decimal !important;
                   padding-left: 1.25rem !important;
                   margin: 0.5rem 0 !important;
+                }
+                .room-summary-desc ol:not(:has(li[data-list])) {
+                  list-style-type: decimal !important;
+                }
+                .room-summary-desc ol:has(li[data-list="bullet"]) {
+                  list-style-type: none !important;
+                }
+                .room-summary-desc ol:has(li[data-list="ordered"]) {
+                  list-style-type: none !important;
+                }
+                .room-summary-desc li[data-list="bullet"] {
+                  list-style-type: disc !important;
+                  display: list-item !important;
+                }
+                .room-summary-desc li[data-list="ordered"] {
+                  list-style-type: decimal !important;
+                  display: list-item !important;
+                }
+                .room-summary-desc li:not([data-list]) {
+                  display: list-item !important;
                 }
                 .room-summary-desc li {
                   margin: 0.25rem 0 !important;
                   line-height: 1.6 !important;
-                  display: list-item !important;
                 }
                 .ckeditor-content ul {
                   list-style-type: disc !important;
