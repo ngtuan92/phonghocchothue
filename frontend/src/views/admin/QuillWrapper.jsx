@@ -404,12 +404,17 @@ const cleanStyleForSave = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
-    if (part.toLowerCase().startsWith('--fs-mobile') || part.toLowerCase().startsWith('font-size')) {
+    if (part.toLowerCase().startsWith('--fs-mobile')) {
       otherStyles.push(part);
       continue;
     }
 
     if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
+      continue;
+    }
+
+    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
+    if (fontSizeMatch) {
       continue;
     }
 
@@ -427,12 +432,17 @@ const cleanStyleForEdit = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
-    if (part.toLowerCase().startsWith('--fs-mobile') || part.toLowerCase().startsWith('font-size')) {
+    if (part.toLowerCase().startsWith('--fs-mobile')) {
       otherStyles.push(part);
       continue;
     }
 
     if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
+      continue;
+    }
+
+    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
+    if (fontSizeMatch) {
       continue;
     }
 
@@ -752,7 +762,7 @@ const QuillWrapper = forwardRef(({
 
   const applyInlineControlToSelection = useCallback((key, value, options = {}) => {
     const { updateDraft = true } = options;
-    if (!canUseInlineSelectionControls || !['fontSize', 'fontSizeMobile', 'lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) return false;
+    if (!canUseInlineSelectionControls || !['lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) return false;
 
     const quill = getQuillEditor();
     const selection = controlSelectionRef.current || savedSelectionRef.current || quill?.getSelection?.();
@@ -763,13 +773,7 @@ const QuillWrapper = forwardRef(({
     let formatValue = normalized;
 
     if (normalized) {
-      if (key === 'fontSize') {
-        formatName = 'size';
-        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
-      } else if (key === 'fontSizeMobile') {
-        formatName = 'fontSizeMobile';
-        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
-      } else if (key === 'lineHeight' || key === 'lineHeightMobile') {
+      if (key === 'lineHeight' || key === 'lineHeightMobile') {
         formatName = 'lineHeight';
         formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
       } else if (key === 'translateY' || key === 'translateYMobile') {
@@ -798,66 +802,8 @@ const QuillWrapper = forwardRef(({
   }, [canUseInlineSelectionControls, getQuillEditor, normalizeUnsignedControlValue, preserveAdminScrollDuring, setSelectionWithoutScroll]);
 
   const syncSelectionControlsFromFormat = useCallback((rangeOverride = null) => {
-    if (!canUseInlineSelectionControls) return;
-    if (activeControlInputKeyRef.current) return;
-    const quill = getQuillEditor();
-    if (!quill) return;
-
-    const range = rangeOverride || savedSelectionRef.current || quill.getSelection?.();
-    if (!range || range.length <= 0) return;
-
-    try {
-      const format = quill.getFormat(range);
-      
-      // Desktop font size (format 'size')
-      const size = Array.isArray(format.size) ? format.size[0] : format.size;
-      if (typeof size === 'string' && size.trim()) {
-        const cleanSize = size.replace('px', '').trim();
-        selectionControlDraftsRef.current = {
-          ...selectionControlDraftsRef.current,
-          fontSize: cleanSize,
-        };
-        setSelectionControlDrafts((prev) => ({
-          ...prev,
-          fontSize: cleanSize,
-        }));
-      } else {
-        const nextDrafts = { ...selectionControlDraftsRef.current };
-        delete nextDrafts.fontSize;
-        selectionControlDraftsRef.current = nextDrafts;
-        setSelectionControlDrafts((prev) => {
-          if (!Object.prototype.hasOwnProperty.call(prev, 'fontSize')) return prev;
-          const next = { ...prev };
-          delete next.fontSize;
-          return next;
-        });
-      }
-
-      // Mobile font size (format 'fontSizeMobile')
-      const fontSizeMobile = Array.isArray(format.fontSizeMobile) ? format.fontSizeMobile[0] : format.fontSizeMobile;
-      if (typeof fontSizeMobile === 'string' && fontSizeMobile.trim()) {
-        const cleanSizeMobile = fontSizeMobile.replace('px', '').trim();
-        selectionControlDraftsRef.current = {
-          ...selectionControlDraftsRef.current,
-          fontSizeMobile: cleanSizeMobile,
-        };
-        setSelectionControlDrafts((prev) => ({
-          ...prev,
-          fontSizeMobile: cleanSizeMobile,
-        }));
-      } else {
-        const nextDrafts = { ...selectionControlDraftsRef.current };
-        delete nextDrafts.fontSizeMobile;
-        selectionControlDraftsRef.current = nextDrafts;
-        setSelectionControlDrafts((prev) => {
-          if (!Object.prototype.hasOwnProperty.call(prev, 'fontSizeMobile')) return prev;
-          const next = { ...prev };
-          delete next.fontSizeMobile;
-          return next;
-        });
-      }
-    } catch { /* ignore */ }
-  }, [canUseInlineSelectionControls, getQuillEditor]);
+    // Disabled inline selection font sizes sync.
+  }, []);
 
   const updateControlDraftValue = useCallback((key, value, signed = false, inputElement = null) => {
     const isAllowed = signed
@@ -3539,6 +3485,7 @@ const QuillWrapper = forwardRef(({
     if (!isFocused && props.value !== lastRelativeContentRef.current) {
       isUserEditingRef.current = false;
       localEditorHtmlRef.current = null;
+      lastRelativeContentRef.current = props.value || "";
     }
   }, [getQuillEditor, props.value, syncTrigger]);
 
