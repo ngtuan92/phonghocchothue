@@ -4119,9 +4119,6 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
             font-size: var(--fs-desktop) !important;
           }
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor * {
-            font-size: var(--fs-desktop) !important;
-          }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
@@ -4156,8 +4153,7 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (max-width: 767px) {
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor,
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor * {
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor {
             font-size: var(--fs-mobile) !important;
           }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
@@ -4195,13 +4191,13 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 768px) {
           .quill-wrapper-container .ql-editor [style*="--fs-desktop"],
-          .quill-wrapper-container .ql-editor [style*="--fs-desktop"] * {
+          .quill-wrapper-container .ql-editor [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
         }
         @media (max-width: 767px) {
           .quill-wrapper-container .ql-editor [style*="--fs-mobile"],
-          .quill-wrapper-container .ql-editor [style*="--fs-mobile"] * {
+          .quill-wrapper-container .ql-editor [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;
           }
         }

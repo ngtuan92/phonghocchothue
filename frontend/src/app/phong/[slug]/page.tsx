@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 export const runtime = 'edge'
 import Image from "next/image";
@@ -699,42 +699,48 @@ export default function DetailPage() {
                   </p>
                 )}
               </div>
-              <ul className="list-none pl-3 sm:pl-4 text-xs sm:text-base mt-1 pt-0 pb-1">
-                <li className="mb-1 sm:mb-1.5">
-                  {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
-                    <RichTextRenderer
-                      html={productData.product.contains}
-                      className="inline-rich-text"
-                      as="span"
-                      fontSize={product.fontSize}
-                      fontSizeMobile={product.fontSizeMobile}
-                      lineHeight={product.lineHeight}
-                      lineHeightMobile={product.lineHeightMobile}
-                      translateY={product.translateY}
-                      translateYMobile={product.translateYMobile}
-                    />
-                  ) : (
-                    formatNumber(toNumber(productData.product.contains) || 0)
-                  )}
-                </li>
-                <li className="mb-1 sm:mb-1.5">
-                  {typeof productData.product.equipment === "string" && productData.product.equipment.includes("<") ? (
-                    <RichTextRenderer
-                      html={productData.product.equipment}
-                      className="inline-rich-text"
-                      as="span"
-                      fontSize={product.fontSize}
-                      fontSizeMobile={product.fontSizeMobile}
-                      lineHeight={product.lineHeight}
-                      lineHeightMobile={product.lineHeightMobile}
-                      translateY={product.translateY}
-                      translateYMobile={product.translateYMobile}
-                    />
-                  ) : (
-                    productData.product.equipment
-                  )}
-                </li>
-              </ul>
+              <div className="room-summary-desc pl-3 sm:pl-4 text-xs sm:text-base mt-1 pt-0 pb-1">
+                {/* Fallback for contains if it has old data */}
+                {productData.product.contains && String(productData.product.contains).trim() && String(productData.product.contains).trim() !== "0" && (
+                  <div className="mb-1 sm:mb-1.5">
+                    {typeof productData.product.contains === "string" && productData.product.contains.includes("<") ? (
+                      <RichTextRenderer
+                        html={productData.product.contains}
+                        className="inline-rich-text"
+                        as="span"
+                        fontSize={product.fontSize}
+                        fontSizeMobile={product.fontSizeMobile}
+                        lineHeight={product.lineHeight}
+                        lineHeightMobile={product.lineHeightMobile}
+                        translateY={product.translateY}
+                        translateYMobile={product.translateYMobile}
+                      />
+                    ) : (
+                      formatNumber(toNumber(productData.product.contains) || 0)
+                    )}
+                  </div>
+                )}
+
+                {/* Render equipment (which is the new Mô tả field) */}
+                {productData.product.equipment && String(productData.product.equipment).trim() && (
+                  <div>
+                    {typeof productData.product.equipment === "string" && productData.product.equipment.includes("<") ? (
+                      <RichTextRenderer
+                        html={productData.product.equipment}
+                        as="div"
+                        fontSize={product.fontSize}
+                        fontSizeMobile={product.fontSizeMobile}
+                        lineHeight={product.lineHeight}
+                        lineHeightMobile={product.lineHeightMobile}
+                        translateY={product.translateY}
+                        translateYMobile={product.translateYMobile}
+                      />
+                    ) : (
+                      productData.product.equipment
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="text-xs sm:text-base mt-2 mb-4">
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                   <RichTextRenderer
@@ -773,6 +779,21 @@ export default function DetailPage() {
           <>
             <style dangerouslySetInnerHTML={{
               __html: `
+                .room-summary-desc ul {
+                  list-style-type: disc !important;
+                  padding-left: 1.25rem !important;
+                  margin: 0.5rem 0 !important;
+                }
+                .room-summary-desc ol {
+                  list-style-type: decimal !important;
+                  padding-left: 1.25rem !important;
+                  margin: 0.5rem 0 !important;
+                }
+                .room-summary-desc li {
+                  margin: 0.25rem 0 !important;
+                  line-height: 1.6 !important;
+                  display: list-item !important;
+                }
                 .ckeditor-content ul {
                   list-style-type: disc !important;
                   padding-left: 1.5rem !important;
