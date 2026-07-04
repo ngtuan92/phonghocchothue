@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
@@ -226,6 +226,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         .filter(part => {
           if (!part) return false;
           const lower = part.toLowerCase();
+          if (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile')) {
+            return true;
+          }
           return !lower.startsWith('font-size') && !lower.startsWith('--fs');
         })
         .join('; ');

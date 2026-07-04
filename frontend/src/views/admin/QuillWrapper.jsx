@@ -1,4 +1,4 @@
-﻿/* eslint-disable react/prop-types */
+/* eslint-disable react/prop-types */
 /* global process */
 import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -194,6 +194,26 @@ if (typeof window !== "undefined" && Quill) {
     const AttributeAttributor = Parchment.Attributor;
     const StyleAttributor = Parchment.StyleAttributor;
 
+    class CssVariableAttributor extends StyleAttributor {
+      add(node, value) {
+        if (!this.canAdd(node, value)) return false;
+        node.style.setProperty(this.keyName, value);
+        return true;
+      }
+
+      remove(node) {
+        node.style.removeProperty(this.keyName);
+        if (!node.getAttribute('style')) {
+          node.removeAttribute('style');
+        }
+      }
+
+      value(node) {
+        let value = node.style.getPropertyValue(this.keyName);
+        return this.canAdd(node, value) ? value : '';
+      }
+    }
+
     const altAttributor = new AttributeAttributor("alt", "alt", {
       scope: Parchment.Scope.INLINE
     });
@@ -218,6 +238,9 @@ if (typeof window !== "undefined" && Quill) {
     const verticalAlignAttributor = new StyleAttributor("translateY", "vertical-align", {
       scope: Parchment.Scope.INLINE
     });
+    const fontSizeMobileAttributor = new CssVariableAttributor("fontSizeMobile", "--fs-mobile", {
+      scope: Parchment.Scope.INLINE
+    });
 
     Quill.register(altAttributor, true);
     Quill.register(titleAttributor, true);
@@ -227,6 +250,7 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(widthAttributor, true);
     Quill.register(lineHeightAttributor, true);
     Quill.register(verticalAlignAttributor, true);
+    Quill.register(fontSizeMobileAttributor, true);
   }
 
 
@@ -284,7 +308,8 @@ if (typeof window !== "undefined" && Quill) {
 const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
   "color", "background", "list", "align", "link", "image", "wrap",
-  "alt", "title", "caption", "borderRadius", "width", "lineHeight", "translateY"
+  "alt", "title", "caption", "borderRadius", "width", "lineHeight", "translateY",
+  "fontSizeMobile"
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -335,6 +360,7 @@ const stripFontSizeFromStyle = (styleContent) => {
     .filter(part => {
       if (!part) return false;
       const lower = part.toLowerCase();
+      if (lower.startsWith('--fs-mobile')) return true;
       return !lower.startsWith('--fs');
     })
     .join('; ');
@@ -378,6 +404,11 @@ const cleanStyleForSave = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
+    if (part.toLowerCase().startsWith('--fs-mobile')) {
+      otherStyles.push(part);
+      continue;
+    }
+
     if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
       continue;
     }
@@ -400,6 +431,11 @@ const cleanStyleForEdit = (styleContent) => {
   for (let part of parts) {
     part = part.trim();
     if (!part) continue;
+
+    if (part.toLowerCase().startsWith('--fs-mobile')) {
+      otherStyles.push(part);
+      continue;
+    }
 
     if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
       continue;
@@ -737,8 +773,11 @@ const QuillWrapper = forwardRef(({
     let formatValue = normalized;
 
     if (normalized) {
-      if (key === 'fontSize' || key === 'fontSizeMobile') {
+      if (key === 'fontSize') {
         formatName = 'size';
+        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
+      } else if (key === 'fontSizeMobile') {
+        formatName = 'fontSizeMobile';
         formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
       } else if (key === 'lineHeight' || key === 'lineHeightMobile') {
         formatName = 'lineHeight';
@@ -779,15 +818,18 @@ const QuillWrapper = forwardRef(({
 
     try {
       const format = quill.getFormat(range);
+      
+      // Desktop font size (format 'size')
       const size = Array.isArray(format.size) ? format.size[0] : format.size;
       if (typeof size === 'string' && size.trim()) {
+        const cleanSize = size.replace('px', '').trim();
         selectionControlDraftsRef.current = {
           ...selectionControlDraftsRef.current,
-          fontSize: size.replace('px', ''),
+          fontSize: cleanSize,
         };
         setSelectionControlDrafts((prev) => ({
           ...prev,
-          fontSize: size.replace('px', ''),
+          fontSize: cleanSize,
         }));
       } else {
         const nextDrafts = { ...selectionControlDraftsRef.current };
@@ -797,6 +839,30 @@ const QuillWrapper = forwardRef(({
           if (!Object.prototype.hasOwnProperty.call(prev, 'fontSize')) return prev;
           const next = { ...prev };
           delete next.fontSize;
+          return next;
+        });
+      }
+
+      // Mobile font size (format 'fontSizeMobile')
+      const fontSizeMobile = Array.isArray(format.fontSizeMobile) ? format.fontSizeMobile[0] : format.fontSizeMobile;
+      if (typeof fontSizeMobile === 'string' && fontSizeMobile.trim()) {
+        const cleanSizeMobile = fontSizeMobile.replace('px', '').trim();
+        selectionControlDraftsRef.current = {
+          ...selectionControlDraftsRef.current,
+          fontSizeMobile: cleanSizeMobile,
+        };
+        setSelectionControlDrafts((prev) => ({
+          ...prev,
+          fontSizeMobile: cleanSizeMobile,
+        }));
+      } else {
+        const nextDrafts = { ...selectionControlDraftsRef.current };
+        delete nextDrafts.fontSizeMobile;
+        selectionControlDraftsRef.current = nextDrafts;
+        setSelectionControlDrafts((prev) => {
+          if (!Object.prototype.hasOwnProperty.call(prev, 'fontSizeMobile')) return prev;
+          const next = { ...prev };
+          delete next.fontSizeMobile;
           return next;
         });
       }
@@ -3895,8 +3961,6 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Máy tính (px)</label>
               <input
                 type="text"
-                inputMode="text"
-                pattern="-?[0-9]*"
                 placeholder="VD: -20 hoặc 10"
                 value={effectiveTranslateY}
                 onChange={(e) => updateControlDraftValue('translateY', e.target.value, true, e.currentTarget)}
@@ -3905,8 +3969,8 @@ const QuillWrapper = forwardRef(({
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         commitControlInput();
-                  }
-                }}
+                      }
+                    }}
                 onBlur={handleControlInputBlur}
                 onClick={(e) => e.stopPropagation()}
                 onFocus={() => focusControlInput('translateY')}
@@ -3918,8 +3982,6 @@ const QuillWrapper = forwardRef(({
               <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
               <input
                 type="text"
-                inputMode="text"
-                pattern="-?[0-9]*"
                 placeholder="VD: -10 hoặc 5"
                 value={effectiveTranslateYMobile}
                 onChange={(e) => updateControlDraftValue('translateYMobile', e.target.value, true, e.currentTarget)}
@@ -3928,8 +3990,8 @@ const QuillWrapper = forwardRef(({
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         commitControlInput();
-                  }
-                }}
+                      }
+                    }}
                 onBlur={handleControlInputBlur}
                 onClick={(e) => e.stopPropagation()}
                 onFocus={() => focusControlInput('translateYMobile')}
@@ -3945,7 +4007,7 @@ const QuillWrapper = forwardRef(({
                 onClick={() => {
                   preserveAdminScrollDuring(() => {
                     commitControlInput();
-                  setShowTranslatePopup(false);
+                    setShowTranslatePopup(false);
                   });
                 }}
               >
@@ -5263,6 +5325,54 @@ const QuillWrapper = forwardRef(({
             left: 0 !important;
             right: auto !important;
             overflow-x: hidden !important;
+          }
+          /* Override wildcard rules for Font Search component on mobile */
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font {
+            width: 90px !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-options {
+            width: 160px !important;
+            min-width: 160px !important;
+            left: 0 !important;
+            right: auto !important;
+            top: calc(100% + 51px) !important;
+            border-top: 0 !important;
+            border-radius: 0 0 4px 4px !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font > .font-search-wrapper {
+            display: none !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            width: 160px !important;
+            min-width: 160px !important;
+            box-sizing: border-box !important;
+            padding: 8px !important;
+            background: #fff !important;
+            border: 1px solid #ccc !important;
+            border-bottom: 1px solid #f1f1f1 !important;
+            border-radius: 4px 4px 0 0 !important;
+            z-index: 21 !important;
+            height: auto !important;
+            margin: 0 !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font.ql-expanded > .font-search-wrapper {
+            display: block !important;
+          }
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font .font-search-input {
+            display: block !important;
+            width: 100% !important;
+            height: 34px !important;
+            padding: 8px 10px !important;
+            border: 1px solid #ddd !important;
+            border-radius: 6px !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+            background: #fff !important;
+            color: #111827 !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            line-height: 18px !important;
+            margin: 0 !important;
           }
           .quill-wrapper-container .ql-editor.title-bg-text,
           .quill-wrapper-container .ql-editor.mobile-watermark-text {
