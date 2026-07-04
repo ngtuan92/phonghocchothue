@@ -352,12 +352,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           height: auto;
         }
         @media (min-width: 768px) {
+          .rich-text-renderer[style*="--fs-desktop"] *,
           .rich-text-renderer [style*="--fs-desktop"],
           .rich-text-renderer [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
         }
         @media (max-width: 767px) {
+          .rich-text-renderer[style*="--fs-mobile"] *,
           .rich-text-renderer [style*="--fs-mobile"],
           .rich-text-renderer [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;
@@ -443,26 +445,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           display: block !important;
           float: none !important;
           margin: 0 !important;
-          margin-bottom: 42px !important;
+          margin-bottom: 0 !important;
         }
-        /* Caption in floated wrappers: position absolute to match admin editor */
+        /* Caption in floated wrappers: position static for natural document flow and no text overlap */
         .rich-text-renderer .image-wrap-left .image-caption,
         .rich-text-renderer .image-wrap-right .image-caption {
-          position: absolute !important;
-          bottom: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
+          position: static !important;
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
           line-height: 1.4 !important;
           padding: 0 4px !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-          display: -webkit-box !important;
-          -webkit-line-clamp: 2 !important;
-          -webkit-box-orient: vertical !important;
-          margin: 0 !important;
+          margin-top: 8px !important;
+          margin-bottom: 4px !important;
+          display: block !important;
         }
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
         .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
@@ -507,7 +503,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             margin-left: auto !important;
             margin-right: auto !important;
             margin-top: 16px !important;
-            margin-bottom: 16px !important;
+            margin-bottom: 24px !important;
           }
           /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
           .rich-text-renderer img[data-wrap="none"],
@@ -518,18 +514,26 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           }
           .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
             width: 100% !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 24px !important;
           }
           .rich-text-renderer .image-caption {
+            display: block !important;
+            position: static !important;
+            clear: both !important;
+            font-size: 11px !important;
             margin-top: 8px !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 18px !important;
+            padding: 0 8px !important;
+            line-height: 1.45 !important;
+            font-style: italic !important;
+            text-align: center !important;
           }
           /* On mobile, reset caption back to static (no float, no absolute) */
           .rich-text-renderer .image-wrap-left .image-caption,
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
             margin-top: 8px !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 18px !important;
           }
           .rich-text-renderer .image-wrap-left img,
           .rich-text-renderer .image-wrap-right img {

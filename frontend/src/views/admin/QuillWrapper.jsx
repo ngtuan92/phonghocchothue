@@ -41,6 +41,24 @@ const COLORS = [
   "custom-color"
 ];
 
+const RESPONSIVE_CONTROL_KEYS = [
+  'fontSize',
+  'fontSizeMobile',
+  'lineHeight',
+  'lineHeightMobile',
+  'translateY',
+  'translateYMobile',
+];
+
+const RESPONSIVE_CONTROL_CSS_VAR = {
+  fontSize: '--fs-desktop',
+  fontSizeMobile: '--fs-mobile',
+  lineHeight: '--custom-line-height',
+  lineHeightMobile: '--custom-line-height-mobile',
+  translateY: '--translate-y',
+  translateYMobile: '--translate-y-mobile',
+};
+
 const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation) => {
   const mediaGroup = ["link", "image"];
   if (showSpacingAndTranslation) {
@@ -238,6 +256,9 @@ if (typeof window !== "undefined" && Quill) {
     const verticalAlignAttributor = new StyleAttributor("translateY", "vertical-align", {
       scope: Parchment.Scope.INLINE
     });
+    const fontSizeDesktopAttributor = new CssVariableAttributor("fontSizeDesktop", "--fs-desktop", {
+      scope: Parchment.Scope.INLINE
+    });
     const fontSizeMobileAttributor = new CssVariableAttributor("fontSizeMobile", "--fs-mobile", {
       scope: Parchment.Scope.INLINE
     });
@@ -250,6 +271,7 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(widthAttributor, true);
     Quill.register(lineHeightAttributor, true);
     Quill.register(verticalAlignAttributor, true);
+    Quill.register(fontSizeDesktopAttributor, true);
     Quill.register(fontSizeMobileAttributor, true);
   }
 
@@ -309,7 +331,7 @@ const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
   "color", "background", "list", "align", "link", "image", "wrap",
   "alt", "title", "caption", "borderRadius", "width", "lineHeight", "translateY",
-  "fontSizeMobile"
+  "fontSizeDesktop", "fontSizeMobile"
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -360,7 +382,7 @@ const stripFontSizeFromStyle = (styleContent) => {
     .filter(part => {
       if (!part) return false;
       const lower = part.toLowerCase();
-      if (lower.startsWith('--fs-mobile')) return true;
+      if (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile')) return true;
       return !lower.startsWith('--fs');
     })
     .join('; ');
@@ -404,7 +426,7 @@ const cleanStyleForSave = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
-    if (part.toLowerCase().startsWith('--fs-mobile')) {
+    if (part.toLowerCase().startsWith('--fs-desktop') || part.toLowerCase().startsWith('--fs-mobile')) {
       otherStyles.push(part);
       continue;
     }
@@ -432,7 +454,7 @@ const cleanStyleForEdit = (styleContent) => {
     part = part.trim();
     if (!part) continue;
 
-    if (part.toLowerCase().startsWith('--fs-mobile')) {
+    if (part.toLowerCase().startsWith('--fs-desktop') || part.toLowerCase().startsWith('--fs-mobile')) {
       otherStyles.push(part);
       continue;
     }
@@ -545,7 +567,9 @@ const QuillWrapper = forwardRef(({
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
   const [controlDrafts, setControlDrafts] = useState({});
   const [selectionControlDrafts, setSelectionControlDrafts] = useState({});
+  const controlDraftsRef = useRef({});
   const selectionControlDraftsRef = useRef({});
+  const popupInputValuesRef = useRef({});
   const [activeControlInputKey, setActiveControlInputKey] = useState(null);
   const activeControlInputKeyRef = useRef(null);
   const [modules, setModules] = useState(null);
@@ -598,6 +622,20 @@ const QuillWrapper = forwardRef(({
         ? normalizeUnsignedControlValue(key, controlDrafts[key])
         : normalizeUnsignedControlValue(key, value)
   ), [commitOnBlurOnly, controlDrafts, normalizeUnsignedControlValue, selectionControlDrafts]);
+
+  const getPopupInputValue = useCallback((key, value) => {
+    if (Object.prototype.hasOwnProperty.call(popupInputValuesRef.current, key)) {
+      return popupInputValuesRef.current[key];
+    }
+    if (Object.prototype.hasOwnProperty.call(selectionControlDraftsRef.current, key)) {
+      return normalizeUnsignedControlValue(key, selectionControlDraftsRef.current[key]);
+    }
+    if (commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDraftsRef.current, key)) {
+      return normalizeUnsignedControlValue(key, controlDraftsRef.current[key]);
+    }
+    return normalizeUnsignedControlValue(key, value);
+  }, [commitOnBlurOnly, normalizeUnsignedControlValue]);
+
   const focusWithoutScroll = useCallback((target) => {
     if (!target || typeof window === 'undefined') return;
 
@@ -647,6 +685,29 @@ const QuillWrapper = forwardRef(({
 
     restore();
     window.requestAnimationFrame(restore);
+  }, []);
+
+  const getClampedControlPopupPosition = useCallback((button, popupWidth = 220) => {
+    if (!button || typeof window === 'undefined') {
+      return { top: 0, left: 12, width: popupWidth };
+    }
+
+    const rect = button.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const viewportLeft = safeNumber(viewport?.offsetLeft, 0);
+    const viewportTop = safeNumber(viewport?.offsetTop, 0);
+    const viewportWidth = safeNumber(viewport?.width, window.innerWidth || document.documentElement.clientWidth || popupWidth);
+    const gutter = 12;
+    const width = Math.min(popupWidth, Math.max(160, viewportWidth - gutter * 2));
+    const minLeft = viewportLeft + gutter;
+    const maxLeft = viewportLeft + viewportWidth - width - gutter;
+    const preferredLeft = safeNumber(rect.left, minLeft);
+
+    return {
+      top: safeNumber(rect.bottom + viewportTop + 5),
+      left: Math.max(minLeft, Math.min(preferredLeft, maxLeft)),
+      width,
+    };
   }, []);
 
   const preserveScrollAround = useCallback((root, action) => {
@@ -762,7 +823,7 @@ const QuillWrapper = forwardRef(({
 
   const applyInlineControlToSelection = useCallback((key, value, options = {}) => {
     const { updateDraft = true } = options;
-    if (!canUseInlineSelectionControls || !['lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) return false;
+    if (!canUseInlineSelectionControls || !['fontSize', 'fontSizeMobile', 'lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) return false;
 
     const quill = getQuillEditor();
     const selection = controlSelectionRef.current || savedSelectionRef.current || quill?.getSelection?.();
@@ -773,7 +834,13 @@ const QuillWrapper = forwardRef(({
     let formatValue = normalized;
 
     if (normalized) {
-      if (key === 'lineHeight' || key === 'lineHeightMobile') {
+      if (key === 'fontSize') {
+        formatName = 'fontSizeDesktop';
+        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
+      } else if (key === 'fontSizeMobile') {
+        formatName = 'fontSizeMobile';
+        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
+      } else if (key === 'lineHeight' || key === 'lineHeightMobile') {
         formatName = 'lineHeight';
         formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
       } else if (key === 'translateY' || key === 'translateYMobile') {
@@ -812,18 +879,26 @@ const QuillWrapper = forwardRef(({
     if (!isAllowed) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);
-    if (hasResponsive && ['fontSize', 'fontSizeMobile', 'lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) {
+    if (hasResponsive && RESPONSIVE_CONTROL_KEYS.includes(key)) {
       selectionControlDraftsRef.current = {
         ...selectionControlDraftsRef.current,
         [key]: nextValue,
       };
-      setSelectionControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      popupInputValuesRef.current[key] = nextValue;
+      applyPreviewControlToContainer(key, nextValue);
       return;
     }
 
     if (commitOnBlurOnly) {
-      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      controlDraftsRef.current = {
+        ...controlDraftsRef.current,
+        [key]: nextValue,
+      };
+      popupInputValuesRef.current[key] = nextValue;
       onControlDraftChange?.(key, nextValue);
+      if (RESPONSIVE_CONTROL_KEYS.includes(key)) {
+        applyPreviewControlToContainer(key, nextValue);
+      }
       return;
     }
 
@@ -856,7 +931,7 @@ const QuillWrapper = forwardRef(({
     if (!isAllowed) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);
-    if (hasResponsive && ['fontSize', 'fontSizeMobile', 'lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) {
+    if (hasResponsive && RESPONSIVE_CONTROL_KEYS.includes(key)) {
       const responsiveCallbacks = {
         lineHeight: onChangeLineHeight,
         lineHeightMobile: onChangeLineHeightMobile,
@@ -867,15 +942,17 @@ const QuillWrapper = forwardRef(({
       };
       if (applyInlineControlToSelection(key, value) && (!disableImageWrap || inlineSelectionControls)) return;
 
-      if (responsiveCallbacks[key]) {
-        selectionControlDraftsRef.current = {
-          ...selectionControlDraftsRef.current,
-          [key]: nextValue,
-        };
-        setSelectionControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      selectionControlDraftsRef.current = {
+        ...selectionControlDraftsRef.current,
+        [key]: nextValue,
+      };
+      popupInputValuesRef.current[key] = nextValue;
+      applyPreviewControlToContainer(key, nextValue);
+
+      if (!commitOnBlurOnly && responsiveCallbacks[key]) {
         responsiveCallbacks[key](nextValue);
-        return;
       }
+      return;
     }
 
     if (commitOnBlurOnly) {
@@ -920,11 +997,13 @@ const QuillWrapper = forwardRef(({
     });
     setSelectionControlDrafts({});
     selectionControlDraftsRef.current = {};
+    popupInputValuesRef.current = {};
     if (!commitOnBlurOnly) return;
 
-    Object.entries(controlDrafts).forEach(([key, value]) => {
+    Object.entries(controlDraftsRef.current).forEach(([key, value]) => {
       callbacks[key]?.(normalizeUnsignedControlValue(key, value));
     });
+    controlDraftsRef.current = {};
     setControlDrafts({});
   }, [
     commitOnBlurOnly,
@@ -941,8 +1020,41 @@ const QuillWrapper = forwardRef(({
     normalizeUnsignedControlValue,
   ]);
 
+  const applyPreviewControlToContainer = useCallback((key, value) => {
+    const root = containerRef.current;
+    if (!root) return;
+    const cssVar = RESPONSIVE_CONTROL_CSS_VAR[key];
+    if (!cssVar) return;
+
+    if (value === "" || value == null) {
+      root.style.removeProperty(cssVar);
+      return;
+    }
+
+    const cssValue = toCssUnit(value, key.includes('translateY'));
+    if (cssValue) {
+      root.style.setProperty(cssVar, cssValue);
+    }
+  }, [toCssUnit]);
+
+  const applyAllPreviewControlStyles = useCallback(() => {
+    Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
+      applyPreviewControlToContainer(key, value);
+    });
+    Object.entries(controlDraftsRef.current).forEach(([key, value]) => {
+      applyPreviewControlToContainer(key, value);
+    });
+  }, [applyPreviewControlToContainer]);
+
+  useEffect(() => {
+    if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
+    applyAllPreviewControlStyles();
+  }, [showFontSizePopup, showSpacingPopup, showTranslatePopup, applyAllPreviewControlStyles]);
+
   const focusPopupInput = useCallback((event, key) => {
+    event.preventDefault();
     event.stopPropagation();
+    event.nativeEvent?.stopImmediatePropagation?.();
     suppressControlInputBlurRef.current = false;
     activeControlInputKeyRef.current = key;
     focusControlInput(key);
@@ -1109,6 +1221,41 @@ const QuillWrapper = forwardRef(({
     });
   }, []);
 
+  const syncInlineEditorCaptions = useCallback(() => {
+    const editor = containerRef.current?.querySelector('.ql-editor');
+    if (!editor) return;
+
+    editor.querySelectorAll('.editor-inline-image-caption').forEach((captionEl) => {
+      const previous = captionEl.previousElementSibling;
+      if (previous?.tagName !== 'IMG') {
+        captionEl.remove();
+      }
+    });
+
+    editor.querySelectorAll('img').forEach((img) => {
+      const captionText = (img.hasAttribute('data-caption')
+        ? img.getAttribute('data-caption')
+        : img.getAttribute('title') || ''
+      ).trim();
+      const next = img.nextElementSibling;
+      const existingCaption = next?.classList?.contains('editor-inline-image-caption') ? next : null;
+
+      if (!captionText) {
+        existingCaption?.remove();
+        return;
+      }
+
+      const captionEl = existingCaption || document.createElement('span');
+      captionEl.className = 'editor-inline-image-caption';
+      captionEl.setAttribute('contenteditable', 'false');
+      captionEl.textContent = captionText;
+
+      if (!existingCaption) {
+        img.insertAdjacentElement('afterend', captionEl);
+      }
+    });
+  }, []);
+
   const getVisibleImageRect = useCallback((imgRect, editorRect) => {
     if (!editorRect) {
       return {
@@ -1224,7 +1371,8 @@ const QuillWrapper = forwardRef(({
 
   useEffect(() => {
     positionCaptionsDirectly();
-  }, [captions, positionCaptionsDirectly]);
+    syncInlineEditorCaptions();
+  }, [captions, positionCaptionsDirectly, syncInlineEditorCaptions]);
 
   const updateSizePickerLabel = useCallback(() => {
     const quill = getQuillEditor();
@@ -1793,15 +1941,18 @@ const QuillWrapper = forwardRef(({
         picker.classList.contains('ql-color') ||
         picker.classList.contains('ql-background') ||
         picker.classList.contains('ql-color-picker') ||
-        picker.classList.contains('ql-background-picker')
+        picker.classList.contains('ql-background-picker') ||
+        picker.classList.contains('ql-align')
       )) {
         const labelRect = label.getBoundingClientRect();
-        const paletteHeight = 210;
+        const paletteHeight = picker.classList.contains('ql-align') ? 80 : 210;
         const top = Math.max(12, Math.min(labelRect.bottom + 8, window.innerHeight - paletteHeight - 12));
         picker.style.setProperty('--ql-mobile-palette-top', `${top}px`);
-        const options = picker.querySelector('.ql-picker-options');
-        options?.style.setProperty('width', '166px', 'important');
-        options?.style.setProperty('max-width', 'calc(100vw - 24px)', 'important');
+        if (!picker.classList.contains('ql-align')) {
+          const options = picker.querySelector('.ql-picker-options');
+          options?.style.setProperty('width', '166px', 'important');
+          options?.style.setProperty('max-width', 'calc(100vw - 24px)', 'important');
+        }
       }
     };
 
@@ -2404,7 +2555,13 @@ const QuillWrapper = forwardRef(({
           quill.formatText(index, 1, 'title', newData.title, 'user');
           quill.formatText(index, 1, 'caption', newData.caption, 'user');
           quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
+          if (newData.alt) img.setAttribute('alt', newData.alt); else img.removeAttribute('alt');
+          if (newData.title) img.setAttribute('title', newData.title); else img.removeAttribute('title');
+          if (newData.caption) img.setAttribute('data-caption', newData.caption); else img.removeAttribute('data-caption');
+          img.style.borderRadius = newData.borderRadius || '';
+          if (newData.borderRadius) img.setAttribute('data-border-radius', newData.borderRadius); else img.removeAttribute('data-border-radius');
           quill.update('user');
+          setTimeout(() => emitCurrentContentForSave(), 0);
           setTimeout(() => {
             updateCaptionsList();
             positionCaptionsDirectly();
@@ -2427,31 +2584,53 @@ const QuillWrapper = forwardRef(({
 
   const fileInputRef = useRef(null);
 
+  const normalizeContentForSave = useCallback((content) => {
+    const escapedUrlApi = URL_API.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`src=["']${escapedUrlApi}(assets/[^"']+)["']`, 'gi');
+    let relativeContent = removeEmptyStyledSpans(content || "").replace(regex, 'src="/$1"');
+    relativeContent = relativeContent.replace(/<span\b[^>]*class=["'][^"']*\beditor-inline-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi, "");
+    relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
+
+    const shouldStripInlineFontSize = hasResponsive || isSimpleTextField;
+    if (shouldStripInlineFontSize) {
+      relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+        const cleaned = stripFontSizeFromStyle(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+      relativeContent = removeEmptyStyledSpans(relativeContent);
+    } else {
+      relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
+        const cleaned = cleanStyleForSave(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+    }
+
+    return relativeContent;
+  }, [hasResponsive, isSimpleTextField]);
+
+  const emitCurrentContentForSave = useCallback(() => {
+    const quill = getQuillEditor();
+    const html = quill?.root?.innerHTML || localEditorHtmlRef.current || "";
+    const relativeContent = normalizeContentForSave(html);
+    localEditorHtmlRef.current = html;
+    lastRelativeContentRef.current = relativeContent;
+
+    if (commitOnBlurOnly) {
+      onDraftChange?.(relativeContent);
+    } else {
+      props.onChange?.(relativeContent);
+    }
+
+    return relativeContent;
+  }, [commitOnBlurOnly, getQuillEditor, normalizeContentForSave, onDraftChange, props]);
+
   const handleOnChange = useCallback((content, delta, source, editor) => {
     if (props.onChange) {
       if (source !== 'user') return;
       isUserEditingRef.current = true;
       localEditorHtmlRef.current = content;
 
-      const escapedUrlApi = URL_API.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp(`src=["']${escapedUrlApi}(assets/[^"']+)["']`, 'gi');
-      let relativeContent = removeEmptyStyledSpans(content).replace(regex, 'src="/$1"');
-      relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
-
-      const shouldStripInlineFontSize = hasResponsive || isSimpleTextField;
-      if (shouldStripInlineFontSize) {
-        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-          const cleaned = stripFontSizeFromStyle(styleContent);
-          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
-        });
-        relativeContent = removeEmptyStyledSpans(relativeContent);
-      } else {
-        // Clean up custom responsive scaling variables/properties from HTML before saving to database
-        relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
-          const cleaned = cleanStyleForSave(styleContent);
-          return cleaned ? `style=${quote}${cleaned}${quote}` : "";
-        });
-      }
+      const relativeContent = normalizeContentForSave(content);
 
       if (typeof props.value === "string" && relativeContent === props.value) {
         return;
@@ -2497,7 +2676,7 @@ const QuillWrapper = forwardRef(({
 
       props.onChange(relativeContent, delta, source, editor);
     }
-  }, [props.onChange, props.value, hasResponsive, isSimpleTextField, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll]);
+  }, [props.onChange, props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, normalizeContentForSave]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -2663,12 +2842,7 @@ const QuillWrapper = forwardRef(({
             const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current;
             controlSelectionRef.current = currentSelection?.length > 0 ? { ...currentSelection } : null;
             syncSelectionControlsFromFormat();
-            const rect = button.getBoundingClientRect();
-            const parentRect = containerRef.current.getBoundingClientRect();
-            setFontSizePopupPosition({
-              top: safeNumber(rect.bottom - parentRect.top + safeNumber(containerRef.current.scrollTop)),
-              left: safeNumber(rect.left - parentRect.left, 10)
-            });
+            setFontSizePopupPosition(getClampedControlPopupPosition(button, 210));
             setShowFontSizePopup(prev => !prev);
           }
         },
@@ -2677,12 +2851,7 @@ const QuillWrapper = forwardRef(({
           if (button && containerRef.current) {
             const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current;
             controlSelectionRef.current = currentSelection?.length > 0 ? { ...currentSelection } : null;
-            const rect = button.getBoundingClientRect();
-            const parentRect = containerRef.current.getBoundingClientRect();
-            setPopupPosition({
-              top: safeNumber(rect.bottom - parentRect.top + safeNumber(containerRef.current.scrollTop)),
-              left: safeNumber(rect.left - parentRect.left, 10)
-            });
+            setPopupPosition(getClampedControlPopupPosition(button, 200));
             setShowSpacingPopup(prev => !prev);
           }
         },
@@ -2691,12 +2860,7 @@ const QuillWrapper = forwardRef(({
           if (button && containerRef.current) {
             const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current;
             controlSelectionRef.current = currentSelection?.length > 0 ? { ...currentSelection } : null;
-            const rect = button.getBoundingClientRect();
-            const parentRect = containerRef.current.getBoundingClientRect();
-            setTranslatePopupPosition({
-              top: safeNumber(rect.bottom - parentRect.top + safeNumber(containerRef.current.scrollTop)),
-              left: safeNumber(rect.left - parentRect.left, 10)
-            });
+            setTranslatePopupPosition(getClampedControlPopupPosition(button, 200));
             setShowTranslatePopup(prev => !prev);
           }
         },
@@ -2734,7 +2898,13 @@ const QuillWrapper = forwardRef(({
                 quill.formatText(index, 1, 'title', newData.title, 'user');
                 quill.formatText(index, 1, 'caption', newData.caption, 'user');
                 quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
+                if (newData.alt) currentImg.setAttribute('alt', newData.alt); else currentImg.removeAttribute('alt');
+                if (newData.title) currentImg.setAttribute('title', newData.title); else currentImg.removeAttribute('title');
+                if (newData.caption) currentImg.setAttribute('data-caption', newData.caption); else currentImg.removeAttribute('data-caption');
+                currentImg.style.borderRadius = newData.borderRadius || '';
+                if (newData.borderRadius) currentImg.setAttribute('data-border-radius', newData.borderRadius); else currentImg.removeAttribute('data-border-radius');
                 quill.update('user');
+                setTimeout(() => emitCurrentContentForSave(), 0);
                 setTimeout(() => {
                   updateCaptionsList();
                   positionCaptionsDirectly();
@@ -2763,7 +2933,13 @@ const QuillWrapper = forwardRef(({
                   quill.formatText(index, 1, 'title', newData.title, 'user');
                   quill.formatText(index, 1, 'caption', newData.caption, 'user');
                   quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
+                  if (newData.alt) img.setAttribute('alt', newData.alt); else img.removeAttribute('alt');
+                  if (newData.title) img.setAttribute('title', newData.title); else img.removeAttribute('title');
+                  if (newData.caption) img.setAttribute('data-caption', newData.caption); else img.removeAttribute('data-caption');
+                  img.style.borderRadius = newData.borderRadius || '';
+                  if (newData.borderRadius) img.setAttribute('data-border-radius', newData.borderRadius); else img.removeAttribute('data-border-radius');
                   quill.update('user');
+                  setTimeout(() => emitCurrentContentForSave(), 0);
                   setSelectionWithoutScroll(quill, range);
                   setTimeout(() => {
                     updateCaptionsList();
@@ -2955,6 +3131,7 @@ const QuillWrapper = forwardRef(({
     positionCaptionsDirectly,
     positionResizerDirectly,
     commitControlDrafts,
+    getClampedControlPopupPosition,
     syncSelectionControlsFromFormat
   ]);
 
@@ -2994,6 +3171,7 @@ const QuillWrapper = forwardRef(({
               borderRadius: newData.borderRadius
             }, "user");
             quill.setSelection(range.index + 1);
+            setTimeout(() => emitCurrentContentForSave(), 0);
           });
         }
       } else {
@@ -3375,15 +3553,15 @@ const QuillWrapper = forwardRef(({
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title="Image info"
+          title="Thông tin ảnh"
           maxWidth="max-w-md"
         >
           <div className="space-y-6">
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Alt text (SEO)</label>
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Văn bản thay thế (SEO)</label>
               <input
                 type="text"
-                placeholder="Example: classroom for rent in Da Nang..."
+                placeholder="Ví dụ: phòng học cho thuê tại Đà Nẵng..."
                 className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.alt}
                 onChange={(e) => setModalData({ ...modalData, alt: e.target.value })}
@@ -3391,10 +3569,10 @@ const QuillWrapper = forwardRef(({
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Hover tooltip (Title)</label>
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Chú thích khi rê chuột (Title)</label>
               <input
                 type="text"
-                placeholder="Example: Hover over image to show this text..."
+                placeholder="Ví dụ: nội dung hiển thị khi rê chuột vào ảnh..."
                 className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.title}
                 onChange={(e) => setModalData({ ...modalData, title: e.target.value })}
@@ -3402,10 +3580,10 @@ const QuillWrapper = forwardRef(({
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Caption shown below image</label>
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Chú thích hiển thị dưới ảnh</label>
               <input
                 type="text"
-                placeholder="Example: Modern classroom space..."
+                placeholder="Ví dụ: không gian phòng học hiện đại..."
                 className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.caption}
                 onChange={(e) => setModalData({ ...modalData, caption: e.target.value })}
@@ -3413,10 +3591,10 @@ const QuillWrapper = forwardRef(({
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Image border radius (e.g. 8px, 16px, 50%)</label>
+              <label className="block text-[11px] font-bold text-navy-700 uppercase tracking-widest mb-3 ml-1">Bo góc ảnh (ví dụ: 8px, 16px, 50%)</label>
               <input
                 type="text"
-                placeholder="Example: 12px or 24px..."
+                placeholder="Ví dụ: 12px hoặc 24px..."
                 className="w-full px-4 py-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-primary focus:outline-none transition-colors"
                 value={modalData.borderRadius || ""}
                 onChange={(e) => setModalData({ ...modalData, borderRadius: e.target.value })}
@@ -3429,13 +3607,13 @@ const QuillWrapper = forwardRef(({
                 onClick={() => setIsModalOpen(false)}
                 className="flex-1 px-6 py-4 border-2 border-gray-100 text-gray-500 text-sm font-bold rounded-2xl hover:bg-gray-50 hover:text-red-500 transition-all active:scale-95"
               >
-                Cancel</button>
+                Hủy</button>
               <Button
                 type="button"
                 onClick={() => handleModalSubmit()}
                 className="flex-1 px-6 py-4 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-blue-600 shadow-xl shadow-blue-100 transition-all active:scale-95"
               >
-                Confirm
+                Xác nhận
               </Button>
             </div>
           </div>
@@ -3565,6 +3743,43 @@ const QuillWrapper = forwardRef(({
   }, [showFontSizePopup, showSpacingPopup, showTranslatePopup]);
 
   useEffect(() => {
+    if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
+
+    const updateOpenPopupPosition = () => {
+      const root = containerRef.current;
+      if (!root) return;
+
+      if (showFontSizePopup) {
+        const button = root.querySelector('.ql-font-size-custom');
+        if (button) setFontSizePopupPosition(getClampedControlPopupPosition(button, 210));
+      }
+      if (showSpacingPopup) {
+        const button = root.querySelector('.ql-line-height');
+        if (button) setPopupPosition(getClampedControlPopupPosition(button, 200));
+      }
+      if (showTranslatePopup) {
+        const button = root.querySelector('.ql-translate-y');
+        if (button) setTranslatePopupPosition(getClampedControlPopupPosition(button, 200));
+      }
+    };
+
+    window.addEventListener('resize', updateOpenPopupPosition);
+    window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
+    window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
+
+    return () => {
+      window.removeEventListener('resize', updateOpenPopupPosition);
+      window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
+      window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
+    };
+  }, [
+    getClampedControlPopupPosition,
+    showFontSizePopup,
+    showSpacingPopup,
+    showTranslatePopup,
+  ]);
+
+  useEffect(() => {
     if (!showSpacingPopup) return;
     const handleOutsideClick = (e) => {
       const popup = containerRef.current?.querySelector('.ql-line-height-popup');
@@ -3650,9 +3865,12 @@ const QuillWrapper = forwardRef(({
         <div
           className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
-            top: safeNumber(popupPosition.top) + 5,
-            left: Math.max(10, Math.min(safeNumber(popupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
-            width: '200px'
+            position: 'fixed',
+            top: safeNumber(popupPosition.top),
+            left: safeNumber(popupPosition.left, 12),
+            width: `${safeNumber(popupPosition.width, 200)}px`,
+            maxWidth: 'calc(100vw - 24px)',
+            boxSizing: 'border-box'
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -3681,7 +3899,7 @@ const QuillWrapper = forwardRef(({
                   type="text"
                   inputMode="numeric"
                   placeholder="Mặc định. VD: 32"
-                  value={effectiveLineHeight}
+                  defaultValue={getPopupInputValue('lineHeight', lineHeight)}
                   onChange={(e) => updateControlDraftValue('lineHeight', e.target.value, false, e.currentTarget)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -3702,7 +3920,7 @@ const QuillWrapper = forwardRef(({
                   type="text"
                   inputMode="numeric"
                   placeholder="Mặc định. VD: 24"
-                  value={effectiveLineHeightMobile}
+                  defaultValue={getPopupInputValue('lineHeightMobile', lineHeightMobile)}
                   onChange={(e) => updateControlDraftValue('lineHeightMobile', e.target.value, false, e.currentTarget)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -3741,9 +3959,12 @@ const QuillWrapper = forwardRef(({
         <div
           className="ql-font-size-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
-            top: safeNumber(fontSizePopupPosition.top) + 5,
-            left: Math.max(10, Math.min(safeNumber(fontSizePopupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
-            width: '210px'
+            position: 'fixed',
+            top: safeNumber(fontSizePopupPosition.top),
+            left: safeNumber(fontSizePopupPosition.left, 12),
+            width: `${safeNumber(fontSizePopupPosition.width, 210)}px`,
+            maxWidth: 'calc(100vw - 24px)',
+            boxSizing: 'border-box'
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -3786,7 +4007,8 @@ const QuillWrapper = forwardRef(({
                   <input
                     type="text"
                     autoFocus
-                    value={effectiveFontSize}
+                    defaultValue={getPopupInputValue('fontSize', fontSize)}
+                    onBeforeInput={keepPopupInputKeyInInput}
                     onChange={(e) => updateControlDraftValue('fontSize', e.target.value, false, e.currentTarget)}
                     onKeyDown={(e) => {
                       keepPopupInputKeyInInput(e);
@@ -3828,7 +4050,7 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(effectiveFontSizeMobile) || 13;
+                    const current = parseInt(getPopupInputValue('fontSizeMobile', fontSizeMobile)) || 13;
                     updateControlValue('fontSizeMobile', Math.max(1, current - 1).toString(), onChangeFontSizeMobile);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
@@ -3838,7 +4060,8 @@ const QuillWrapper = forwardRef(({
                 <div className="relative">
                   <input
                     type="text"
-                    value={effectiveFontSizeMobile}
+                    defaultValue={getPopupInputValue('fontSizeMobile', fontSizeMobile)}
+                    onBeforeInput={keepPopupInputKeyInInput}
                     onChange={(e) => updateControlDraftValue('fontSizeMobile', e.target.value, false, e.currentTarget)}
                     onKeyDown={(e) => {
                       keepPopupInputKeyInInput(e);
@@ -3877,9 +4100,12 @@ const QuillWrapper = forwardRef(({
         <div
           className="ql-translate-y-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
           style={{
-            top: safeNumber(translatePopupPosition.top) + 5,
-            left: Math.max(10, Math.min(safeNumber(translatePopupPosition.left, 10), (containerRef.current?.clientWidth || 500) - 220)),
-            width: '200px'
+            position: 'fixed',
+            top: safeNumber(translatePopupPosition.top),
+            left: safeNumber(translatePopupPosition.left, 12),
+            width: `${safeNumber(translatePopupPosition.width, 200)}px`,
+            maxWidth: 'calc(100vw - 24px)',
+            boxSizing: 'border-box'
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -3906,7 +4132,7 @@ const QuillWrapper = forwardRef(({
               <input
                 type="text"
                 placeholder="VD: -20 hoặc 10"
-                value={effectiveTranslateY}
+                defaultValue={getPopupInputValue('translateY', translateY)}
                 onChange={(e) => updateControlDraftValue('translateY', e.target.value, true, e.currentTarget)}
                     onKeyDown={(e) => {
                       keepPopupInputKeyInInput(e);
@@ -3927,7 +4153,7 @@ const QuillWrapper = forwardRef(({
               <input
                 type="text"
                 placeholder="VD: -10 hoặc 5"
-                value={effectiveTranslateYMobile}
+                defaultValue={getPopupInputValue('translateYMobile', translateYMobile)}
                 onChange={(e) => updateControlDraftValue('translateYMobile', e.target.value, true, e.currentTarget)}
                     onKeyDown={(e) => {
                       keepPopupInputKeyInInput(e);
@@ -4063,6 +4289,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
             font-size: var(--fs-desktop) !important;
           }
+          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor *,
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
@@ -4100,6 +4327,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor {
             font-size: var(--fs-mobile) !important;
           }
+          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor *,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
@@ -4969,6 +5197,9 @@ const QuillWrapper = forwardRef(({
           -webkit-line-clamp: 2 !important;
           -webkit-box-orient: vertical !important;
         }
+        .editor-inline-image-caption {
+          display: none;
+        }
         .quill-wrapper-container.disable-image-wrap .ql-editor img {
           display: block !important;
           margin-left: 0 !important;
@@ -4991,9 +5222,26 @@ const QuillWrapper = forwardRef(({
             margin-left: auto !important;
             margin-right: auto !important;
           }
+          .editor-image-caption {
+            display: none !important;
+          }
+          .editor-inline-image-caption {
+            display: block !important;
+            width: 100% !important;
+            clear: both !important;
+            font-size: 11px !important;
+            line-height: 1.45 !important;
+            color: #666666 !important;
+            font-style: italic !important;
+            text-align: center !important;
+            padding: 0 8px !important;
+            margin-top: 8px !important;
+            margin-bottom: 22px !important;
+            box-sizing: border-box !important;
+            white-space: normal !important;
+          }
 
           /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
-          .quill-wrapper-container .ql-toolbar.ql-snow,
           .quill-wrapper-container .ql-toolbar.ql-snow * {
             font-family: system-ui, -apple-system, sans-serif !important;
             line-height: 1.4 !important;
@@ -5007,12 +5255,23 @@ const QuillWrapper = forwardRef(({
             text-transform: none !important;
             font-weight: normal !important;
           }
+
+          .quill-wrapper-container .ql-toolbar.ql-snow {
+            position: relative !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            padding: 6px 10px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
           
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-formats {
             display: inline-flex !important;
             align-items: center !important;
             gap: 2px !important;
-            margin-right: 15px !important;
+            margin-right: 8px !important;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow button {
@@ -5051,6 +5310,13 @@ const QuillWrapper = forwardRef(({
             height: 0 !important;
             margin: 0 !important;
             opacity: 0 !important;
+          }
+
+          .quill-wrapper-container.is-blog-editor .ql-editor img[data-caption],
+          .quill-wrapper-container.is-blog-editor .ql-editor img[title],
+          .quill-wrapper-container .ql-editor img[data-caption],
+          .quill-wrapper-container .ql-editor img[title] {
+            margin-bottom: 0 !important;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-label svg,
@@ -5174,6 +5440,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-align.ql-expanded .ql-picker-options {
             position: fixed !important;
             left: max(12px, calc((100vw - 96px) / 2)) !important;
+            top: var(--ql-mobile-palette-top, 50%) !important;
             right: auto !important;
             display: grid !important;
             grid-template-columns: repeat(2, 34px) !important;
@@ -5182,6 +5449,11 @@ const QuillWrapper = forwardRef(({
             padding: 8px !important;
             gap: 4px !important;
             flex-direction: unset !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 8px !important;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18) !important;
+            z-index: 2147483647 !important;
           }
 
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-align .ql-picker-options .ql-picker-item {
@@ -5260,7 +5532,10 @@ const QuillWrapper = forwardRef(({
 
           .quill-wrapper-container .ql-toolbar.ql-snow {
             position: relative !important;
-            display: block !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            padding: 6px 10px !important;
             width: 100% !important;
             max-width: 100% !important;
             box-sizing: border-box !important;
@@ -5398,6 +5673,18 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
           overflow-anchor: none !important;
+        }
+
+        @media (max-width: 767px) {
+          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .editor-inline-image-caption,
+          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor .editor-inline-image-caption,
+          .quill-wrapper-container.is-blog-editor .ql-editor .editor-inline-image-caption,
+          .quill-wrapper-container .ql-editor .editor-inline-image-caption {
+            font-size: 11px !important;
+            font-style: italic !important;
+            text-align: center !important;
+            line-height: 1.45 !important;
+          }
         }
       `}} />
 

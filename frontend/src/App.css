@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
 
 :root {
   /* Fluid Gutter for Mobile/Tablet */
@@ -545,27 +545,21 @@
   display: block !important;
   float: none !important;
   margin: 0 !important;
-  margin-bottom: 42px !important;
+  margin-bottom: 0 !important;
 }
 
-/* Caption in floated wrappers: position absolute to match admin editor */
+/* Caption in floated wrappers: position static for natural document flow and no text overlap */
 .rich-text-renderer .image-wrap-left .image-caption,
 .rich-text-renderer .image-wrap-right .image-caption {
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
+  position: static !important;
   text-align: center !important;
   color: #666666 !important;
   font-style: italic !important;
   line-height: 1.4 !important;
   padding: 0 4px !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  margin: 0 !important;
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+  display: block !important;
 }
 
 /* Collapse the parent block or preceding empty block of a floated image/wrapper */
@@ -615,7 +609,7 @@
     margin-left: auto !important;
     margin-right: auto !important;
     margin-top: 10px !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 24px !important;
   }
 
   /* Ảnh không wrap (căn giữa hoặc mặc định): tự động mở rộng 100% chiều rộng container */
@@ -629,12 +623,20 @@
   .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
     width: 100% !important;
     margin-top: 8px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 24px !important;
   }
 
   .rich-text-renderer .image-caption {
+    display: block !important;
+    position: static !important;
+    clear: both !important;
+    font-size: 11px !important;
     margin-top: 8px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 18px !important;
+    padding: 0 8px !important;
+    line-height: 1.45 !important;
+    font-style: italic !important;
+    text-align: center !important;
   }
 
   /* On mobile, reset caption back to static (no float, no absolute) */
@@ -642,7 +644,7 @@
   .rich-text-renderer .image-wrap-right .image-caption {
     position: static !important;
     margin-top: 8px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 18px !important;
   }
 
   .rich-text-renderer .image-wrap-left img,
@@ -1744,6 +1746,16 @@ footer .rich-text-renderer * {
 
 }
 
+@media (max-width: 767px) {
+  .rich-text-renderer[style*="--fs-mobile"] .image-caption,
+  .rich-text-renderer .image-caption {
+    font-size: 11px !important;
+    font-style: italic !important;
+    text-align: center !important;
+    line-height: 1.45 !important;
+  }
+}
+
 .title-main-text [style*="background:"],
 .title-main-text [style*="background-color"],
 .title-bg-text [style*="background:"],
@@ -1843,4 +1855,14 @@ footer .rich-text-renderer * {
   vertical-align: middle !important;
   box-decoration-break: clone !important;
   -webkit-box-decoration-break: clone !important;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer[style*="--fs-mobile"] .image-caption,
+  .rich-text-renderer .image-caption {
+    font-size: 11px !important;
+    font-style: italic !important;
+    text-align: center !important;
+    line-height: 1.45 !important;
+  }
 }

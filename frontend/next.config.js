@@ -29,6 +29,11 @@ const nextConfig = {
       '@fortawesome/free-brands-svg-icons'
     ],
   },
+  allowedDevOrigins: [
+    '192.168.1.43',
+    'localhost',
+    '127.0.0.1'
+  ]
 }
 
-module.exports = nextConfig
+module.exports = nextConfig

@@ -391,7 +391,14 @@ export default function BlogForm({ data, onSave, onCancel }) {
         translateY: currentFormData.excerptTranslateY,
         translateYMobile: currentFormData.excerptTranslateYMobile,
       }),
-      content: currentFormData.content,
+      content: decorateRichTextWithControls(currentFormData.content, {
+        fontSize: currentFormData.fontSize,
+        fontSizeMobile: currentFormData.fontSizeMobile,
+        lineHeight: currentFormData.lineHeight,
+        lineHeightMobile: currentFormData.lineHeightMobile,
+        translateY: currentFormData.translateY,
+        translateYMobile: currentFormData.translateYMobile,
+      }),
     };
     if (imageFile) {
       submitData.thumbnailFile = imageFile;
@@ -403,11 +410,11 @@ export default function BlogForm({ data, onSave, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-h-[85vh] overflow-y-auto px-6 py-4 custom-scrollbar">
+    <form onSubmit={handleSubmit} className="space-y-8 max-h-[85vh] overflow-y-auto px-3 sm:px-6 py-4 custom-scrollbar">
       <div className="w-full space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm space-y-6 h-full">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-300 shadow-sm space-y-6 h-full">
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <MdArticle className="text-primary h-5 w-5" />
@@ -562,7 +569,7 @@ export default function BlogForm({ data, onSave, onCancel }) {
           </div>
 
           <div>
-            <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm space-y-5 h-full">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-300 shadow-sm space-y-5 h-full">
               <div className="flex items-center gap-2 mb-1">
                 <MdCloudUpload className="text-primary h-5 w-5" />
                 <Typography variant="small" className="text-gray-700 font-bold uppercase tracking-wider text-[11px]">
