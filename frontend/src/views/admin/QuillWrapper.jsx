@@ -929,7 +929,7 @@ const QuillWrapper = forwardRef(({
         translateY: onChangeTranslateY,
         translateYMobile: onChangeTranslateYMobile,
       };
-      if (applyInlineControlToSelection(key, value) && !disableImageWrap) return;
+      if (applyInlineControlToSelection(key, value) && (!disableImageWrap || inlineSelectionControls)) return;
 
       if (responsiveCallbacks[key]) {
         selectionControlDraftsRef.current = {
@@ -975,7 +975,7 @@ const QuillWrapper = forwardRef(({
     };
 
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
-      if (applyInlineControlToSelection(key, value, { updateDraft: false }) && !disableImageWrap) {
+      if (applyInlineControlToSelection(key, value, { updateDraft: false }) && (!disableImageWrap || inlineSelectionControls)) {
         return;
       }
       if (callbacks[key]) {
