@@ -1,11 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import classNames from "classnames";
 import { FaChevronRight } from "react-icons/fa";
-import useConfigContentByKey from "@/hooks/useConfigContentByKey";
-import RichTextRenderer from "@/components/RichTextRenderer";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -23,9 +20,6 @@ export default function CategorySidebar({
   currentCategory = "all", 
   onCategoryChange 
 }: CategorySidebarProps) {
-  const sidebarBlogTitle = useConfigContentByKey("sidebar-blog-title");
-  const sidebarBlogDescription = useConfigContentByKey("sidebar-blog-description");
-
   const [categories, setCategories] = useState<Category[]>([
     { key: "all", label: "Tất cả bài viết" },
   ]);
@@ -52,7 +46,7 @@ export default function CategorySidebar({
   }, []);
 
   return (
-    <div className="lg:sticky lg:top-24 space-y-12">
+    <div className="lg:sticky lg:top-24">
       <div>
         <h3 className="text-sm font-bold text-[#563c39] mb-6 flex items-center gap-3">
           <span className="w-8 h-px bg-[#e57f7f]" />
@@ -86,25 +80,6 @@ export default function CategorySidebar({
             );
           })}
         </ul>
-      </div>
-
-      <div className="bg-[#fdf6f5] p-8 rounded-2xl border border-[#799f85]/10">
-        <h4 className="text-lg font-bold text-[#563c39] mb-3">
-          {sidebarBlogTitle || "Về Blog"}
-        </h4>
-        <div className="text-xs text-gray-700 leading-relaxed raleway mb-6">
-          {sidebarBlogDescription ? (
-            <RichTextRenderer html={sidebarBlogDescription} />
-          ) : (
-            "Nơi chia sẻ những bí quyết tối ưu không gian học tập và làm việc hiệu quả nhất."
-          )}
-        </div>
-        <Link
-          href="/#contact"
-          className="inline-block w-full text-center py-3 bg-[var(--color-btn-purple)] hover:bg-[var(--color-btn-purple-hover)] text-white text-xs font-bold rounded-tl-xl rounded-br-xl transition-all duration-300 shadow-sm"
-        >
-          Liên hệ ngay
-        </Link>
       </div>
     </div>
   );

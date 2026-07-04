@@ -7,7 +7,9 @@ const keysToRemove = [
   'sidebar-support-btn-text',
   'sidebar-support-btn-link',
   'sidebar-blog-btn-text',
-  'sidebar-blog-btn-link'
+  'sidebar-blog-btn-link',
+  'sidebar-blog-title',
+  'sidebar-blog-description'
 ];
 
 async function run() {

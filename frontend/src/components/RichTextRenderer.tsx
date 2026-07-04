@@ -84,6 +84,7 @@ interface RichTextRendererProps {
   translateY?: string;
   translateYMobile?: string;
   preserveNbsp?: boolean;
+  stripAllFontStyles?: boolean;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
@@ -99,6 +100,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   translateY,
   translateYMobile,
   preserveNbsp = false,
+  stripAllFontStyles = false,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -234,8 +236,30 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         .join('; ');
     };
 
+    const stripAllFontStylesFromStyle = (styleContent: string) => {
+      return styleContent
+        .split(';')
+        .map(part => part.trim())
+        .filter(part => {
+          if (!part) return false;
+          const lower = part.toLowerCase();
+          return (
+            !lower.startsWith('font-size') &&
+            !lower.startsWith('line-height') &&
+            !lower.startsWith('--fs') &&
+            !lower.startsWith('--custom-line-height')
+          );
+        })
+        .join('; ');
+    };
+
     const isSimpleField = configKey === "describe-phone" || configKey === "describe-quote-text";
-    if (isSimpleField) {
+    if (stripAllFontStyles) {
+      processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
+        const cleaned = stripAllFontStylesFromStyle(styleContent);
+        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+      });
+    } else if (isSimpleField) {
       processedHtml = processedHtml.replace(/style=(["'])([^"']*?)\1/gi, (match: string, quote: string, styleContent: string) => {
         const cleaned = stripFontSizeFromStyle(styleContent);
         return cleaned ? `style=${quote}${cleaned}${quote}` : "";
@@ -248,7 +272,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     return normalizeBlockHighlightHtml(processedHtml);
-  }, [html, preserveNbsp, configKey]);
+  }, [html, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
@@ -290,6 +314,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       maxWidth: "100%",
       display: Component === "span" ? "inline" : "block",
     };
+    if (stripAllFontStyles) {
+      return styles;
+    }
     if (activeLineHeight) {
       const normalized = normalizeLineHeight(activeLineHeight);
       if (normalized) styles['--custom-line-height' as any] = normalized;
@@ -319,7 +346,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, stripAllFontStyles]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');

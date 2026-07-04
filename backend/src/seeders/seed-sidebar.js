@@ -1,20 +1,7 @@
 const ConfigModel = require('../app/models/configModel');
 const { redis } = require('../util/cacheUtil');
 
-const defaultConfigs = [
-  {
-    key: 'sidebar-blog-title',
-    type: 'text',
-    section: 'blog',
-    content: 'Về Blog'
-  },
-  {
-    key: 'sidebar-blog-description',
-    type: 'richtext',
-    section: 'blog',
-    content: '<p>Nơi chia sẻ những bí quyết tối ưu không gian học tập và làm việc hiệu quả nhất.</p>'
-  }
-];
+const defaultConfigs = [];
 
 async function run() {
   console.log('Seeding sidebar configs...');

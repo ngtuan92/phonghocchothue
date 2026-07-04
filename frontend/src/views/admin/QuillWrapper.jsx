@@ -4020,8 +4020,6 @@ const QuillWrapper = forwardRef(({
                     }}
                     onBlur={handleControlInputBlur}
                     onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => focusPopupInput(e, 'fontSize')}
-                    onDoubleClick={keepPopupInteractionStable}
                     onFocus={() => focusControlInput('fontSize')}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="16"
@@ -4073,8 +4071,6 @@ const QuillWrapper = forwardRef(({
                     }}
                     onBlur={handleControlInputBlur}
                     onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => focusPopupInput(e, 'fontSizeMobile')}
-                    onDoubleClick={keepPopupInteractionStable}
                     onFocus={() => focusControlInput('fontSizeMobile')}
                     className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="13"

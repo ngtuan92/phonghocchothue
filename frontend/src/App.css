@@ -747,7 +747,7 @@
   font-family: inherit;
   font-weight: 400 !important;
   line-height: 1.2 !important;
-  color: #563c39 !important;
+  color: #563c39;
   margin-bottom: 5px !important;
   margin-top: 0 !important;
 }

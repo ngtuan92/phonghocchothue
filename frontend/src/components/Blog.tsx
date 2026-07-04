@@ -110,11 +110,11 @@ function BlogCard({ blog }: { blog: Blog }) {
         </p>
 
         <h3 className="blog-card-title font-bold text-[#563c39] line-clamp-2 mb-1">
-          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text blog-card-title-rich" />
+          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text blog-card-title-rich" stripAllFontStyles={true} />
         </h3>
 
         <p className="blog-card-excerpt text-gray-700 raleway !font-normal line-clamp-2 flex-1 mb-2">
-          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text blog-card-excerpt-rich" />
+          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text blog-card-excerpt-rich" stripAllFontStyles={true} />
         </p>
 
         <span
@@ -178,11 +178,11 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
         </div>
 
         <h2 className="text-2xl sm:text-4xl font-bold text-[#563c39] mb-6 leading-tight">
-          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" />
+          <RichTextRenderer html={blog.title} as="span" className="inline-rich-text" stripAllFontStyles={true} />
         </h2>
 
         <p className="text-gray-600 raleway text-sm sm:text-base mb-8 line-clamp-4 leading-relaxed">
-          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" />
+          <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text" stripAllFontStyles={true} />
         </p>
 
         <span

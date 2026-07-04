@@ -278,9 +278,7 @@ const SECTION_KEY_MAP = {
     "blog-heading",
     "blog-decoration",
     "blog-page-title",
-    "blog-page-description",
-    "sidebar-blog-title",
-    "sidebar-blog-description"
+    "blog-page-description"
   ],
 };
 
@@ -301,8 +299,6 @@ const KEY_LABEL_MAP = {
   "blog-decoration": "Ảnh trang trí tiêu đề chuyên mục blog (Home)",
   "blog-page-title": "Tiêu đề trang danh sách Blog",
   "blog-page-description": "Nội dung mô tả trang danh sách Blog",
-  "sidebar-blog-title": "Tiêu đề thẻ giới thiệu Blog ở Sidebar",
-  "sidebar-blog-description": "Mô tả thẻ giới thiệu Blog ở Sidebar",
   "faq-heading": "Tiêu đề chuyên mục FAQ (H2)",
   "faq_list": "Danh sách câu hỏi thường gặp (FAQ)",
   bgTitle: "Ảnh trang trí nghệ thuật",
