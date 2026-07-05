@@ -899,6 +899,9 @@ const QuillWrapper = forwardRef(({
   }, [canUseInlineSelectionControls, getQuillEditor, normalizeUnsignedControlValue, preserveAdminScrollDuring, setSelectionWithoutScroll]);
 
   const syncSelectionControlsFromFormat = useCallback((rangeOverride = null) => {
+    if (typeof document !== 'undefined' && document.activeElement && document.activeElement.closest('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup')) {
+      return;
+    }
     const quill = getQuillEditor();
     if (!quill) return;
 
@@ -993,9 +996,11 @@ const QuillWrapper = forwardRef(({
       if (isInline) {
         if (shouldApplyPreview) {
           applyInlineControlToSelection(key, nextValue);
+          emitCurrentContentForSave();
         }
       } else {
         applyPreviewControlToContainer(key, nextValue);
+        emitCurrentContentForSave();
       }
 
       if (inputElement) {
@@ -1038,6 +1043,7 @@ const QuillWrapper = forwardRef(({
     normalizeUnsignedControlValue,
     applyInlineControlToSelection,
     getQuillEditor,
+    emitCurrentContentForSave,
     onChangeFontSize,
     onChangeFontSizeMobile,
     onChangeLineHeight,
@@ -1063,14 +1069,20 @@ const QuillWrapper = forwardRef(({
         translateY: onChangeTranslateY,
         translateYMobile: onChangeTranslateYMobile,
       };
-      if (applyInlineControlToSelection(key, value)) return;
+      
+      const appliedInline = applyInlineControlToSelection(key, value);
 
       selectionControlDraftsRef.current = {
         ...selectionControlDraftsRef.current,
         [key]: nextValue,
       };
       popupInputValuesRef.current[key] = nextValue;
-      applyPreviewControlToContainer(key, nextValue);
+
+      if (!appliedInline) {
+        applyPreviewControlToContainer(key, nextValue);
+      }
+
+      emitCurrentContentForSave();
 
       if (!commitOnBlurOnly && responsiveCallbacks[key]) {
         responsiveCallbacks[key](nextValue);
@@ -1091,6 +1103,7 @@ const QuillWrapper = forwardRef(({
     disableImageWrap,
     hasResponsive,
     normalizeUnsignedControlValue,
+    emitCurrentContentForSave,
     onChangeFontSize,
     onChangeFontSizeMobile,
     onChangeLineHeight,
