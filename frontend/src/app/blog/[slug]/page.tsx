@@ -175,13 +175,13 @@ export default function BlogDetail() {
   const thumbnailSrc = blog.thumbnail
     ? blog.thumbnail.startsWith("http")
       ? blog.thumbnail
-      : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`
+      : `${URL_API}${blog.thumbnail.replaceAll("\\", "/").replace(/^\/+/, "")}`
     : null;
 
   const authorAvatarSrc = blog.authorAvatar
     ? blog.authorAvatar.startsWith("http")
       ? blog.authorAvatar
-      : `${URL_API}${blog.authorAvatar.replaceAll("\\", "/")}`
+      : `${URL_API}${blog.authorAvatar.replaceAll("\\", "/").replace(/^\/+/, "")}`
     : null;
 
   return (

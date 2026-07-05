@@ -43,6 +43,17 @@ const ensureProductRichTextColumns = async () => {
     }
   }
 
+  if (tableDescription.content && (!tableDescription.content.type || !/longtext/i.test(tableDescription.content.type))) {
+    try {
+      await queryInterface.changeColumn("products", "content", {
+        type: Sequelize.TEXT('long'),
+        allowNull: true,
+      });
+    } catch (e) {
+      console.error("Error altering products.content column to LONGTEXT:", e);
+    }
+  }
+
   productRichTextColumnsReady = true;
 };
 

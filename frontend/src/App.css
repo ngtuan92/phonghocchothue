@@ -219,15 +219,11 @@
 }
 
 .color-brown {
-  color: #543c38;
+  color: #563c39;
 }
 
 .color-pink {
   color: #e57f7f;
-}
-
-.color-brown {
-  color: #563c39;
 }
 
 .App {
@@ -275,16 +271,12 @@
 
 .hide-scrollbar {
   overflow: auto;
-
   scrollbar-width: none;
-
   -ms-overflow-style: none;
-
 }
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
-
 }
 
 .color-header-table p {
@@ -567,14 +559,14 @@
 }
 
 /* Collapse the parent block or preceding empty block of a floated image/wrapper */
-.rich-text-renderer > p:empty,
-.rich-text-renderer > h1:empty,
-.rich-text-renderer > h2:empty,
-.rich-text-renderer > h3:empty,
-.rich-text-renderer > h4:empty,
-.rich-text-renderer > h5:empty,
-.rich-text-renderer > h6:empty,
-.rich-text-renderer > div:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
+.rich-text-renderer>p:empty,
+.rich-text-renderer>h1:empty,
+.rich-text-renderer>h2:empty,
+.rich-text-renderer>h3:empty,
+.rich-text-renderer>h4:empty,
+.rich-text-renderer>h5:empty,
+.rich-text-renderer>h6:empty,
+.rich-text-renderer>div:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
   margin: 0 !important;
   padding: 0 !important;
   height: 0 !important;
@@ -623,7 +615,6 @@
     margin-bottom: 24px !important;
   }
 
-  /* Ảnh không wrap (căn giữa hoặc mặc định): tự động mở rộng 100% chiều rộng container */
   .rich-text-renderer img[data-wrap="none"],
   .rich-text-renderer img:not([data-wrap]) {
     width: 100% !important;
@@ -699,14 +690,6 @@
   margin-bottom: 0.5rem !important;
 }
 
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1 {}
-
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 {}
-
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3 {}
-
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4 {}
-
 .rich-text-renderer p {
   font-family: 'Montserrat', sans-serif;
   color: #323232;
@@ -775,19 +758,6 @@
     margin-top: 0 !important;
   }
 
-  .title-product-detail-rich.rich-text-renderer h1,
-  .title-product-detail-rich.rich-text-renderer h1 *,
-  .title-product-detail-rich.rich-text-renderer h2,
-  .title-product-detail-rich.rich-text-renderer h2 *,
-  .title-product-detail-rich.rich-text-renderer h3,
-  .title-product-detail-rich.rich-text-renderer h3 *,
-  .title-product-detail-rich.rich-text-renderer h4,
-  .title-product-detail-rich.rich-text-renderer h4 *,
-  .title-product-detail-rich.rich-text-renderer p,
-  .title-product-detail-rich.rich-text-renderer p *,
-  .title-product-detail-rich.rich-text-renderer .product-title-heading,
-  .title-product-detail-rich.rich-text-renderer .product-title-heading * {}
-
   .blog-flower-icon {
     line-height: 1 !important;
     display: flex !important;
@@ -813,7 +783,6 @@
 
 @media (max-width: 767px) {
   .blog-content p {
-    line-height: 1.75 !important;
     margin-bottom: 0.5rem !important;
   }
 
@@ -825,7 +794,6 @@
   }
 
   .blog-content li {
-    line-height: 1.7 !important;
     margin-bottom: 8px !important;
   }
 
@@ -839,13 +807,11 @@
 /* Desktop typography & matching editor styles for .blog-content */
 .blog-content {
   font-family: 'Montserrat', sans-serif;
-  line-height: 1.6;
   color: #323232;
 }
 
 @media (min-width: 768px) {
   .blog-content p {
-    line-height: 1.6 !important;
     margin: 0 0 0.5rem 0 !important;
     font-weight: 400;
   }
@@ -880,46 +846,10 @@
     font-weight: 400 !important;
   }
 
-  .blog-content h1 {}
-
-  .blog-content h2 {}
-
-  .blog-content h3 {}
-
-  .blog-content h4 {}
-
-  .blog-content h5 {}
-
-  .blog-content h6 {}
-
   .blog-content strong {
     font-weight: 700 !important;
     color: #563c39 !important;
   }
-}
-
-
-
-
-.ql-size-huge {}
-
-@media (max-width: 767px) {
-  .ql-size-huge {}
-}
-
-@media (max-width: 480px) {
-  .ql-size-huge {}
-}
-
-.ql-editor h1 .ql-size-huge,
-.ql-editor h2 .ql-size-huge,
-.ql-editor p .ql-size-huge {}
-
-@media (max-width: 767px) {
-
-  .ql-editor h1 .ql-size-huge,
-  .ql-editor h2 .ql-size-huge,
-  .ql-editor p .ql-size-huge {}
 }
 
 .ql-size-super-huge {
@@ -927,21 +857,6 @@
   font-weight: 900 !important;
   display: block !important;
   text-align: center !important;
-}
-
-@media (max-width: 767px) {
-  .ql-size-super-huge {}
-}
-
-.ql-editor h1 .ql-size-super-huge,
-.ql-editor h2 .ql-size-super-huge,
-.ql-editor p .ql-size-super-huge {}
-
-@media (max-width: 767px) {
-
-  .ql-editor h1 .ql-size-super-huge,
-  .ql-editor h2 .ql-size-super-huge,
-  .ql-editor p .ql-size-super-huge {}
 }
 
 .title-sub-text h1,
@@ -955,8 +870,6 @@
   margin: 0;
   display: inline-block;
 }
-
-
 
 .title-sub-text br {
   display: block;
@@ -1012,8 +925,6 @@
 
 @media (max-width: 767px) {
 
-
-
   .title-main-text .font-cursive,
   .title-main-text [style*="cursive"],
   .title-main-text .ql-size-huge,
@@ -1038,8 +949,6 @@
     margin-bottom: 5px !important;
   }
 
-
-
   .title-sub-text,
   .title-sub-text *,
   .title-sub-text h1,
@@ -1057,7 +966,6 @@
 .title-main-text *:first-child {
   margin-bottom: 0 !important;
 }
-
 
 .rich-text-renderer *:last-child {
   margin-bottom: 0 !important;
@@ -1225,10 +1133,6 @@
     margin-top: 0 !important;
   }
 
-  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-huge {}
-
-  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-large {}
-
   .title-main-text h1,
   .title-main-text h2,
   .title-main-text div,
@@ -1250,18 +1154,10 @@
     text-align: center !important;
   }
 
-
-
   .describe-description-wrapper p,
   .rich-text-renderer:not(.notification-rich-text):not(.notification-button-rich-text) p {
     margin-bottom: 2px !important;
   }
-
-  .describe-description-wrapper p:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .describe-description-wrapper span:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .describe-description-wrapper *:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {}
 
   .faq-container [itemprop="text"],
   .faq-container [itemprop="text"] * {
@@ -1303,19 +1199,6 @@
     -webkit-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
   }
-
-  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not([style*="--fs"]):not([style*="font-size"]),
-  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) *:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-phone-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) *:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
-  .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]) {}
 }
 
 /* FAQ Question custom heading styling for desktop to fit accordion layout */
@@ -1348,51 +1231,6 @@
 }
 
 /* --- QUILL FONT SLUG MAPPINGS TO GOOGLE FONTS --- */
-@font-face {
-  font-family: "alex-brush";
-  src: local("Alex Brush");
-}
-
-@font-face {
-  font-family: "amatic-sc";
-  src: local("Amatic SC");
-}
-
-@font-face {
-  font-family: "bebas-neue";
-  src: local("Bebas Neue"), url("https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW4.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "caveat";
-  src: local("Caveat");
-}
-
-@font-face {
-  font-family: "dancing-script";
-  src: local("Dancing Script");
-}
-
-@font-face {
-  font-family: "great-vibes";
-  src: local("Great Vibes");
-}
-
-@font-face {
-  font-family: "pinyon-script";
-  src: local("Pinyon Script");
-}
-
-@font-face {
-  font-family: "playfair-display";
-  src: local("Playfair Display");
-}
-
-@font-face {
-  font-family: "syncopate";
-  src: local("Syncopate");
-}
-
 [style*="font-family: alex-brush"],
 [style*="font-family:alex-brush"],
 [style*="font-family: 'alex-brush'"] {
@@ -1569,8 +1407,6 @@ footer .rich-text-renderer * {
   color: inherit;
 }
 
-
-
 /* Custom line-height scaling in RichTextRenderer */
 .rich-text-renderer[style*="--custom-line-height"] {
   line-height: var(--custom-line-height) !important;
@@ -1691,19 +1527,6 @@ footer .rich-text-renderer * {
   /* Specific vertical translation rule for mobile subtitle text (preserving horizontal translation) */
   .rich-text-renderer.title-sub-text[style*="--translate-y"] {
     transform: translate(-50%, var(--translate-y-mobile, var(--translate-y))) !important;
-  }
-}
-
-
-
-@media (max-width: 767px) {
-
-  .rich-text-renderer[style*="--fs-mobile"] .image-caption,
-  .rich-text-renderer .image-caption {
-    font-size: 11px !important;
-    font-style: italic !important;
-    text-align: center !important;
-    line-height: 1.45 !important;
   }
 }
 

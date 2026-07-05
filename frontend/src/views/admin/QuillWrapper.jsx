@@ -3356,29 +3356,16 @@ const QuillWrapper = forwardRef(({
       if (result.uploaded) {
         const range = quill.getSelection(true);
         const imageSrc = result.url.startsWith("/") ? `${URL_API}${result.url.substring(1)}` : result.url;
-        if (disableImageWrap) {
-          quill.insertEmbed(range.index, "image", {
-            src: imageSrc,
-            alt: "",
-            title: "",
-            caption: "",
-            borderRadius: "",
-            wrap: "none"
-          }, "user");
-          quill.setSelection(range.index + 1);
-        } else {
-          openAltModal({ alt: "", title: "", caption: "", borderRadius: "" }, (newData) => {
-            quill.insertEmbed(range.index, "image", {
-              src: imageSrc,
-              alt: newData.alt,
-              title: newData.title,
-              caption: newData.caption,
-              borderRadius: newData.borderRadius
-            }, "user");
-            quill.setSelection(range.index + 1);
-            setTimeout(() => emitCurrentContentForSave(), 0);
-          });
-        }
+        quill.insertEmbed(range.index, "image", {
+          src: imageSrc,
+          alt: "",
+          title: "",
+          caption: "",
+          borderRadius: "",
+          wrap: "none"
+        }, "user");
+        quill.setSelection(range.index + 1);
+        setTimeout(() => emitCurrentContentForSave(true), 0);
       } else {
         showAlert("Image upload failed");
       }
@@ -4864,30 +4851,14 @@ const QuillWrapper = forwardRef(({
         @media (max-width: 639px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
             padding: 24px 16px !important;
+            max-width: 100% !important;
           }
         }
-        @media (min-width: 640px) and (max-width: 1023px) {
+        @media (min-width: 640px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            padding: 24px 20px !important;
+            padding: 24px 40px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-          }
-        }
-        @media (min-width: 1024px) and (max-width: 1239px) {
-          .quill-wrapper-container.is-blog-editor .ql-editor {
-            padding: 24px 20px !important;
-            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-          }
-        }
-        @media (min-width: 1240px) and (max-width: 1439px) {
-          .quill-wrapper-container.is-blog-editor .ql-editor {
-            padding: 24px 20px !important;
-            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-          }
-        }
-        @media (min-width: 1440px) {
-          .quill-wrapper-container.is-blog-editor .ql-editor {
-            padding: 24px 20px !important;
-            box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+            max-width: 100% !important;
           }
         }
         /* Preserve selection highlight briefly after toolbar clicks. */

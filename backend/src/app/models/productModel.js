@@ -6,7 +6,7 @@ const ProductModel = db.sequelize.define("products", {
     name: { type: DataTypes.STRING, maxLength: 255 },
     name_rich: { type: DataTypes.TEXT },
     slug: { type: DataTypes.STRING, maxLength: 255, unique: true, allowNull: true },
-    content: { type: DataTypes.TEXT },
+    content: { type: DataTypes.TEXT('long') },
     image: { type: DataTypes.STRING, maxLength: 255 },
     equipment: { type: DataTypes.TEXT },
     contains: { type: DataTypes.TEXT },

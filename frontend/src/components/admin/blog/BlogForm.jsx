@@ -292,10 +292,10 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
 
   useEffect(() => {
     if (formData.thumbnail && !formData.thumbnail.startsWith("blob:")) {
-      setPreviewImage(formData.thumbnail.startsWith("http") ? formData.thumbnail : `${URL_API}${formData.thumbnail.replace(/\\/g, "/")}`);
+      setPreviewImage(formData.thumbnail.startsWith("http") ? formData.thumbnail : `${URL_API}${formData.thumbnail.replace(/\\/g, "/").replace(/^\/+/, "")}`);
     }
     if (formData.authorAvatar && !formData.authorAvatar.startsWith("blob:")) {
-      setPreviewAvatar(formData.authorAvatar.startsWith("http") ? formData.authorAvatar : `${URL_API}${formData.authorAvatar.replace(/\\/g, "/")}`);
+      setPreviewAvatar(formData.authorAvatar.startsWith("http") ? formData.authorAvatar : `${URL_API}${formData.authorAvatar.replace(/\\/g, "/").replace(/^\/+/, "")}`);
     }
   }, [formData.thumbnail, formData.authorAvatar]);
 
@@ -595,40 +595,40 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
             </Typography>
             <div className="flex gap-4">
               {/* Ảnh đại diện bài viết */}
-              <div className="relative w-28 h-20 overflow-hidden border-2 border-dashed border-gray-300 rounded-none bg-gray-50 flex items-center justify-center cursor-pointer group">
+              <label htmlFor="thumbnail-upload" className="relative w-28 h-20 overflow-hidden border-2 border-dashed border-gray-300 rounded-none bg-gray-50 flex items-center justify-center cursor-pointer group">
                 {previewImage ? (
                   <>
                     <img src={previewImage} alt="Preview" className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <label className="cursor-pointer text-[10px] text-white font-bold">Thay ảnh</label>
+                      <span className="text-[10px] text-white font-bold">Thay ảnh</span>
                     </div>
                   </>
                 ) : (
-                  <label className="flex flex-col items-center justify-center cursor-pointer p-2 text-center">
+                  <div className="flex flex-col items-center justify-center p-2 text-center">
                     <MdCloudUpload className="h-5 w-5 text-gray-400" />
                     <span className="text-[8px] font-bold text-gray-500 uppercase mt-1">Ảnh bìa</span>
-                  </label>
+                  </div>
                 )}
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-              </div>
+                <input id="thumbnail-upload" type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+              </label>
 
               {/* Ảnh đại diện tác giả */}
-              <div className="relative w-20 h-20 rounded-full overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer group">
+              <label htmlFor="avatar-upload" className="relative w-20 h-20 rounded-full overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer group">
                 {previewAvatar ? (
                   <>
                     <img src={previewAvatar} alt="Avatar" className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <label className="cursor-pointer text-[10px] text-white font-bold">Thay ảnh</label>
+                      <span className="text-[10px] text-white font-bold">Thay ảnh</span>
                     </div>
                   </>
                 ) : (
-                  <label className="flex flex-col items-center justify-center cursor-pointer p-2 text-center">
+                  <div className="flex flex-col items-center justify-center p-2 text-center">
                     <MdPerson className="h-5 w-5 text-gray-400" />
                     <span className="text-[8px] font-bold text-gray-500 uppercase mt-1">Avatar</span>
-                  </label>
+                  </div>
                 )}
-                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
-              </div>
+                <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+              </label>
             </div>
           </div>
         </div>
@@ -650,7 +650,6 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 onDraftChange={(val) => updateRichField("content", val)}
                 onBlur={(val) => commitRichField("content", val)}
                 className="min-h-[500px]"
-                isSticky={true}
                 maxHeight="800px"
                 isBlogEditor={true}
                 lineHeight={formData.lineHeight}

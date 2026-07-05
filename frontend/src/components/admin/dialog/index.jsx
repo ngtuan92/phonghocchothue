@@ -832,7 +832,6 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   onChange={(val) => setIfChanged(setRoomContent, val)}
                   placeholder="Nhập mô tả chi tiết về phòng..."
                   isBlogEditor={true}
-                  isSticky={true}
                   maxHeight="500px"
                   lineHeight={roomLineHeight}
                   lineHeightMobile={roomLineHeightMobile}

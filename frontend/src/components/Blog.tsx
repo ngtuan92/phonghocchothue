@@ -63,7 +63,7 @@ function BlogCard({ blog }: { blog: Blog }) {
     blog.thumbnail
       ? blog.thumbnail.startsWith("http")
         ? blog.thumbnail
-        : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`
+        : `${URL_API}${blog.thumbnail.replaceAll("\\", "/").replace(/^\/+/, "")}`
       : null;
 
   return (
@@ -134,7 +134,7 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
   const thumbnailSrc = blog.thumbnail
     ? blog.thumbnail.startsWith("http")
       ? blog.thumbnail
-      : `${URL_API}${blog.thumbnail.replaceAll("\\", "/")}`
+      : `${URL_API}${blog.thumbnail.replaceAll("\\", "/").replace(/^\/+/, "")}`
     : null;
 
   return (

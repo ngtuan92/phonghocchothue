@@ -146,7 +146,7 @@ export default function BlogTable() {
                       <div className="h-12 w-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
                         {blog.thumbnail ? (
                           <img
-                            src={blog.thumbnail.startsWith('http') ? blog.thumbnail : `${URL_API}${blog.thumbnail.replace(/\\/g, "/")}`}
+                            src={blog.thumbnail.startsWith('http') ? blog.thumbnail : `${URL_API}${blog.thumbnail.replace(/\\/g, "/").replace(/^\/+/, "")}`}
                             alt={stripHtmlAndCss(blog.title)}
                             className="h-full w-full object-cover"
                           />
