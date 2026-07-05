@@ -928,7 +928,6 @@ const QuillWrapper = forwardRef(({
     };
 
     // Update refs (this is synchronous and does NOT trigger component re-renders!)
-    selectionControlDraftsRef.current = nextDrafts;
     Object.keys(nextDrafts).forEach(key => {
       popupInputValuesRef.current[key] = nextDrafts[key];
     });
@@ -997,11 +996,11 @@ const QuillWrapper = forwardRef(({
       if (isInline) {
         if (shouldApplyPreview) {
           applyInlineControlToSelection(key, nextValue);
-          emitCurrentContentForSaveRef.current?.();
+          emitCurrentContentForSaveRef.current?.(true);
         }
       } else {
         applyPreviewControlToContainer(key, nextValue);
-        emitCurrentContentForSaveRef.current?.();
+        emitCurrentContentForSaveRef.current?.(true);
       }
 
       if (inputElement) {
@@ -1082,7 +1081,7 @@ const QuillWrapper = forwardRef(({
         applyPreviewControlToContainer(key, nextValue);
       }
 
-      emitCurrentContentForSaveRef.current?.();
+      emitCurrentContentForSaveRef.current?.(true);
 
       if (!commitOnBlurOnly && responsiveCallbacks[key]) {
         responsiveCallbacks[key](nextValue);
