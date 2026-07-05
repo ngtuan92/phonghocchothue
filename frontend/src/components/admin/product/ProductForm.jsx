@@ -399,7 +399,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
               Thông tin cơ bản
             </Typography>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Tên phòng */}
             <div className="space-y-2 md:col-span-2">
@@ -465,9 +465,8 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
               <input
                 id="room-slug"
                 type="text"
-                className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border rounded-xl focus:outline-none transition-colors ${
-                  errors.roomSlug ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#15803d]"
-                }`}
+                className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border rounded-xl focus:outline-none transition-colors ${errors.roomSlug ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#15803d]"
+                  }`}
                 value={roomSlug}
                 onChange={handleRoomSlugChange}
                 placeholder="vi-du-ten-phong"
@@ -605,7 +604,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 Hình ảnh sản phẩm
               </Typography>
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="single-image" className="block text-xs font-bold text-navy-700">
                 Ảnh đại diện (Thumbnail) <span className="text-red-500">*</span>
@@ -683,7 +682,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 Cấu hình SEO
               </Typography>
             </div>
-            
+
             <div className="space-y-3">
               <div className="space-y-1">
                 <label htmlFor="seo-title" className="block text-xs font-bold text-navy-700">
@@ -767,7 +766,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
               Mô tả chi tiết phòng học (CKEditor)
             </Typography>
           </div>
-          
+
           {/* Canvas rộng tối đa đạt đúng cấu trúc tỉ lệ hiển thị trên trang public */}
           <div className="w-full bg-white rounded-xl ckeditor-content content-img py-2">
             <div className="product-dialog-quill product-dialog-quill--content border border-gray-200 rounded-xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
@@ -818,7 +817,8 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .product-dialog-quill {
           position: relative;
           overflow: visible;

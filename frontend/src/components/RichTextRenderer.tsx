@@ -271,6 +271,33 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       });
     }
 
+    const cleanBlockStyleString = (styleContent: string) => {
+      return styleContent
+        .split(';')
+        .map(part => part.trim())
+        .filter(part => {
+          if (!part) return false;
+          const lower = part.toLowerCase();
+          return (
+            !lower.startsWith('--fs-desktop') &&
+            !lower.startsWith('--fs-mobile') &&
+            !lower.startsWith('--custom-line-height') &&
+            !lower.startsWith('--custom-line-height-mobile') &&
+            !lower.startsWith('--translate-y') &&
+            !lower.startsWith('--translate-y-mobile')
+          );
+        })
+        .join('; ');
+    };
+
+    // Clean block styles
+    processedHtml = processedHtml.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match: string, tag: string, before: string, quote: string, styleContent: string, after: string) => {
+      const cleaned = cleanBlockStyleString(styleContent);
+      return cleaned 
+        ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>`
+        : `<${tag}${before}${after}>`;
+    });
+
     return normalizeBlockHighlightHtml(processedHtml);
   }, [html, preserveNbsp, configKey, stripAllFontStyles]);
 
@@ -334,7 +361,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (viewportFontSize) {
       const normalized = normalizeCssSize(viewportFontSize);
       styles['--fs' as any] = normalized;
-      styles.fontSize = normalized;
     }
     if (activeTranslateY) {
       styles['--translate-y' as any] = normalizeCssSize(activeTranslateY);
@@ -379,14 +405,26 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           height: auto;
         }
         @media (min-width: 768px) {
-          .rich-text-renderer[style*="--fs-desktop"] *,
+          .rich-text-renderer[style*="--fs-desktop"] *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer [style*="--fs-desktop"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
+            font-size: var(--fs-desktop) !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .rich-text-renderer[style*="--fs-mobile"] *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer [style*="--fs-mobile"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
+            font-size: var(--fs-mobile) !important;
+          }
+        }
+        @media (min-width: 768px) {
           .rich-text-renderer [style*="--fs-desktop"],
           .rich-text-renderer [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
         }
         @media (max-width: 767px) {
-          .rich-text-renderer[style*="--fs-mobile"] *,
           .rich-text-renderer [style*="--fs-mobile"],
           .rich-text-renderer [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;

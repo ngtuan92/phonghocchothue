@@ -567,7 +567,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     value={roomNameRich}
                     onChange={(val) => {
                       setIfChanged(setRoomNameRich, val);
-                      
+
                       // Extract plain text safely, decoding HTML entities
                       let plainText = "";
                       if (typeof window !== "undefined") {
@@ -578,7 +578,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                         plainText = val.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
                       }
                       setIfChanged(setRoomName, plainText);
-                      
+
                       // Auto slug with Vietnamese accent removal
                       const generatedSlug = plainText
                         .toLowerCase()
@@ -589,7 +589,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                         .trim()
                         .replace(/[\s-]+/g, "-");
                       setIfChanged(setRoomSlug, generatedSlug);
-                      
+
                       setErrors((prev) => ({ ...prev, roomName: "" }));
                     }}
                     placeholder="Nhập tên phòng..."
@@ -624,9 +624,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 <input
                   id="room-slug"
                   type="text"
-                  className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border rounded-xl focus:outline-none transition-colors ${
-                    errors.roomSlug ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#15803d]"
-                  }`}
+                  className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border rounded-xl focus:outline-none transition-colors ${errors.roomSlug ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#15803d]"
+                    }`}
                   value={roomSlug}
                   onChange={handleRoomSlugChange}
                   placeholder="vi-du-ten-phong"
@@ -826,30 +825,30 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                 Mô tả chi tiết
               </label>
               <div id="room-content" className="product-dialog-quill product-dialog-quill--content">
-                 <LazyQuillWrapper
-                   key={`quill-content-${id || 'new'}-${open}`}
-                   theme="snow"
-                   value={roomContent}
-                   onChange={(val) => setIfChanged(setRoomContent, val)}
-                   placeholder="Nhập mô tả chi tiết về phòng..."
-                   isBlogEditor={true}
-                   isSticky={true}
-                   maxHeight="500px"
-                   lineHeight={roomLineHeight}
-                   lineHeightMobile={roomLineHeightMobile}
-                   fontSize={roomFontSize}
-                   fontSizeMobile={roomFontSizeMobile}
-                   translateY={roomTranslateY}
-                   translateYMobile={roomTranslateYMobile}
-                   onChangeLineHeight={setRoomLineHeight}
-                   onChangeLineHeightMobile={setRoomLineHeightMobile}
-                   onChangeFontSize={setRoomFontSize}
-                   onChangeFontSizeMobile={setRoomFontSizeMobile}
-                   onChangeTranslateY={setRoomTranslateY}
-                   onChangeTranslateYMobile={setRoomTranslateYMobile}
-                   hasResponsiveFontSize={true}
-                   inlineSelectionControls={true}
-                 />
+                <LazyQuillWrapper
+                  key={`quill-content-${id || 'new'}-${open}`}
+                  theme="snow"
+                  value={roomContent}
+                  onChange={(val) => setIfChanged(setRoomContent, val)}
+                  placeholder="Nhập mô tả chi tiết về phòng..."
+                  isBlogEditor={true}
+                  isSticky={true}
+                  maxHeight="500px"
+                  lineHeight={roomLineHeight}
+                  lineHeightMobile={roomLineHeightMobile}
+                  fontSize={roomFontSize}
+                  fontSizeMobile={roomFontSizeMobile}
+                  translateY={roomTranslateY}
+                  translateYMobile={roomTranslateYMobile}
+                  onChangeLineHeight={setRoomLineHeight}
+                  onChangeLineHeightMobile={setRoomLineHeightMobile}
+                  onChangeFontSize={setRoomFontSize}
+                  onChangeFontSizeMobile={setRoomFontSizeMobile}
+                  onChangeTranslateY={setRoomTranslateY}
+                  onChangeTranslateYMobile={setRoomTranslateYMobile}
+                  hasResponsiveFontSize={true}
+                  inlineSelectionControls={true}
+                />
               </div>
             </div>
           </div>
@@ -989,7 +988,8 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           </div>
         </CardBody>
 
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           .product-dialog-quill {
             position: relative;
             overflow: visible;

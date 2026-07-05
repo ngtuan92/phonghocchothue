@@ -1453,11 +1453,11 @@ export default function CMS() {
               );
             }}
             onControlDraftChange={updateControlDraft}
-             className={`quill-editor-${config.key}`}
-             editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
-             minHeight={minHeight}
-             hasResponsiveFontSize={true}
-             commitOnBlurOnly={commitOnBlurOnly}
+            className={`quill-editor-${config.key}`}
+            editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
+            minHeight={minHeight}
+            hasResponsiveFontSize={true}
+            commitOnBlurOnly={commitOnBlurOnly}
           />
         </div>
       );

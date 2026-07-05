@@ -396,6 +396,7 @@ const stripFontSizeFromStyle = (styleContent) => {
       if (!part) return false;
       const lower = part.toLowerCase();
       if (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile')) return true;
+      if (lower.startsWith('font-size')) return false;
       return !lower.startsWith('--fs');
     })
     .join('; ');
@@ -869,11 +870,20 @@ const QuillWrapper = forwardRef(({
       }
     }
 
+    const hasFocus = quill.hasFocus();
+
     preserveAdminScrollDuring(() => {
-      setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
+      if (hasFocus) {
+        setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
+      }
+      if (key === 'fontSize' || key === 'fontSizeMobile') {
+        quill.formatText(selection.index, selection.length, 'size', false, 'user');
+      }
       quill.formatText(selection.index, selection.length, formatName, formatValue || false, 'user');
       removeEmptyStyledSpanElements(quill.root);
-      setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
+      if (hasFocus) {
+        setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
+      }
       localEditorHtmlRef.current = quill.root.innerHTML;
       isUserEditingRef.current = true;
     });
@@ -889,8 +899,69 @@ const QuillWrapper = forwardRef(({
   }, [canUseInlineSelectionControls, getQuillEditor, normalizeUnsignedControlValue, preserveAdminScrollDuring, setSelectionWithoutScroll]);
 
   const syncSelectionControlsFromFormat = useCallback((rangeOverride = null) => {
-    // Disabled inline selection font sizes sync.
-  }, []);
+    const quill = getQuillEditor();
+    if (!quill) return;
+
+    const selection = rangeOverride || controlSelectionRef.current || savedSelectionRef.current || quill.getSelection();
+    if (!selection) return;
+
+    const format = quill.getFormat(selection);
+    
+    const desktopSize = format.fontSizeDesktop ? String(format.fontSizeDesktop).replace('px', '') : "";
+    const mobileSize = format.fontSizeMobile ? String(format.fontSizeMobile).replace('px', '') : "";
+    const lh = format.lineHeight ? String(format.lineHeight).replace('px', '') : "";
+    const lhMobile = format.lineHeightMobile ? String(format.lineHeightMobile).replace('px', '') : "";
+    const translateYVal = format.translateY ? String(format.translateY).replace('px', '') : "";
+    const translateYMobileVal = format.translateYMobile ? String(format.translateYMobile).replace('px', '') : "";
+
+    const nextDrafts = {
+      fontSize: desktopSize,
+      fontSizeMobile: mobileSize,
+      lineHeight: lh,
+      lineHeightMobile: lhMobile,
+      translateY: translateYVal,
+      translateYMobile: translateYMobileVal,
+    };
+
+    // Update refs (this is synchronous and does NOT trigger component re-renders!)
+    selectionControlDraftsRef.current = nextDrafts;
+    Object.keys(nextDrafts).forEach(key => {
+      popupInputValuesRef.current[key] = nextDrafts[key];
+    });
+
+    const container = containerRef.current;
+    if (container) {
+      const fontSizeInputs = container.querySelectorAll('.ql-font-size-popup input');
+      if (fontSizeInputs.length >= 2) {
+        if (document.activeElement !== fontSizeInputs[0]) {
+          fontSizeInputs[0].value = desktopSize;
+        }
+        if (document.activeElement !== fontSizeInputs[1]) {
+          fontSizeInputs[1].value = mobileSize;
+        }
+      }
+      
+      const spacingInputs = container.querySelectorAll('.ql-line-height-popup input');
+      if (spacingInputs.length >= 2) {
+        if (document.activeElement !== spacingInputs[0]) {
+          spacingInputs[0].value = lh;
+        }
+        if (document.activeElement !== spacingInputs[1]) {
+          spacingInputs[1].value = lhMobile;
+        }
+      }
+
+      const translateYInputs = container.querySelectorAll('.ql-translate-y-popup input');
+      if (translateYInputs.length >= 2) {
+        if (document.activeElement !== translateYInputs[0]) {
+          translateYInputs[0].value = translateYVal;
+        }
+        if (document.activeElement !== translateYInputs[1]) {
+          translateYInputs[1].value = translateYMobileVal;
+        }
+      }
+    }
+  }, [getQuillEditor]);
 
   const updateControlDraftValue = useCallback((key, value, signed = false, inputElement = null) => {
     const isAllowed = signed
@@ -905,7 +976,37 @@ const QuillWrapper = forwardRef(({
         [key]: nextValue,
       };
       popupInputValuesRef.current[key] = nextValue;
-      applyPreviewControlToContainer(key, nextValue);
+      
+      let shouldApplyPreview = true;
+      if (nextValue === "") {
+        shouldApplyPreview = false;
+      } else if (key === 'fontSize' || key === 'fontSizeMobile') {
+        const num = parseInt(nextValue);
+        if (isNaN(num) || num < 8) {
+          shouldApplyPreview = false;
+        }
+      }
+
+      const selection = controlSelectionRef.current || savedSelectionRef.current || getQuillEditor()?.getSelection();
+      const isInline = selection && selection.length > 0;
+
+      if (isInline) {
+        if (shouldApplyPreview) {
+          applyInlineControlToSelection(key, nextValue);
+        }
+      } else {
+        applyPreviewControlToContainer(key, nextValue);
+      }
+
+      if (inputElement) {
+        setTimeout(() => {
+          if (document.activeElement !== inputElement) {
+            try {
+              inputElement.focus({ preventScroll: true });
+            } catch (e) { /* ignore */ }
+          }
+        }, 0);
+      }
       return;
     }
 
@@ -935,6 +1036,8 @@ const QuillWrapper = forwardRef(({
     commitOnBlurOnly,
     hasResponsive,
     normalizeUnsignedControlValue,
+    applyInlineControlToSelection,
+    getQuillEditor,
     onChangeFontSize,
     onChangeFontSizeMobile,
     onChangeLineHeight,
@@ -960,7 +1063,7 @@ const QuillWrapper = forwardRef(({
         translateY: onChangeTranslateY,
         translateYMobile: onChangeTranslateYMobile,
       };
-      if (applyInlineControlToSelection(key, value) && (!disableImageWrap || inlineSelectionControls)) return;
+      if (applyInlineControlToSelection(key, value)) return;
 
       selectionControlDraftsRef.current = {
         ...selectionControlDraftsRef.current,
@@ -1008,7 +1111,7 @@ const QuillWrapper = forwardRef(({
     };
 
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
-      if (applyInlineControlToSelection(key, value, { updateDraft: false }) && (!disableImageWrap || inlineSelectionControls)) {
+      if (applyInlineControlToSelection(key, value, { updateDraft: false })) {
         return;
       }
       if (callbacks[key]) {
@@ -1058,13 +1161,18 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const applyAllPreviewControlStyles = useCallback(() => {
+    const selection = controlSelectionRef.current || savedSelectionRef.current || getQuillEditor()?.getSelection();
+    const isInline = selection && selection.length > 0;
+
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
-      applyPreviewControlToContainer(key, value);
+      if (!isInline) {
+        applyPreviewControlToContainer(key, value);
+      }
     });
     Object.entries(controlDraftsRef.current).forEach(([key, value]) => {
       applyPreviewControlToContainer(key, value);
     });
-  }, [applyPreviewControlToContainer]);
+  }, [applyPreviewControlToContainer, getQuillEditor]);
 
   useEffect(() => {
     if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
@@ -1101,12 +1209,31 @@ const QuillWrapper = forwardRef(({
     syncSelectionControlsFromFormat();
   }, [commitControlDrafts, syncSelectionControlsFromFormat]);
 
-  const commitControlInput = useCallback(() => {
+  const commitControlInput = useCallback((restoreFocus = false) => {
     commitControlDrafts();
     setActiveControlInputKey(null);
     activeControlInputKeyRef.current = null;
+
+    if (restoreFocus) {
+      const quill = getQuillEditor();
+      const selection = controlSelectionRef.current || savedSelectionRef.current;
+      if (quill && selection) {
+        preserveAdminScrollDuring(() => {
+          focusWithoutScroll(quill);
+          setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
+        });
+      }
+    }
+
     syncSelectionControlsFromFormat();
-  }, [commitControlDrafts, syncSelectionControlsFromFormat]);
+  }, [
+    commitControlDrafts,
+    getQuillEditor,
+    preserveAdminScrollDuring,
+    focusWithoutScroll,
+    setSelectionWithoutScroll,
+    syncSelectionControlsFromFormat
+  ]);
 
   const getImageWrapMode = useCallback((mode) => {
     if (mode === 'right') return 'right';
@@ -1625,7 +1752,16 @@ const QuillWrapper = forwardRef(({
     const resizeObserver = new ResizeObserver(handleScrollOrResize);
     resizeObserver.observe(quill.root);
 
-    quill.on('selection-change', updateSizePickerLabel);
+    const handleSelectionChangeWithSync = (range) => {
+      updateSizePickerLabel();
+      if (range) {
+        savedSelectionRef.current = range;
+        if (controlPopupOpenRef.current) {
+          syncSelectionControlsFromFormat(range);
+        }
+      }
+    };
+    quill.on('selection-change', handleSelectionChangeWithSync);
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
 
@@ -1649,7 +1785,7 @@ const QuillWrapper = forwardRef(({
       window.removeEventListener('resize', handleScrollOrResize);
       quill.root.removeEventListener('scroll', handleScrollOrResize, true);
       resizeObserver.disconnect();
-      quill.off('selection-change', updateSizePickerLabel);
+      quill.off('selection-change', handleSelectionChangeWithSync);
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
     };
@@ -1662,6 +1798,7 @@ const QuillWrapper = forwardRef(({
     updateSizePickerLabel,
     preserveAdminScrollDuring,
     setSelectionWithoutScroll,
+    syncSelectionControlsFromFormat,
   ]);
   useEffect(() => {
     if (!isReady) return;
@@ -2622,11 +2759,36 @@ const QuillWrapper = forwardRef(({
     relativeContent = relativeContent.replace(/<span\b[^>]*class=["'][^"']*\beditor-inline-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi, "");
     relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
+    const cleanBlockStyleString = (styleStr) => {
+      return styleStr
+        .split(';')
+        .map(part => part.trim())
+        .filter(part => {
+          if (!part) return false;
+          const lower = part.toLowerCase();
+          return (
+            !lower.startsWith('--fs-desktop') &&
+            !lower.startsWith('--fs-mobile') &&
+            !lower.startsWith('--custom-line-height') &&
+            !lower.startsWith('--custom-line-height-mobile') &&
+            !lower.startsWith('--translate-y') &&
+            !lower.startsWith('--translate-y-mobile')
+          );
+        })
+        .join('; ');
+    };
+
+    // Clean block styles
+    relativeContent = relativeContent.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match, tag, before, quote, styleContent, after) => {
+      const cleaned = cleanBlockStyleString(styleContent);
+      return cleaned ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>` : `<${tag}${before}${after}>`;
+    });
+
     const shouldStripInlineFontSize = hasResponsive || isSimpleTextField;
     if (shouldStripInlineFontSize) {
       relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
         const cleaned = stripFontSizeFromStyle(styleContent);
-        return cleaned ? `style=${quote}${cleaned}${quote}` : "";
+        return cleaned ? `style=${quote}${cleaned}${cleaned ? quote : ""}` : "";
       });
       relativeContent = removeEmptyStyledSpans(relativeContent);
     } else {
@@ -3657,6 +3819,31 @@ const QuillWrapper = forwardRef(({
     if (!props.value || typeof props.value !== 'string') return props.value;
     let val = props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
+    const cleanBlockStyleString = (styleStr) => {
+      return styleStr
+        .split(';')
+        .map(part => part.trim())
+        .filter(part => {
+          if (!part) return false;
+          const lower = part.toLowerCase();
+          return (
+            !lower.startsWith('--fs-desktop') &&
+            !lower.startsWith('--fs-mobile') &&
+            !lower.startsWith('--custom-line-height') &&
+            !lower.startsWith('--custom-line-height-mobile') &&
+            !lower.startsWith('--translate-y') &&
+            !lower.startsWith('--translate-y-mobile')
+          );
+        })
+        .join('; ');
+    };
+
+    // Clean block styles
+    val = val.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match, tag, before, quote, styleContent, after) => {
+      const cleaned = cleanBlockStyleString(styleContent);
+      return cleaned ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>` : `<${tag}${before}${after}>`;
+    });
+
     const shouldStripInlineFontSize = hasResponsive || isSimpleTextField;
     if (shouldStripInlineFontSize) {
       val = val.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
@@ -3908,7 +4095,7 @@ const QuillWrapper = forwardRef(({
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
                 preserveAdminScrollDuring(() => {
-                  commitControlInput();
+                  commitControlInput(true);
                   setShowSpacingPopup(false);
                 });
               }}
@@ -3929,7 +4116,7 @@ const QuillWrapper = forwardRef(({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      commitControlInput();
+                      commitControlInput(true);
                     }
                   }}
                   onBlur={handleControlInputBlur}
@@ -3950,7 +4137,7 @@ const QuillWrapper = forwardRef(({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      commitControlInput();
+                      commitControlInput(true);
                     }
                   }}
                   onBlur={handleControlInputBlur}
@@ -3968,7 +4155,7 @@ const QuillWrapper = forwardRef(({
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => {
                   preserveAdminScrollDuring(() => {
-                    commitControlInput();
+                    commitControlInput(true);
                     setShowSpacingPopup(false);
                   });
                 }}
@@ -4002,7 +4189,7 @@ const QuillWrapper = forwardRef(({
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
                 preserveAdminScrollDuring(() => {
-                  commitControlInput();
+                  commitControlInput(true);
                   setShowFontSizePopup(false);
                 });
               }}
@@ -4021,7 +4208,7 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(effectiveFontSize) || 16;
+                    const current = parseInt(getPopupInputValue('fontSize', fontSize)) || 16;
                     updateControlValue('fontSize', Math.max(1, current - 1).toString(), onChangeFontSize);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
@@ -4039,21 +4226,21 @@ const QuillWrapper = forwardRef(({
                       keepPopupInputKeyInInput(e);
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        commitControlInput();
+                        commitControlInput(true);
                       }
                     }}
                     onBlur={handleControlInputBlur}
                     onClick={(e) => e.stopPropagation()}
                     onFocus={() => focusControlInput('fontSize')}
-                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    placeholder="16"
+                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    placeholder=""
                   />
                 </div>
                 <button
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(effectiveFontSize) || 16;
+                    const current = parseInt(getPopupInputValue('fontSize', fontSize)) || 16;
                     updateControlValue('fontSize', (current + 1).toString(), onChangeFontSize);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
@@ -4090,21 +4277,21 @@ const QuillWrapper = forwardRef(({
                       keepPopupInputKeyInInput(e);
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        commitControlInput();
+                        commitControlInput(true);
                       }
                     }}
                     onBlur={handleControlInputBlur}
                     onClick={(e) => e.stopPropagation()}
                     onFocus={() => focusControlInput('fontSizeMobile')}
-                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black placeholder-black placeholder:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    placeholder="13"
+                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    placeholder=""
                   />
                 </div>
                 <button
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(effectiveFontSizeMobile) || 13;
+                    const current = parseInt(getPopupInputValue('fontSizeMobile', fontSizeMobile)) || 13;
                     updateControlValue('fontSizeMobile', (current + 1).toString(), onChangeFontSizeMobile);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
@@ -4139,7 +4326,7 @@ const QuillWrapper = forwardRef(({
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
               onClick={() => {
                 preserveAdminScrollDuring(() => {
-                  commitControlInput();
+                  commitControlInput(true);
                   setShowTranslatePopup(false);
                 });
               }}
@@ -4159,7 +4346,7 @@ const QuillWrapper = forwardRef(({
                   keepPopupInputKeyInInput(e);
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    commitControlInput();
+                    commitControlInput(true);
                   }
                 }}
                 onBlur={handleControlInputBlur}
@@ -4180,7 +4367,7 @@ const QuillWrapper = forwardRef(({
                   keepPopupInputKeyInInput(e);
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    commitControlInput();
+                    commitControlInput(true);
                   }
                 }}
                 onBlur={handleControlInputBlur}
@@ -4197,7 +4384,7 @@ const QuillWrapper = forwardRef(({
                 className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
                 onClick={() => {
                   preserveAdminScrollDuring(() => {
-                    commitControlInput();
+                    commitControlInput(true);
                     setShowTranslatePopup(false);
                   });
                 }}
@@ -4307,26 +4494,23 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (min-width: 768px) {
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor {
-            font-size: var(--fs-desktop) !important;
-          }
-          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor *,
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h1:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h2:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h3:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h5:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h6:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h1 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h2 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h3 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
+          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h1:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h2:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h3:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h5:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h6:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h1 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h2 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h3 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])) {
             font-size: var(--fs-desktop) !important;
           }
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor *[style*="--fs"],
@@ -4345,26 +4529,23 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (max-width: 767px) {
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor {
-            font-size: var(--fs-mobile) !important;
-          }
-          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor *,
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h1:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h2:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h3:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h5:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h6:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h1 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h2 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h3 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]),
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]) {
+          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h1:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h2:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h3:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h5:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h6:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h1 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h2 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h3 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor h4 *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor li *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])) {
             font-size: var(--fs-mobile) !important;
           }
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor *[style*="--fs"],
