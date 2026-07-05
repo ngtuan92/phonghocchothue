@@ -615,6 +615,7 @@ const QuillWrapper = forwardRef(({
   const isUserEditingRef = useRef(false);
   const suppressControlInputBlurRef = useRef(false);
   const controlPopupOpenRef = useRef(false);
+  const emitCurrentContentForSaveRef = useRef(null);
   const handleSignedIntegerChange = useCallback((value, onChange) => {
     if (!onChange) return;
     if (value === "" || value === "-" || /^-?\d+$/.test(value)) {
@@ -996,11 +997,11 @@ const QuillWrapper = forwardRef(({
       if (isInline) {
         if (shouldApplyPreview) {
           applyInlineControlToSelection(key, nextValue);
-          emitCurrentContentForSave();
+          emitCurrentContentForSaveRef.current?.();
         }
       } else {
         applyPreviewControlToContainer(key, nextValue);
-        emitCurrentContentForSave();
+        emitCurrentContentForSaveRef.current?.();
       }
 
       if (inputElement) {
@@ -1043,7 +1044,6 @@ const QuillWrapper = forwardRef(({
     normalizeUnsignedControlValue,
     applyInlineControlToSelection,
     getQuillEditor,
-    emitCurrentContentForSave,
     onChangeFontSize,
     onChangeFontSizeMobile,
     onChangeLineHeight,
@@ -1082,7 +1082,7 @@ const QuillWrapper = forwardRef(({
         applyPreviewControlToContainer(key, nextValue);
       }
 
-      emitCurrentContentForSave();
+      emitCurrentContentForSaveRef.current?.();
 
       if (!commitOnBlurOnly && responsiveCallbacks[key]) {
         responsiveCallbacks[key](nextValue);
@@ -1103,7 +1103,6 @@ const QuillWrapper = forwardRef(({
     disableImageWrap,
     hasResponsive,
     normalizeUnsignedControlValue,
-    emitCurrentContentForSave,
     onChangeFontSize,
     onChangeFontSizeMobile,
     onChangeLineHeight,
@@ -2829,6 +2828,7 @@ const QuillWrapper = forwardRef(({
 
     return relativeContent;
   }, [commitOnBlurOnly, getQuillEditor, normalizeContentForSave, onDraftChange, props]);
+  emitCurrentContentForSaveRef.current = emitCurrentContentForSave;
 
   const handleOnChange = useCallback((content, delta, source, editor) => {
     if (props.onChange) {
