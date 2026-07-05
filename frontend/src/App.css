@@ -473,6 +473,10 @@
   height: auto !important;
 }
 
+.rich-text-renderer img:not([width]):not([style*="width"]):not([data-wrap="left"]):not([data-wrap="right"]) {
+  width: 100% !important;
+}
+
 /* Style for image wrappers */
 .rich-text-renderer .image-wrapper {
   margin-left: auto !important;
@@ -563,7 +567,14 @@
 }
 
 /* Collapse the parent block or preceding empty block of a floated image/wrapper */
-.rich-text-renderer>*:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
+.rich-text-renderer > p:empty,
+.rich-text-renderer > h1:empty,
+.rich-text-renderer > h2:empty,
+.rich-text-renderer > h3:empty,
+.rich-text-renderer > h4:empty,
+.rich-text-renderer > h5:empty,
+.rich-text-renderer > h6:empty,
+.rich-text-renderer > div:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
   margin: 0 !important;
   padding: 0 !important;
   height: 0 !important;
@@ -652,12 +663,12 @@
     margin-bottom: 0 !important;
   }
 
-  .rich-text-renderer h2 + p,
-  .rich-text-renderer h3 + p,
-  .rich-text-renderer p + .image-wrapper,
-  .rich-text-renderer h2 + .image-wrapper,
-  .rich-text-renderer h3 + .image-wrapper,
-  .rich-text-renderer .image-wrapper + p {
+  .rich-text-renderer h2+p,
+  .rich-text-renderer h3+p,
+  .rich-text-renderer p+.image-wrapper,
+  .rich-text-renderer h2+.image-wrapper,
+  .rich-text-renderer h3+.image-wrapper,
+  .rich-text-renderer .image-wrapper+p {
     margin-top: 4px !important;
   }
 }
@@ -688,17 +699,13 @@
   margin-bottom: 0.5rem !important;
 }
 
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1 {
-}
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h1 {}
 
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 {
-}
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h2 {}
 
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3 {
-}
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h3 {}
 
-.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4 {
-}
+.rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) h4 {}
 
 .rich-text-renderer p {
   font-family: 'Montserrat', sans-serif;
@@ -779,8 +786,7 @@
   .title-product-detail-rich.rich-text-renderer p,
   .title-product-detail-rich.rich-text-renderer p *,
   .title-product-detail-rich.rich-text-renderer .product-title-heading,
-  .title-product-detail-rich.rich-text-renderer .product-title-heading * {
-  }
+  .title-product-detail-rich.rich-text-renderer .product-title-heading * {}
 
   .blog-flower-icon {
     line-height: 1 !important;
@@ -874,23 +880,17 @@
     font-weight: 400 !important;
   }
 
-  .blog-content h1 {
-  }
+  .blog-content h1 {}
 
-  .blog-content h2 {
-  }
+  .blog-content h2 {}
 
-  .blog-content h3 {
-  }
+  .blog-content h3 {}
 
-  .blog-content h4 {
-  }
+  .blog-content h4 {}
 
-  .blog-content h5 {
-  }
+  .blog-content h5 {}
 
-  .blog-content h6 {
-  }
+  .blog-content h6 {}
 
   .blog-content strong {
     font-weight: 700 !important;
@@ -901,30 +901,25 @@
 
 
 
-.ql-size-huge {
-}
+.ql-size-huge {}
 
 @media (max-width: 767px) {
-  .ql-size-huge {
-  }
+  .ql-size-huge {}
 }
 
 @media (max-width: 480px) {
-  .ql-size-huge {
-  }
+  .ql-size-huge {}
 }
 
 .ql-editor h1 .ql-size-huge,
 .ql-editor h2 .ql-size-huge,
-.ql-editor p .ql-size-huge {
-}
+.ql-editor p .ql-size-huge {}
 
 @media (max-width: 767px) {
 
   .ql-editor h1 .ql-size-huge,
   .ql-editor h2 .ql-size-huge,
-  .ql-editor p .ql-size-huge {
-  }
+  .ql-editor p .ql-size-huge {}
 }
 
 .ql-size-super-huge {
@@ -935,21 +930,18 @@
 }
 
 @media (max-width: 767px) {
-  .ql-size-super-huge {
-  }
+  .ql-size-super-huge {}
 }
 
 .ql-editor h1 .ql-size-super-huge,
 .ql-editor h2 .ql-size-super-huge,
-.ql-editor p .ql-size-super-huge {
-}
+.ql-editor p .ql-size-super-huge {}
 
 @media (max-width: 767px) {
 
   .ql-editor h1 .ql-size-super-huge,
   .ql-editor h2 .ql-size-super-huge,
-  .ql-editor p .ql-size-super-huge {
-  }
+  .ql-editor p .ql-size-super-huge {}
 }
 
 .title-sub-text h1,
@@ -1007,6 +999,7 @@
 .rich-text-renderer.title-sub-text br {
   display: block !important;
 }
+
 .title-main-text h1,
 .title-main-text h2,
 .title-main-text h3,
@@ -1221,6 +1214,7 @@
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
+
   .rich-text-renderer h1+h1,
   .rich-text-renderer h1+h2,
   .rich-text-renderer h2+h1,
@@ -1231,11 +1225,9 @@
     margin-top: 0 !important;
   }
 
-  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-huge {
-  }
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-huge {}
 
-  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-large {
-  }
+  .rich-text-renderer:not(.describe-h2-wrapper .rich-text-renderer) .ql-size-large {}
 
   .title-main-text h1,
   .title-main-text h2,
@@ -1269,8 +1261,7 @@
   .describe-description-wrapper span:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
   .describe-description-wrapper *:not(.mobile-watermark-text *):not([style*="--fs"]):not([style*="font-size"]),
   .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) p:not(h1 p):not(h2 p):not(h3 p):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]),
-  .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {
-  }
+  .rich-text-renderer:not([style*="--fs-mobile"]):not([style*="--fs-desktop"]):not(.notification-rich-text):not(.notification-button-rich-text) span:not(h1 span):not(h2 span):not(h3 span):not(.mobile-watermark-text *):not(.title-main-text *):not(.title-sub-text *):not(.hero-phone-text *):not(.hero-slogan-text *):not([style*="--fs"]):not([style*="font-size"]) {}
 
   .faq-container [itemprop="text"],
   .faq-container [itemprop="text"] * {
@@ -1324,8 +1315,7 @@
   .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
   .hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]),
   div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) span:not([style*="--fs"]):not([style*="font-size"]),
-  div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]) {
-  }
+  div.rich-text-renderer.hero-slogan-text:not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) p:not([style*="--fs"]):not([style*="font-size"]) {}
 }
 
 /* FAQ Question custom heading styling for desktop to fit accordion layout */
@@ -1555,6 +1545,7 @@
 }
 
 @media (min-width: 768px) {
+
   .blog-card-title,
   .blog-card-title .rich-text-renderer,
   .blog-card-title .rich-text-renderer * {
@@ -1579,6 +1570,7 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+
   .rich-text-renderer[style*="--fs-mobile"],
   .rich-text-renderer[style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]),
   .rich-text-renderer.title-main-text[style*="--fs-mobile"],
@@ -1661,6 +1653,7 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+
   .notification-rich-text[style*="--fs-mobile"],
   .notification-rich-text[style*="--fs-mobile"] *,
   .notification-button-rich-text[style*="--fs-mobile"],
@@ -1677,6 +1670,7 @@ footer .rich-text-renderer * {
 }
 
 @media (min-width: 768px) {
+
   .notification-rich-text[style*="--fs-desktop"],
   .notification-rich-text[style*="--fs-desktop"] *,
   .notification-button-rich-text[style*="--fs-desktop"],
@@ -1747,6 +1741,7 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+
   .rich-text-renderer[style*="--fs-mobile"] .image-caption,
   .rich-text-renderer .image-caption {
     font-size: 11px !important;
@@ -1858,6 +1853,7 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+
   .rich-text-renderer[style*="--fs-mobile"] .image-caption,
   .rich-text-renderer .image-caption {
     font-size: 11px !important;

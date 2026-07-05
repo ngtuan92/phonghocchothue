@@ -81,7 +81,12 @@ const Header = ({ icon }: HeaderProps) => {
     const target = document.querySelector(targetId) as HTMLElement | null;
     if (target) {
       const container = document.getElementById('main-scroll-container');
-      const headerOffset = targetId === "#blog" ? 0 : 80;
+      let headerOffset = 80;
+      if (targetId === "#blog") {
+        headerOffset = 0;
+      } else if (targetId === "#about") {
+        headerOffset = 30; // cuộn xuống thêm 50px (bớt khoảng cách lề trên)
+      }
 
       if (!container) {
         const elementPosition = target.getBoundingClientRect().top;
@@ -256,6 +261,12 @@ const Header = ({ icon }: HeaderProps) => {
         </div>
 
         <div className="flex items-center flex-shrink-0">
+          {isOpen && (
+            <div
+              className="fixed inset-0 z-[9997] bg-transparent cursor-default"
+              onClick={closeMenu}
+            />
+          )}
           <div className="relative flex items-center justify-end">
             <button
               onClick={toggleMenu}

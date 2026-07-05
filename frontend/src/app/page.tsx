@@ -365,7 +365,7 @@ export default function Home() {
           style={pageStyle}
         >
           <Header />
-          <div id="about">
+          <div>
             <Describe />
           </div>
           <div id="room">

@@ -262,6 +262,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, []);
 
+
   React.useEffect(() => {
     getActiveRoute(routes);
   }, [pathname]);
@@ -292,15 +293,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       document.documentElement.dir = "ltr";
     }
   }, []);
+
+  const isEditPage = pathname?.includes("/blog/new") || 
+                     pathname?.includes("/blog/edit/") || 
+                     pathname?.includes("/products/new") || 
+                     pathname?.includes("/products/edit/");
   
   return (
     <div className="flex h-full w-full">
       <Toaster />
       <AdminScrollStabilizer />
-      <Sidebar open={open} onClose={() => setOpen(false)} />
+      <Sidebar open={isEditPage ? false : open} onClose={() => setOpen(false)} />
 
       <div className="h-full w-full bg-[#dee1e3]">
-        <main className={`h-full flex-none transition-all xl:ml-[313px]`}>
+        <main className={`h-full flex-none transition-all ${isEditPage ? "" : "xl:ml-[313px]"}`}>
           <div className="h-full">
             <Navbar
               onOpenSidenav={() => setOpen(true)}

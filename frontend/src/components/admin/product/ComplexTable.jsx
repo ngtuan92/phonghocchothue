@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Card from "../card";
-import Dialog from "../dialog";
 import Confirm from "../confirm";
-
 import Loading from "../loading";
 import fetchData from "../../../axios";
 import { handleInvalidToken } from "../../../utils/helpers";
-
 import { showToastSuccess, showToastError } from "../../../helpers/toast";
-
 import {
   createColumnHelper,
   flexRender,
@@ -21,46 +16,20 @@ import {
 } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper();
-
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
 
-// const columns = columnsDataCheck;
 export default function ComplexTable() {
   const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = useState([]);
-
-  const [open, setOpen] = React.useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [id, setId] = React.useState(null);
-  const [dataEdit, setDataEdit] = useState(null);
   const router = useRouter();
-
-  const handleOpen = (id = null, dataEdit = null) => {
-    setId(id);
-
-    setDataEdit(dataEdit);
-    setOpen((cur) => !cur);
-  };
 
   const handleOpenConfirm = (id = null) => {
     setId(id);
     setOpenConfirm((cur) => !cur);
-  };
-  const handleEdit = async (productId) => {
-    setIsLoading(true);
-    try {
-      const response = await fetchData(`${URL_API}api/product/edit/${productId}`);
-      handleOpen(productId, response.data || null);
-    } catch (error) {
-      if (error.response?.data?.message === "Invalid token") {
-        handleInvalidToken(router);
-      }
-      showToastError("Không tải được thông tin phòng");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleConfirm = () => {
@@ -86,7 +55,7 @@ export default function ComplexTable() {
         setData([]);
       }
     } catch (error) {
-      if (error.response.data.message === "Invalid token") {
+      if (error.response?.data?.message === "Invalid token") {
         handleInvalidToken(router);
       }
       setData([]);
@@ -101,73 +70,16 @@ export default function ComplexTable() {
     setIsLoading(true);
     try {
       await fetchData(`${URL_API}api/product/delete/${idProduct}`, "delete");
-
       showToastSuccess("Xóa phòng thành công");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch (error) {
-      if (error.response.data.message === "Invalid token") {
+      if (error.response?.data?.message === "Invalid token") {
         handleInvalidToken(router);
       }
       showToastError("Xóa phòng thất bại");
     } finally {
       setIsLoading(false);
       fetchDataFromAPI();
-    }
-  };
-
-  const handleSaveData = async (data) => {
-    // setIsLoading(true);
-
-    const formData = new FormData();
-
-    for (const key of Object.keys(data)) {
-      const value = data[key];
-      if (value === null || value === undefined) {
-        continue;
-      }
-
-      if (Array.isArray(value)) {
-        value.forEach((item) => {
-          formData.append(key, item);
-        });
-      } else {
-        formData.append(key, value);
-      }
-    }
-
-    if (id) {
-      try {
-        await fetchData(`${URL_API}api/product/update/${id}`, "PUT", formData, {
-          "Content-Type": "multipart/form-data",
-        });
-
-        showToastSuccess("Cập nhật phòng thành công");
-        queryClient.invalidateQueries({ queryKey: ["products"] });
-      } catch (error) {
-        if (error.response.data.message === "Invalid token") {
-          handleInvalidToken(router);
-        }
-        showToastError("Cập nhật phòng thất bại");
-      } finally {
-        setIsLoading(false);
-        fetchDataFromAPI();
-      }
-    } else {
-      try {
-        await fetchData(`${URL_API}api/product/insert`, "POST", formData, {
-          "Content-Type": "multipart/form-data",
-        });
-
-        showToastSuccess("Thêm phòng thành công");
-        queryClient.invalidateQueries({ queryKey: ["products"] });
-      } catch (error) {
-        if (error.response.data.message === "Invalid token") {
-          handleInvalidToken(router);
-        }
-        showToastError("Thêm phòng thất bại");
-      } finally {
-        setIsLoading(false);
-        fetchDataFromAPI();
-      }
     }
   };
 
@@ -189,13 +101,17 @@ export default function ComplexTable() {
         <p className="text-sm font-bold text-gray-600 dark:text-white">Ảnh</p>
       ),
       cell: (info) => (
-        <p className="text-sm font-bold text-black">
-          <img
-            className="w-[100px] h-[60px]"
-            src={`${URL_API}${info.getValue().replace(/\\/g, "/")}`}
-            alt="logo"
-          />
-        </p>
+        <div className="text-sm font-bold text-black">
+          {info.getValue() ? (
+            <img
+              className="w-[100px] h-[60px] object-cover rounded-lg border border-gray-100"
+              src={`${URL_API}${info.getValue().replace(/\\/g, "/")}`}
+              alt="room"
+            />
+          ) : (
+            <div className="w-[100px] h-[60px] bg-gray-100 flex items-center justify-center text-xs text-gray-400">No image</div>
+          )}
+        </div>
       ),
     }),
     columnHelper.accessor("status", {
@@ -227,11 +143,12 @@ export default function ComplexTable() {
         </p>
       ),
       cell: (info) => (
-        <p className="text-sm font-bold text-black">
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => handleEdit(info.row.original.id)}
+            onClick={() => router.push(`/admin/products/edit/${info.row.original.id}`)}
             className="relative h-10 max-h-[40px] w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-primary transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
             type="button"
+            title="Sửa"
           >
             <span className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
               <svg
@@ -249,6 +166,7 @@ export default function ComplexTable() {
             onClick={() => handleOpenConfirm(info.row.original.id)}
             className="relative h-10 max-h-[40px] w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-red transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
             type="button"
+            title="Xóa"
           >
             <span className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
               <svg
@@ -257,7 +175,7 @@ export default function ComplexTable() {
                 viewBox="0 0 24 24"
                 strokeWidth="2"
                 stroke="currentColor"
-                className="w-6 h-6"
+                className="w-6 h-6 text-red-500"
               >
                 <path
                   strokeLinecap="round"
@@ -267,10 +185,10 @@ export default function ComplexTable() {
               </svg>
             </span>
           </button>
-        </p>
+        </div>
       ),
     }),
-  ]; // eslint-disable-next-line
+  ];
 
   const table = useReactTable({
     data,
@@ -283,49 +201,19 @@ export default function ComplexTable() {
     getSortedRowModel: getSortedRowModel(),
     debugTable: true,
   });
+
   return (
     <Card extra={"w-full h-full px-6 pb-6 sm:overflow-x-auto"}>
       {isLoading && <Loading />}
       <div className="w-full flex justify-between items-center mt-3 pl-3">
         <div>
           <button
-            onClick={() => handleOpen(null)}
-            className="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            onClick={() => router.push("/admin/products/new")}
+            className="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 font-bold"
             suppressHydrationWarning={true}
           >
             Thêm phòng
           </button>
-        </div>
-        <div className="ml-3">
-          <div className="w-full max-w-sm min-w-[200px] relative">
-            <div className="relative">
-              <input
-                className="bg-white w-full pr-11 h-10 pl-3 py-2 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md"
-                placeholder="Search for invoice..."
-                suppressHydrationWarning={true}
-              />
-              <button
-                className="absolute h-8 w-8 right-1 top-1 my-auto px-2 flex items-center bg-white rounded "
-                type="button"
-                suppressHydrationWarning={true}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="3"
-                  stroke="currentColor"
-                  className="w-8 h-8 text-slate-600"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
       {data.length ? (
@@ -350,10 +238,6 @@ export default function ComplexTable() {
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                          {{
-                            asc: "",
-                            desc: "",
-                          }[header.column.getIsSorted()] ?? null}
                         </div>
                       </th>
                     );
@@ -388,16 +272,9 @@ export default function ComplexTable() {
           </table>
         </div>
       ) : (
-        <p>Không có dữ liệu</p>
+        <p className="mt-4 text-sm font-semibold text-gray-500">Không có dữ liệu</p>
       )}
 
-      <Dialog
-        open={open}
-        id={id}
-        handleOpen={handleOpen}
-        onSave={handleSaveData}
-        dataEdit={dataEdit}
-      />
       <Confirm
         open={openConfirm}
         id={id}

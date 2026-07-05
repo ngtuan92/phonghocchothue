@@ -199,7 +199,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     processedHtml = processedHtml.replace(
       /<p[^>]*>\s*(<div class="image-wrapper(?: image-wrap-(?:left|right))?"[^>]*><img[^>]*>(?:<div class="image-caption">[\s\S]*?<\/div>)?<\/div>)\s*<\/p>/gi,
-      '$2'
+      '$1'
     );
 
     const cleanStyleForRender = (styleContent: string) => {
@@ -488,7 +488,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           display: block !important;
         }
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
-        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
+        .rich-text-renderer > p:empty,
+        .rich-text-renderer > h1:empty,
+        .rich-text-renderer > h2:empty,
+        .rich-text-renderer > h3:empty,
+        .rich-text-renderer > h4:empty,
+        .rich-text-renderer > h5:empty,
+        .rich-text-renderer > h6:empty,
+        .rich-text-renderer > div:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):empty {
           margin: 0 !important;
           padding: 0 !important;
           height: 0 !important;

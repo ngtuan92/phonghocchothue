@@ -207,6 +207,19 @@ if (typeof window !== "undefined" && Quill) {
   CustomImageBlot.tagName = "img";
   Quill.register(CustomImageBlot, true);
 
+  const InlineBlot = Quill.import("blots/inline");
+  class InlineCaptionBlot extends InlineBlot {
+    static create(value) {
+      const node = super.create(value);
+      node.setAttribute("contenteditable", "false");
+      return node;
+    }
+  }
+  InlineCaptionBlot.blotName = "inline-caption";
+  InlineCaptionBlot.tagName = "span";
+  InlineCaptionBlot.className = "editor-inline-image-caption";
+  Quill.register(InlineCaptionBlot, true);
+
   const Parchment = Quill.import("parchment");
   if (Parchment) {
     const AttributeAttributor = Parchment.Attributor;
@@ -1164,6 +1177,7 @@ const QuillWrapper = forwardRef(({
     const imgContainer = containerRef.current;
     if (!imgContainer) return;
     const imgs = imgContainer.querySelectorAll('.ql-editor img');
+    const wrapperRect = imgContainer.getBoundingClientRect();
     const list = [];
     imgs.forEach((img, idx) => {
       const hasDataCaption = img.hasAttribute('data-caption');
@@ -1171,9 +1185,13 @@ const QuillWrapper = forwardRef(({
         ? (img.getAttribute('data-caption') || '').trim()
         : (img.getAttribute('title') || '').trim();
       if (captionText && captionText !== '') {
+        const imgRect = img.getBoundingClientRect();
         list.push({
           id: idx,
-          text: captionText
+          text: captionText,
+          top: imgRect.bottom - wrapperRect.top,
+          left: imgRect.left - wrapperRect.left,
+          width: imgRect.width
         });
       }
     });
@@ -1181,7 +1199,13 @@ const QuillWrapper = forwardRef(({
       if (prev.length !== list.length) return list;
       const isDifferent = prev.some((item, index) => {
         const next = list[index];
-        return item.id !== next.id || item.text !== next.text;
+        return (
+          item.id !== next.id ||
+          item.text !== next.text ||
+          Math.abs((item.top || 0) - (next.top || 0)) > 1 ||
+          Math.abs((item.left || 0) - (next.left || 0)) > 1 ||
+          Math.abs((item.width || 0) - (next.width || 0)) > 1
+        );
       });
       return isDifferent ? list : prev;
     });
@@ -2568,7 +2592,7 @@ const QuillWrapper = forwardRef(({
           img.style.borderRadius = newData.borderRadius || '';
           if (newData.borderRadius) img.setAttribute('data-border-radius', newData.borderRadius); else img.removeAttribute('data-border-radius');
           quill.update('user');
-          setTimeout(() => emitCurrentContentForSave(), 0);
+          setTimeout(() => emitCurrentContentForSave(true), 0);
           setTimeout(() => {
             updateCaptionsList();
             positionCaptionsDirectly();
@@ -2615,14 +2639,14 @@ const QuillWrapper = forwardRef(({
     return relativeContent;
   }, [hasResponsive, isSimpleTextField]);
 
-  const emitCurrentContentForSave = useCallback(() => {
+  const emitCurrentContentForSave = useCallback((forceCommit = false) => {
     const quill = getQuillEditor();
     const html = quill?.root?.innerHTML || localEditorHtmlRef.current || "";
     const relativeContent = normalizeContentForSave(html);
     localEditorHtmlRef.current = html;
     lastRelativeContentRef.current = relativeContent;
 
-    if (commitOnBlurOnly) {
+    if (commitOnBlurOnly && !forceCommit) {
       onDraftChange?.(relativeContent);
     } else {
       props.onChange?.(relativeContent);
@@ -2911,7 +2935,7 @@ const QuillWrapper = forwardRef(({
                 currentImg.style.borderRadius = newData.borderRadius || '';
                 if (newData.borderRadius) currentImg.setAttribute('data-border-radius', newData.borderRadius); else currentImg.removeAttribute('data-border-radius');
                 quill.update('user');
-                setTimeout(() => emitCurrentContentForSave(), 0);
+                setTimeout(() => emitCurrentContentForSave(true), 0);
                 setTimeout(() => {
                   updateCaptionsList();
                   positionCaptionsDirectly();
@@ -2946,7 +2970,7 @@ const QuillWrapper = forwardRef(({
                   img.style.borderRadius = newData.borderRadius || '';
                   if (newData.borderRadius) img.setAttribute('data-border-radius', newData.borderRadius); else img.removeAttribute('data-border-radius');
                   quill.update('user');
-                  setTimeout(() => emitCurrentContentForSave(), 0);
+                  setTimeout(() => emitCurrentContentForSave(true), 0);
                   setSelectionWithoutScroll(quill, range);
                   setTimeout(() => {
                     updateCaptionsList();
@@ -3945,7 +3969,7 @@ const QuillWrapper = forwardRef(({
                 onClick={() => {
                   preserveAdminScrollDuring(() => {
                     commitControlInput();
-                  setShowSpacingPopup(false);
+                    setShowSpacingPopup(false);
                   });
                 }}
               >
@@ -4131,13 +4155,13 @@ const QuillWrapper = forwardRef(({
                 placeholder="VD: -20 hoặc 10"
                 defaultValue={getPopupInputValue('translateY', translateY)}
                 onChange={(e) => updateControlDraftValue('translateY', e.target.value, true, e.currentTarget)}
-                    onKeyDown={(e) => {
-                      keepPopupInputKeyInInput(e);
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        commitControlInput();
-                      }
-                    }}
+                onKeyDown={(e) => {
+                  keepPopupInputKeyInInput(e);
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitControlInput();
+                  }
+                }}
                 onBlur={handleControlInputBlur}
                 onClick={(e) => e.stopPropagation()}
                 onFocus={() => focusControlInput('translateY')}
@@ -4152,13 +4176,13 @@ const QuillWrapper = forwardRef(({
                 placeholder="VD: -10 hoặc 5"
                 defaultValue={getPopupInputValue('translateYMobile', translateYMobile)}
                 onChange={(e) => updateControlDraftValue('translateYMobile', e.target.value, true, e.currentTarget)}
-                    onKeyDown={(e) => {
-                      keepPopupInputKeyInInput(e);
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        commitControlInput();
-                      }
-                    }}
+                onKeyDown={(e) => {
+                  keepPopupInputKeyInInput(e);
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitControlInput();
+                  }
+                }}
                 onBlur={handleControlInputBlur}
                 onClick={(e) => e.stopPropagation()}
                 onFocus={() => focusControlInput('translateYMobile')}
@@ -5158,17 +5182,19 @@ const QuillWrapper = forwardRef(({
         }
 
 
-        /* Align top edge of text adjacent to floated images in editor */
-        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) {
-          margin: 0 !important;
-          padding: 0 !important;
-          height: 0 !important;
-          min-height: 0 !important;
-          line-height: 0 !important;
-          border: none !important;
-        }
-        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + * {
-          margin-top: 0 !important;
+        @media (min-width: 768px) {
+          /* Align top edge of text adjacent to floated images in editor */
+          .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            border: none !important;
+          }
+          .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + * {
+            margin-top: 0 !important;
+          }
         }
         /* Image Caption styling in editor */
         .ql-editor img[data-caption]:not([data-caption=""]):not([data-caption=" "]) {

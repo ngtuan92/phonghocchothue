@@ -1,31 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import Card from "../card";
 import { 
-  MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdLibraryBooks, 
+  MdAdd, MdEdit, MdDelete, MdSearch, MdLibraryBooks, 
   MdNavigateBefore, MdNavigateNext, MdPerson, MdCalendarToday, 
   MdFiberManualRecord 
 } from "react-icons/md";
-import { useBlogs, useCreateBlog, useUpdateBlog, useDeleteBlog } from "@/hooks/api/useBlog";
-import Loading from "@/components/admin/loading";
-import { showToastSuccess, showToastError } from "@/helpers/toast";
-import { handleInvalidToken } from "@/utils/helpers";
-import fetchData from "@/axios";
+import { useBlogs, useDeleteBlog } from "@/hooks/api/useBlog";
 import Confirm from "@/components/admin/confirm";
-import BlogForm from "./BlogForm";
+import { showToastSuccess, showToastError } from "@/helpers/toast";
 import { stripHtmlAndCss } from "@/utils/seoHelpers";
 
-const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
 
 export default function BlogTable() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [openForm, setOpenForm] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const isFirstRender = useRef(true);
 
   // Scroll to the top of the management card when page changes
@@ -49,20 +41,13 @@ export default function BlogTable() {
     }
   }, [page]);
 
-  const { data: blogData, isLoading, refetch, isFetching } = useBlogs({
+  const { data: blogData, isLoading, refetch } = useBlogs({
     page,
     limit: 8,
     status: 'all'
   });
 
   const deleteBlogMutation = useDeleteBlog();
-  const createBlogMutation = useCreateBlog();
-  const updateBlogMutation = useUpdateBlog();
-
-  const handleOpenForm = (blog = null) => {
-    setSelectedBlog(blog);
-    setOpenForm(true);
-  };
 
   const handleOpenConfirm = (blog) => {
     setSelectedBlog(blog);
@@ -81,63 +66,16 @@ export default function BlogTable() {
     }
   };
 
-  const handleSaveBlog = async (formData) => {
-    setIsSubmitting(true);
-    try {
+  const allBlogs = blogData?.data || [];
+  
+  // Filter client-side if search term is provided (just in case they need it)
+  const blogs = allBlogs.filter((blog) => {
+    const title = stripHtmlAndCss(blog.title || "").toLowerCase();
+    const author = (blog.authorName || "").toLowerCase();
+    const term = searchTerm.toLowerCase();
+    return title.includes(term) || author.includes(term);
+  });
 
-      let responseThumbnail = formData.thumbnail;
-      if (formData.thumbnailFile) {
-        const uploadFd = new FormData();
-        uploadFd.append('upload', formData.thumbnailFile);
-        
-        const finalUploadUrl = `${URL_API}api/upload/image`;
-
-        const uploadRes = await fetchData(finalUploadUrl, "POST", uploadFd, {
-          "Content-Type": "multipart/form-data",
-        });
-        responseThumbnail = uploadRes.url;
-      }
-
-      let responseAvatar = formData.authorAvatar;
-      if (formData.avatarFile) {
-        const uploadFd = new FormData();
-        uploadFd.append('upload', formData.avatarFile);
-        
-        const finalUploadUrl = `${URL_API}api/upload/image`;
-
-        const uploadRes = await fetchData(finalUploadUrl, "POST", uploadFd, {
-          "Content-Type": "multipart/form-data",
-        });
-        responseAvatar = uploadRes.url;
-      }
-
-      const finalData = {
-        ...formData,
-        thumbnail: responseThumbnail,
-        authorAvatar: responseAvatar
-      };
-      delete finalData.thumbnailFile;
-      delete finalData.avatarFile;
-
-      if (selectedBlog) {
-        await updateBlogMutation.mutateAsync({ id: selectedBlog.id, ...finalData });
-        showToastSuccess("Cập nhật bài viết thành công");
-      } else {
-        await createBlogMutation.mutateAsync(finalData);
-        showToastSuccess("Thêm bài viết thành công");
-      }
-      refetch();
-    } catch (error) {
-      if (error?.response?.data?.message === "Invalid token") {
-        handleInvalidToken(router);
-      }
-      showToastError(selectedBlog ? "Cập nhật bài viết thất bại" : "Thêm bài viết thất bại");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const blogs = blogData?.data || [];
   const pagination = blogData?.pagination || { totalPages: 1, currentPage: 1 };
 
   return (
@@ -166,7 +104,7 @@ export default function BlogTable() {
               />
             </div>
             <button
-              onClick={() => handleOpenForm(null)}
+              onClick={() => router.push("/admin/blog/new")}
               className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-all active:scale-95 shadow-sm whitespace-nowrap"
             >
               <MdAdd className="h-5 w-5" />
@@ -261,7 +199,7 @@ export default function BlogTable() {
                     <td className="py-4 px-6 text-end">
                       <div className="flex justify-end items-center gap-1">
                         <button
-                          onClick={() => handleOpenForm(blog)}
+                          onClick={() => router.push(`/admin/blog/edit/${blog.slug}`)}
                           className="p-2 text-foreground hover:text-primary hover:bg-lightPrimary rounded-lg transition-all"
                           title="Sửa"
                         >
@@ -317,27 +255,6 @@ export default function BlogTable() {
           </div>
         )}
       </div>
-
-      {openForm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpenForm(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-[95vw] xl:max-w-[1350px] shadow-2xl z-10 border border-gray-100">
-            <div className="flex justify-between items-center px-8 py-4 border-b border-gray-50">
-              <h2 className="text-lg font-bold text-foreground">
-                {selectedBlog ? "Chỉnh sửa bài viết" : "Soạn thảo bài viết mới"}
-              </h2>
-              <button onClick={() => setOpenForm(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-all group">
-                <MdClose className="h-5 w-5 text-gray-700 group-hover:text-red-500" />
-              </button>
-            </div>
-            <BlogForm
-              data={selectedBlog}
-              onSave={handleSaveBlog}
-              onCancel={() => setOpenForm(false)}
-            />
-          </div>
-        </div>
-      )}
 
       <Confirm
         open={openConfirm}
