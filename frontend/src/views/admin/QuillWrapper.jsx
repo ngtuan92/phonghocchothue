@@ -843,12 +843,29 @@ const QuillWrapper = forwardRef(({
     activeControlInputKeyRef.current = activeControlInputKey;
   }, [activeControlInputKey]);
 
+  const getCurrentControlSelection = useCallback((rangeOverride = null) => {
+    const quill = getQuillEditor();
+    const preferred = rangeOverride || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current || quill?.getSelection?.();
+    if (!preferred) return null;
+    if (preferred.length > 0) return { ...preferred };
+
+    const fallback = controlSelectionRef.current?.length > 0
+      ? controlSelectionRef.current
+      : savedSelectionRef.current?.length > 0
+        ? savedSelectionRef.current
+        : typingSelectionRef.current?.length > 0
+          ? typingSelectionRef.current
+          : null;
+
+    return fallback ? { ...fallback } : { ...preferred };
+  }, [getQuillEditor]);
+
   const applyInlineControlToSelection = useCallback((key, value, options = {}) => {
     const { updateDraft = true } = options;
     if (!canUseInlineSelectionControls || !['fontSize', 'fontSizeMobile', 'lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) return false;
 
     const quill = getQuillEditor();
-    const selection = controlSelectionRef.current || savedSelectionRef.current || quill?.getSelection?.();
+    const selection = getCurrentControlSelection();
     if (!quill || !selection || selection.length <= 0) return false;
 
     const normalized = normalizeUnsignedControlValue(key, value);
@@ -897,7 +914,7 @@ const QuillWrapper = forwardRef(({
       setSelectionControlDrafts((prev) => ({ ...prev, [key]: normalized }));
     }
     return true;
-  }, [canUseInlineSelectionControls, getQuillEditor, normalizeUnsignedControlValue, preserveAdminScrollDuring, setSelectionWithoutScroll]);
+  }, [canUseInlineSelectionControls, getCurrentControlSelection, getQuillEditor, normalizeUnsignedControlValue, preserveAdminScrollDuring, setSelectionWithoutScroll]);
 
   const syncSelectionControlsFromFormat = useCallback((rangeOverride = null) => {
     if (typeof document !== 'undefined' && document.activeElement && document.activeElement.closest('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup')) {
@@ -906,7 +923,7 @@ const QuillWrapper = forwardRef(({
     const quill = getQuillEditor();
     if (!quill) return;
 
-    const selection = rangeOverride || controlSelectionRef.current || savedSelectionRef.current || quill.getSelection();
+    const selection = getCurrentControlSelection(rangeOverride);
     if (!selection) return;
 
     const format = quill.getFormat(selection);
@@ -964,7 +981,7 @@ const QuillWrapper = forwardRef(({
         }
       }
     }
-  }, [getQuillEditor]);
+  }, [getCurrentControlSelection, getQuillEditor]);
 
   const updateControlDraftValue = useCallback((key, value, signed = false, inputElement = null) => {
     const isAllowed = signed
@@ -990,7 +1007,7 @@ const QuillWrapper = forwardRef(({
         }
       }
 
-      const selection = controlSelectionRef.current || savedSelectionRef.current || getQuillEditor()?.getSelection();
+      const selection = getCurrentControlSelection();
       const isInline = selection && selection.length > 0;
 
       if (isInline) {
@@ -1044,6 +1061,7 @@ const QuillWrapper = forwardRef(({
     hasResponsive,
     normalizeUnsignedControlValue,
     applyInlineControlToSelection,
+    getCurrentControlSelection,
     getQuillEditor,
     onChangeFontSize,
     onChangeFontSizeMobile,
@@ -2947,7 +2965,7 @@ const QuillWrapper = forwardRef(({
       quill.root.removeEventListener('keyup', rememberTypingSelection, true);
       quill.off('selection-change', handleSelectionChange);
     };
-  }, [commitOnBlurOnly, getQuillEditor, isReady, preserveAdminScrollDuring, showFontSizePopup, syncSelectionControlsFromFormat]);
+  }, [commitOnBlurOnly, getCurrentControlSelection, getQuillEditor, isReady, preserveAdminScrollDuring, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat]);
 
   const syncImageEditChange = useCallback((quill) => {
     if (!quill) return;
@@ -3059,9 +3077,9 @@ const QuillWrapper = forwardRef(({
           const button = containerRef.current?.querySelector('.ql-font-size-custom');
           if (button && containerRef.current) {
             commitControlDrafts();
-            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current;
-            controlSelectionRef.current = currentSelection?.length > 0 ? { ...currentSelection } : null;
-            syncSelectionControlsFromFormat();
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            controlSelectionRef.current = getCurrentControlSelection(currentSelection);
+            syncSelectionControlsFromFormat(getCurrentControlSelection(currentSelection));
             setFontSizePopupPosition(getClampedControlPopupPosition(button, 210));
             setShowFontSizePopup(prev => !prev);
           }
@@ -3069,8 +3087,8 @@ const QuillWrapper = forwardRef(({
         'line-height': function () {
           const button = containerRef.current?.querySelector('.ql-line-height');
           if (button && containerRef.current) {
-            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current;
-            controlSelectionRef.current = currentSelection?.length > 0 ? { ...currentSelection } : null;
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            controlSelectionRef.current = getCurrentControlSelection(currentSelection);
             setPopupPosition(getClampedControlPopupPosition(button, 200));
             setShowSpacingPopup(prev => !prev);
           }
@@ -3078,8 +3096,8 @@ const QuillWrapper = forwardRef(({
         'translate-y': function () {
           const button = containerRef.current?.querySelector('.ql-translate-y');
           if (button && containerRef.current) {
-            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current;
-            controlSelectionRef.current = currentSelection?.length > 0 ? { ...currentSelection } : null;
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            controlSelectionRef.current = getCurrentControlSelection(currentSelection);
             setTranslatePopupPosition(getClampedControlPopupPosition(button, 200));
             setShowTranslatePopup(prev => !prev);
           }
@@ -5254,38 +5272,6 @@ const QuillWrapper = forwardRef(({
         .ql-editor h1,
         .ql-editor h2,
         .ql-editor h3 {
-          clear: both !important;
-        }
-        .ql-editor .ql-align-center,
-        .ql-editor [style*="text-align: center"],
-        .ql-editor [style*="text-align:center"],
-        .ql-editor p:has([style*="font-family: alex-brush"]),
-        .ql-editor p:has([style*="font-family:alex-brush"]),
-        .ql-editor p:has([style*="font-family: 'alex-brush'"]),
-        .ql-editor p:has([style*="font-family: dancing-script"]),
-        .ql-editor p:has([style*="font-family:dancing-script"]),
-        .ql-editor p:has([style*="font-family: 'dancing-script'"]),
-        .ql-editor p:has([style*="font-family: pinyon-script"]),
-        .ql-editor p:has([style*="font-family:pinyon-script"]),
-        .ql-editor p:has([style*="font-family: 'pinyon-script'"]),
-        .ql-editor p:has([style*="font-family: caveat"]),
-        .ql-editor p:has([style*="font-family:caveat"]),
-        .ql-editor p:has([style*="font-family: 'caveat'"]),
-        .ql-editor p:has([style*="font-family: great-vibes"]),
-        .ql-editor p:has([style*="font-family:great-vibes"]),
-        .ql-editor p:has([style*="font-family: 'great-vibes'"]),
-        .ql-editor p:has([style*="font-family: satisfy"]),
-        .ql-editor p:has([style*="font-family:satisfy"]),
-        .ql-editor p:has([style*="font-family: 'satisfy'"]),
-        .ql-editor p:has([style*="font-family: pacifico"]),
-        .ql-editor p:has([style*="font-family:pacifico"]),
-        .ql-editor p:has([style*="font-family: 'pacifico'"]),
-        .ql-editor p:has([style*="font-family: parisienne"]),
-        .ql-editor p:has([style*="font-family:parisienne"]),
-        .ql-editor p:has([style*="font-family: 'parisienne'"]),
-        .ql-editor p:has([style*="font-family: tangerine"]),
-        .ql-editor p:has([style*="font-family:tangerine"]),
-        .ql-editor p:has([style*="font-family: 'tangerine'"]) {
           clear: both !important;
         }
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
