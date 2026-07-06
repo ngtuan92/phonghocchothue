@@ -910,7 +910,7 @@ const QuillWrapper = forwardRef(({
     if (!selection) return;
 
     const format = quill.getFormat(selection);
-    
+
     const desktopSize = format.fontSizeDesktop ? String(format.fontSizeDesktop).replace('px', '') : "";
     const mobileSize = format.fontSizeMobile ? String(format.fontSizeMobile).replace('px', '') : "";
     const lh = format.lineHeight ? String(format.lineHeight).replace('px', '') : "";
@@ -943,7 +943,7 @@ const QuillWrapper = forwardRef(({
           fontSizeInputs[1].value = mobileSize;
         }
       }
-      
+
       const spacingInputs = container.querySelectorAll('.ql-line-height-popup input');
       if (spacingInputs.length >= 2) {
         if (document.activeElement !== spacingInputs[0]) {
@@ -979,7 +979,7 @@ const QuillWrapper = forwardRef(({
         [key]: nextValue,
       };
       popupInputValuesRef.current[key] = nextValue;
-      
+
       let shouldApplyPreview = true;
       if (nextValue === "") {
         shouldApplyPreview = false;
@@ -1068,7 +1068,7 @@ const QuillWrapper = forwardRef(({
         translateY: onChangeTranslateY,
         translateYMobile: onChangeTranslateYMobile,
       };
-      
+
       const appliedInline = applyInlineControlToSelection(key, value);
 
       selectionControlDraftsRef.current = {
@@ -1543,13 +1543,14 @@ const QuillWrapper = forwardRef(({
     syncInlineEditorCaptions();
   }, [captions, positionCaptionsDirectly, syncInlineEditorCaptions]);
 
-  const updateSizePickerLabel = useCallback(() => {
+  const updateSizePickerLabel = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
     if (!quill || !containerRef.current) return;
 
     let format = {};
     try {
-      let selection = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+      const hasRangeOverride = rangeOverride && typeof rangeOverride.index === 'number';
+      let selection = hasRangeOverride ? rangeOverride : (quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current);
       if (!selection && quill.getLength() > 0) {
         selection = { index: 0, length: 0 };
       }
@@ -1625,10 +1626,15 @@ const QuillWrapper = forwardRef(({
       const dropdownInput = picker.querySelector('.custom-size-dropdown-input');
 
       if (size) {
-        const sizeVal = Array.isArray(size) ? size[0] : size;
-        if (typeof sizeVal === 'string') {
-          const cleanSize = sizeVal.replace('px', '');
-          label.setAttribute('data-value', sizeVal);
+        if (Array.isArray(size)) {
+          label.setAttribute('data-value', '');
+          label.setAttribute('data-display-value', '');
+          if (dropdownInput && document.activeElement !== dropdownInput) {
+            dropdownInput.value = '';
+          }
+        } else if (typeof size === 'string') {
+          const cleanSize = size.replace('px', '');
+          label.setAttribute('data-value', size);
           label.setAttribute('data-display-value', cleanSize);
           if (dropdownInput && document.activeElement !== dropdownInput) {
             dropdownInput.value = cleanSize;
@@ -1764,13 +1770,13 @@ const QuillWrapper = forwardRef(({
     resizeObserver.observe(quill.root);
 
     const handleSelectionChangeWithSync = (range) => {
-      updateSizePickerLabel();
       if (range) {
         savedSelectionRef.current = range;
         if (controlPopupOpenRef.current) {
           syncSelectionControlsFromFormat(range);
         }
       }
+      updateSizePickerLabel(range);
     };
     quill.on('selection-change', handleSelectionChangeWithSync);
     quill.on('text-change', updateSizePickerLabel);
@@ -2400,11 +2406,16 @@ const QuillWrapper = forwardRef(({
                 } catch { /* ignore */ }
                 const size = format.size;
                 if (size) {
-                  const sizeVal = Array.isArray(size) ? size[0] : size;
-                  if (typeof sizeVal === 'string') {
-                    const cleanSize = sizeVal.replace('px', '');
+                  if (Array.isArray(size)) {
                     observer.disconnect();
-                    label.setAttribute('data-value', sizeVal);
+                    label.setAttribute('data-value', '');
+                    label.setAttribute('data-display-value', '');
+                    observer.observe(label, { attributes: true, attributeFilter: ['data-value'] });
+                    return;
+                  } else if (typeof size === 'string') {
+                    const cleanSize = size.replace('px', '');
+                    observer.disconnect();
+                    label.setAttribute('data-value', size);
                     label.setAttribute('data-display-value', cleanSize);
                     observer.observe(label, { attributes: true, attributeFilter: ['data-value'] });
                     return;
@@ -3480,8 +3491,8 @@ const QuillWrapper = forwardRef(({
       const value = unit === '%' ? `${width}%` : `${Math.round(width)}px`;
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
-      img.style.setProperty('width', value, 'important');
-      img.style.setProperty('height', 'auto', 'important');
+      img.style.setProperty('width', value);
+      img.style.setProperty('height', 'auto');
       img.setAttribute('width', value);
       liveResizeImage = img;
     };
@@ -3519,8 +3530,8 @@ const QuillWrapper = forwardRef(({
       const widthValue = `${Math.round(currentWidth)}px`;
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
-      img.style.setProperty('width', widthValue, 'important');
-      img.style.setProperty('height', 'auto', 'important');
+      img.style.setProperty('width', widthValue);
+      img.style.setProperty('height', 'auto');
       img.setAttribute('width', widthValue);
       liveResizeImage = img;
 
@@ -4856,7 +4867,7 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 640px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            padding: 24px 40px !important;
+            padding: 24px 45px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
             max-width: 100% !important;
           }
@@ -5232,11 +5243,13 @@ const QuillWrapper = forwardRef(({
           font-weight: 400;
         }
         .ql-editor h1,
-        .ql-editor h2 {
+        .ql-editor h2,
+        .ql-editor h3 {
           clear: both !important;
         }
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
-        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2 {
+        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2,
+        .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h3 {
           clear: none !important;
         }
 

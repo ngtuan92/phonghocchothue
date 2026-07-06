@@ -465,6 +465,33 @@
   height: auto !important;
 }
 
+.rich-text-renderer h1,
+.rich-text-renderer h2,
+.rich-text-renderer h3 {
+  clear: both !important;
+}
+
+.rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
+.rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2,
+.rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h3,
+.rich-text-renderer > img[data-wrap="left"] + h1,
+.rich-text-renderer > img[data-wrap="left"] + h2,
+.rich-text-renderer > img[data-wrap="left"] + h3,
+.rich-text-renderer > img[data-wrap="right"] + h1,
+.rich-text-renderer > img[data-wrap="right"] + h2,
+.rich-text-renderer > img[data-wrap="right"] + h3,
+.rich-text-renderer > .image-wrap-left + h1,
+.rich-text-renderer > .image-wrap-left + h2,
+.rich-text-renderer > .image-wrap-left + h3,
+.rich-text-renderer > .image-wrap-right + h1,
+.rich-text-renderer > .image-wrap-right + h2,
+.rich-text-renderer > .image-wrap-right + h3,
+.rich-text-renderer > .image-wrapper + h1,
+.rich-text-renderer > .image-wrapper + h2,
+.rich-text-renderer > .image-wrapper + h3 {
+  clear: none !important;
+}
+
 .rich-text-renderer img:not([width]):not([style*="width"]):not([data-wrap="left"]):not([data-wrap="right"]) {
   width: 100% !important;
 }

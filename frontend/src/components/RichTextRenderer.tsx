@@ -162,11 +162,19 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     });
 
     processedHtml = processedHtml.replace(/<img([^>]*?)\/?>\s*/gi, (match: string, attributes: string) => {
-      const titleMatch = attributes.match(/title=["']([^"']*)["']/i);
-      const captionMatch = attributes.match(/data-caption=["']([^"']*)["']/i);
-      const wrapMatch = attributes.match(/data-wrap=["']([^"']*)["']/i);
+      // Clean "!important" from style width/height inside img tags to allow mobile responsive override
+      let cleanAttrs = attributes.replace(/style=(["'])([^"']*?)\1/gi, (styleMatch: string, quote: string, styleContent: string) => {
+        const cleaned = styleContent
+          .replace(/width:\s*([^;!\s]+)\s*!important/gi, 'width: $1')
+          .replace(/height:\s*([^;!\s]+)\s*!important/gi, 'height: $1');
+        return `style=${quote}${cleaned}${quote}`;
+      });
 
-      const hasDataCaption = /data-caption\s*=/i.test(attributes);
+      const titleMatch = cleanAttrs.match(/title=["']([^"']*)["']/i);
+      const captionMatch = cleanAttrs.match(/data-caption=["']([^"']*)["']/i);
+      const wrapMatch = cleanAttrs.match(/data-wrap=["']([^"']*)["']/i);
+
+      const hasDataCaption = /data-caption\s*=/i.test(cleanAttrs);
       const captionText = hasDataCaption
         ? (captionMatch?.[1] || "").trim()
         : (titleMatch?.[1] || "").trim();
@@ -175,8 +183,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       const wrapClass = wrapMode === 'left' || wrapMode === 'right' ? ` image-wrap-${wrapMode}` : '';
 
       if (captionText) {
-        const widthMatch = attributes.match(/width=["']([^"']*)["']/i);
-        const styleMatch = attributes.match(/style=["']([^"']*)["']/i);
+        const widthMatch = cleanAttrs.match(/width=["']([^"']*)["']/i);
+        const styleMatch = cleanAttrs.match(/style=["']([^"']*)["']/i);
 
         let inlineWidth = "";
         if (widthMatch) {
@@ -192,9 +200,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
 
         const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
-        return `<div class="image-wrapper${wrapClass}"${wrapperStyle}><img${attributes}><div class="image-caption">${captionText}</div></div>`;
+        return `<div class="image-wrapper${wrapClass}"${wrapperStyle}><img${cleanAttrs}><div class="image-caption">${captionText}</div></div>`;
       }
-      return match;
+      return `<img${cleanAttrs}>`;
     });
 
     processedHtml = processedHtml.replace(
@@ -386,23 +394,60 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const styleId = "rich-text-renderer-styles";
+    if (document.getElementById(styleId)) return;
+
+    const styleEl = document.createElement("style");
+    styleEl.id = styleId;
+    styleEl.innerHTML = RICH_TEXT_RENDERER_STYLES;
+    document.head.appendChild(styleEl);
+  }, []);
+
   if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`} style={customStyles}>{fallback}</Component> : null;
 
   return (
-    <>
-      <Component
-        className={`rich-text-renderer ${className}`}
-        style={customStyles}
-        dangerouslySetInnerHTML={{ __html: cleanHtml }}
-      />
-      <style dangerouslySetInnerHTML={{
-        __html: `
+    <Component
+      className={`rich-text-renderer ${className}`}
+      style={customStyles}
+      dangerouslySetInnerHTML={{ __html: cleanHtml }}
+    />
+  );
+};
+
+const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer img {
           display: block;
           margin-left: auto;
           margin-right: auto;
           max-width: 100%;
           height: auto;
+        }
+        .rich-text-renderer h1,
+        .rich-text-renderer h2,
+        .rich-text-renderer h3 {
+          clear: both !important;
+        }
+        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
+        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2,
+        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h3,
+        .rich-text-renderer > img[data-wrap="left"] + h1,
+        .rich-text-renderer > img[data-wrap="left"] + h2,
+        .rich-text-renderer > img[data-wrap="left"] + h3,
+        .rich-text-renderer > img[data-wrap="right"] + h1,
+        .rich-text-renderer > img[data-wrap="right"] + h2,
+        .rich-text-renderer > img[data-wrap="right"] + h3,
+        .rich-text-renderer > .image-wrap-left + h1,
+        .rich-text-renderer > .image-wrap-left + h2,
+        .rich-text-renderer > .image-wrap-left + h3,
+        .rich-text-renderer > .image-wrap-right + h1,
+        .rich-text-renderer > .image-wrap-right + h2,
+        .rich-text-renderer > .image-wrap-right + h3,
+        .rich-text-renderer > .image-wrapper + h1,
+        .rich-text-renderer > .image-wrapper + h2,
+        .rich-text-renderer > .image-wrapper + h3 {
+          clear: none !important;
         }
         @media (min-width: 768px) {
           .rich-text-renderer[style*="--fs-desktop"] *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
@@ -789,9 +834,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           box-decoration-break: clone !important;
           -webkit-box-decoration-break: clone !important;
         }
-      `}} />
-    </>
-  );
-};
+`;
 
 export default RichTextRenderer;
