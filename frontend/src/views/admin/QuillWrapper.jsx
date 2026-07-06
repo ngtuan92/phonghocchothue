@@ -4867,7 +4867,7 @@ const QuillWrapper = forwardRef(({
         }
         @media (min-width: 640px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
-            padding: 24px 45px !important;
+            padding: 24px 50px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
             max-width: 100% !important;
           }

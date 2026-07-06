@@ -812,15 +812,31 @@ export default function DetailPage() {
                   margin: 0.25rem 0 !important;
                   line-height: 1.6 !important;
                 }
-                .ckeditor-content ul {
+                 .ckeditor-content ul {
                   list-style-type: disc !important;
                   padding-left: 1.5rem !important;
                   margin: 1rem 0 !important;
                 }
                 .ckeditor-content ol {
-                  list-style-type: decimal !important;
                   padding-left: 1.5rem !important;
                   margin: 1rem 0 !important;
+                }
+                .ckeditor-content ol:not(:has(li[data-list])) {
+                  list-style-type: decimal !important;
+                }
+                .ckeditor-content ol:has(li[data-list="bullet"]) {
+                  list-style-type: none !important;
+                }
+                .ckeditor-content ol:has(li[data-list="ordered"]) {
+                  list-style-type: none !important;
+                }
+                .ckeditor-content li[data-list="bullet"] {
+                  list-style-type: disc !important;
+                  display: list-item !important;
+                }
+                .ckeditor-content li[data-list="ordered"] {
+                  list-style-type: decimal !important;
+                  display: list-item !important;
                 }
                 .ckeditor-content ul ul,
                 .ckeditor-content ol ul {

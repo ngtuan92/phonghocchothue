@@ -192,6 +192,32 @@ LazyQuillWrapper.propTypes = {
 };
 
 export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = false }) {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      let isScrolled = window.scrollY > 300;
+      if (!isScrolled) {
+        const scrollable = document.querySelector("main, .overflow-y-auto");
+        if (scrollable) {
+          isScrolled = scrollable.scrollTop > 300;
+        }
+      }
+      setShowScrollTop(isScrolled);
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    const scrollContainers = document.querySelectorAll("main, .overflow-y-auto, #root, body");
+    scrollContainers.forEach((el) => {
+      el.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
+
   const [roomName, setRoomName] = useState("");
   const [roomNameRich, setRoomNameRich] = useState("");
   const [roomSlug, setRoomSlug] = useState("");
@@ -404,7 +430,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
             {/* Tên phòng */}
             <div className="space-y-2 md:col-span-2">
               <label htmlFor="room-name-rich" className="block text-sm font-bold text-navy-700">
-                Tên phòng (Nghệ thuật - H1, H2, Font...) <span className="text-red-500">*</span>
+                Tên phòng (Nghệ thuật - H1, H2, Kiểu chữ...) <span className="text-red-500">*</span>
               </label>
               <div id="room-name-rich" className="product-dialog-quill product-dialog-quill--name border border-gray-200 rounded-xl overflow-visible bg-white">
                 <QuillWrapper
@@ -490,6 +516,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                     checked={isChecked}
                     onChange={handleCheckboxChange}
                     color="green"
+                    className="border-2 border-gray-400 hover:border-gray-600"
                   />
                   <label htmlFor="checkbox-special" className="flex-1 cursor-pointer">
                     <Typography variant="h6" className="font-bold text-navy-700 text-xs">
@@ -504,6 +531,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                     checked={isStatus}
                     onChange={handleStatusChange}
                     color="green"
+                    className="border-2 border-gray-400 hover:border-gray-600"
                   />
                   <label htmlFor="checkbox-status" className="flex-1 cursor-pointer">
                     <Typography variant="h6" className="font-bold text-navy-700 text-xs">
@@ -577,20 +605,6 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
               </div>
             </div>
 
-            {/* Mô tả tóm tắt */}
-            <div className="space-y-2 md:col-span-2">
-              <label htmlFor="room-desc" className="block text-sm font-bold text-navy-700">
-                Mô tả tóm tắt (Meta Description)
-              </label>
-              <textarea
-                id="room-desc"
-                rows={2}
-                className="w-full px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
-                value={roomDescription}
-                onChange={(e) => setRoomDescription(e.target.value)}
-                placeholder="Mô tả ngắn gọn đặc điểm nổi bật..."
-              />
-            </div>
           </div>
         </div>
 
@@ -607,8 +621,11 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
             <div className="space-y-2">
               <label htmlFor="single-image" className="block text-xs font-bold text-navy-700">
-                Ảnh đại diện (Thumbnail) <span className="text-red-500">*</span>
+                Ảnh đại diện <span className="text-red-500">*</span>
               </label>
+              <p className="mb-2 text-xs font-medium text-gray-500">
+                Khuyến nghị: 800 x 875px, tỷ lệ 32:35. Dùng ảnh dọc nhẹ, rõ chủ thể phòng.
+              </p>
               <input
                 id="single-image"
                 type="file"
@@ -617,18 +634,18 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 accept="image/*"
               />
               {singleImage && (
-                <div className="relative inline-block w-full aspect-video border border-gray-200 rounded-none overflow-hidden shadow-sm mt-2">
+                <div className="relative inline-block w-48 h-48 border-2 border-gray-200 rounded-none overflow-hidden shadow-md mt-2">
                   <img
                     src={typeof singleImage === "string" ? singleImage : URL.createObjectURL(singleImage)}
-                    alt="Thumbnail Preview"
+                    alt="Xem trước ảnh đại diện"
                     className="w-full h-full object-cover"
                   />
                   <button
                     type="button"
-                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm shadow-md transition-all active:scale-95"
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-all active:scale-95"
                     onClick={removeSingleImage}
                   >
-                    ×
+                    <MdClose className="h-5 w-5" />
                   </button>
                 </div>
               )}
@@ -641,8 +658,11 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
             <div className="space-y-2 pt-2 border-t border-gray-100">
               <label htmlFor="multiple-images" className="block text-xs font-bold text-navy-700">
-                Bộ sưu tập ảnh chi tiết (Gallery)
+                Bộ sưu tập ảnh chi tiết
               </label>
+              <p className="mb-2 text-xs font-medium text-gray-500">
+                Khuyến nghị: 1200 x 675px, tỷ lệ 16:9. Chụp ngang để gallery hiển thị đẹp và không bị cắt nhiều.
+              </p>
               <input
                 id="multiple-images"
                 type="file"
@@ -657,15 +677,15 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                     <div key={index} className="relative w-full aspect-square border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                       <img
                         src={typeof image === "string" ? image : URL.createObjectURL(image)}
-                        alt={`Detail Preview ${index}`}
+                        alt={`Xem trước ảnh chi tiết ${index}`}
                         className="w-full h-full object-cover"
                       />
                       <button
                         type="button"
-                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md transition-all active:scale-95"
+                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md transition-all active:scale-95"
                         onClick={() => removeMultipleImage(index)}
                       >
-                        ×
+                        <MdClose className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
@@ -686,7 +706,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
             <div className="space-y-3">
               <div className="space-y-1">
                 <label htmlFor="seo-title" className="block text-xs font-bold text-navy-700">
-                  SEO Title
+                  Tiêu đề SEO
                 </label>
                 <input
                   id="seo-title"
@@ -700,7 +720,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
               <div className="space-y-1">
                 <label htmlFor="seo-description" className="block text-xs font-bold text-navy-700">
-                  SEO Description
+                  Mô tả SEO
                 </label>
                 <textarea
                   id="seo-description"
@@ -714,7 +734,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
               <div className="space-y-1">
                 <label htmlFor="seo-keywords" className="block text-xs font-bold text-navy-700">
-                  SEO Keywords
+                  Từ khóa SEO
                 </label>
                 <input
                   id="seo-keywords"
@@ -728,7 +748,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
               <div className="space-y-1">
                 <label htmlFor="seo-image" className="block text-xs font-bold text-navy-700">
-                  SEO Image
+                  Hình ảnh SEO
                 </label>
                 <input
                   id="seo-image"
@@ -741,15 +761,15 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   <div className="relative inline-block w-20 h-20 border border-gray-200 rounded-xl overflow-hidden shadow-sm mt-2">
                     <img
                       src={typeof seoImage === "string" ? seoImage : URL.createObjectURL(seoImage)}
-                      alt="SEO Preview"
+                      alt="Xem trước ảnh SEO"
                       className="w-full h-full object-cover"
                     />
                     <button
                       type="button"
-                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md transition-all active:scale-95"
+                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md transition-all active:scale-95"
                       onClick={removeSeoImage}
                     >
-                      ×
+                      <MdClose className="h-3 w-3" />
                     </button>
                   </div>
                 )}
@@ -758,12 +778,12 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
           </div>
         </div>
 
-        {/* Mô tả chi tiết phòng học (CKEditor) */}
+        {/* Mô tả chi tiết phòng học */}
         <div className="border-t border-gray-200 pt-6 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
             <span className="text-xl text-[#15803d]">📝</span>
             <Typography variant="h6" className="font-bold text-[#15803d]">
-              Mô tả chi tiết phòng học (CKEditor)
+              Mô tả chi tiết phòng học
             </Typography>
           </div>
 
@@ -777,6 +797,9 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 onChange={(val) => setRoomContent(val)}
                 placeholder="Nhập mô tả chi tiết phòng học..."
                 isBlogEditor={true}
+                className="room-desc-editor"
+                minHeight="350px"
+                maxHeight="500px"
                 lineHeight={roomLineHeight}
                 lineHeightMobile={roomLineHeightMobile}
                 fontSize={roomFontSize}
@@ -853,14 +876,30 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
         .product-dialog-quill--name .ql-editor {
           min-height: 100px;
         }
-        .product-dialog-quill--content .ql-editor {
-          min-height: 350px;
-        }
         .product-dialog-quill--price .ql-editor,
         .product-dialog-quill--equipment .ql-editor {
           min-height: 80px;
         }
       ` }} />
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-[9999] p-3 rounded-full bg-[#15803d] hover:bg-[#166534] text-white shadow-xl hover:shadow-2xl transition-all duration-300 active:scale-95 flex items-center justify-center"
+          aria-label="Cuộn lên đầu trang"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
+      )}
     </form>
   );
 }

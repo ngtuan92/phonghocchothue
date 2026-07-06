@@ -248,6 +248,32 @@ const getCroppedImg = (imageSrc, croppedAreaPixels) => {
 };
 
 export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      let isScrolled = window.scrollY > 300;
+      if (!isScrolled) {
+        const scrollable = document.querySelector("main, .overflow-y-auto");
+        if (scrollable) {
+          isScrolled = scrollable.scrollTop > 300;
+        }
+      }
+      setShowScrollTop(isScrolled);
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    const scrollContainers = document.querySelectorAll("main, .overflow-y-auto, #root, body");
+    scrollContainers.forEach((el) => {
+      el.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
+
   const titleControls = extractResponsiveControls(data?.title || "");
   const excerptControls = extractResponsiveControls(data?.excerpt || "");
   const contentControls = extractResponsiveControls(data?.content || "");
@@ -556,7 +582,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
             <div className="flex items-center gap-2 mb-3">
               <MdArticle className="text-primary h-5 w-5 rotate-90" />
               <Typography variant="small" className="text-gray-700 font-bold uppercase tracking-wider text-[11px]">
-                Tóm tắt ngắn (Excerpt)
+                Tóm tắt ngắn
               </Typography>
             </div>
             <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
@@ -593,12 +619,16 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
             <Typography variant="small" className="text-gray-700 font-bold uppercase tracking-wider text-[11px]">
               Ảnh bìa & Ảnh tác giả
             </Typography>
+            <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+              💡 Ảnh bìa khuyên dùng: 1200 x 800px (tỷ lệ 3:2).<br />
+              💡 Ảnh tác giả khuyên dùng: 200 x 200px (tỷ lệ 1:1, ảnh vuông).
+            </p>
             <div className="flex gap-4">
               {/* Ảnh đại diện bài viết */}
               <label htmlFor="thumbnail-upload" className="relative w-28 h-20 overflow-hidden border-2 border-dashed border-gray-300 rounded-none bg-gray-50 flex items-center justify-center cursor-pointer group">
                 {previewImage ? (
                   <>
-                    <img src={previewImage} alt="Preview" className="h-full w-full object-cover" />
+                    <img src={previewImage} alt="Xem trước ảnh bìa" className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="text-[10px] text-white font-bold">Thay ảnh</span>
                     </div>
@@ -616,7 +646,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
               <label htmlFor="avatar-upload" className="relative w-20 h-20 rounded-full overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer group">
                 {previewAvatar ? (
                   <>
-                    <img src={previewAvatar} alt="Avatar" className="h-full w-full object-cover" />
+                    <img src={previewAvatar} alt="Xem trước ảnh tác giả" className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="text-[10px] text-white font-bold">Thay ảnh</span>
                     </div>
@@ -624,7 +654,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 ) : (
                   <div className="flex flex-col items-center justify-center p-2 text-center">
                     <MdPerson className="h-5 w-5 text-gray-400" />
-                    <span className="text-[8px] font-bold text-gray-500 uppercase mt-1">Avatar</span>
+                    <span className="text-[8px] font-bold text-gray-500 uppercase mt-1">Ảnh tác giả</span>
                   </div>
                 )}
                 <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
@@ -649,8 +679,9 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 onChange={(val) => commitRichField("content", val)}
                 onDraftChange={(val) => updateRichField("content", val)}
                 onBlur={(val) => commitRichField("content", val)}
-                className="min-h-[500px]"
-                maxHeight="800px"
+                className="blog-desc-editor"
+                minHeight="450px"
+                maxHeight="600px"
                 isBlogEditor={true}
                 lineHeight={formData.lineHeight}
                 lineHeightMobile={formData.lineHeightMobile}
@@ -751,6 +782,26 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
             </div>
           </div>
         </div>
+      )}
+
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-[9999] p-3 rounded-full bg-primary hover:bg-green-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 active:scale-95 flex items-center justify-center"
+          aria-label="Cuộn lên đầu trang"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
       )}
     </form>
   );
