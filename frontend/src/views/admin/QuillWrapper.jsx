@@ -1001,6 +1001,7 @@ const QuillWrapper = forwardRef(({
       } else {
         applyPreviewControlToContainer(key, nextValue);
         emitCurrentContentForSaveRef.current?.(true);
+        setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       }
 
       if (inputElement) {
@@ -1021,6 +1022,7 @@ const QuillWrapper = forwardRef(({
         [key]: nextValue,
       };
       popupInputValuesRef.current[key] = nextValue;
+      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       onControlDraftChange?.(key, nextValue);
       if (RESPONSIVE_CONTROL_KEYS.includes(key)) {
         applyPreviewControlToContainer(key, nextValue);
@@ -1079,6 +1081,7 @@ const QuillWrapper = forwardRef(({
 
       if (!appliedInline) {
         applyPreviewControlToContainer(key, nextValue);
+        setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       }
 
       emitCurrentContentForSaveRef.current?.(true);
@@ -2912,7 +2915,8 @@ const QuillWrapper = forwardRef(({
       if (range) {
         typingSelectionRef.current = range;
         savedSelectionRef.current = range;
-        if (showFontSizePopup) {
+        if (showFontSizePopup || showSpacingPopup || showTranslatePopup) {
+          controlSelectionRef.current = range.length > 0 ? { ...range } : null;
           syncSelectionControlsFromFormat(range);
         }
       }
@@ -3989,7 +3993,12 @@ const QuillWrapper = forwardRef(({
     window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
     window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
 
+    const raf = window.requestAnimationFrame(updateOpenPopupPosition);
+    const timeoutId = window.setTimeout(updateOpenPopupPosition, 50);
+
     return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeoutId);
       window.removeEventListener('resize', updateOpenPopupPosition);
       window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
       window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
@@ -5245,6 +5254,38 @@ const QuillWrapper = forwardRef(({
         .ql-editor h1,
         .ql-editor h2,
         .ql-editor h3 {
+          clear: both !important;
+        }
+        .ql-editor .ql-align-center,
+        .ql-editor [style*="text-align: center"],
+        .ql-editor [style*="text-align:center"],
+        .ql-editor p:has([style*="font-family: alex-brush"]),
+        .ql-editor p:has([style*="font-family:alex-brush"]),
+        .ql-editor p:has([style*="font-family: 'alex-brush'"]),
+        .ql-editor p:has([style*="font-family: dancing-script"]),
+        .ql-editor p:has([style*="font-family:dancing-script"]),
+        .ql-editor p:has([style*="font-family: 'dancing-script'"]),
+        .ql-editor p:has([style*="font-family: pinyon-script"]),
+        .ql-editor p:has([style*="font-family:pinyon-script"]),
+        .ql-editor p:has([style*="font-family: 'pinyon-script'"]),
+        .ql-editor p:has([style*="font-family: caveat"]),
+        .ql-editor p:has([style*="font-family:caveat"]),
+        .ql-editor p:has([style*="font-family: 'caveat'"]),
+        .ql-editor p:has([style*="font-family: great-vibes"]),
+        .ql-editor p:has([style*="font-family:great-vibes"]),
+        .ql-editor p:has([style*="font-family: 'great-vibes'"]),
+        .ql-editor p:has([style*="font-family: satisfy"]),
+        .ql-editor p:has([style*="font-family:satisfy"]),
+        .ql-editor p:has([style*="font-family: 'satisfy'"]),
+        .ql-editor p:has([style*="font-family: pacifico"]),
+        .ql-editor p:has([style*="font-family:pacifico"]),
+        .ql-editor p:has([style*="font-family: 'pacifico'"]),
+        .ql-editor p:has([style*="font-family: parisienne"]),
+        .ql-editor p:has([style*="font-family:parisienne"]),
+        .ql-editor p:has([style*="font-family: 'parisienne'"]),
+        .ql-editor p:has([style*="font-family: tangerine"]),
+        .ql-editor p:has([style*="font-family:tangerine"]),
+        .ql-editor p:has([style*="font-family: 'tangerine'"]) {
           clear: both !important;
         }
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,

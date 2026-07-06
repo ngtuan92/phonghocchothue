@@ -1311,6 +1311,40 @@
   font-weight: 600 !important;
 }
 
+/* Auto-clear floats for centered elements or signature/cursive fonts to prevent overlapping with floated images */
+.rich-text-renderer .ql-align-center,
+.rich-text-renderer [style*="text-align: center"],
+.rich-text-renderer [style*="text-align:center"],
+.rich-text-renderer p:has([style*="font-family: alex-brush"]),
+.rich-text-renderer p:has([style*="font-family:alex-brush"]),
+.rich-text-renderer p:has([style*="font-family: 'alex-brush'"]),
+.rich-text-renderer p:has([style*="font-family: dancing-script"]),
+.rich-text-renderer p:has([style*="font-family:dancing-script"]),
+.rich-text-renderer p:has([style*="font-family: 'dancing-script'"]),
+.rich-text-renderer p:has([style*="font-family: pinyon-script"]),
+.rich-text-renderer p:has([style*="font-family:pinyon-script"]),
+.rich-text-renderer p:has([style*="font-family: 'pinyon-script'"]),
+.rich-text-renderer p:has([style*="font-family: caveat"]),
+.rich-text-renderer p:has([style*="font-family:caveat"]),
+.rich-text-renderer p:has([style*="font-family: 'caveat'"]),
+.rich-text-renderer p:has([style*="font-family: great-vibes"]),
+.rich-text-renderer p:has([style*="font-family:great-vibes"]),
+.rich-text-renderer p:has([style*="font-family: 'great-vibes'"]),
+.rich-text-renderer p:has([style*="font-family: satisfy"]),
+.rich-text-renderer p:has([style*="font-family:satisfy"]),
+.rich-text-renderer p:has([style*="font-family: 'satisfy'"]),
+.rich-text-renderer p:has([style*="font-family: pacifico"]),
+.rich-text-renderer p:has([style*="font-family:pacifico"]),
+.rich-text-renderer p:has([style*="font-family: 'pacifico'"]),
+.rich-text-renderer p:has([style*="font-family: parisienne"]),
+.rich-text-renderer p:has([style*="font-family:parisienne"]),
+.rich-text-renderer p:has([style*="font-family: 'parisienne'"]),
+.rich-text-renderer p:has([style*="font-family: tangerine"]),
+.rich-text-renderer p:has([style*="font-family:tangerine"]),
+.rich-text-renderer p:has([style*="font-family: 'tangerine'"]) {
+  clear: both !important;
+}
+
 /* --- QUILL FONT SLUG MAPPINGS TO GOOGLE FONTS --- */
 [style*="font-family: alex-brush"],
 [style*="font-family:alex-brush"],
@@ -1728,5 +1762,6 @@ footer .rich-text-renderer * {
   min-height: 350px !important;
   max-height: 500px !important;
   overflow-y: auto !important;
-  transform: none !important; /* Prevents text from being translated up and cut off by the toolbar */
+  transform: none !important;
+  /* Prevents text from being translated up and cut off by the toolbar */
 }

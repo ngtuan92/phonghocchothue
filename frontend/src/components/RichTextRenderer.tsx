@@ -301,7 +301,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     // Clean block styles
     processedHtml = processedHtml.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match: string, tag: string, before: string, quote: string, styleContent: string, after: string) => {
       const cleaned = cleanBlockStyleString(styleContent);
-      return cleaned 
+      return cleaned
         ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>`
         : `<${tag}${before}${after}>`;
     });
@@ -427,6 +427,38 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer h1,
         .rich-text-renderer h2,
         .rich-text-renderer h3 {
+          clear: both !important;
+        }
+        .rich-text-renderer .ql-align-center,
+        .rich-text-renderer [style*="text-align: center"],
+        .rich-text-renderer [style*="text-align:center"],
+        .rich-text-renderer p:has([style*="font-family: alex-brush"]),
+        .rich-text-renderer p:has([style*="font-family:alex-brush"]),
+        .rich-text-renderer p:has([style*="font-family: 'alex-brush'"]),
+        .rich-text-renderer p:has([style*="font-family: dancing-script"]),
+        .rich-text-renderer p:has([style*="font-family:dancing-script"]),
+        .rich-text-renderer p:has([style*="font-family: 'dancing-script'"]),
+        .rich-text-renderer p:has([style*="font-family: pinyon-script"]),
+        .rich-text-renderer p:has([style*="font-family:pinyon-script"]),
+        .rich-text-renderer p:has([style*="font-family: 'pinyon-script'"]),
+        .rich-text-renderer p:has([style*="font-family: caveat"]),
+        .rich-text-renderer p:has([style*="font-family:caveat"]),
+        .rich-text-renderer p:has([style*="font-family: 'caveat'"]),
+        .rich-text-renderer p:has([style*="font-family: great-vibes"]),
+        .rich-text-renderer p:has([style*="font-family:great-vibes"]),
+        .rich-text-renderer p:has([style*="font-family: 'great-vibes'"]),
+        .rich-text-renderer p:has([style*="font-family: satisfy"]),
+        .rich-text-renderer p:has([style*="font-family:satisfy"]),
+        .rich-text-renderer p:has([style*="font-family: 'satisfy'"]),
+        .rich-text-renderer p:has([style*="font-family: pacifico"]),
+        .rich-text-renderer p:has([style*="font-family:pacifico"]),
+        .rich-text-renderer p:has([style*="font-family: 'pacifico'"]),
+        .rich-text-renderer p:has([style*="font-family: parisienne"]),
+        .rich-text-renderer p:has([style*="font-family:parisienne"]),
+        .rich-text-renderer p:has([style*="font-family: 'parisienne'"]),
+        .rich-text-renderer p:has([style*="font-family: tangerine"]),
+        .rich-text-renderer p:has([style*="font-family:tangerine"]),
+        .rich-text-renderer p:has([style*="font-family: 'tangerine'"]) {
           clear: both !important;
         }
         .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
