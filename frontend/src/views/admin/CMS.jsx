@@ -1293,6 +1293,7 @@ export default function CMS() {
                       onChangeTranslateY={(val) => updateFAQ(index, "qTranslateY", val)}
                       onChangeTranslateYMobile={(val) => updateFAQ(index, "qTranslateYMobile", val)}
                       hasResponsiveFontSize={true}
+                      inlineSelectionControls={true}
                       commitOnBlurOnly={true}
                     />
                   </div>
@@ -1324,6 +1325,7 @@ export default function CMS() {
                       onChangeTranslateY={(val) => updateFAQ(index, "aTranslateY", val)}
                       onChangeTranslateYMobile={(val) => updateFAQ(index, "aTranslateYMobile", val)}
                       hasResponsiveFontSize={true}
+                      inlineSelectionControls={true}
                       commitOnBlurOnly={true}
                     />
                   </div>
@@ -1457,6 +1459,7 @@ export default function CMS() {
             editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
             minHeight={minHeight}
             hasResponsiveFontSize={true}
+            inlineSelectionControls={true}
             commitOnBlurOnly={commitOnBlurOnly}
           />
         </div>

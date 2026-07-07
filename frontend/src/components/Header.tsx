@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import {
   faFacebook,
   faFacebookMessenger,
@@ -66,6 +67,24 @@ const Header = ({ icon }: HeaderProps) => {
   const linkYoutube = useConfigContentByKey("linkYoutube");
   const phone = useConfigContentByKey("phone");
   const cleanPhoneLink = phone ? stripHtmlAndCss(phone).replace(/\s+/g, "") : "";
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
+  const menuItems = useMemo(() => {
+    if (isHomePage) {
+      return [
+        { label: "Trang chủ", href: "/", onClick: () => setIsOpen(false) },
+        { label: "Giới thiệu", href: "#about", onClick: () => handleSmoothScroll("#about") },
+        { label: "Dịch vụ", href: "#room", onClick: () => handleSmoothScroll("#room") },
+        { label: "Blog", href: "#blog", onClick: () => handleSmoothScroll("#blog") },
+        { label: "FAQ", href: "#faq", onClick: () => handleSmoothScroll("#faq") },
+        { label: "Liên hệ", href: "#contact", onClick: () => handleSmoothScroll("#contact") },
+      ];
+    }
+    return [
+      { label: "Trang chủ", href: "/", onClick: () => setIsOpen(false) },
+    ];
+  }, [isHomePage]);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -280,22 +299,19 @@ const Header = ({ icon }: HeaderProps) => {
             </button>
           </div>
           <div
-            className={`z-[9998] top-[-10px] right-[-13px] sm:!right-0 sm:!top-[-8px] absolute w-[250px] sm:w-111 h-[250px] sm:h-100 bg-nav text-white shadow-lg rounded-tr-xl rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
+            className={`z-[9998] top-[-10px] right-[-13px] sm:!right-0 sm:!top-[-8px] absolute bg-nav text-white shadow-lg rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${
+              isHomePage
+                ? "w-[250px] sm:w-111 h-[250px] sm:h-100"
+                : "w-[120px] sm:w-[140px] h-[120px] sm:h-[140px]"
+            } ${isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
               }`}
             style={{
               transformOrigin: "top right",
             }}
           >
-            <div className="h-6 sm:h-8"></div>
-            <ul className="ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium">
-              {[
-                { label: "Trang chủ", href: "/", onClick: () => setIsOpen(false) },
-                { label: "Giới thiệu", href: "#about", onClick: () => handleSmoothScroll("#about") },
-                { label: "Dịch vụ", href: "#room", onClick: () => handleSmoothScroll("#room") },
-                { label: "Blog", href: "#blog", onClick: () => handleSmoothScroll("#blog") },
-                { label: "FAQ", href: "#faq", onClick: () => handleSmoothScroll("#faq") },
-                { label: "Liên hệ", href: "#contact", onClick: () => handleSmoothScroll("#contact") },
-              ].map((item, index) => (
+            <div className={isHomePage ? "h-6 sm:h-8" : "h-4 sm:h-5"}></div>
+            <ul className={isHomePage ? "ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium" : "ml-2 sm:ml-3 mt-1 text-center text-[12px] sm:text-base font-medium"}>
+              {menuItems.map((item, index) => (
                 <li
                   key={index}
                   className="mb-0 sm:mb-1 cursor-pointer pointer-events-auto"
