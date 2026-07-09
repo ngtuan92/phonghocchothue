@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-/* global process */
+
 import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import ReactQuill, { Quill } from "react-quill-new";
@@ -38,6 +37,100 @@ const RESPONSIVE_CONTROL_CSS_VAR = {
   lineHeightMobile: '--custom-line-height-mobile',
   translateY: '--translate-y',
   translateYMobile: '--translate-y-mobile',
+};
+
+
+const RESPONSIVE_CONTROL_CALLBACK_KEYS = {
+  lineHeight: 'onChangeLineHeight',
+  lineHeightMobile: 'onChangeLineHeightMobile',
+  fontSize: 'onChangeFontSize',
+  fontSizeMobile: 'onChangeFontSizeMobile',
+  translateY: 'onChangeTranslateY',
+  translateYMobile: 'onChangeTranslateYMobile',
+};
+
+const IMAGE_WRAP_DISPLAY = {
+  left: { float: 'left', display: 'inline' },
+  right: { float: 'right', display: 'inline' },
+  none: { float: 'none', display: 'block' },
+};
+
+const RESPONSIVE_INLINE_FORMATS = {
+  fontSize: 'fontSizeDesktop',
+  fontSizeMobile: 'fontSizeMobile',
+  lineHeight: 'lineHeight',
+  lineHeightMobile: 'lineHeight',
+  translateY: 'translateY',
+  translateYMobile: 'translateY',
+};
+
+const normalizeImageWrapMode = (mode) => (mode === 'left' || mode === 'right' ? mode : 'none');
+
+const setImportantStyles = (node, styles) => {
+  Object.entries(styles).forEach(([property, value]) => {
+    node.style.setProperty(property, value, 'important');
+  });
+};
+
+const applyImageWrapDisplay = (node, mode = 'none') => {
+  const wrapMode = normalizeImageWrapMode(mode);
+  const target = node?.tagName === 'IMG' ? node : node?.querySelector?.('img');
+  if (!target) return wrapMode;
+  const wrapper = target.closest?.('.image-wrapper');
+  target.setAttribute('data-wrap', wrapMode);
+  wrapper?.setAttribute('data-wrap', wrapMode);
+  wrapper?.classList.remove('image-wrap-left', 'image-wrap-right');
+  if (wrapMode === 'left' || wrapMode === 'right') {
+    wrapper?.classList.add(`image-wrap-${wrapMode}`);
+  }
+  setImportantStyles(node, {
+    ...IMAGE_WRAP_DISPLAY[wrapMode],
+    'margin-top': wrapMode === 'none' ? '20px' : '0',
+    'margin-bottom': '16px',
+    'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
+    'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
+  });
+  return wrapMode;
+};
+
+const ensureImageCaptionNode = (wrapper, caption) => {
+  if (!wrapper?.querySelector) return;
+  const captionText = String(caption || '').trim();
+  let captionNode = wrapper.querySelector(':scope > .image-caption');
+
+  if (!captionText) {
+    captionNode?.remove();
+    return;
+  }
+
+  if (!captionNode) {
+    captionNode = document.createElement('div');
+    captionNode.className = 'image-caption';
+    captionNode.setAttribute('contenteditable', 'false');
+    wrapper.appendChild(captionNode);
+  }
+  captionNode.textContent = captionText;
+};
+
+const createControlCallbacks = (callbacks) => Object.fromEntries(
+  Object.entries(RESPONSIVE_CONTROL_CALLBACK_KEYS).map(([key, callbackName]) => [key, callbacks[callbackName]])
+);
+
+const isResponsiveControlKey = (key) => RESPONSIVE_CONTROL_KEYS.includes(key);
+
+const isValidControlInput = (value, signed = false) => (
+  signed
+    ? value === '' || value === '-' || /^-?\d+$/.test(value)
+    : value === '' || /^\d+$/.test(value)
+);
+
+const toInlineControlFormat = (key, value) => {
+  const formatName = RESPONSIVE_INLINE_FORMATS[key] || key;
+  if (!value) return { formatName, formatValue: false };
+
+  const allowsNegative = key === 'translateY' || key === 'translateYMobile';
+  const unitValue = toCssUnit(value, allowsNegative) || value;
+  return { formatName, formatValue: unitValue };
 };
 
 const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation) => {
@@ -83,111 +176,117 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
 };
 
 if (typeof window !== "undefined" && Quill) {
-  const ImageBlot = Quill.import("formats/image");
-  class CustomImageBlot extends ImageBlot {
+  const BlockEmbed = Quill.import("blots/block/embed");
+  class CustomImageBlot extends BlockEmbed {
     static create(value) {
-      const node = super.create(value);
+      const node = super.create();
+      node.classList.add("image-wrapper");
+      node.setAttribute("contenteditable", "false");
+      const img = document.createElement("img");
+      node.appendChild(img);
+
       if (typeof value === "string") {
-        node.setAttribute("src", value);
-        node.setAttribute("data-wrap", "none");
-        node.style.setProperty("float", "none", "important");
-        node.style.setProperty("display", "block", "important");
+        img.setAttribute("src", value);
+        applyImageWrapDisplay(node);
       } else if (value && typeof value === "object") {
-        node.setAttribute("src", value.src);
-        if (value.alt) node.setAttribute("alt", value.alt);
-        if (value.title) node.setAttribute("title", value.title);
-        if (value.caption) node.setAttribute("data-caption", value.caption);
+        img.setAttribute("src", value.src);
+        if (value.alt) img.setAttribute("alt", value.alt);
+        if (value.title) img.setAttribute("title", value.title);
+        if (value.caption) img.setAttribute("data-caption", value.caption);
         if (value.width) {
-          node.setAttribute("width", value.width);
-          node.style.width = value.width.includes('%') || value.width.includes('px') ? value.width : `${value.width}px`;
+          img.setAttribute("width", value.width);
+          img.style.width = value.width.includes('%') || value.width.includes('px') ? value.width : `${value.width}px`;
         }
         if (value.borderRadius) {
-          node.style.borderRadius = value.borderRadius;
-          node.setAttribute("data-border-radius", value.borderRadius);
+          img.style.borderRadius = value.borderRadius;
+          img.setAttribute("data-border-radius", value.borderRadius);
         }
-        const wrapMode = value.wrap || "none";
-        node.setAttribute("data-wrap", wrapMode);
-        if (wrapMode === "left") {
-          node.style.setProperty("float", "left", "important");
-          node.style.setProperty("display", "inline", "important");
-        } else if (wrapMode === "right") {
-          node.style.setProperty("float", "right", "important");
-          node.style.setProperty("display", "inline", "important");
-        } else {
-          node.style.setProperty("float", "none", "important");
-          node.style.setProperty("display", "block", "important");
-        }
+        applyImageWrapDisplay(node, value.wrap);
+        ensureImageCaptionNode(node, value.caption);
       }
       return node;
     }
     static formats(node) {
-      let width = node.getAttribute("width");
-      if (!width && node.style.width) {
-        width = node.style.width;
+      const img = node.tagName === "IMG" ? node : node.querySelector("img");
+      if (!img) return {};
+
+      let width = img.getAttribute("width");
+      if (!width && img.style.width) {
+        width = img.style.width;
       }
-      let wrap = node.getAttribute("data-wrap");
+      let wrap = img.getAttribute("data-wrap") || node.getAttribute("data-wrap");
       if (!wrap) {
-        if (node.style.float === 'left') wrap = 'left';
-        else if (node.style.float === 'right') wrap = 'right';
+        if (node.style.float === 'left' || img.style.float === 'left') wrap = 'left';
+        else if (node.style.float === 'right' || img.style.float === 'right') wrap = 'right';
       }
       return {
         width: width,
-        alt: node.getAttribute("alt"),
-        title: node.getAttribute("title"),
-        caption: node.getAttribute("data-caption"),
-        borderRadius: node.style.borderRadius || node.getAttribute("data-border-radius"),
+        alt: img.getAttribute("alt"),
+        title: img.getAttribute("title"),
+        caption: img.getAttribute("data-caption"),
+        borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius"),
         wrap: wrap || 'none'
       };
     }
+    static value(node) {
+      const img = node.tagName === "IMG" ? node : node.querySelector("img");
+      if (!img) return "";
+      return {
+        src: img.getAttribute("src") || "",
+        alt: img.getAttribute("alt") || "",
+        title: img.getAttribute("title") || "",
+        caption: img.getAttribute("data-caption") || "",
+        width: img.getAttribute("width") || img.style.width || "",
+        borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || "",
+        wrap: img.getAttribute("data-wrap") || node.getAttribute("data-wrap") || "none"
+      };
+    }
     format(name, value) {
+      const img = this.domNode.tagName === "IMG" ? this.domNode : this.domNode.querySelector("img");
+      if (!img) {
+        super.format(name, value);
+        return;
+      }
+
       if (name === "width") {
-        this.domNode.setAttribute("width", value);
-        this.domNode.style.width = value;
+        img.setAttribute("width", value);
+        img.style.width = value;
       } else if (name === "alt") {
         if (value) {
-          this.domNode.setAttribute("alt", value);
+          img.setAttribute("alt", value);
         } else {
-          this.domNode.removeAttribute("alt");
+          img.removeAttribute("alt");
         }
       } else if (name === "title") {
         if (value) {
-          this.domNode.setAttribute("title", value);
+          img.setAttribute("title", value);
         } else {
-          this.domNode.removeAttribute("title");
+          img.removeAttribute("title");
         }
       } else if (name === "caption") {
         if (value) {
-          this.domNode.setAttribute("data-caption", value);
+          img.setAttribute("data-caption", value);
         } else {
-          this.domNode.removeAttribute("data-caption");
+          img.removeAttribute("data-caption");
         }
+        ensureImageCaptionNode(this.domNode, value);
       } else if (name === "borderRadius") {
-        this.domNode.style.borderRadius = value || "";
+        img.style.borderRadius = value || "";
         if (value) {
-          this.domNode.setAttribute("data-border-radius", value);
+          img.setAttribute("data-border-radius", value);
         } else {
-          this.domNode.removeAttribute("data-border-radius");
+          img.removeAttribute("data-border-radius");
         }
       } else if (name === "wrap") {
-        const wrapMode = value || "none";
-        this.domNode.setAttribute("data-wrap", wrapMode);
-        if (wrapMode === "left") {
-          this.domNode.style.setProperty("float", "left", "important");
-          this.domNode.style.setProperty("display", "inline", "important");
-        } else if (wrapMode === "right") {
-          this.domNode.style.setProperty("float", "right", "important");
-          this.domNode.style.setProperty("display", "inline", "important");
-        } else {
-          this.domNode.style.setProperty("float", "none", "important");
-          this.domNode.style.setProperty("display", "block", "important");
-        }
+        applyImageWrapDisplay(this.domNode, value);
       } else {
         super.format(name, value);
       }
     }
   }
   CustomImageBlot.blotName = "image";
-  CustomImageBlot.tagName = "img";
+  CustomImageBlot.tagName = "div";
+  CustomImageBlot.className = "image-wrapper";
   Quill.register(CustomImageBlot, true);
 
   const InlineBlot = Quill.import("blots/inline");
@@ -415,61 +514,20 @@ const safeNumber = (value, fallback = 0) => {
   return Number.isFinite(num) ? num : fallback;
 };
 
-const cleanStyleForSave = (styleContent) => {
-  const parts = styleContent.split(';');
-  let otherStyles = [];
+const cleanFontSizeStyle = (styleContent) => styleContent
+  .split(';')
+  .map(part => part.trim())
+  .filter(part => {
+    if (!part) return false;
+    const lower = part.toLowerCase();
+    if (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile')) return true;
+    if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) return false;
+    return !/^font-size\s*:/i.test(part);
+  })
+  .join('; ');
 
-  for (let part of parts) {
-    part = part.trim();
-    if (!part) continue;
-
-    if (part.toLowerCase().startsWith('--fs-desktop') || part.toLowerCase().startsWith('--fs-mobile')) {
-      otherStyles.push(part);
-      continue;
-    }
-
-    if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
-      continue;
-    }
-
-    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
-    if (fontSizeMatch) {
-      continue;
-    }
-
-    otherStyles.push(part);
-  }
-
-  return otherStyles.join('; ');
-};
-
-const cleanStyleForEdit = (styleContent) => {
-  const parts = styleContent.split(';');
-  let otherStyles = [];
-
-  for (let part of parts) {
-    part = part.trim();
-    if (!part) continue;
-
-    if (part.toLowerCase().startsWith('--fs-desktop') || part.toLowerCase().startsWith('--fs-mobile')) {
-      otherStyles.push(part);
-      continue;
-    }
-
-    if (/^--fs(?:-[\w-]+)?\s*:/i.test(part)) {
-      continue;
-    }
-
-    const fontSizeMatch = part.match(new RegExp('^font' + '-size\\s*:\\s*(.+)$', 'i'));
-    if (fontSizeMatch) {
-      continue;
-    }
-
-    otherStyles.push(part);
-  }
-
-  return otherStyles.join('; ');
-};
+const cleanStyleForSave = cleanFontSizeStyle;
+const cleanStyleForEdit = cleanFontSizeStyle;
 
 const removeEmptyStyledSpans = (html) => {
   if (!html || typeof html !== "string") return html;
@@ -491,6 +549,107 @@ const removeEmptyStyledSpans = (html) => {
 
   root.querySelectorAll("span:not([style]):not([class])").forEach((span) => {
     span.replaceWith(...Array.from(span.childNodes));
+  });
+
+  return root.innerHTML;
+};
+
+
+const stripEditorCaptionArtifacts = (html) => {
+  if (!html || typeof html !== "string") return html;
+  return html
+    .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-inline-image-caption(?:-preview)?\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "");
+};
+
+const isEmptyQuillParagraph = (node) => {
+  if (!node || node.tagName !== 'P') return false;
+  if (node.querySelector('img, video, iframe, svg, table, ul, ol')) return false;
+  const text = (node.textContent || '').replace(/\u00a0/g, '').trim();
+  if (text) return false;
+  return Array.from(node.childNodes).every((child) => (
+    child.nodeType === Node.TEXT_NODE
+      ? !String(child.textContent || '').replace(/\u00a0/g, '').trim()
+      : child.nodeType === Node.ELEMENT_NODE && child.tagName === 'BR'
+  ));
+};
+
+const removeEmptyQuillParagraphElements = (root) => {
+  if (!root?.querySelectorAll) return;
+  const children = Array.from(root.children || []);
+  let trailingIndex = children.length - 1;
+
+  while (trailingIndex >= 0 && isEmptyQuillParagraph(children[trailingIndex])) {
+    children[trailingIndex].remove();
+    trailingIndex -= 1;
+  }
+
+  let emptyRun = [];
+  Array.from(root.children || []).forEach((child) => {
+    if (isEmptyQuillParagraph(child)) {
+      emptyRun.push(child);
+      if (emptyRun.length > 1) {
+        child.remove();
+      }
+      return;
+    }
+    emptyRun = [];
+  });
+};
+
+const removeEmptyQuillParagraphs = (html) => {
+  if (!html || typeof html !== "string") return html;
+  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
+    return html.replace(/<p\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "");
+  }
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+  removeEmptyQuillParagraphElements(root);
+  return root.innerHTML;
+};
+
+const findImageBlot = (img) => {
+  if (!img) return null;
+  return Quill.find(img) || Quill.find(img.closest?.('.image-wrapper'));
+};
+
+const normalizeImageWrappersForEdit = (html) => {
+  if (!html || typeof html !== "string" || typeof window === "undefined" || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  root.querySelectorAll('.image-wrapper').forEach((wrapper) => {
+    const img = wrapper.querySelector('img');
+    if (!img) return;
+    const captionNode = wrapper.querySelector(':scope > .image-caption');
+    const caption = img.getAttribute('data-caption') || captionNode?.textContent || '';
+    ensureImageCaptionNode(wrapper, caption);
+    const wrap = normalizeImageWrapMode(img.getAttribute('data-wrap') || wrapper.getAttribute('data-wrap'));
+    wrapper.setAttribute('data-wrap', wrap);
+    wrapper.classList.remove('image-wrap-left', 'image-wrap-right');
+    if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
+    setImportantStyles(wrapper, {
+      'margin-top': wrap === 'none' ? '20px' : '0',
+      'margin-bottom': '16px',
+      'margin-left': wrap === 'right' ? '20px' : wrap === 'none' ? 'auto' : '0',
+      'margin-right': wrap === 'left' ? '20px' : wrap === 'none' ? 'auto' : '0',
+    });
+  });
+
+  root.querySelectorAll('img').forEach((img) => {
+    if (img.closest('.image-wrapper')) return;
+    const wrapper = doc.createElement('div');
+    wrapper.className = 'image-wrapper';
+    const wrap = normalizeImageWrapMode(img.getAttribute('data-wrap'));
+    wrapper.setAttribute('data-wrap', wrap);
+    if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
+    img.replaceWith(wrapper);
+    wrapper.appendChild(img);
+    ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
   });
 
   return root.innerHTML;
@@ -590,7 +749,6 @@ const QuillWrapper = forwardRef(({
   const resizerOverlayRef = useRef(null);
   const resizeDragRef = useRef(false);
   const imageResizeSessionRef = useRef(null);
-  const [captions, setCaptions] = useState([]);
   const savedSelectionRef = useRef(null);
   const lastHighlightSelectionRef = useRef(null);
   const controlSelectionRef = useRef(null);
@@ -601,18 +759,14 @@ const QuillWrapper = forwardRef(({
   const suppressControlInputBlurRef = useRef(false);
   const controlPopupOpenRef = useRef(false);
   const emitCurrentContentForSaveRef = useRef(null);
-  const handleSignedIntegerChange = useCallback((value, onChange) => {
-    if (!onChange) return;
-    if (value === "" || value === "-" || /^-?\d+$/.test(value)) {
-      onChange(value);
-    }
-  }, []);
-  const handleUnsignedIntegerChange = useCallback((value, onChange) => {
-    if (!onChange) return;
-    if (value === "" || /^\d+$/.test(value)) {
-      onChange(value);
-    }
-  }, []);
+
+
+  const onChangeTimeoutRef = useRef(null);
+  const onChangeRef = useRef(props.onChange);
+  useEffect(() => {
+    onChangeRef.current = props.onChange;
+  }, [props.onChange]);
+
   const normalizeUnsignedControlValue = useCallback((key, value) => {
     if (value === null || value === undefined) return "";
     const text = String(value).trim();
@@ -622,14 +776,6 @@ const QuillWrapper = forwardRef(({
     }
     return text;
   }, []);
-  const getControlValue = useCallback((key, value) => (
-    Object.prototype.hasOwnProperty.call(selectionControlDrafts, key)
-      ? normalizeUnsignedControlValue(key, selectionControlDrafts[key])
-      : commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, key)
-        ? normalizeUnsignedControlValue(key, controlDrafts[key])
-        : normalizeUnsignedControlValue(key, value)
-  ), [commitOnBlurOnly, controlDrafts, normalizeUnsignedControlValue, selectionControlDrafts]);
-
   const getPopupInputValue = useCallback((key, value) => {
     if (Object.prototype.hasOwnProperty.call(popupInputValuesRef.current, key)) {
       return popupInputValuesRef.current[key];
@@ -849,31 +995,14 @@ const QuillWrapper = forwardRef(({
 
   const applyInlineControlToSelection = useCallback((key, value, options = {}) => {
     const { updateDraft = true } = options;
-    if (!canUseInlineSelectionControls || !['fontSize', 'fontSizeMobile', 'lineHeight', 'lineHeightMobile', 'translateY', 'translateYMobile'].includes(key)) return false;
+    if (!canUseInlineSelectionControls || !isResponsiveControlKey(key)) return false;
 
     const quill = getQuillEditor();
     const selection = getCurrentControlSelection();
     if (!quill || !selection || selection.length <= 0) return false;
 
     const normalized = normalizeUnsignedControlValue(key, value);
-    let formatName = key;
-    let formatValue = normalized;
-
-    if (normalized) {
-      if (key === 'fontSize') {
-        formatName = 'fontSizeDesktop';
-        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
-      } else if (key === 'fontSizeMobile') {
-        formatName = 'fontSizeMobile';
-        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
-      } else if (key === 'lineHeight' || key === 'lineHeightMobile') {
-        formatName = 'lineHeight';
-        formatValue = /^\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
-      } else if (key === 'translateY' || key === 'translateYMobile') {
-        formatName = 'translateY';
-        formatValue = /^-?\d+$/.test(String(normalized).trim()) ? `${normalized}px` : normalized;
-      }
-    }
+    const { formatName, formatValue } = toInlineControlFormat(key, normalized);
 
     const hasFocus = quill.hasFocus();
 
@@ -990,13 +1119,10 @@ const QuillWrapper = forwardRef(({
   ]);
 
   const updateControlDraftValue = useCallback((key, value, signed = false, inputElement = null) => {
-    const isAllowed = signed
-      ? (value === "" || value === "-" || /^-?\d+$/.test(value))
-      : (value === "" || /^\d+$/.test(value));
-    if (!isAllowed) return;
+    if (!isValidControlInput(value, signed)) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);
-    if (hasResponsive && RESPONSIVE_CONTROL_KEYS.includes(key)) {
+    if (hasResponsive && isResponsiveControlKey(key)) {
       selectionControlDraftsRef.current = {
         ...selectionControlDraftsRef.current,
         [key]: nextValue,
@@ -1032,7 +1158,7 @@ const QuillWrapper = forwardRef(({
           if (document.activeElement !== inputElement) {
             try {
               inputElement.focus({ preventScroll: true });
-            } catch (e) { /* ignore */ }
+            } catch { /* ignore */ }
           }
         }, 0);
       }
@@ -1047,20 +1173,20 @@ const QuillWrapper = forwardRef(({
       popupInputValuesRef.current[key] = nextValue;
       setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       onControlDraftChange?.(key, nextValue);
-      if (RESPONSIVE_CONTROL_KEYS.includes(key)) {
+      if (isResponsiveControlKey(key)) {
         applyPreviewControlToContainer(key, nextValue);
       }
       return;
     }
 
-    const callbacks = {
-      lineHeight: onChangeLineHeight,
-      lineHeightMobile: onChangeLineHeightMobile,
-      fontSize: onChangeFontSize,
-      fontSizeMobile: onChangeFontSizeMobile,
-      translateY: onChangeTranslateY,
-      translateYMobile: onChangeTranslateYMobile,
-    };
+    const callbacks = createControlCallbacks({
+      onChangeLineHeight,
+      onChangeLineHeightMobile,
+      onChangeFontSize,
+      onChangeFontSizeMobile,
+      onChangeTranslateY,
+      onChangeTranslateYMobile,
+    });
     callbacks[key]?.(nextValue);
   }, [
     commitOnBlurOnly,
@@ -1079,21 +1205,18 @@ const QuillWrapper = forwardRef(({
   ]);
 
   const updateControlValue = useCallback((key, value, onChange, signed = false) => {
-    const isAllowed = signed
-      ? (value === "" || value === "-" || /^-?\d+$/.test(value))
-      : (value === "" || /^\d+$/.test(value));
-    if (!isAllowed) return;
+    if (!isValidControlInput(value, signed)) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);
-    if (hasResponsive && RESPONSIVE_CONTROL_KEYS.includes(key)) {
-      const responsiveCallbacks = {
-        lineHeight: onChangeLineHeight,
-        lineHeightMobile: onChangeLineHeightMobile,
-        fontSize: onChangeFontSize,
-        fontSizeMobile: onChangeFontSizeMobile,
-        translateY: onChangeTranslateY,
-        translateYMobile: onChangeTranslateYMobile,
-      };
+    if (hasResponsive && isResponsiveControlKey(key)) {
+      const responsiveCallbacks = createControlCallbacks({
+        onChangeLineHeight,
+        onChangeLineHeightMobile,
+        onChangeFontSize,
+        onChangeFontSizeMobile,
+        onChangeTranslateY,
+        onChangeTranslateYMobile,
+      });
 
       const appliedInline = applyInlineControlToSelection(key, value);
 
@@ -1139,14 +1262,14 @@ const QuillWrapper = forwardRef(({
   ]);
 
   const commitControlDrafts = useCallback(() => {
-    const callbacks = {
-      lineHeight: onChangeLineHeight,
-      lineHeightMobile: onChangeLineHeightMobile,
-      fontSize: onChangeFontSize,
-      fontSizeMobile: onChangeFontSizeMobile,
-      translateY: onChangeTranslateY,
-      translateYMobile: onChangeTranslateYMobile,
-    };
+    const callbacks = createControlCallbacks({
+      onChangeLineHeight,
+      onChangeLineHeightMobile,
+      onChangeFontSize,
+      onChangeFontSizeMobile,
+      onChangeTranslateY,
+      onChangeTranslateYMobile,
+    });
 
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
       if (applyInlineControlToSelection(key, value, { updateDraft: false })) {
@@ -1217,15 +1340,7 @@ const QuillWrapper = forwardRef(({
     applyAllPreviewControlStyles();
   }, [showFontSizePopup, showSpacingPopup, showTranslatePopup, applyAllPreviewControlStyles]);
 
-  const focusPopupInput = useCallback((event, key) => {
-    event.preventDefault();
-    event.stopPropagation();
-    event.nativeEvent?.stopImmediatePropagation?.();
-    suppressControlInputBlurRef.current = false;
-    activeControlInputKeyRef.current = key;
-    focusControlInput(key);
-    event.currentTarget?.focus?.({ preventScroll: true });
-  }, [focusControlInput]);
+
 
   const keepPopupInputKeyInInput = useCallback((event) => {
     event.stopPropagation();
@@ -1273,21 +1388,27 @@ const QuillWrapper = forwardRef(({
     syncSelectionControlsFromFormat
   ]);
 
-  const getImageWrapMode = useCallback((mode) => {
-    if (mode === 'right') return 'right';
-    if (mode === 'center' || mode === 'none' || !mode) return 'none';
-    return 'left';
-  }, []);
+  const getImageWrapMode = useCallback(normalizeImageWrapMode, []);
 
   const applyImageWrapDom = useCallback((img, mode) => {
     const wrapMode = getImageWrapMode(mode);
+    const wrapper = img.closest?.('.image-wrapper');
     img.setAttribute('data-wrap', wrapMode);
-    img.style.setProperty('float', wrapMode === 'left' ? 'left' : wrapMode === 'right' ? 'right' : 'none', 'important');
-    img.style.setProperty('display', wrapMode === 'none' ? 'block' : 'inline', 'important');
-    img.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '12px', 'important');
-    img.style.setProperty('margin-bottom', '16px', 'important');
-    img.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
-    img.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    wrapper?.setAttribute('data-wrap', wrapMode);
+    wrapper?.classList.remove('image-wrap-left', 'image-wrap-right');
+    if (wrapMode === 'left' || wrapMode === 'right') {
+      wrapper?.classList.add(`image-wrap-${wrapMode}`);
+    }
+    const styleTarget = wrapper || img;
+    styleTarget.style.setProperty('float', wrapMode === 'left' ? 'left' : wrapMode === 'right' ? 'right' : 'none', 'important');
+    styleTarget.style.setProperty('display', wrapMode === 'none' ? 'block' : 'inline-block', 'important');
+    styleTarget.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '0', 'important');
+    styleTarget.style.setProperty('margin-bottom', wrapMode === 'none' ? '16px' : '16px', 'important');
+    styleTarget.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    styleTarget.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    img.style.setProperty('display', 'block', 'important');
+    img.style.setProperty('margin', '0', 'important');
+    ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
     return wrapMode;
   }, [getImageWrapMode]);
 
@@ -1338,120 +1459,23 @@ const QuillWrapper = forwardRef(({
     });
   }, []);
 
-  const updateCaptionsList = useCallback(() => {
-    const imgContainer = containerRef.current;
-    if (!imgContainer) return;
-    const imgs = imgContainer.querySelectorAll('.ql-editor img');
-    const wrapperRect = imgContainer.getBoundingClientRect();
-    const list = [];
-    imgs.forEach((img, idx) => {
-      const hasDataCaption = img.hasAttribute('data-caption');
-      const captionText = hasDataCaption
-        ? (img.getAttribute('data-caption') || '').trim()
-        : (img.getAttribute('title') || '').trim();
-      if (captionText && captionText !== '') {
-        const imgRect = img.getBoundingClientRect();
-        list.push({
-          id: idx,
-          text: captionText,
-          top: imgRect.bottom - wrapperRect.top,
-          left: imgRect.left - wrapperRect.left,
-          width: imgRect.width
-        });
-      }
-    });
-    setCaptions(prev => {
-      if (prev.length !== list.length) return list;
-      const isDifferent = prev.some((item, index) => {
-        const next = list[index];
-        return (
-          item.id !== next.id ||
-          item.text !== next.text ||
-          Math.abs((item.top || 0) - (next.top || 0)) > 1 ||
-          Math.abs((item.left || 0) - (next.left || 0)) > 1 ||
-          Math.abs((item.width || 0) - (next.width || 0)) > 1
-        );
-      });
-      return isDifferent ? list : prev;
-    });
+  const cleanEmptyEditorParagraphs = useCallback(() => {
+    const editor = containerRef.current?.querySelector('.ql-editor');
+    if (!editor) return;
+    removeEmptyQuillParagraphElements(editor);
   }, []);
 
-  const positionCaptionsDirectly = useCallback(() => {
-    const imgContainer = containerRef.current;
-    if (!imgContainer) return;
-    const imgs = imgContainer.querySelectorAll('.ql-editor img');
-    const wrapperRect = imgContainer.getBoundingClientRect();
-    const captionElements = imgContainer.querySelectorAll('.editor-image-caption');
-    const editor = imgContainer.querySelector('.ql-editor');
-    const editorRect = editor ? editor.getBoundingClientRect() : null;
-
-    let captionIdx = 0;
-    imgs.forEach((img) => {
-      const hasDataCaption = img.hasAttribute('data-caption');
-      const captionText = hasDataCaption
-        ? (img.getAttribute('data-caption') || '').trim()
-        : (img.getAttribute('title') || '').trim();
-      if (captionText && captionText !== '') {
-        const capEl = captionElements[captionIdx];
-        if (capEl) {
-          const imgRect = img.getBoundingClientRect();
-          const top = imgRect.bottom - wrapperRect.top + 12;
-          const left = imgRect.left - wrapperRect.left;
-          const width = imgRect.width;
-
-          capEl.style.top = `${top}px`;
-          capEl.style.left = `${left}px`;
-          capEl.style.width = `${width}px`;
-
-          if (editorRect) {
-            const isOutside = (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
-            if (isOutside) {
-              capEl.style.display = 'none';
-            } else {
-              capEl.style.display = 'block';
-            }
-          }
-        }
-        captionIdx++;
-      }
-    });
-  }, []);
-
-  const syncInlineEditorCaptions = useCallback(() => {
+  const syncImageCaptionBlots = useCallback(() => {
     const editor = containerRef.current?.querySelector('.ql-editor');
     if (!editor) return;
 
-    editor.querySelectorAll('.editor-inline-image-caption').forEach((captionEl) => {
-      const previous = captionEl.previousElementSibling;
-      if (previous?.tagName !== 'IMG') {
-        captionEl.remove();
-      }
-    });
-
+    editor.querySelectorAll('.editor-inline-image-caption, .editor-inline-image-caption-preview').forEach((el) => el.remove());
     editor.querySelectorAll('img').forEach((img) => {
-      const captionText = (img.hasAttribute('data-caption')
-        ? img.getAttribute('data-caption')
-        : img.getAttribute('title') || ''
-      ).trim();
-      const next = img.nextElementSibling;
-      const existingCaption = next?.classList?.contains('editor-inline-image-caption') ? next : null;
-
-      if (!captionText) {
-        existingCaption?.remove();
-        return;
-      }
-
-      const captionEl = existingCaption || document.createElement('span');
-      captionEl.className = 'editor-inline-image-caption';
-      captionEl.setAttribute('contenteditable', 'false');
-      captionEl.textContent = captionText;
-
-      if (!existingCaption) {
-        img.insertAdjacentElement('afterend', captionEl);
-      }
+      const wrapper = img.closest('.image-wrapper');
+      if (!wrapper) return;
+      ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
     });
   }, []);
-
   const getVisibleImageRect = useCallback((imgRect, editorRect) => {
     if (!editorRect) {
       return {
@@ -1564,11 +1588,6 @@ const QuillWrapper = forwardRef(({
       setResizerRect((prev) => (prev === null ? prev : null));
     }
   }, [getVisibleImageRect]);
-
-  useEffect(() => {
-    positionCaptionsDirectly();
-    syncInlineEditorCaptions();
-  }, [captions, positionCaptionsDirectly, syncInlineEditorCaptions]);
 
   const updateSizePickerLabel = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
@@ -1768,8 +1787,8 @@ const QuillWrapper = forwardRef(({
       try {
         if (!quill.root.querySelector('img')) return;
         syncSelectedImageRect();
-        positionCaptionsDirectly();
         positionResizerDirectly();
+        syncImageCaptionBlots();
       } catch { /* ignore */ }
     };
 
@@ -1783,15 +1802,16 @@ const QuillWrapper = forwardRef(({
       })();
 
       if (hasImg) {
-        updateCaptionsList();
-      }
-      syncCustomFontSizes();
-      if (hasImg) {
+        syncImageCaptionBlots();
+
         setTimeout(() => {
-          positionCaptionsDirectly();
           positionResizerDirectly();
+          syncImageCaptionBlots();
         }, 0);
       }
+
+      syncCustomFontSizes();
+      cleanEmptyEditorParagraphs();
     };
 
     window.addEventListener('scroll', handleScrollOrResize, true);
@@ -1806,9 +1826,10 @@ const QuillWrapper = forwardRef(({
 
     // Initial trigger
     setTimeout(() => {
-      updateCaptionsList();
+      syncImageCaptionBlots();
       updateSizePickerLabel();
       syncCustomFontSizes();
+      cleanEmptyEditorParagraphs();
       setTimeout(handleScrollOrResize, 50);
       if (toolbar) {
         try {
@@ -1824,19 +1845,22 @@ const QuillWrapper = forwardRef(({
       window.removeEventListener('resize', handleScrollOrResize);
       quill.root.removeEventListener('scroll', handleScrollOrResize, true);
       resizeObserver.disconnect();
+      container.querySelectorAll('.editor-inline-image-caption').forEach((el) => el.remove());
+      document.querySelectorAll('.editor-inline-image-caption-preview').forEach((el) => el.remove());
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
     };
   }, [
     isReady,
-    updateCaptionsList,
-    positionCaptionsDirectly,
+    syncImageCaptionBlots,
     positionResizerDirectly,
     syncSelectedImageRect,
     updateSizePickerLabel,
     preserveAdminScrollDuring,
     setSelectionWithoutScroll,
     syncSelectionControlsFromFormat,
+    syncCustomFontSizes,
+    cleanEmptyEditorParagraphs,
   ]);
   useEffect(() => {
     if (!isReady) return;
@@ -2664,6 +2688,7 @@ const QuillWrapper = forwardRef(({
   const [alertConfig, setAlertConfig] = useState({ isOpen: false, message: "" });
 
   const openAltModal = useCallback((initialData, callback) => {
+    console.log("DEBUG [Modal]: Dữ liệu truyền vào Modal là:", initialData);
     setModalData({
       alt: initialData.alt || "",
       title: initialData.title || "",
@@ -2690,7 +2715,7 @@ const QuillWrapper = forwardRef(({
   useEffect(() => {
     if (selectedImage) {
       syncSelectedImageRect();
-      updateCaptionsList();
+      syncImageCaptionBlots();
       let frameId = 0;
 
       const schedulePosition = () => {
@@ -2699,7 +2724,6 @@ const QuillWrapper = forwardRef(({
           frameId = 0;
           syncSelectedImageRect();
           positionResizerDirectly();
-          positionCaptionsDirectly();
         });
       };
 
@@ -2716,7 +2740,7 @@ const QuillWrapper = forwardRef(({
     } else {
       setResizerRect((prev) => (prev === null ? prev : null));
     }
-  }, [selectedImage, syncSelectedImageRect, updateCaptionsList, positionResizerDirectly, positionCaptionsDirectly]);
+  }, [selectedImage, syncSelectedImageRect, syncImageCaptionBlots, positionResizerDirectly]);
 
   const handleContainerClick = useCallback((ev) => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -2740,66 +2764,17 @@ const QuillWrapper = forwardRef(({
     if (selectedImageRef.current) {
       rememberSelectedImage(null);
       setTimeout(() => {
-        updateCaptionsList();
-        positionCaptionsDirectly();
+        syncImageCaptionBlots();
       }, 50);
     }
-  }, [enterImageEditMode, getQuillEditor, rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
-
-  const handleContainerDblClick = useCallback((ev) => {
-    if (disableImageWrap || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
-    const img = ev.target.closest && ev.target.closest('img');
-    const quill = getQuillEditor();
-    if (!quill || !img || !quill.root.contains(img)) return;
-    openAltModal(
-      {
-        alt: img.getAttribute('alt') || '',
-        title: img.getAttribute('title') || '',
-        caption: img.hasAttribute('data-caption') ? (img.getAttribute('data-caption') || '') : (img.getAttribute('title') || ''),
-        borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
-      },
-      (newData) => {
-        const blot = Quill.find(img);
-        if (blot) {
-          const index = quill.getIndex(blot);
-          quill.formatText(index, 1, 'alt', newData.alt, 'user');
-          quill.formatText(index, 1, 'title', newData.title, 'user');
-          quill.formatText(index, 1, 'caption', newData.caption, 'user');
-          quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
-          if (newData.alt) img.setAttribute('alt', newData.alt); else img.removeAttribute('alt');
-          if (newData.title) img.setAttribute('title', newData.title); else img.removeAttribute('title');
-          if (newData.caption) img.setAttribute('data-caption', newData.caption); else img.removeAttribute('data-caption');
-          img.style.borderRadius = newData.borderRadius || '';
-          if (newData.borderRadius) img.setAttribute('data-border-radius', newData.borderRadius); else img.removeAttribute('data-border-radius');
-          quill.update('user');
-          setTimeout(() => emitCurrentContentForSave(true), 0);
-          setTimeout(() => {
-            updateCaptionsList();
-            positionCaptionsDirectly();
-          }, 50);
-        }
-      }
-    );
-  }, [disableImageWrap, openAltModal, updateCaptionsList, positionCaptionsDirectly]);
-
-  useEffect(() => {
-    if (!isReady || !containerRef.current) return;
-    const container = containerRef.current;
-    container.addEventListener('click', handleContainerClick);
-    container.addEventListener('dblclick', handleContainerDblClick);
-    return () => {
-      container.removeEventListener('click', handleContainerClick);
-      container.removeEventListener('dblclick', handleContainerDblClick);
-    };
-  }, [isReady, handleContainerClick, handleContainerDblClick]);
+  }, [enterImageEditMode, getQuillEditor, rememberSelectedImage, syncImageCaptionBlots]);
 
   const fileInputRef = useRef(null);
 
   const normalizeContentForSave = useCallback((content) => {
     const escapedUrlApi = URL_API.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(`src=["']${escapedUrlApi}(assets/[^"']+)["']`, 'gi');
-    let relativeContent = removeEmptyStyledSpans(content || "").replace(regex, 'src="/$1"');
-    relativeContent = relativeContent.replace(/<span\b[^>]*class=["'][^"']*\beditor-inline-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi, "");
+    let relativeContent = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || ""))).replace(regex, 'src="/$1"');
     relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
     const cleanBlockStyleString = (styleStr) => {
@@ -2833,7 +2808,7 @@ const QuillWrapper = forwardRef(({
         const cleaned = stripFontSizeFromStyle(styleContent);
         return cleaned ? `style=${quote}${cleaned}${cleaned ? quote : ""}` : "";
       });
-      relativeContent = removeEmptyStyledSpans(relativeContent);
+      relativeContent = removeEmptyQuillParagraphs(removeEmptyStyledSpans(relativeContent));
     } else {
       relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
         const cleaned = cleanStyleForSave(styleContent);
@@ -2841,7 +2816,7 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    return relativeContent;
+    return removeEmptyQuillParagraphs(relativeContent);
   }, [hasResponsive, isSimpleTextField]);
 
   const emitCurrentContentForSave = useCallback((forceCommit = false) => {
@@ -2862,7 +2837,7 @@ const QuillWrapper = forwardRef(({
   emitCurrentContentForSaveRef.current = emitCurrentContentForSave;
 
   const handleOnChange = useCallback((content, delta, source, editor) => {
-    if (props.onChange) {
+    if (onChangeRef.current) {
       if (source !== 'user') return;
       isUserEditingRef.current = true;
       localEditorHtmlRef.current = content;
@@ -2911,9 +2886,17 @@ const QuillWrapper = forwardRef(({
         return;
       }
 
-      props.onChange(relativeContent, delta, source, editor);
+      // --- FIX LAG & MẤT FOCUS: DEBOUNCE LƯU LÊN CHA (300ms) ---
+      if (onChangeTimeoutRef.current) {
+        clearTimeout(onChangeTimeoutRef.current);
+      }
+      onChangeTimeoutRef.current = setTimeout(() => {
+        if (onChangeRef.current) {
+          onChangeRef.current(relativeContent, delta, source, editor);
+        }
+      }, 300);
     }
-  }, [props.onChange, props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, normalizeContentForSave]);
+  }, [props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, normalizeContentForSave]);
 
   const handleSelectionChange = useCallback((range) => {
     if (range) {
@@ -2979,6 +2962,96 @@ const QuillWrapper = forwardRef(({
 
     handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
   }, [handleOnChange]);
+
+  const applyImageMetadata = useCallback((quill, imgIndex, newData) => {
+    if (imgIndex === -1 || !quill) return;
+
+    quill.formatText(imgIndex, 1, 'alt', newData.alt || false, 'user');
+    quill.formatText(imgIndex, 1, 'title', newData.title || false, 'user');
+    quill.formatText(imgIndex, 1, 'caption', newData.caption || false, 'user');
+    quill.formatText(imgIndex, 1, 'borderRadius', newData.borderRadius || false, 'user');
+    if (newData.wrap !== undefined) {
+      quill.formatText(imgIndex, 1, 'wrap', newData.wrap || 'none', 'user');
+    }
+
+    const [newBlot] = quill.getLeaf(imgIndex);
+    const newImg = newBlot?.domNode?.tagName === 'IMG'
+      ? newBlot.domNode
+      : newBlot?.domNode?.querySelector?.('img');
+
+    if (newImg) {
+      if (newData.alt) newImg.setAttribute('alt', newData.alt);
+      else newImg.removeAttribute('alt');
+
+      if (newData.title) newImg.setAttribute('title', newData.title);
+      else newImg.removeAttribute('title');
+
+      if (newData.caption) newImg.setAttribute('data-caption', newData.caption);
+      else newImg.removeAttribute('data-caption');
+
+      if (newData.borderRadius) {
+        newImg.style.borderRadius = newData.borderRadius;
+        newImg.setAttribute('data-border-radius', newData.borderRadius);
+      } else {
+        newImg.style.borderRadius = '';
+        newImg.removeAttribute('data-border-radius');
+      }
+
+      if (newData.wrap !== undefined) {
+        applyImageWrapDom(newImg, newData.wrap || 'none');
+      }
+
+      requestAnimationFrame(() => {
+        syncImageCaptionBlots();
+      });
+    }
+
+    quill.update('user');
+    syncImageEditChange(quill);
+    setTimeout(() => emitCurrentContentForSaveRef.current?.(true), 0);
+    setTimeout(() => {
+      syncImageCaptionBlots();
+    }, 100);
+  }, [syncImageEditChange, syncImageCaptionBlots, applyImageWrapDom]);
+
+  const readImageData = (img) => ({
+    alt: img.getAttribute('alt') || '',
+    title: img.getAttribute('title') || '',
+    caption: img.getAttribute('data-caption') || '',
+    borderRadius: img.style.borderRadius || img.getAttribute('data-border-radius') || '',
+    wrap: img.getAttribute('data-wrap') || 'none'
+  });
+
+  const handleContainerDblClick = useCallback((ev) => {
+    if (disableImageWrap || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
+
+    const clickedImg = ev.target.closest && ev.target.closest('img');
+    if (!clickedImg) return;
+
+    const quill = getQuillEditor();
+    if (!quill) return;
+
+    const src = clickedImg.getAttribute('src');
+    const actualImg = Array.from(quill.root.querySelectorAll('img')).find(i => i.getAttribute('src') === src);
+    if (!actualImg) return;
+
+    const blot = findImageBlot(actualImg);
+    const imgIndex = blot ? quill.getIndex(blot) : -1;
+
+    openAltModal(readImageData(actualImg), (newData) => {
+      applyImageMetadata(quill, imgIndex, newData);
+    });
+  }, [disableImageWrap, openAltModal, getQuillEditor, applyImageMetadata]);
+  useEffect(() => {
+    if (!isReady || !containerRef.current) return;
+    const container = containerRef.current;
+    container.addEventListener('click', handleContainerClick);
+    container.addEventListener('dblclick', handleContainerDblClick);
+    return () => {
+      container.removeEventListener('click', handleContainerClick);
+      container.removeEventListener('dblclick', handleContainerDblClick);
+    };
+  }, [isReady, handleContainerClick, handleContainerDblClick]);
 
   const customModules = React.useMemo(() => {
     if (!modules) return null;
@@ -3085,11 +3158,11 @@ const QuillWrapper = forwardRef(({
             const finalSelection = getCurrentControlSelection(currentSelection);
             controlSelectionRef.current = finalSelection;
             syncSelectionControlsFromFormat(finalSelection);
-            
+
             window.setTimeout(() => {
               setPopupValueVersion((prev) => prev + 1);
             }, 0);
-            
+
             setFontSizePopupPosition(getClampedControlPopupPosition(button, 210));
             setShowFontSizePopup(prev => !prev);
           }
@@ -3129,76 +3202,36 @@ const QuillWrapper = forwardRef(({
         },
         'image-settings': function () {
           const quill = this.quill;
-          const currentImg = selectedImageRef.current;
 
-          if (currentImg) {
-            const currentData = {
-              alt: currentImg.getAttribute("alt") || "",
-              title: currentImg.getAttribute("title") || "",
-              caption: currentImg.hasAttribute('data-caption') ? (currentImg.getAttribute('data-caption') || '') : (currentImg.getAttribute('title') || ''),
-              borderRadius: currentImg.style.borderRadius || currentImg.getAttribute("data-border-radius") || ""
-            };
-            openAltModal(currentData, (newData) => {
-              const blot = Quill.find(currentImg);
-              if (blot) {
-                const index = quill.getIndex(blot);
-                quill.formatText(index, 1, 'alt', newData.alt, 'user');
-                quill.formatText(index, 1, 'title', newData.title, 'user');
-                quill.formatText(index, 1, 'caption', newData.caption, 'user');
-                quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
-                if (newData.alt) currentImg.setAttribute('alt', newData.alt); else currentImg.removeAttribute('alt');
-                if (newData.title) currentImg.setAttribute('title', newData.title); else currentImg.removeAttribute('title');
-                if (newData.caption) currentImg.setAttribute('data-caption', newData.caption); else currentImg.removeAttribute('data-caption');
-                currentImg.style.borderRadius = newData.borderRadius || '';
-                if (newData.borderRadius) currentImg.setAttribute('data-border-radius', newData.borderRadius); else currentImg.removeAttribute('data-border-radius');
-                quill.update('user');
-                setTimeout(() => emitCurrentContentForSave(true), 0);
-                setTimeout(() => {
-                  updateCaptionsList();
-                  positionCaptionsDirectly();
-                }, 50);
+          let targetImg = selectedImageRef.current;
+          let imgIndex = -1;
+
+          if (targetImg) {
+            const blot = findImageBlot(targetImg);
+            imgIndex = blot ? quill.getIndex(blot) : -1;
+          } else {
+            const range = quill.getSelection();
+            if (range) {
+              const [leaf] = quill.getLeaf(range.index);
+              const leafImg = leaf?.domNode?.tagName === 'IMG'
+                ? leaf.domNode
+                : leaf?.domNode?.querySelector?.('img');
+              if (leafImg) {
+                targetImg = leafImg;
+                const blot = findImageBlot(leafImg);
+                imgIndex = blot ? quill.getIndex(blot) : range.index;
               }
-            });
+            }
+          }
+
+          if (!targetImg || imgIndex === -1) {
+            showAlert("Please select an image before editing image properties.");
             return;
           }
 
-          const range = quill.getSelection();
-          if (range) {
-            const [leaf] = quill.getLeaf(range.index);
-            if (leaf && leaf.domNode.tagName === 'IMG') {
-              const img = leaf.domNode;
-              const currentData = {
-                alt: img.getAttribute("alt") || "",
-                title: img.getAttribute("title") || "",
-                caption: img.hasAttribute('data-caption') ? (img.getAttribute('data-caption') || '') : (img.getAttribute('title') || ''),
-                borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || ""
-              };
-              openAltModal(currentData, (newData) => {
-                const blot = Quill.find(img);
-                if (blot) {
-                  const index = quill.getIndex(blot);
-                  quill.formatText(index, 1, 'alt', newData.alt, 'user');
-                  quill.formatText(index, 1, 'title', newData.title, 'user');
-                  quill.formatText(index, 1, 'caption', newData.caption, 'user');
-                  quill.formatText(index, 1, 'borderRadius', newData.borderRadius || '', 'user');
-                  if (newData.alt) img.setAttribute('alt', newData.alt); else img.removeAttribute('alt');
-                  if (newData.title) img.setAttribute('title', newData.title); else img.removeAttribute('title');
-                  if (newData.caption) img.setAttribute('data-caption', newData.caption); else img.removeAttribute('data-caption');
-                  img.style.borderRadius = newData.borderRadius || '';
-                  if (newData.borderRadius) img.setAttribute('data-border-radius', newData.borderRadius); else img.removeAttribute('data-border-radius');
-                  quill.update('user');
-                  setTimeout(() => emitCurrentContentForSave(true), 0);
-                  setSelectionWithoutScroll(quill, range);
-                  setTimeout(() => {
-                    updateCaptionsList();
-                    positionCaptionsDirectly();
-                  }, 50);
-                }
-              });
-              return;
-            }
-          }
-          showAlert("Please select an image before editing image properties.");
+          openAltModal(readImageData(targetImg), (newData) => {
+            applyImageMetadata(quill, imgIndex, newData);
+          });
         },
         align: function (value) {
           const quill = this.quill;
@@ -3212,8 +3245,7 @@ const QuillWrapper = forwardRef(({
             setImageWrapMode(wrapMode);
             setTimeout(() => {
               updateResizerRect();
-              updateCaptionsList();
-              positionCaptionsDirectly();
+              syncImageCaptionBlots();
               positionResizerDirectly();
             }, 50);
             return;
@@ -3374,9 +3406,8 @@ const QuillWrapper = forwardRef(({
     focusWithoutScroll,
     setSelectionWithoutScroll,
     updateResizerRect,
-    updateCaptionsList,
+    syncImageCaptionBlots,
     updateSizePickerLabel,
-    positionCaptionsDirectly,
     positionResizerDirectly,
     commitControlDrafts,
     getClampedControlPopupPosition,
@@ -3515,7 +3546,6 @@ const QuillWrapper = forwardRef(({
         frameId = 0;
         syncOverlayToImage();
         positionResizerDirectly();
-        positionCaptionsDirectly();
       });
     };
 
@@ -3572,7 +3602,6 @@ const QuillWrapper = forwardRef(({
       }
 
       updateResizerRect();
-      positionCaptionsDirectly();
       positionResizerDirectly();
     };
 
@@ -3660,7 +3689,6 @@ const QuillWrapper = forwardRef(({
     enterImageEditMode,
     getActiveImage,
     rememberSelectedImage,
-    positionCaptionsDirectly,
     positionResizerDirectly,
     selectedImage,
     syncImageEditChange,
@@ -3682,7 +3710,6 @@ const QuillWrapper = forwardRef(({
 
       window.requestAnimationFrame(() => {
         updateResizerRect();
-        positionCaptionsDirectly();
         positionResizerDirectly();
       });
     };
@@ -3697,7 +3724,6 @@ const QuillWrapper = forwardRef(({
     enterImageEditMode,
     getQuillEditor,
     isReady,
-    positionCaptionsDirectly,
     positionResizerDirectly,
     updateResizerRect
   ]);
@@ -3718,18 +3744,17 @@ const QuillWrapper = forwardRef(({
     setImageWrapMode(wrapMode);
     setTimeout(() => {
       updateResizerRect();
-      updateCaptionsList();
-      positionCaptionsDirectly();
+      syncImageCaptionBlots();
       positionResizerDirectly();
     }, 50);
-  }, [getActiveImage, getQuillEditor, applyImageWrapDom, syncImageEditChange, updateResizerRect, updateCaptionsList, positionCaptionsDirectly, positionResizerDirectly]);
+  }, [getActiveImage, getQuillEditor, applyImageWrapDom, syncImageEditChange, updateResizerRect, syncImageCaptionBlots, positionResizerDirectly]);
 
   const handleDeleteImage = useCallback(() => {
     const img = getActiveImage();
     if (!img) return;
     const quill = getQuillEditor();
     if (!quill) return;
-    const blot = Quill.find(img);
+    const blot = findImageBlot(img);
     if (blot) {
       const index = quill.getIndex(blot);
       quill.deleteText(index, 1, 'user');
@@ -3740,10 +3765,9 @@ const QuillWrapper = forwardRef(({
     rememberSelectedImage(null);
     setResizerRect(null);
     setTimeout(() => {
-      updateCaptionsList();
-      positionCaptionsDirectly();
+      syncImageCaptionBlots();
     }, 50);
-  }, [getActiveImage, getQuillEditor, syncImageEditChange, rememberSelectedImage, updateCaptionsList, positionCaptionsDirectly]);
+  }, [getActiveImage, getQuillEditor, syncImageEditChange, rememberSelectedImage, syncImageCaptionBlots]);
 
   useEffect(() => {
     if (!selectedImage) return;
@@ -3789,6 +3813,7 @@ const QuillWrapper = forwardRef(({
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           title="Thông tin ảnh"
+          className="z-[20000]"
           maxWidth="max-w-md"
         >
           <div className="space-y-6">
@@ -3859,7 +3884,7 @@ const QuillWrapper = forwardRef(({
 
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
-    let val = props.value.replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    let val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value)).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
     const cleanBlockStyleString = (styleStr) => {
       return styleStr
@@ -3900,13 +3925,22 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    return val;
+    return removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(normalizeImageWrappersForEdit(val)));
   }, [props.value, hasResponsive, isSimpleTextField]);
 
   const handleBlur = useCallback(() => {
     if (props.onBlur && lastRelativeContentRef.current != null) {
       props.onBlur(lastRelativeContentRef.current);
     }
+
+    if (onChangeTimeoutRef.current) {
+      clearTimeout(onChangeTimeoutRef.current);
+      onChangeTimeoutRef.current = null;
+      if (onChangeRef.current && lastRelativeContentRef.current != null) {
+        onChangeRef.current(lastRelativeContentRef.current);
+      }
+    }
+
     isUserEditingRef.current = false;
     localEditorHtmlRef.current = null;
     setSyncTrigger(prev => !prev);
@@ -3947,12 +3981,7 @@ const QuillWrapper = forwardRef(({
   }
 
   const { formats: quillFormats, ...quillProps } = props;
-  const effectiveLineHeight = getControlValue('lineHeight', lineHeight);
-  const effectiveLineHeightMobile = getControlValue('lineHeightMobile', lineHeightMobile);
-  const effectiveFontSize = getControlValue('fontSize', fontSize);
-  const effectiveFontSizeMobile = getControlValue('fontSizeMobile', fontSizeMobile);
-  const effectiveTranslateY = getControlValue('translateY', translateY);
-  const effectiveTranslateYMobile = getControlValue('translateYMobile', translateYMobile);
+
   const isEditingInlineSelection = canUseInlineSelectionControls && !!controlSelectionRef.current?.length;
   const getPreviewControlValue = (key, propValue) => (
     !isEditingInlineSelection && Object.prototype.hasOwnProperty.call(selectionControlDrafts, key)
@@ -4469,10 +4498,11 @@ const QuillWrapper = forwardRef(({
           formats={quillFormats || FORMATS}
         />
       )}
+
       <style dangerouslySetInnerHTML={{
         __html: `
         .quill-wrapper-container {
-          position: relative !important;
+          position: relative;
         }
 
         ${(dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || [])).map(f => `
@@ -4486,6 +4516,11 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
           min-height: var(--quill-editor-min-height, 120px) !important;
+        }
+
+        .ql-editor .editor-image-caption,
+        .ql-editor .editor-inline-image-caption {
+          display: none !important;
         }
 
         .quill-wrapper-container .ql-editor.hero-phone-text {
@@ -4542,7 +4577,7 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (min-width: 768px) {
-          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
@@ -4577,7 +4612,7 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (max-width: 767px) {
-          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor p:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor span:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor a:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
@@ -4879,7 +4914,7 @@ const QuillWrapper = forwardRef(({
           font-family: 'Montserrat', sans-serif;
           line-height: 1.6;
           color: #323232;
-          padding: 24px 20px !important;
+          padding: 24px 50px !important;
           min-height: inherit;
           max-height: var(--quill-editor-max-height, none) !important;
           overflow-y: auto !important;
@@ -4890,6 +4925,39 @@ const QuillWrapper = forwardRef(({
           box-sizing: border-box !important;
           margin-left: auto !important;
           margin-right: auto !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor p {
+          margin: 0 0 0.5rem 0 !important;
+          font-weight: 400;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor h1,
+        .quill-wrapper-container.is-blog-editor .ql-editor h2,
+        .quill-wrapper-container.is-blog-editor .ql-editor h3,
+        .quill-wrapper-container.is-blog-editor .ql-editor h4,
+        .quill-wrapper-container.is-blog-editor .ql-editor h5,
+        .quill-wrapper-container.is-blog-editor .ql-editor h6 {
+          color: #563c39 !important;
+          line-height: 1.4 !important;
+          margin-top: 0 !important;
+          margin-bottom: 1.0rem !important;
+          font-weight: 400 !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor strong:not([style*="color"]) {
+          font-weight: 700 !important;
+          color: #563c39 !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor ul {
+          list-style-type: disc !important;
+          padding-left: 1.5rem !important;
+          margin: 0 0 1rem 0 !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor ol {
+          padding-left: 1.5rem !important;
+          margin: 0 0 1rem 0 !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor li {
+          margin: 0.5rem 0 !important;
+          line-height: 1.6 !important;
         }
         .quill-wrapper-container:not(.is-blog-editor) .ql-editor {
           min-height: inherit;
@@ -4908,6 +4976,12 @@ const QuillWrapper = forwardRef(({
             padding: 24px 50px !important;
             box-shadow: 0 0 0 1px #e2e8f0, 0 4px 6px -1px rgba(0,0,0,0.05) !important;
             max-width: 100% !important;
+          }
+        }
+        @media (min-width: 1440px) {
+          .quill-wrapper-container.is-blog-editor .ql-editor {
+            padding-left: 50px !important;
+            padding-right: 50px !important;
           }
         }
         /* Preserve selection highlight briefly after toolbar clicks. */
@@ -4952,6 +5026,15 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor li {
           margin: 0.5rem 0 !important;
           line-height: 1.6 !important;
+        }
+        .ql-editor img + .editor-image-caption {
+          display: block !important;
+          margin-top: 8px !important;
+          text-align: center !important;
+          width: 100% !important;
+          position: static !important;
+          color: #666666 !important;
+          font-style: italic !important;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor strong:not([style*="color"]) {
           font-weight: 700 !important;
@@ -5259,6 +5342,38 @@ const QuillWrapper = forwardRef(({
         .ql-editor h3 {
           clear: both !important;
         }
+        .ql-editor .ql-align-center,
+        .ql-editor [style*="text-align: center"],
+        .ql-editor [style*="text-align:center"],
+        .ql-editor p:has([style*="font-family: alex-brush"]),
+        .ql-editor p:has([style*="font-family:alex-brush"]),
+        .ql-editor p:has([style*="font-family: 'alex-brush'"]),
+        .ql-editor p:has([style*="font-family: dancing-script"]),
+        .ql-editor p:has([style*="font-family:dancing-script"]),
+        .ql-editor p:has([style*="font-family: 'dancing-script'"]),
+        .ql-editor p:has([style*="font-family: pinyon-script"]),
+        .ql-editor p:has([style*="font-family:pinyon-script"]),
+        .ql-editor p:has([style*="font-family: 'pinyon-script'"]),
+        .ql-editor p:has([style*="font-family: caveat"]),
+        .ql-editor p:has([style*="font-family:caveat"]),
+        .ql-editor p:has([style*="font-family: 'caveat'"]),
+        .ql-editor p:has([style*="font-family: great-vibes"]),
+        .ql-editor p:has([style*="font-family:great-vibes"]),
+        .ql-editor p:has([style*="font-family: 'great-vibes'"]),
+        .ql-editor p:has([style*="font-family: satisfy"]),
+        .ql-editor p:has([style*="font-family:satisfy"]),
+        .ql-editor p:has([style*="font-family: 'satisfy'"]),
+        .ql-editor p:has([style*="font-family: pacifico"]),
+        .ql-editor p:has([style*="font-family:pacifico"]),
+        .ql-editor p:has([style*="font-family: 'pacifico'"]),
+        .ql-editor p:has([style*="font-family: parisienne"]),
+        .ql-editor p:has([style*="font-family:parisienne"]),
+        .ql-editor p:has([style*="font-family: 'parisienne'"]),
+        .ql-editor p:has([style*="font-family: tangerine"]),
+        .ql-editor p:has([style*="font-family:tangerine"]),
+        .ql-editor p:has([style*="font-family: 'tangerine'"]) {
+          clear: both !important;
+        }
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2,
         .ql-editor > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h3 {
@@ -5346,7 +5461,7 @@ const QuillWrapper = forwardRef(({
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 12px !important;
+          margin-top: 0 !important;
           margin-left: 0 !important;
           display: inline !important;
         }
@@ -5354,7 +5469,7 @@ const QuillWrapper = forwardRef(({
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 12px !important;
+          margin-top: 0 !important;
           margin-right: 0 !important;
           display: inline !important;
         }
@@ -5387,31 +5502,74 @@ const QuillWrapper = forwardRef(({
           }
         }
         /* Image Caption styling in editor */
-        .ql-editor img[data-caption]:not([data-caption=""]):not([data-caption=" "]) {
-          margin-bottom: 42px !important;
+        .ql-editor .image-wrapper {
+          margin-left: auto !important;
+          margin-right: auto !important;
+          display: block;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          clear: none !important;
         }
-        .ql-editor img:not([data-caption])[title]:not([title=""]):not([title=" "]) {
-          margin-bottom: 42px !important;
+        .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+          margin-top: 20px !important;
+          margin-bottom: 16px !important;
         }
-        .editor-image-caption {
-          position: absolute !important;
+        .ql-editor .image-wrap-left {
+          float: left !important;
+          margin-right: 20px !important;
+          margin-bottom: 16px !important;
+          margin-top: 0 !important;
+          margin-left: 0 !important;
+          display: inline-block !important;
+          position: relative !important;
+        }
+        .ql-editor .image-wrap-right {
+          float: right !important;
+          margin-left: 20px !important;
+          margin-bottom: 16px !important;
+          margin-top: 0 !important;
+          margin-right: 0 !important;
+          display: inline-block !important;
+          position: relative !important;
+        }
+        .ql-editor .image-wrapper img {
+          display: block !important;
+          max-width: none !important;
+          height: auto !important;
+          margin: 0 !important;
+        }
+        .ql-editor .image-wrap-left img,
+        .ql-editor .image-wrap-right img {
+          display: block !important;
+          float: none !important;
+          margin: 0 !important;
+          margin-bottom: 0 !important;
+        }
+        .ql-editor .image-wrapper[data-wrap="none"] {
+          clear: both !important;
+        }
+        .ql-editor .image-caption {
+          display: block !important;
+          width: 100% !important;
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
+          font-size: 16px !important;
           line-height: 1.4 !important;
           pointer-events: none !important;
-          z-index: 10 !important;
-          display: block !important;
           box-sizing: border-box !important;
           padding: 0 4px !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-          display: -webkit-box !important;
-          -webkit-line-clamp: 2 !important;
-          -webkit-box-orient: vertical !important;
+          margin-top: 8px !important;
+          margin-bottom: 4px !important;
+          white-space: normal !important;
+          overflow-wrap: anywhere !important;
+          overflow: visible !important;
         }
         .editor-inline-image-caption {
-          display: none;
+          display: none !important;
+        }
+        .editor-inline-image-caption-preview {
+          display: none !important;
         }
         .quill-wrapper-container.disable-image-wrap .ql-editor img {
           display: block !important;
@@ -5426,6 +5584,14 @@ const QuillWrapper = forwardRef(({
             display: none !important;
           }
           /* Force editor images to display as full-width block elements on mobile, matching frontend */
+          .quill-wrapper-container .ql-editor .image-wrapper {
+            float: none !important;
+            display: block !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
           .quill-wrapper-container .ql-editor img {
             float: none !important;
             display: block !important;
@@ -5435,23 +5601,16 @@ const QuillWrapper = forwardRef(({
             margin-left: auto !important;
             margin-right: auto !important;
           }
-          .editor-image-caption {
-            display: none !important;
-          }
-          .editor-inline-image-caption {
+          .ql-editor .image-caption {
             display: block !important;
-            width: 100% !important;
-            clear: both !important;
-            font-size: 11px !important;
-            line-height: 1.45 !important;
-            color: #666666 !important;
-            font-style: italic !important;
-            text-align: center !important;
+            font-size: 10px !important;
+            line-height: 1.4 !important;
             padding: 0 8px !important;
             margin-top: 8px !important;
-            margin-bottom: 22px !important;
-            box-sizing: border-box !important;
-            white-space: normal !important;
+            margin-bottom: 16px !important;
+          }
+          .editor-inline-image-caption {
+            display: none !important;
           }
 
           /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
@@ -5888,15 +6047,58 @@ const QuillWrapper = forwardRef(({
           overflow-anchor: none !important;
         }
 
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-container,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-container {
+          min-height: auto !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {
+          height: auto !important;
+          max-height: none !important;
+          overflow-y: visible !important;
+        }
+
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {
+          min-height: 160px !important;
+        }
+
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {
+          min-height: 180px !important;
+        }
+
         @media (max-width: 767px) {
           .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .editor-inline-image-caption,
           .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor .editor-inline-image-caption,
           .quill-wrapper-container.is-blog-editor .ql-editor .editor-inline-image-caption,
           .quill-wrapper-container .ql-editor .editor-inline-image-caption {
-            font-size: 11px !important;
-            font-style: italic !important;
-            text-align: center !important;
-            line-height: 1.45 !important;
+            display: none !important;
+          }
+        }
+
+        .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
+        .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
+        .quill-wrapper-container[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
+        .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
+        .quill-wrapper-container .ql-editor .image-wrapper .image-caption {
+          display: block !important;
+          font-size: 16px !important;
+          line-height: 1.4 !important;
+          font-style: italic !important;
+          text-align: center !important;
+        }
+
+        @media (max-width: 767px) {
+          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
+          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
+          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
+          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
+          .quill-wrapper-container .ql-editor .image-wrapper .image-caption {
+            display: block !important;
+            font-size: 10px !important;
+            line-height: 1.4 !important;
           }
         }
       `}} />
@@ -5904,7 +6106,7 @@ const QuillWrapper = forwardRef(({
       {isMounted && resizerRect && createPortal((
         <div
           ref={resizerOverlayRef}
-          className="fixed editor-image-resizer-overlay"
+          className={`fixed editor-image-resizer-overlay ${isModalOpen ? 'hidden' : 'block'}`}
           draggable={false}
           style={{
             top: resizerRect.top,
@@ -5913,17 +6115,25 @@ const QuillWrapper = forwardRef(({
             height: resizerRect.height,
             border: '2px solid #1A94FF',
             boxShadow: '0 0 10px rgba(26, 148, 255, 0.3)',
-            pointerEvents: 'auto',
+            zIndex: isModalOpen ? -1 : 10000,
             touchAction: 'none',
+            pointerEvents: isModalOpen ? 'none' : 'auto',
             userSelect: 'none',
-            zIndex: 10000,
           }}
-          onClick={(e) => e.stopPropagation()}
-          onDragStart={(e) => e.preventDefault()}
+          onClick={(e) => {
+            if (e.target.classList.contains('resizer-handle')) return;
+            e.stopPropagation();
+          }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            const img = selectedImageRef.current;
+            if (img) {
+              handleContainerDblClick({ target: img });
+            }
+          }}
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          {/* Text Wrapping Toolbar */}
           <div className="wrap-toolbar" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
             {!disableImageWrap && (
               <>
@@ -6013,20 +6223,6 @@ const QuillWrapper = forwardRef(({
           ))}
         </div>
       ), document.body)}
-
-      {captions.map((cap, idx) => (
-        <div
-          key={idx}
-          className="editor-image-caption"
-          style={{
-            top: cap.top + 12,
-            left: cap.left,
-            width: cap.width,
-          }}
-        >
-          {cap.text}
-        </div>
-      ))}
     </div>
   );
 });

@@ -680,8 +680,8 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 onDraftChange={(val) => updateRichField("content", val)}
                 onBlur={(val) => commitRichField("content", val)}
                 className="blog-desc-editor"
-                minHeight="450px"
-                maxHeight="600px"
+                minHeight="180px"
+                maxHeight="none"
                 isBlogEditor={true}
                 lineHeight={formData.lineHeight}
                 lineHeightMobile={formData.lineHeightMobile}

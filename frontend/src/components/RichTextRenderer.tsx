@@ -161,6 +161,16 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       return `<${tag} id="${id}"${attributes}>${contentText}</${tag}>`;
     });
 
+    const preservedImageWrappers: string[] = [];
+    processedHtml = processedHtml.replace(
+      /<div\b[^>]*\bclass=["'][^"']*\bimage-wrapper\b[^"']*["'][^>]*>\s*<img\b[^>]*>\s*(?:<div\b[^>]*\bclass=["'][^"']*\bimage-caption\b[^"']*["'][^>]*>[\s\S]*?<\/div>\s*)?<\/div>/gi,
+      (wrapperHtml: string) => {
+        const token = `__PRESERVED_IMAGE_WRAPPER_${preservedImageWrappers.length}__`;
+        preservedImageWrappers.push(wrapperHtml);
+        return token;
+      }
+    );
+
     processedHtml = processedHtml.replace(/<img([^>]*?)\/?>\s*/gi, (match: string, attributes: string) => {
       // Clean "!important" from style width/height inside img tags to allow mobile responsive override
       let cleanAttrs = attributes.replace(/style=(["'])([^"']*?)\1/gi, (styleMatch: string, quote: string, styleContent: string) => {
@@ -206,9 +216,50 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     });
 
     processedHtml = processedHtml.replace(
+      /__PRESERVED_IMAGE_WRAPPER_(\d+)__/g,
+      (match: string, index: string) => preservedImageWrappers[Number(index)] || match
+    );
+
+    processedHtml = processedHtml.replace(
       /<p[^>]*>\s*(<div class="image-wrapper(?: image-wrap-(?:left|right))?"[^>]*><img[^>]*>(?:<div class="image-caption">[\s\S]*?<\/div>)?<\/div>)\s*<\/p>/gi,
       '$1'
     );
+
+    if (typeof DOMParser !== 'undefined') {
+      const doc = new DOMParser().parseFromString(`<div>${processedHtml}</div>`, 'text/html');
+      const root = doc.body.firstElementChild;
+
+      root?.querySelectorAll('.image-wrapper').forEach((wrapper) => {
+        const img = wrapper.querySelector('img');
+        const wrapperEl = wrapper instanceof HTMLElement ? wrapper : null;
+        const imgEl = img instanceof HTMLElement ? img : null;
+
+        if (wrapperEl && imgEl && !wrapperEl.style.width) {
+          const imageWidth = imgEl.getAttribute('width') || imgEl.style.width || '';
+          const normalizedWidth = /^\d+$/.test(imageWidth.trim()) ? `${imageWidth.trim()}px` : imageWidth.trim();
+
+          if (normalizedWidth) {
+            wrapperEl.style.width = normalizedWidth;
+            wrapperEl.style.maxWidth = '100%';
+          }
+        }
+
+        const captionText = (
+          wrapper.querySelector(':scope > .image-caption')?.textContent
+          || img?.getAttribute('data-caption')
+          || ''
+        ).replace(/\s+/g, ' ').trim();
+        const next = wrapper.nextElementSibling;
+        const nextText = (next?.textContent || '').replace(/\s+/g, ' ').trim();
+        const nextHasMedia = !!next?.querySelector?.('img, video, iframe, svg, canvas');
+
+        if (captionText && next && !nextHasMedia && nextText === captionText) {
+          next.remove();
+        }
+      });
+
+      if (root) processedHtml = root.innerHTML;
+    }
 
     const cleanStyleForRender = (styleContent: string) => {
       const parts = styleContent.split(';');
