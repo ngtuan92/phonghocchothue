@@ -6152,15 +6152,16 @@ const QuillWrapper = forwardRef(({
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-container,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-container {
           min-height: auto !important;
-          max-height: none !important;
+          max-height: var(--quill-editor-max-height, none) !important;
           overflow: visible !important;
         }
 
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {
           height: auto !important;
-          max-height: none !important;
-          overflow-y: visible !important;
+          max-height: var(--quill-editor-max-height, none) !important;
+          overflow-y: auto !important;
+          overscroll-behavior: contain !important;
         }
 
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {

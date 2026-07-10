@@ -834,7 +834,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   isBlogEditor={true}
                   className="room-desc-editor"
                   minHeight="160px"
-                  maxHeight="none"
+                  maxHeight="520px"
                   lineHeight={roomLineHeight}
                   lineHeightMobile={roomLineHeightMobile}
                   fontSize={roomFontSize}

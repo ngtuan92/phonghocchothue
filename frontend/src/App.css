@@ -1870,10 +1870,12 @@ footer .rich-text-renderer * {
 }
 
 /* Custom Admin Editor Styles - Overrides Quill default behavior with higher specificity */
-.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor {
   min-height: 350px !important;
-  max-height: 500px !important;
+  max-height: var(--quill-editor-max-height, 520px) !important;
   overflow-y: auto !important;
+  overscroll-behavior: contain !important;
   transform: none !important;
   /* Prevents text from being translated up and cut off by the toolbar */
 }
