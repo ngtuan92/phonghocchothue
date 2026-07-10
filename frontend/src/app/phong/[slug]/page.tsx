@@ -811,6 +811,18 @@ export default function DetailPage() {
                 .room-summary-desc li {
                   margin: 0.25rem 0 !important;
                   line-height: 1.6 !important;
+                  list-style-position: outside !important;
+                  padding-left: 0 !important;
+                }
+                .room-summary-desc li::marker {
+                  color: currentColor;
+                  font-size: 1em;
+                  line-height: inherit;
+                }
+                .room-summary-desc .ql-ui,
+                .room-summary-desc li::before {
+                  content: none !important;
+                  display: none !important;
                 }
                  .ckeditor-content ul {
                   list-style-type: disc !important;
@@ -854,6 +866,18 @@ export default function DetailPage() {
                   margin: 0.5rem 0 !important;
                   line-height: 1.6 !important;
                   display: list-item !important;
+                  list-style-position: outside !important;
+                  padding-left: 0 !important;
+                }
+                .ckeditor-content li::marker {
+                  color: currentColor;
+                  font-size: 1em;
+                  line-height: inherit;
+                }
+                .ckeditor-content .ql-ui,
+                .ckeditor-content li::before {
+                  content: none !important;
+                  display: none !important;
                 }
                 .ckeditor-content p {
                   margin: 1rem 0 !important;
@@ -904,6 +928,24 @@ export default function DetailPage() {
                 .ckeditor-content a:visited {
                   color: #1d4ed8 !important;
                   text-decoration: underline !important;
+                }
+                .room-summary-desc img,
+                .ckeditor-content img {
+                  display: block !important;
+                  max-width: 100% !important;
+                  height: auto !important;
+                  margin-left: auto !important;
+                  margin-right: auto !important;
+                }
+                .room-summary-desc .image-wrapper,
+                .ckeditor-content .image-wrapper {
+                  width: auto !important;
+                  max-width: 100% !important;
+                }
+                .room-summary-desc .image-wrapper[data-wrap="none"] img,
+                .ckeditor-content .image-wrapper[data-wrap="none"] img {
+                  margin-left: auto !important;
+                  margin-right: auto !important;
                 }
                 @media (max-width: 768px) {
                   .ckeditor-content {

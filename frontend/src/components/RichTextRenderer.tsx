@@ -225,6 +225,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       '$1'
     );
 
+    processedHtml = processedHtml.replace(/<span\b[^>]*class=["'][^"']*\bql-ui\b[^"']*["'][^>]*><\/span>/gi, "");
+
     if (typeof DOMParser !== 'undefined') {
       const doc = new DOMParser().parseFromString(`<div>${processedHtml}</div>`, 'text/html');
       const root = doc.body.firstElementChild;
@@ -233,6 +235,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const img = wrapper.querySelector('img');
         const wrapperEl = wrapper instanceof HTMLElement ? wrapper : null;
         const imgEl = img instanceof HTMLElement ? img : null;
+        const wrapMode = img?.getAttribute('data-wrap') || wrapper.getAttribute('data-wrap') || 'none';
+
+        if (wrapperEl) {
+          wrapperEl.setAttribute('data-wrap', wrapMode);
+          wrapperEl.classList.remove('image-wrap-left', 'image-wrap-right');
+          if (wrapMode === 'left' || wrapMode === 'right') {
+            wrapperEl.classList.add(`image-wrap-${wrapMode}`);
+          }
+        }
 
         if (wrapperEl && imgEl && !wrapperEl.style.width) {
           const imageWidth = imgEl.getAttribute('width') || imgEl.style.width || '';
@@ -480,6 +491,43 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer h3 {
           clear: both !important;
         }
+        .rich-text-renderer ul,
+        .rich-text-renderer ol {
+          padding-left: 1.5rem !important;
+          margin: 0.5rem 0 !important;
+        }
+        .rich-text-renderer ul {
+          list-style-type: disc !important;
+        }
+        .rich-text-renderer ol:not(:has(li[data-list])) {
+          list-style-type: decimal !important;
+        }
+        .rich-text-renderer ol:has(li[data-list]) {
+          list-style-type: none !important;
+        }
+        .rich-text-renderer li {
+          display: list-item !important;
+          line-height: inherit;
+          list-style-position: outside !important;
+          margin-left: 0 !important;
+          padding-left: 0 !important;
+        }
+        .rich-text-renderer li[data-list="bullet"] {
+          list-style-type: disc !important;
+        }
+        .rich-text-renderer li[data-list="ordered"] {
+          list-style-type: decimal !important;
+        }
+        .rich-text-renderer li::marker {
+          color: currentColor;
+          font-size: 1em;
+          line-height: inherit;
+        }
+        .rich-text-renderer .ql-ui,
+        .rich-text-renderer li::before {
+          content: none !important;
+          display: none !important;
+        }
         .rich-text-renderer .ql-align-center,
         .rich-text-renderer [style*="text-align: center"],
         .rich-text-renderer [style*="text-align:center"],
@@ -579,15 +627,34 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-left: auto !important;
           margin-right: auto !important;
           display: block;
+          max-width: 100% !important;
         }
         .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+          float: none !important;
+          display: block !important;
+          width: auto !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           margin-top: 20px !important;
           margin-bottom: 16px !important;
         }
+        .rich-text-renderer .image-wrapper[data-wrap="none"] {
+          float: none !important;
+          display: block !important;
+          width: auto !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
         .rich-text-renderer .image-wrapper img {
-          width: 100% !important;
+          max-width: 100% !important;
           display: block !important;
           margin: 0 !important;
+        }
+        .rich-text-renderer .image-wrapper[data-wrap="none"] img {
+          margin-left: auto !important;
+          margin-right: auto !important;
         }
         /* Text wrapping: float left */
         .rich-text-renderer img[data-wrap="left"] {

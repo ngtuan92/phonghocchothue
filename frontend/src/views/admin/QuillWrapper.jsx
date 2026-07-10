@@ -68,6 +68,10 @@ const normalizeImageWrapMode = (mode) => (mode === 'left' || mode === 'right' ? 
 
 const setImportantStyles = (node, styles) => {
   Object.entries(styles).forEach(([property, value]) => {
+    if (value === '' || value == null) {
+      node.style.removeProperty(property);
+      return;
+    }
     node.style.setProperty(property, value, 'important');
   });
 };
@@ -85,11 +89,24 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   }
   setImportantStyles(node, {
     ...IMAGE_WRAP_DISPLAY[wrapMode],
+    'width': '',
+    'max-width': '100%',
     'margin-top': wrapMode === 'none' ? '20px' : '0',
     'margin-bottom': '16px',
     'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
     'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
   });
+  if (wrapper && wrapper !== node) {
+    setImportantStyles(wrapper, {
+      ...IMAGE_WRAP_DISPLAY[wrapMode],
+      'width': '',
+      'max-width': '100%',
+      'margin-top': wrapMode === 'none' ? '20px' : '0',
+      'margin-bottom': '16px',
+      'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
+      'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
+    });
+  }
   return wrapMode;
 };
 
@@ -633,6 +650,9 @@ const normalizeImageWrappersForEdit = (html) => {
     wrapper.classList.remove('image-wrap-left', 'image-wrap-right');
     if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
     setImportantStyles(wrapper, {
+      ...IMAGE_WRAP_DISPLAY[wrap],
+      'width': '',
+      'max-width': '100%',
       'margin-top': wrap === 'none' ? '20px' : '0',
       'margin-bottom': '16px',
       'margin-left': wrap === 'right' ? '20px' : wrap === 'none' ? 'auto' : '0',
@@ -649,6 +669,7 @@ const normalizeImageWrappersForEdit = (html) => {
     if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
     img.replaceWith(wrapper);
     wrapper.appendChild(img);
+    applyImageWrapDisplay(wrapper, wrap);
     ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
   });
 
@@ -749,6 +770,11 @@ const QuillWrapper = forwardRef(({
   const resizerOverlayRef = useRef(null);
   const resizeDragRef = useRef(false);
   const imageResizeSessionRef = useRef(null);
+  const resolveImageElement = useCallback((node) => {
+    if (!node) return null;
+    if (node.tagName === 'IMG') return node;
+    return node.querySelector?.('img') || null;
+  }, []);
   const savedSelectionRef = useRef(null);
   const lastHighlightSelectionRef = useRef(null);
   const controlSelectionRef = useRef(null);
@@ -1406,14 +1432,20 @@ const QuillWrapper = forwardRef(({
     styleTarget.style.setProperty('margin-bottom', wrapMode === 'none' ? '16px' : '16px', 'important');
     styleTarget.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
     styleTarget.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    styleTarget.style.setProperty('max-width', '100%', 'important');
     img.style.setProperty('display', 'block', 'important');
-    img.style.setProperty('margin', '0', 'important');
+    img.style.setProperty('margin-top', '0', 'important');
+    img.style.setProperty('margin-bottom', '0', 'important');
+    img.style.setProperty('margin-left', wrapMode === 'none' ? 'auto' : '0', 'important');
+    img.style.setProperty('margin-right', wrapMode === 'none' ? 'auto' : '0', 'important');
+    img.style.setProperty('max-width', '100%', 'important');
+    img.style.setProperty('height', 'auto', 'important');
     ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
     return wrapMode;
   }, [getImageWrapMode]);
 
   const rememberSelectedImage = useCallback((img) => {
-    const nextImage = img || null;
+    const nextImage = resolveImageElement(img);
     const nextSrc = nextImage?.getAttribute('src') || "";
     const nextWrap = nextImage?.getAttribute('data-wrap') || 'none';
 
@@ -1421,7 +1453,7 @@ const QuillWrapper = forwardRef(({
     selectedImageSrcRef.current = nextSrc;
     setSelectedImage((prev) => (prev === nextImage ? prev : nextImage));
     setImageWrapMode((prev) => (prev === nextWrap ? prev : nextWrap));
-  }, []);
+  }, [resolveImageElement]);
 
   const enterImageEditMode = useCallback((img, quill) => {
     rememberSelectedImage(img);
@@ -1435,7 +1467,7 @@ const QuillWrapper = forwardRef(({
 
   const getActiveImage = useCallback(() => {
     const editor = containerRef.current?.querySelector('.ql-editor');
-    const current = selectedImageRef.current;
+    const current = resolveImageElement(selectedImageRef.current);
     if (current && editor?.contains(current) && current.isConnected) return current;
 
     const src = selectedImageSrcRef.current;
@@ -1448,7 +1480,7 @@ const QuillWrapper = forwardRef(({
     }
 
     return null;
-  }, [rememberSelectedImage]);
+  }, [rememberSelectedImage, resolveImageElement]);
 
   const syncCustomFontSizes = useCallback(() => {
     const imgContainer = containerRef.current;
@@ -1498,7 +1530,7 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const positionResizerDirectly = useCallback(() => {
-    const img = selectedImageRef.current;
+    const img = resolveImageElement(selectedImageRef.current);
     const resizer = resizerOverlayRef.current;
     if (img && resizer && img.isConnected) {
       try {
@@ -1530,10 +1562,10 @@ const QuillWrapper = forwardRef(({
         }
       } catch { /* ignore */ }
     }
-  }, [getVisibleImageRect]);
+  }, [getVisibleImageRect, resolveImageElement]);
 
   const syncSelectedImageRect = useCallback(() => {
-    let img = selectedImageRef.current;
+    let img = resolveImageElement(selectedImageRef.current);
     const container = containerRef.current;
     if (!img || !container) {
       setResizerRect((prev) => (prev === null ? prev : null));
@@ -1587,7 +1619,7 @@ const QuillWrapper = forwardRef(({
     } catch {
       setResizerRect((prev) => (prev === null ? prev : null));
     }
-  }, [getVisibleImageRect]);
+  }, [getVisibleImageRect, resolveImageElement]);
 
   const updateSizePickerLabel = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
@@ -1783,13 +1815,35 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    const handleScrollOrResize = () => {
+    let scrollEndTimer = 0;
+    const hideResizerDuringScroll = () => {
+      const resizer = resizerOverlayRef.current;
+      if (resizer) {
+        resizer.style.display = 'none';
+      }
+    };
+    const syncResizerAfterScroll = () => {
       try {
         if (!quill.root.querySelector('img')) return;
-        syncSelectedImageRect();
-        positionResizerDirectly();
-        syncImageCaptionBlots();
+        window.requestAnimationFrame(() => {
+          syncSelectedImageRect();
+          positionResizerDirectly();
+        });
       } catch { /* ignore */ }
+    };
+    const handleScroll = () => {
+      try {
+        if (!quill.root.querySelector('img')) return;
+        hideResizerDuringScroll();
+        if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
+        scrollEndTimer = window.setTimeout(() => {
+          scrollEndTimer = 0;
+          syncResizerAfterScroll();
+        }, 120);
+      } catch { /* ignore */ }
+    };
+    const handleResize = () => {
+      syncResizerAfterScroll();
     };
 
     const handleContentChange = () => {
@@ -1814,11 +1868,11 @@ const QuillWrapper = forwardRef(({
       cleanEmptyEditorParagraphs();
     };
 
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
-    quill.root.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+    quill.root.addEventListener('scroll', handleScroll, true);
 
-    const resizeObserver = new ResizeObserver(handleScrollOrResize);
+    const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(quill.root);
 
     quill.on('text-change', updateSizePickerLabel);
@@ -1830,7 +1884,7 @@ const QuillWrapper = forwardRef(({
       updateSizePickerLabel();
       syncCustomFontSizes();
       cleanEmptyEditorParagraphs();
-      setTimeout(handleScrollOrResize, 50);
+      setTimeout(handleResize, 50);
       if (toolbar) {
         try {
           toolbar.update(null);
@@ -1841,9 +1895,10 @@ const QuillWrapper = forwardRef(({
     return () => {
       container.removeEventListener('mousedown', handleMousedown, true);
       container.removeEventListener('mouseup', handleMouseup, true);
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
-      quill.root.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+      quill.root.removeEventListener('scroll', handleScroll, true);
+      if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
       resizeObserver.disconnect();
       container.querySelectorAll('.editor-inline-image-caption').forEach((el) => el.remove());
       document.querySelectorAll('.editor-inline-image-caption-preview').forEach((el) => el.remove());
@@ -2716,31 +2771,17 @@ const QuillWrapper = forwardRef(({
     if (selectedImage) {
       syncSelectedImageRect();
       syncImageCaptionBlots();
-      let frameId = 0;
-
-      const schedulePosition = () => {
-        if (frameId) return;
-        frameId = window.requestAnimationFrame(() => {
-          frameId = 0;
-          syncSelectedImageRect();
-          positionResizerDirectly();
-        });
-      };
-
-      window.addEventListener('resize', schedulePosition);
-      window.addEventListener('scroll', schedulePosition, true);
-      const editor = containerRef.current?.querySelector('.ql-editor');
-      editor?.addEventListener('scroll', schedulePosition, true);
-      return () => {
-        if (frameId) window.cancelAnimationFrame(frameId);
-        window.removeEventListener('resize', schedulePosition);
-        window.removeEventListener('scroll', schedulePosition, true);
-        editor?.removeEventListener('scroll', schedulePosition, true);
-      };
+      positionResizerDirectly();
     } else {
       setResizerRect((prev) => (prev === null ? prev : null));
     }
   }, [selectedImage, syncSelectedImageRect, syncImageCaptionBlots, positionResizerDirectly]);
+
+  useEffect(() => {
+    if (!resizerRect) return;
+    const frameId = window.requestAnimationFrame(positionResizerDirectly);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [resizerRect, positionResizerDirectly]);
 
   const handleContainerClick = useCallback((ev) => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -3203,7 +3244,7 @@ const QuillWrapper = forwardRef(({
         'image-settings': function () {
           const quill = this.quill;
 
-          let targetImg = selectedImageRef.current;
+          let targetImg = resolveImageElement(selectedImageRef.current);
           let imgIndex = -1;
 
           if (targetImg) {
@@ -3409,6 +3450,7 @@ const QuillWrapper = forwardRef(({
     syncImageCaptionBlots,
     updateSizePickerLabel,
     positionResizerDirectly,
+    resolveImageElement,
     commitControlDrafts,
     getClampedControlPopupPosition,
     syncSelectionControlsFromFormat
@@ -3456,7 +3498,7 @@ const QuillWrapper = forwardRef(({
     event.stopPropagation();
     if (resizeDragRef.current) return;
 
-    const startImg = imageOverride || getActiveImage() || selectedImage;
+    const startImg = resolveImageElement(imageOverride) || getActiveImage() || resolveImageElement(selectedImage);
     const quill = getQuillEditor();
     const editor = containerRef.current?.querySelector('.ql-editor');
     if (!startImg || !startImg.isConnected || !editor) return;
@@ -3494,14 +3536,7 @@ const QuillWrapper = forwardRef(({
     const startRect = startImg.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
     const minWidth = Math.min(24, Math.max(1, editorRect.width || startRect.width || 1));
-    const maxWidth = Math.max(
-      minWidth,
-      startImg.naturalWidth || 0,
-      (editorRect.width || 0) * 3,
-      (containerRef.current?.clientWidth || 0) * 3,
-      startRect.width || 0,
-      2000
-    );
+    const maxWidth = Math.max(minWidth, editor.clientWidth || editorRect.width || startRect.width || minWidth);
     const startWidth = Math.max(minWidth, Math.min(startRect.width || startImg.clientWidth || minWidth, maxWidth));
     const startHeight = Math.max(1, startRect.height || startImg.clientHeight || 1);
     const aspectRatio = startWidth / startHeight;
@@ -3516,7 +3551,7 @@ const QuillWrapper = forwardRef(({
     let frameId = 0;
     let didCommit = false;
 
-    const syncOverlayToImage = () => {
+    const syncOverlayStateToImage = () => {
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
       const imgRect = img.getBoundingClientRect();
@@ -3544,7 +3579,6 @@ const QuillWrapper = forwardRef(({
       if (frameId) return;
       frameId = window.requestAnimationFrame(() => {
         frameId = 0;
-        syncOverlayToImage();
         positionResizerDirectly();
       });
     };
@@ -3553,8 +3587,9 @@ const QuillWrapper = forwardRef(({
       const value = unit === '%' ? `${width}%` : `${Math.round(width)}px`;
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
-      img.style.setProperty('width', value);
-      img.style.setProperty('height', 'auto');
+      img.style.setProperty('width', value, 'important');
+      img.style.setProperty('height', 'auto', 'important');
+      img.style.setProperty('max-width', '100%', 'important');
       img.setAttribute('width', value);
       liveResizeImage = img;
     };
@@ -3592,8 +3627,9 @@ const QuillWrapper = forwardRef(({
       const widthValue = `${Math.round(currentWidth)}px`;
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
-      img.style.setProperty('width', widthValue);
-      img.style.setProperty('height', 'auto');
+      img.style.setProperty('width', widthValue, 'important');
+      img.style.setProperty('height', 'auto', 'important');
+      img.style.setProperty('max-width', '100%', 'important');
       img.setAttribute('width', widthValue);
       liveResizeImage = img;
 
@@ -3666,7 +3702,7 @@ const QuillWrapper = forwardRef(({
     document.body.style.cursor = direction.includes('right') === direction.includes('top') ? 'nesw-resize' : 'nwse-resize';
     document.body.style.userSelect = 'none';
     setImageWidth(currentWidth);
-    syncOverlayToImage();
+    syncOverlayStateToImage();
     positionResizerDirectly();
 
     try {
@@ -3675,21 +3711,25 @@ const QuillWrapper = forwardRef(({
 
 
     imageResizeSessionRef.current = { cleanup };
-    document.addEventListener('pointermove', onMove, true);
-    document.addEventListener('pointerup', onEnd, true);
-    document.addEventListener('pointercancel', onCancel, true);
-    document.addEventListener('mousemove', onMove, true);
-    document.addEventListener('mouseup', onEnd, true);
-    window.addEventListener('pointermove', onMove, true);
-    window.addEventListener('pointerup', onEnd, true);
-    window.addEventListener('pointercancel', onCancel, true);
-    window.addEventListener('mousemove', onMove, true);
-    window.addEventListener('mouseup', onEnd, true);
+    if (typeof pointerId === 'number') {
+      document.addEventListener('pointermove', onMove, true);
+      document.addEventListener('pointerup', onEnd, true);
+      document.addEventListener('pointercancel', onCancel, true);
+      window.addEventListener('pointermove', onMove, true);
+      window.addEventListener('pointerup', onEnd, true);
+      window.addEventListener('pointercancel', onCancel, true);
+    } else {
+      document.addEventListener('mousemove', onMove, true);
+      document.addEventListener('mouseup', onEnd, true);
+      window.addEventListener('mousemove', onMove, true);
+      window.addEventListener('mouseup', onEnd, true);
+    }
   }, [
     enterImageEditMode,
     getActiveImage,
     rememberSelectedImage,
     positionResizerDirectly,
+    resolveImageElement,
     selectedImage,
     syncImageEditChange,
     updateResizerRect
@@ -4958,6 +4998,12 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor li {
           margin: 0.5rem 0 !important;
           line-height: 1.6 !important;
+          list-style-position: outside !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor li::before {
+          color: currentColor;
+          font-size: inherit;
+          line-height: inherit !important;
         }
         .quill-wrapper-container:not(.is-blog-editor) .ql-editor {
           min-height: inherit;
@@ -5026,6 +5072,45 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor li {
           margin: 0.5rem 0 !important;
           line-height: 1.6 !important;
+          list-style-position: outside !important;
+        }
+        .quill-wrapper-container.is-blog-editor .ql-editor li::before {
+          color: currentColor;
+          font-size: inherit;
+          line-height: inherit !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li {
+          display: list-item !important;
+          margin-left: 0 !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::before,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::before {
+          content: none !important;
+          display: none !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-ui,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-ui {
+          display: none !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]),
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]) {
+          list-style-type: none !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"],
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] {
+          list-style-type: disc !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"],
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"] {
+          list-style-type: decimal !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::marker,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::marker {
+          color: currentColor;
+          font-size: 1em;
+          line-height: inherit;
         }
         .ql-editor img + .editor-image-caption {
           display: block !important;
@@ -5193,7 +5278,9 @@ const QuillWrapper = forwardRef(({
           transition: border-color 0.2s ease;
           border: 4px solid transparent;
           display: inline-block;
-          max-width: none !important;
+          max-width: 100% !important;
+          height: auto !important;
+          box-sizing: border-box !important;
         }
         .ql-editor img:hover {
           border-color: rgba(26, 148, 255, 0.3);
@@ -5511,6 +5598,11 @@ const QuillWrapper = forwardRef(({
           clear: none !important;
         }
         .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+          float: none !important;
+          display: block !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           margin-top: 20px !important;
           margin-bottom: 16px !important;
         }
@@ -5534,7 +5626,7 @@ const QuillWrapper = forwardRef(({
         }
         .ql-editor .image-wrapper img {
           display: block !important;
-          max-width: none !important;
+          max-width: 100% !important;
           height: auto !important;
           margin: 0 !important;
         }
@@ -5546,7 +5638,17 @@ const QuillWrapper = forwardRef(({
           margin-bottom: 0 !important;
         }
         .ql-editor .image-wrapper[data-wrap="none"] {
+          float: none !important;
+          display: block !important;
+          width: auto !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           clear: both !important;
+        }
+        .ql-editor .image-wrapper[data-wrap="none"] img {
+          margin-left: auto !important;
+          margin-right: auto !important;
         }
         .ql-editor .image-caption {
           display: block !important;
@@ -6109,10 +6211,6 @@ const QuillWrapper = forwardRef(({
           className={`fixed editor-image-resizer-overlay ${isModalOpen ? 'hidden' : 'block'}`}
           draggable={false}
           style={{
-            top: resizerRect.top,
-            left: resizerRect.left,
-            width: resizerRect.width,
-            height: resizerRect.height,
             border: '2px solid #1A94FF',
             boxShadow: '0 0 10px rgba(26, 148, 255, 0.3)',
             zIndex: isModalOpen ? -1 : 10000,
@@ -6126,7 +6224,7 @@ const QuillWrapper = forwardRef(({
           }}
           onDoubleClick={(e) => {
             e.stopPropagation();
-            const img = selectedImageRef.current;
+            const img = resolveImageElement(selectedImageRef.current);
             if (img) {
               handleContainerDblClick({ target: img });
             }
