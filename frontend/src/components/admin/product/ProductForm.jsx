@@ -6,7 +6,6 @@ import {
   CardBody,
   CardFooter,
   Typography,
-  Checkbox,
 } from "@material-tailwind/react";
 import dynamic from "next/dynamic";
 import PropTypes from "prop-types";
@@ -510,35 +509,41 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 Trạng thái phòng
               </label>
               <div className="flex gap-4">
-                <div className="flex items-center gap-2 p-2 border border-gray-200 rounded-xl hover:bg-gray-50/50 transition-colors flex-1">
-                  <Checkbox
+                <label
+                  htmlFor="checkbox-special"
+                  className={`flex flex-1 cursor-pointer items-center gap-4 rounded-xl border p-6 transition-colors ${isChecked ? "border-[#15803d] bg-green-50/60" : "border-gray-200 hover:bg-gray-50/50"}`}
+                >
+                  <input
                     id="checkbox-special"
+                    type="checkbox"
                     checked={isChecked}
                     onChange={handleCheckboxChange}
-                    color="green"
-                    className="border-2 border-gray-400 hover:border-gray-600"
+                    className="h-7 w-7 cursor-pointer rounded-md border-2 border-gray-300 accent-[#15803d]"
                   />
-                  <label htmlFor="checkbox-special" className="flex-1 cursor-pointer">
-                    <Typography variant="h6" className="font-bold text-navy-700 text-xs">
+                  <span className="flex-1">
+                    <Typography variant="h6" className="font-bold text-navy-700 text-sm">
                       Phòng nổi bật
                     </Typography>
-                  </label>
-                </div>
+                  </span>
+                </label>
 
-                <div className="flex items-center gap-2 p-2 border border-gray-200 rounded-xl hover:bg-gray-50/50 transition-colors flex-1">
-                  <Checkbox
+                <label
+                  htmlFor="checkbox-status"
+                  className={`flex flex-1 cursor-pointer items-center gap-4 rounded-xl border p-6 transition-colors ${isStatus ? "border-[#15803d] bg-green-50/60" : "border-gray-200 hover:bg-gray-50/50"}`}
+                >
+                  <input
                     id="checkbox-status"
+                    type="checkbox"
                     checked={isStatus}
                     onChange={handleStatusChange}
-                    color="green"
-                    className="border-2 border-gray-400 hover:border-gray-600"
+                    className="h-7 w-7 cursor-pointer rounded-md border-2 border-gray-300 accent-[#15803d]"
                   />
-                  <label htmlFor="checkbox-status" className="flex-1 cursor-pointer">
-                    <Typography variant="h6" className="font-bold text-navy-700 text-xs">
+                  <span className="flex-1">
+                    <Typography variant="h6" className="font-bold text-navy-700 text-sm">
                       Còn phòng trống
                     </Typography>
-                  </label>
-                </div>
+                  </span>
+                </label>
               </div>
             </div>
 
@@ -851,13 +856,13 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
           border-radius: 12px;
           overflow: visible !important;
           position: relative !important;
-          z-index: 10;
+          z-index: 20;
         }
         .product-dialog-quill .quill-wrapper-container:focus-within,
         .product-dialog-quill .quill-wrapper-container:has(.ql-expanded) {
           border-color: #15803d;
           box-shadow: 0 0 0 1px rgba(21, 128, 61, 0.3);
-          z-index: 100 !important;
+          z-index: 30 !important;
         }
         .product-dialog-quill .ql-toolbar.ql-snow {
           position: relative !important;
@@ -866,12 +871,12 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
         .product-dialog-quill .quill-wrapper-container.is-sticky .ql-toolbar.ql-snow {
           position: sticky !important;
           top: var(--quill-toolbar-top, 0px) !important;
-          z-index: 2010 !important;
+          z-index: 35 !important;
           overflow: visible !important;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
         }
         .product-dialog-quill .ql-snow .ql-picker-options {
-          z-index: 200 !important;
+          z-index: 36 !important;
         }
         .product-dialog-quill--name .ql-editor {
           min-height: 100px;

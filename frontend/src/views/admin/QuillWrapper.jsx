@@ -2886,6 +2886,7 @@ const QuillWrapper = forwardRef(({
     // Clicked outside image: deselect.
     if (selectedImageRef.current) {
       rememberSelectedImage(null);
+      setResizerRect(null);
       setTimeout(() => {
         syncImageCaptionBlots();
       }, 50);
@@ -3833,8 +3834,21 @@ const QuillWrapper = forwardRef(({
 
       const img = event.target.closest && event.target.closest('img');
       const quill = getQuillEditor();
-      if (!img || !quill || !quill.root.contains(img)) return;
+      if (!quill || !quill.root.contains(event.target)) return;
 
+      if (!img || !quill.root.contains(img)) {
+        if (selectedImageRef.current) {
+          rememberSelectedImage(null);
+          setResizerRect(null);
+          window.setTimeout(() => {
+            syncImageCaptionBlots();
+          }, 50);
+        }
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
       enterImageEditMode(img, quill);
 
       window.requestAnimationFrame(() => {
@@ -3853,7 +3867,9 @@ const QuillWrapper = forwardRef(({
     enterImageEditMode,
     getQuillEditor,
     isReady,
+    rememberSelectedImage,
     positionResizerDirectly,
+    syncImageCaptionBlots,
     updateResizerRect
   ]);
   useEffect(() => {
@@ -6315,7 +6331,7 @@ const QuillWrapper = forwardRef(({
           style={{
             border: '2px solid #1A94FF',
             boxShadow: '0 0 10px rgba(26, 148, 255, 0.3)',
-            zIndex: isModalOpen ? -1 : 10000,
+            zIndex: isModalOpen ? -1 : 40,
             touchAction: 'none',
             pointerEvents: isModalOpen ? 'none' : 'auto',
             userSelect: 'none',

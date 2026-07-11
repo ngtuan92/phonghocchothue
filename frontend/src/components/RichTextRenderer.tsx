@@ -581,30 +581,35 @@ const RICH_TEXT_RENDERER_STYLES = `
           clear: none !important;
         }
         @media (min-width: 768px) {
-          .rich-text-renderer[style*="--fs-desktop"] *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer[style*="--fs-desktop"] *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .rich-text-renderer [style*="--fs-desktop"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
-          .rich-text-renderer [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
+          .rich-text-renderer [style*="--fs-desktop"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
             font-size: var(--fs-desktop) !important;
           }
         }
         @media (max-width: 767px) {
-          .rich-text-renderer[style*="--fs-mobile"] *:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer[style*="--fs-mobile"] *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .rich-text-renderer [style*="--fs-mobile"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
-          .rich-text-renderer [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
+          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
             font-size: var(--fs-mobile) !important;
           }
         }
         @media (min-width: 768px) {
           .rich-text-renderer [style*="--fs-desktop"],
-          .rich-text-renderer [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+          .rich-text-renderer [style*="--fs-desktop"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--fs-mobile"],
-          .rich-text-renderer [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;
           }
+        }
+        .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
+        .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
+        .rich-text-renderer .image-wrapper .image-caption {
+          font-size: 16px !important;
         }
         .rich-text-renderer [style*="--custom-line-height"],
         .rich-text-renderer [style*="--custom-line-height"] * {
@@ -714,6 +719,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
+          font-size: 16px !important;
           line-height: 1.4 !important;
           padding: 0 4px !important;
           margin-top: 8px !important;
@@ -787,7 +793,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             display: block !important;
             position: static !important;
             clear: both !important;
-            font-size: 11px !important;
+            font-size: 16px !important;
             margin-top: 8px !important;
             margin-bottom: 18px !important;
             padding: 0 8px !important;
@@ -811,6 +817,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         .image-caption {
           text-align: center;
           color: #666;
+          font-size: 16px;
           margin-top: 12px;
           margin-bottom: 0;
           font-style: italic;

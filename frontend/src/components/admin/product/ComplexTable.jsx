@@ -104,12 +104,12 @@ export default function ComplexTable() {
         <div className="text-sm font-bold text-black">
           {info.getValue() ? (
             <img
-              className="w-[100px] h-[60px] object-cover rounded-lg border border-gray-100"
+              className="w-[120px] h-[72px] object-contain rounded-lg bg-white"
               src={`${URL_API}${info.getValue().replace(/\\/g, "/")}`}
               alt="room"
             />
           ) : (
-            <div className="w-[100px] h-[60px] bg-gray-100 flex items-center justify-center text-xs text-gray-400">No image</div>
+            <div className="w-[120px] h-[72px] bg-gray-100 flex items-center justify-center rounded-lg text-xs text-gray-400">No image</div>
           )}
         </div>
       ),

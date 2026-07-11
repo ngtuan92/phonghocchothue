@@ -660,6 +660,7 @@
   text-align: center !important;
   color: #666666 !important;
   font-style: italic !important;
+  font-size: 16px !important;
   line-height: 1.4 !important;
   padding: 0 4px !important;
   margin-top: 8px !important;
@@ -741,7 +742,7 @@
     display: block !important;
     position: static !important;
     clear: both !important;
-    font-size: 11px !important;
+    font-size: 16px !important;
     margin-top: 8px !important;
     margin-bottom: 18px !important;
     padding: 0 8px !important;
@@ -1862,7 +1863,7 @@ footer .rich-text-renderer * {
 
   .rich-text-renderer[style*="--fs-mobile"] .image-caption,
   .rich-text-renderer .image-caption {
-    font-size: 11px !important;
+    font-size: 16px !important;
     font-style: italic !important;
     text-align: center !important;
     line-height: 1.45 !important;
