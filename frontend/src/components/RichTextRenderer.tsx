@@ -341,13 +341,16 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       });
     }
 
-    const cleanBlockStyleString = (styleContent: string) => {
+    const cleanBlockStyleString = (styleContent: string, tagName = '') => {
       return styleContent
         .split(';')
         .map(part => part.trim())
         .filter(part => {
           if (!part) return false;
           const lower = part.toLowerCase();
+          if (tagName.toLowerCase() === 'li' && (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile'))) {
+            return true;
+          }
           return (
             !lower.startsWith('--fs-desktop') &&
             !lower.startsWith('--fs-mobile') &&
@@ -362,11 +365,41 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     // Clean block styles
     processedHtml = processedHtml.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match: string, tag: string, before: string, quote: string, styleContent: string, after: string) => {
-      const cleaned = cleanBlockStyleString(styleContent);
+      const cleaned = cleanBlockStyleString(styleContent, tag);
       return cleaned
         ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>`
         : `<${tag}${before}${after}>`;
     });
+
+    if (typeof DOMParser !== 'undefined') {
+      const doc = new DOMParser().parseFromString(`<div>${processedHtml}</div>`, 'text/html');
+      const root = doc.body.firstElementChild;
+
+      root?.querySelectorAll('li').forEach((li) => {
+        if (!(li instanceof HTMLElement)) return;
+
+        const sizedElement = li.querySelector<HTMLElement>('[style*="font-size"], [style*="--fs-desktop"], [style*="--fs-mobile"]')
+          || (li.matches('[style*="font-size"], [style*="--fs-desktop"], [style*="--fs-mobile"]') ? li : null);
+
+        if (!sizedElement) return;
+
+        const fontSize = sizedElement.style.getPropertyValue('font-size');
+        const desktopFontSize = sizedElement.style.getPropertyValue('--fs-desktop');
+        const mobileFontSize = sizedElement.style.getPropertyValue('--fs-mobile');
+
+        if (fontSize && !li.style.getPropertyValue('font-size')) {
+          li.style.setProperty('font-size', fontSize);
+        }
+        if (desktopFontSize && !li.style.getPropertyValue('--fs-desktop')) {
+          li.style.setProperty('--fs-desktop', desktopFontSize);
+        }
+        if (mobileFontSize && !li.style.getPropertyValue('--fs-mobile')) {
+          li.style.setProperty('--fs-mobile', mobileFontSize);
+        }
+      });
+
+      if (root) processedHtml = root.innerHTML;
+    }
 
     return normalizeBlockHighlightHtml(processedHtml);
   }, [html, preserveNbsp, configKey, stripAllFontStyles]);
@@ -503,7 +536,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           list-style-type: decimal !important;
         }
         .rich-text-renderer ol:has(li[data-list]) {
-          list-style-type: none !important;
+          list-style-type: decimal !important;
         }
         .rich-text-renderer li {
           display: list-item !important;
@@ -599,10 +632,16 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer [style*="--fs-desktop"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
+          .rich-text-renderer li[style*="--fs-desktop"]::marker {
+            font-size: var(--fs-desktop) !important;
+          }
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--fs-mobile"],
           .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+            font-size: var(--fs-mobile) !important;
+          }
+          .rich-text-renderer li[style*="--fs-mobile"]::marker {
             font-size: var(--fs-mobile) !important;
           }
         }

@@ -523,7 +523,7 @@
 }
 
 .rich-text-renderer ol:has(li[data-list]) {
-  list-style-type: none !important;
+  list-style-type: decimal !important;
 }
 
 .rich-text-renderer li {
@@ -546,6 +546,20 @@
   color: currentColor;
   font-size: 1em;
   line-height: inherit;
+}
+
+@media (min-width: 768px) {
+  .rich-text-renderer li[style*="--fs-desktop"]::marker,
+  .blog-content li[style*="--fs-desktop"]::marker {
+    font-size: var(--fs-desktop) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer li[style*="--fs-mobile"]::marker,
+  .blog-content li[style*="--fs-mobile"]::marker {
+    font-size: var(--fs-mobile) !important;
+  }
 }
 
 .rich-text-renderer .ql-ui,
@@ -952,11 +966,11 @@
 }
 
 .blog-content ol:has(li[data-list="bullet"]) {
-  list-style-type: none !important;
+  list-style-type: disc !important;
 }
 
 .blog-content ol:has(li[data-list="ordered"]) {
-  list-style-type: none !important;
+  list-style-type: decimal !important;
 }
 
 .blog-content li[data-list="bullet"] {
@@ -1005,11 +1019,11 @@
   }
 
   .blog-content ol:has(li[data-list="bullet"]) {
-    list-style-type: none !important;
+    list-style-type: disc !important;
   }
 
   .blog-content ol:has(li[data-list="ordered"]) {
-    list-style-type: none !important;
+    list-style-type: decimal !important;
   }
 
   .blog-content li[data-list="bullet"] {

@@ -571,6 +571,38 @@ const removeEmptyStyledSpans = (html) => {
   return root.innerHTML;
 };
 
+const syncListItemFontSizeFromChildren = (root) => {
+  if (!root?.querySelectorAll) return 0;
+
+  let changedCount = 0;
+
+  root.querySelectorAll('li').forEach((li) => {
+    const sizedElement = li.querySelector?.('[style*="font-size"], [style*="--fs-desktop"], [style*="--fs-mobile"]')
+      || (li.matches?.('[style*="font-size"], [style*="--fs-desktop"], [style*="--fs-mobile"]') ? li : null);
+
+    if (!sizedElement?.style) return;
+
+    const fontSize = sizedElement.style.getPropertyValue('font-size');
+    const desktopFontSize = sizedElement.style.getPropertyValue('--fs-desktop');
+    const mobileFontSize = sizedElement.style.getPropertyValue('--fs-mobile');
+
+    if (fontSize && li.style.getPropertyValue('font-size') !== fontSize) {
+      li.style.setProperty('font-size', fontSize);
+      changedCount += 1;
+    }
+    if (desktopFontSize && li.style.getPropertyValue('--fs-desktop') !== desktopFontSize) {
+      li.style.setProperty('--fs-desktop', desktopFontSize);
+      changedCount += 1;
+    }
+    if (mobileFontSize && li.style.getPropertyValue('--fs-mobile') !== mobileFontSize) {
+      li.style.setProperty('--fs-mobile', mobileFontSize);
+      changedCount += 1;
+    }
+  });
+
+  return changedCount;
+};
+
 
 const stripEditorCaptionArtifacts = (html) => {
   if (!html || typeof html !== "string") return html;
@@ -1095,6 +1127,7 @@ const QuillWrapper = forwardRef(({
       }
       quill.formatText(selection.index, selection.length, formatName, formatValue || false, 'user');
       removeEmptyStyledSpanElements(quill.root);
+      syncListItemFontSizeFromChildren(quill.root);
       if (hasFocus) {
         setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
       }
@@ -1927,6 +1960,7 @@ const QuillWrapper = forwardRef(({
       }
 
       syncCustomFontSizes();
+      syncListItemFontSizeFromChildren(quill.root);
       cleanEmptyEditorParagraphs();
     };
 
@@ -1937,6 +1971,30 @@ const QuillWrapper = forwardRef(({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(quill.root);
 
+    let listSizeSyncFrame = 0;
+    const scheduleListSizeSync = () => {
+      if (listSizeSyncFrame) return;
+      listSizeSyncFrame = window.requestAnimationFrame(() => {
+        listSizeSyncFrame = 0;
+        syncListItemFontSizeFromChildren(quill.root);
+      });
+    };
+    const listSizeObserver = new MutationObserver((mutations) => {
+      const shouldSync = mutations.some((mutation) => (
+        mutation.type === 'childList'
+        || mutation.attributeName === 'style'
+        || mutation.attributeName === 'class'
+        || mutation.attributeName === 'data-list'
+      ));
+      if (shouldSync) scheduleListSizeSync();
+    });
+    listSizeObserver.observe(quill.root, {
+      attributes: true,
+      attributeFilter: ['style', 'class', 'data-list'],
+      childList: true,
+      subtree: true,
+    });
+
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
 
@@ -1945,6 +2003,7 @@ const QuillWrapper = forwardRef(({
       syncImageCaptionBlots();
       updateSizePickerLabel();
       syncCustomFontSizes();
+      syncListItemFontSizeFromChildren(quill.root);
       cleanEmptyEditorParagraphs();
       setTimeout(handleResize, 50);
       if (toolbar) {
@@ -1961,7 +2020,9 @@ const QuillWrapper = forwardRef(({
       window.removeEventListener('resize', handleResize);
       quill.root.removeEventListener('scroll', handleScroll, true);
       if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
+      if (listSizeSyncFrame) window.cancelAnimationFrame(listSizeSyncFrame);
       resizeObserver.disconnect();
+      listSizeObserver.disconnect();
       container.querySelectorAll('.editor-inline-image-caption').forEach((el) => el.remove());
       document.querySelectorAll('.editor-inline-image-caption-preview').forEach((el) => el.remove());
       quill.off('text-change', updateSizePickerLabel);
@@ -2690,9 +2751,11 @@ const QuillWrapper = forwardRef(({
                 if (range?.length > 0) {
                   setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
                   quill.formatText(range.index, range.length, 'size', val, 'user');
+                  syncListItemFontSizeFromChildren(quill.root);
                   setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
                 } else {
                   quill.format('size', val, 'user');
+                  syncListItemFontSizeFromChildren(quill.root);
                 }
               });
             }
@@ -2784,9 +2847,11 @@ const QuillWrapper = forwardRef(({
               preserveAdminScrollDuring(() => {
                 if (savedSel?.length > 0) {
                   quillInstance.formatText(savedSel.index, savedSel.length, 'size', val, 'user');
+                  syncListItemFontSizeFromChildren(quillInstance.root);
                   setSelectionWithoutScroll(quillInstance, savedSel.index, savedSel.length, 'silent');
                 } else {
                   quillInstance.format('size', val, 'user');
+                  syncListItemFontSizeFromChildren(quillInstance.root);
                 }
               });
               picker.classList.remove('ql-expanded');
@@ -2901,13 +2966,16 @@ const QuillWrapper = forwardRef(({
     let relativeContent = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || ""))).replace(regex, 'src="/$1"');
     relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
-    const cleanBlockStyleString = (styleStr) => {
+    const cleanBlockStyleString = (styleStr, tag = '') => {
       return styleStr
         .split(';')
         .map(part => part.trim())
         .filter(part => {
           if (!part) return false;
           const lower = part.toLowerCase();
+          if (tag.toLowerCase() === 'li' && (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile'))) {
+            return true;
+          }
           return (
             !lower.startsWith('--fs-desktop') &&
             !lower.startsWith('--fs-mobile') &&
@@ -2922,7 +2990,7 @@ const QuillWrapper = forwardRef(({
 
     // Clean block styles
     relativeContent = relativeContent.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match, tag, before, quote, styleContent, after) => {
-      const cleaned = cleanBlockStyleString(styleContent);
+      const cleaned = cleanBlockStyleString(styleContent, tag);
       return cleaned ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>` : `<${tag}${before}${after}>`;
     });
 
@@ -2963,10 +3031,15 @@ const QuillWrapper = forwardRef(({
   const handleOnChange = useCallback((content, delta, source, editor) => {
     if (onChangeRef.current) {
       if (source !== 'user') return;
+      const quillRoot = editor?.root || getQuillEditor()?.root;
+      if (quillRoot) {
+        syncListItemFontSizeFromChildren(quillRoot);
+      }
+      const syncedContent = quillRoot?.innerHTML || content;
       isUserEditingRef.current = true;
-      localEditorHtmlRef.current = content;
+      localEditorHtmlRef.current = syncedContent;
 
-      const relativeContent = normalizeContentForSave(content);
+      const relativeContent = normalizeContentForSave(syncedContent);
 
       if (typeof props.value === "string" && relativeContent === props.value) {
         return;
@@ -4041,13 +4114,16 @@ const QuillWrapper = forwardRef(({
     if (!props.value || typeof props.value !== 'string') return props.value;
     let val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value)).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
-    const cleanBlockStyleString = (styleStr) => {
+    const cleanBlockStyleString = (styleStr, tag = '') => {
       return styleStr
         .split(';')
         .map(part => part.trim())
         .filter(part => {
           if (!part) return false;
           const lower = part.toLowerCase();
+          if (tag.toLowerCase() === 'li' && (lower.startsWith('--fs-desktop') || lower.startsWith('--fs-mobile'))) {
+            return true;
+          }
           return (
             !lower.startsWith('--fs-desktop') &&
             !lower.startsWith('--fs-mobile') &&
@@ -4062,7 +4138,7 @@ const QuillWrapper = forwardRef(({
 
     // Clean block styles
     val = val.replace(/<(p|li|h1|h2|h3|h4|h5|h6)\b([^>]*?)style=(["'])([^"']*?)\3([^>]*?)>/gi, (match, tag, before, quote, styleContent, after) => {
-      const cleaned = cleanBlockStyleString(styleContent);
+      const cleaned = cleanBlockStyleString(styleContent, tag);
       return cleaned ? `<${tag}${before}style=${quote}${cleaned}${quote}${after}>` : `<${tag}${before}${after}>`;
     });
 
@@ -4116,6 +4192,13 @@ const QuillWrapper = forwardRef(({
     }
   }, [getQuillEditor, props.value, syncTrigger]);
 
+  useEffect(() => {
+    const quill = getQuillEditor();
+    if (!quill?.root) return;
+
+    syncListItemFontSizeFromChildren(quill.root);
+  }, [absoluteValue, getQuillEditor]);
+
   let editorValue = localEditorHtmlRef.current ?? absoluteValue;
   let isFocused = false;
   let currentEditor = null;
@@ -4134,6 +4217,19 @@ const QuillWrapper = forwardRef(({
       editorValue = localEditorHtmlRef.current ?? absoluteValue;
     }
   }
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    const timers = [0, 50, 150, 350].map((delay) => window.setTimeout(() => {
+      const quill = getQuillEditor();
+      if (quill?.root) {
+        syncListItemFontSizeFromChildren(quill.root);
+      }
+    }, delay));
+
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [absoluteValue, editorValue, getQuillEditor, isReady]);
 
   const { formats: quillFormats, ...quillProps } = props;
 
@@ -4806,10 +4902,16 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor [style*="--fs-desktop"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-desktop) !important;
           }
+          .quill-wrapper-container .ql-editor li[style*="--fs-desktop"]::marker {
+            font-size: var(--fs-desktop) !important;
+          }
         }
         @media (max-width: 767px) {
           .quill-wrapper-container .ql-editor [style*="--fs-mobile"],
           .quill-wrapper-container .ql-editor [style*="--fs-mobile"] *:not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+            font-size: var(--fs-mobile) !important;
+          }
+          .quill-wrapper-container .ql-editor li[style*="--fs-mobile"]::marker {
             font-size: var(--fs-mobile) !important;
           }
         }
@@ -5211,7 +5313,7 @@ const QuillWrapper = forwardRef(({
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]),
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]) {
-          list-style-type: none !important;
+          list-style-type: decimal !important;
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"],
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] {
