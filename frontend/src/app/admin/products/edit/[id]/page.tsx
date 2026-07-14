@@ -63,7 +63,6 @@ export default function EditProductPage() {
 
       showToastSuccess("Cập nhật phòng thành công");
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      router.push("/admin/products");
     } catch (error: any) {
       showToastError("Cập nhật phòng thất bại");
     } finally {

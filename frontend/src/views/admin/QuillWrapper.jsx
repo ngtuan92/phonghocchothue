@@ -1151,6 +1151,7 @@ const QuillWrapper = forwardRef(({
 
     // Update refs (this is synchronous and does NOT trigger component re-renders!)
     Object.keys(nextDrafts).forEach(key => {
+      if (activeControlInputKeyRef.current === key) return;
       popupInputValuesRef.current[key] = nextDrafts[key];
     });
     setPopupValueVersion((prev) => prev + 1);
@@ -1208,6 +1209,7 @@ const QuillWrapper = forwardRef(({
         [key]: nextValue,
       };
       popupInputValuesRef.current[key] = nextValue;
+      setPopupValueVersion((prev) => prev + 1);
 
       let shouldApplyPreview = true;
       if (nextValue === "") {
@@ -1255,6 +1257,7 @@ const QuillWrapper = forwardRef(({
         [key]: nextValue,
       };
       popupInputValuesRef.current[key] = nextValue;
+      setPopupValueVersion((prev) => prev + 1);
       setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       onControlDraftChange?.(key, nextValue);
       if (isResponsiveControlKey(key)) {
@@ -1447,8 +1450,7 @@ const QuillWrapper = forwardRef(({
     commitControlDrafts();
     setActiveControlInputKey(null);
     activeControlInputKeyRef.current = null;
-    syncSelectionControlsFromFormat();
-  }, [commitControlDrafts, syncSelectionControlsFromFormat]);
+  }, [commitControlDrafts]);
 
   const commitControlInput = useCallback((restoreFocus = false) => {
     commitControlDrafts();
@@ -1466,14 +1468,12 @@ const QuillWrapper = forwardRef(({
       }
     }
 
-    syncSelectionControlsFromFormat();
   }, [
     commitControlDrafts,
     getQuillEditor,
     preserveEditorScrollDuring,
     focusWithoutScroll,
-    setSelectionWithoutScroll,
-    syncSelectionControlsFromFormat
+    setSelectionWithoutScroll
   ]);
 
   const getImageWrapMode = useCallback(normalizeImageWrapMode, []);
@@ -3450,9 +3450,14 @@ const QuillWrapper = forwardRef(({
             if (currentFormat && currentFormat.color && currentFormat.color.startsWith('#')) {
               picker.value = currentFormat.color;
             }
-            picker.onchange = () => {
+            let lastAppliedColor = picker.value;
+            const applyPickedColor = () => {
+              if (picker.value === lastAppliedColor) return;
+              lastAppliedColor = picker.value;
               applyColor(picker.value);
             };
+            picker.oninput = applyPickedColor;
+            picker.onchange = applyPickedColor;
             picker.click();
           } else {
             applyColor(value);
@@ -3513,9 +3518,14 @@ const QuillWrapper = forwardRef(({
             if (currentFormat && currentFormat.background && currentFormat.background.startsWith('#')) {
               picker.value = currentFormat.background;
             }
-            picker.onchange = () => {
+            let lastAppliedBackground = picker.value;
+            const applyPickedBackground = () => {
+              if (picker.value === lastAppliedBackground) return;
+              lastAppliedBackground = picker.value;
               applyBackground(picker.value);
             };
+            picker.oninput = applyPickedBackground;
+            picker.onchange = applyPickedBackground;
             picker.click();
           } else {
             applyBackground(value);

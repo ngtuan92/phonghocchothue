@@ -704,7 +704,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
         </div>
 
         {/* Cấu hình nút lưu ở dưới cùng */}
-        <div className="flex justify-end gap-4 pt-6 border-t border-gray-150">
+        <div className="hidden">
           <button 
             type="button"
             onClick={onCancel} 
@@ -715,12 +715,31 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
           </button>
           <button 
             type="submit" 
-            className="flex items-center gap-2 px-12 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-all active:scale-95 shadow-lg shadow-green-100"
+            className="hidden"
           >
             <MdSave className="h-5 w-5" />
             Lưu bài viết ngay
           </button>
         </div>
+      </div>
+      <div className="fixed bottom-8 right-8 z-[9998] flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-gray-600 shadow-xl shadow-slate-900/10 ring-1 ring-gray-200 transition-all hover:bg-red-50 hover:text-red-500 hover:shadow-2xl active:scale-95"
+          aria-label="Hủy bỏ"
+        >
+          <MdClose className="h-5 w-5" />
+          <span className="hidden sm:inline">Hủy bỏ</span>
+        </button>
+        <button
+          type="submit"
+          className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-xl shadow-green-900/15 transition-all hover:bg-green-700 hover:shadow-2xl active:scale-95"
+          aria-label="Lưu bài viết"
+        >
+          <MdSave className="h-5 w-5" />
+          <span className="hidden sm:inline">Lưu bài viết</span>
+        </button>
       </div>
       {/* Cropper Modal */}
       {showCropper && (
@@ -788,7 +807,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-[9999] p-3 rounded-full bg-primary hover:bg-green-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 active:scale-95 flex items-center justify-center"
+          className="fixed bottom-24 right-8 z-[9999] p-3 rounded-full bg-primary hover:bg-green-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 active:scale-95 flex items-center justify-center"
           aria-label="Cuộn lên đầu trang"
         >
           <svg

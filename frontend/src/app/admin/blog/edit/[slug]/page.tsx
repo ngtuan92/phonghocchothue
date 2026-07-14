@@ -58,7 +58,6 @@ export default function EditBlogPage() {
 
       await updateBlogMutation.mutateAsync({ id: blog.id, ...finalData });
       showToastSuccess("Cập nhật bài viết thành công");
-      router.push("/admin/blog");
     } catch (error) {
       showToastError("Cập nhật bài viết thất bại");
     } finally {
