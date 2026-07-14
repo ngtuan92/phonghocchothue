@@ -168,7 +168,6 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
       [{ align: [] }],
       mediaGroup,
       ["clean"],
-      ["more"],
     ],
     clipboard: {
       matchers: [
@@ -816,6 +815,7 @@ const QuillWrapper = forwardRef(({
   const isUserEditingRef = useRef(false);
   const suppressControlInputBlurRef = useRef(false);
   const controlPopupOpenRef = useRef(false);
+  const controlButtonRectRef = useRef({});
   const toolbarScrollSnapshotRef = useRef(null);
   const emitCurrentContentForSaveRef = useRef(null);
 
@@ -899,12 +899,25 @@ const QuillWrapper = forwardRef(({
     window.requestAnimationFrame(restore);
   }, []);
 
-  const getClampedControlPopupPosition = useCallback((button, popupWidth = 220) => {
-    if (!button || typeof window === 'undefined') {
+  const getClampedControlPopupPosition = useCallback((button, popupWidth = 220, cacheKey = "") => {
+    if (typeof window === 'undefined') {
       return { top: 0, left: 12, width: popupWidth };
     }
 
-    const rect = button.getBoundingClientRect();
+    const nextRect = button?.getBoundingClientRect?.();
+    const isUsableRect = nextRect && (nextRect.width > 0 || nextRect.height > 0);
+    if (isUsableRect && cacheKey) {
+      controlButtonRectRef.current[cacheKey] = {
+        top: nextRect.top,
+        right: nextRect.right,
+        bottom: nextRect.bottom,
+        left: nextRect.left,
+        width: nextRect.width,
+        height: nextRect.height,
+      };
+    }
+
+    const rect = isUsableRect ? nextRect : controlButtonRectRef.current[cacheKey];
     const viewport = window.visualViewport;
     const viewportLeft = safeNumber(viewport?.offsetLeft, 0);
     const viewportTop = safeNumber(viewport?.offsetTop, 0);
@@ -913,10 +926,10 @@ const QuillWrapper = forwardRef(({
     const width = Math.min(popupWidth, Math.max(160, viewportWidth - gutter * 2));
     const minLeft = viewportLeft + gutter;
     const maxLeft = viewportLeft + viewportWidth - width - gutter;
-    const preferredLeft = safeNumber(rect.left, minLeft);
+    const preferredLeft = safeNumber(rect?.left, minLeft);
 
     return {
-      top: safeNumber(rect.bottom + viewportTop + 5),
+      top: safeNumber((rect?.bottom || 0) + viewportTop + 5),
       left: Math.max(minLeft, Math.min(preferredLeft, maxLeft)),
       width,
     };
@@ -2181,128 +2194,46 @@ const QuillWrapper = forwardRef(({
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
 
-    const initDropdown = () => {
+    const stabilizeToolbar = () => {
       const container = containerRef.current;
       if (!container) return;
 
       const toolbar = container.querySelector('.ql-toolbar');
       if (!toolbar) return;
 
-      const formats = Array.from(toolbar.children).filter(el => el.classList.contains('ql-formats'));
-      const moreGroup = formats.find(f => f.querySelector('.ql-more'));
-      if (!moreGroup) return;
+      toolbar.__overflowObserver?.disconnect?.();
+      toolbar.__overflowObserver = null;
+      toolbar.__toolbarDropdownReady = false;
+      toolbar.__updateToolbarOverflow = null;
+      toolbar.__overflowUpdateQueued = false;
+      toolbar.classList.remove(
+        'ql-toolbar-overflowing',
+        'ql-toolbar-narrow',
+        'ql-toolbar-expanded',
+        'ql-toolbar-measuring'
+      );
 
-      if (toolbar.__toolbarDropdownReady) return;
-
-      moreGroup.classList.add('ql-more-formats-group');
-
-      let dropdown = moreGroup.querySelector('.ql-more-dropdown');
-      if (!dropdown) {
-        dropdown = document.createElement('div');
-        dropdown.className = 'ql-more-dropdown';
-        moreGroup.appendChild(dropdown);
-
-        // Move target formatting groups (Color, List, Align, Link/Image, Clean) into dropdown
-        formats.forEach((f) => {
-          if (f === moreGroup) return; // Skip the moreGroup itself
-
-          const hasColor = f.querySelector('.ql-color') || f.querySelector('.ql-background');
-          const hasInlineStyle = f.querySelector('.ql-bold') || f.querySelector('.ql-italic') || f.querySelector('.ql-underline') || f.querySelector('.ql-strike');
-          const hasList = f.querySelector('.ql-list');
-          const hasAlign = f.querySelector('.ql-align');
-          const hasLinkImage = f.querySelector('.ql-link') || f.querySelector('.ql-image');
-          const hasClean = f.querySelector('.ql-clean');
-
-          if (hasInlineStyle || hasColor || hasList || hasAlign || hasLinkImage || hasClean) {
-            dropdown.appendChild(f);
+      const moreGroup = toolbar.querySelector('.ql-more')?.closest('.ql-formats');
+      const dropdown = moreGroup?.querySelector('.ql-more-dropdown');
+      if (moreGroup && dropdown) {
+        Array.from(dropdown.children).forEach((child) => {
+          if (child.classList?.contains('ql-formats')) {
+            toolbar.insertBefore(child, moreGroup);
           }
         });
+        moreGroup.remove();
       }
 
-      const updateToolbarOverflow = () => {
-        if (controlPopupOpenRef.current || toolbar.querySelector('input:focus')) return;
-        if (toolbar.classList.contains('ql-toolbar-expanded')) return;
-        if (toolbar.__overflowUpdateQueued) return;
-
-        toolbar.__overflowUpdateQueued = true;
-        requestAnimationFrame(() => {
-          toolbar.__overflowUpdateQueued = false;
-          if (controlPopupOpenRef.current || toolbar.querySelector('input:focus')) return;
-          if (!toolbar.isConnected || toolbar.classList.contains('ql-toolbar-expanded')) return;
-
-          const dropdownGroups = Array.from(dropdown.querySelectorAll(':scope > .ql-formats'));
-          const previousHidden = dropdownGroups.map((group) => group.classList.contains('ql-overflow-hidden'));
-          if (toolbar.classList.contains('ql-toolbar-overflowing')) {
-            toolbar.classList.remove('ql-toolbar-overflowing');
-          }
-          dropdownGroups.forEach((group) => {
-            if (group.classList.contains('ql-overflow-hidden')) {
-              group.classList.remove('ql-overflow-hidden');
-            }
-          });
-
-          const moreButtonWidth = moreGroup.querySelector('.ql-more')?.getBoundingClientRect().width || 28;
-          const overflowBuffer = moreButtonWidth + 12;
-          const isPastToolbar = () => {
-            const toolbarRect = toolbar.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            const toolbarRight = Math.min(toolbarRect.right, containerRect.right) - overflowBuffer;
-            const visibleGroups = Array.from(toolbar.querySelectorAll(':scope > .ql-formats, .ql-more-dropdown > .ql-formats:not(.ql-overflow-hidden)'));
-            return visibleGroups.some((group) => group.getBoundingClientRect().right > toolbarRight);
-          };
-
-          const nextHidden = dropdownGroups.map(() => false);
-          for (let index = dropdownGroups.length - 1; index >= 0 && isPastToolbar(); index -= 1) {
-            nextHidden[index] = true;
-            dropdownGroups[index].classList.add('ql-overflow-hidden');
-          }
-
-          const isOverflowing = nextHidden.some(Boolean);
-          const hiddenChanged = nextHidden.some((isHidden, index) => isHidden !== previousHidden[index]);
-
-          if (hiddenChanged) {
-            dropdownGroups.forEach((group, index) => {
-              group.classList.toggle('ql-overflow-hidden', nextHidden[index]);
-            });
-          }
-
-          if (toolbar.classList.contains('ql-toolbar-overflowing') !== isOverflowing) {
-            toolbar.classList.toggle('ql-toolbar-overflowing', isOverflowing);
-          }
-
-          if (!isOverflowing && toolbar.classList.contains('ql-toolbar-expanded')) {
-            toolbar.classList.remove('ql-toolbar-expanded');
-          }
-        });
-      };
-
-      updateToolbarOverflow();
-
-      if (!toolbar.__overflowObserver) {
-        const overflowObserver = new ResizeObserver(updateToolbarOverflow);
-        overflowObserver.observe(container);
-        toolbar.__overflowObserver = overflowObserver;
-      }
-      toolbar.__toolbarDropdownReady = true;
+      toolbar.querySelectorAll('.ql-overflow-hidden').forEach((group) => {
+        group.classList.remove('ql-overflow-hidden');
+      });
     };
 
-    initDropdown();
-    const interval = setInterval(initDropdown, 1000);
-
-    const handleClickOutside = (event) => {
-      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
-      if (toolbar && toolbar.classList.contains('ql-toolbar-expanded')) {
-        if (!toolbar.contains(event.target)) {
-          toolbar.classList.remove('ql-toolbar-expanded');
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
+    stabilizeToolbar();
 
     return () => {
-      clearInterval(interval);
-      document.removeEventListener('mousedown', handleClickOutside);
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+      toolbar?.__overflowObserver?.disconnect?.();
     };
   }, [isReady]);
 
@@ -2377,13 +2308,12 @@ const QuillWrapper = forwardRef(({
       }, 0);
     };
 
-    toolbar.addEventListener('pointerdown', handlePickerLabelPointer, true);
-    toolbar.addEventListener('mousedown', handlePickerLabelPointer, true);
+    const pickerToggleEvent = window.PointerEvent ? 'pointerdown' : 'mousedown';
+    toolbar.addEventListener(pickerToggleEvent, handlePickerLabelPointer, true);
     toolbar.addEventListener('click', handlePickerItemClick, true);
 
     return () => {
-      toolbar.removeEventListener('pointerdown', handlePickerLabelPointer, true);
-      toolbar.removeEventListener('mousedown', handlePickerLabelPointer, true);
+      toolbar.removeEventListener(pickerToggleEvent, handlePickerLabelPointer, true);
       toolbar.removeEventListener('click', handlePickerItemClick, true);
       toolbar.__mobilePickerToggleBound = false;
     };
@@ -2487,6 +2417,7 @@ const QuillWrapper = forwardRef(({
             } catch (e) {
               console.error(e);
             }
+            cachedFonts = [];
             return [];
           })();
         }
@@ -3361,8 +3292,10 @@ const QuillWrapper = forwardRef(({
                 setPopupValueVersion((prev) => prev + 1);
               }, 0);
 
-              setFontSizePopupPosition(getClampedControlPopupPosition(button, 210));
-              setShowFontSizePopup(prev => !prev);
+              setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize'));
+              setShowSpacingPopup(false);
+              setShowTranslatePopup(false);
+              setShowFontSizePopup(true);
             });
           }
         },
@@ -3372,8 +3305,10 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
-              setPopupPosition(getClampedControlPopupPosition(button, 200));
-              setShowSpacingPopup(prev => !prev);
+              setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight'));
+              setShowFontSizePopup(false);
+              setShowTranslatePopup(false);
+              setShowSpacingPopup(true);
             });
           }
         },
@@ -3383,16 +3318,29 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
-              setTranslatePopupPosition(getClampedControlPopupPosition(button, 200));
-              setShowTranslatePopup(prev => !prev);
+              setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY'));
+              setShowFontSizePopup(false);
+              setShowSpacingPopup(false);
+              setShowTranslatePopup(true);
             });
           }
         },
         more: function () {
           const toolbarEl = this.container || this.quill.root.parentNode.querySelector('.ql-toolbar');
           if (toolbarEl) {
+            const now = window.performance?.now?.() || Date.now();
+            if (toolbarEl.__lastMoreToggleAt && now - toolbarEl.__lastMoreToggleAt < 120) {
+              return;
+            }
+            toolbarEl.__lastMoreToggleAt = now;
+
             if (controlPopupOpenRef.current) {
-              toolbarEl.classList.remove('ql-toolbar-expanded');
+              controlPopupOpenRef.current = false;
+              setShowFontSizePopup(false);
+              setShowSpacingPopup(false);
+              setShowTranslatePopup(false);
+              toolbarEl.classList.remove('ql-control-popup-open');
+              toolbarEl.classList.add('ql-toolbar-expanded');
               return;
             }
             toolbarEl.classList.toggle('ql-toolbar-expanded');
@@ -4269,7 +4217,6 @@ const QuillWrapper = forwardRef(({
     const toolbar = containerRef.current?.querySelector('.ql-toolbar');
     toolbar?.classList.toggle('ql-control-popup-open', controlPopupOpenRef.current);
     if (controlPopupOpenRef.current) {
-      toolbar?.classList.add('ql-toolbar-overflowing');
       toolbar?.classList.remove('ql-toolbar-expanded');
     } else {
       controlSelectionRef.current = null;
@@ -4285,15 +4232,15 @@ const QuillWrapper = forwardRef(({
 
       if (showFontSizePopup) {
         const button = root.querySelector('.ql-font-size-custom');
-        if (button) setFontSizePopupPosition(getClampedControlPopupPosition(button, 210));
+        setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize'));
       }
       if (showSpacingPopup) {
         const button = root.querySelector('.ql-line-height');
-        if (button) setPopupPosition(getClampedControlPopupPosition(button, 200));
+        setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight'));
       }
       if (showTranslatePopup) {
         const button = root.querySelector('.ql-translate-y');
-        if (button) setTranslatePopupPosition(getClampedControlPopupPosition(button, 200));
+        setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY'));
       }
     };
 
@@ -4323,6 +4270,8 @@ const QuillWrapper = forwardRef(({
     const handleOutsideClick = (e) => {
       const popup = containerRef.current?.querySelector('.ql-line-height-popup');
       const button = containerRef.current?.querySelector('.ql-line-height');
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+      if (toolbar?.contains(e.target)) return;
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
         preserveAdminScrollDuring(() => {
           commitControlInput();
@@ -4339,6 +4288,8 @@ const QuillWrapper = forwardRef(({
     const handleOutsideClick = (e) => {
       const popup = containerRef.current?.querySelector('.ql-font-size-popup');
       const button = containerRef.current?.querySelector('.ql-font-size-custom');
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+      if (toolbar?.contains(e.target)) return;
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
         preserveAdminScrollDuring(() => {
           commitControlInput();
@@ -4368,6 +4319,8 @@ const QuillWrapper = forwardRef(({
     const handleOutsideClick = (e) => {
       const popup = containerRef.current?.querySelector('.ql-translate-y-popup');
       const button = containerRef.current?.querySelector('.ql-translate-y');
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+      if (toolbar?.contains(e.target)) return;
       if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
         preserveAdminScrollDuring(() => {
           commitControlInput();
@@ -5226,6 +5179,45 @@ const QuillWrapper = forwardRef(({
           min-height: inherit;
           max-height: var(--quill-editor-max-height, none) !important;
           overflow-y: auto !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          box-sizing: border-box !important;
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+        }
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor p,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor h1,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor h2,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor h3,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor h4,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor h5,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor h6,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor li,
+        .quill-wrapper-container:not(.is-blog-editor) .ql-editor span {
+          max-width: 100% !important;
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+        }
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor {
+          max-width: 100% !important;
+          min-width: 0 !important;
+          box-sizing: border-box !important;
+          overflow-x: hidden !important;
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+        }
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor p,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h1,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h2,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h3,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h4,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h5,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h6,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor li,
+        .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor span {
+          max-width: 100% !important;
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
         }
         /* 1:1 responsive content widths matching Details page (W - screen-padding) & main-container padding */
         @media (max-width: 639px) {
@@ -5413,6 +5405,11 @@ const QuillWrapper = forwardRef(({
         .ql-toolbar.ql-snow.ql-toolbar-overflowing.ql-toolbar-expanded .ql-more-dropdown {
           display: flex !important;
           animation: ql-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .ql-toolbar.ql-snow.ql-toolbar-measuring .ql-more-dropdown,
+        .ql-toolbar.ql-snow.ql-toolbar-measuring .ql-more-dropdown > .ql-formats {
+          visibility: hidden !important;
+          pointer-events: none !important;
         }
         .ql-toolbar.ql-snow.ql-control-popup-open .ql-more-dropdown,
         .ql-toolbar.ql-snow.ql-control-popup-open.ql-toolbar-overflowing .ql-more-dropdown,
@@ -6182,6 +6179,11 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-overflowing.ql-toolbar-expanded .ql-more-dropdown {
             display: flex !important;
           }
+          .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-measuring .ql-more-dropdown,
+          .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-measuring .ql-more-dropdown .ql-formats {
+            visibility: hidden !important;
+            pointer-events: none !important;
+          }
           .quill-wrapper-container .ql-toolbar.ql-snow.ql-control-popup-open .ql-more-dropdown,
           .quill-wrapper-container .ql-toolbar.ql-snow.ql-control-popup-open.ql-toolbar-overflowing .ql-more-dropdown,
           .quill-wrapper-container .ql-toolbar.ql-snow.ql-control-popup-open.ql-toolbar-overflowing.ql-toolbar-expanded .ql-more-dropdown {
@@ -6301,6 +6303,37 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor.title-bg-text *,
           .quill-wrapper-container .ql-editor.mobile-watermark-text * {
           }
+        }
+
+        .quill-wrapper-container .ql-toolbar.ql-snow,
+        .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-overflowing,
+        .quill-wrapper-container .ql-toolbar.ql-snow.ql-toolbar-narrow {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          align-items: center !important;
+          gap: 6px 8px !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow: visible !important;
+          white-space: normal !important;
+          box-sizing: border-box !important;
+        }
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-formats {
+          display: inline-flex !important;
+          flex-wrap: nowrap !important;
+          align-items: center !important;
+          gap: 4px !important;
+          margin-right: 8px !important;
+          white-space: nowrap !important;
+          float: none !important;
+        }
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-more,
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-formats-group,
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-dropdown {
+          display: none !important;
+        }
+        .quill-wrapper-container .ql-toolbar.ql-snow .ql-formats.ql-overflow-hidden {
+          display: inline-flex !important;
         }
 
         .ql-font-size-popup input::placeholder {
