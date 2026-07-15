@@ -2646,7 +2646,7 @@ const QuillWrapper = forwardRef(({
           input.style.height = '20px';
           input.style.border = '1px solid #1A94FF';
           input.style.borderRadius = '4px';
-          input.style.fontSize = '12px';
+          input.style.fontSize = '16px';
           input.style.textAlign = 'center';
           input.style.outline = 'none';
           input.style.padding = '0';
@@ -2735,7 +2735,7 @@ const QuillWrapper = forwardRef(({
 
           wrapper.innerHTML = `
             <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
-              <input type="text" placeholder="Size..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; height: 26px; line-height: 26px; color: #333; background: #fff;" />
+              <input type="text" placeholder="Size..." class="custom-size-dropdown-input" style="flex: 1; min-width: 0; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; font-size: 16px; height: 30px; line-height: 30px; color: #333; background: #fff;" />
               <span class="custom-size-dropdown-apply-btn" style="width: 26px; height: 26px; min-width: 26px; flex-shrink: 0; background: #799f85; color: #fff; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; line-height: 26px; text-align: center; font-family: system-ui, -apple-system, sans-serif; transition: background 0.2s;" title="Apply">OK</span>
             </div>
           `;
@@ -4458,8 +4458,8 @@ const QuillWrapper = forwardRef(({
                   onBlur={handleControlInputBlur}
                   onClick={(e) => e.stopPropagation()}
                   onFocus={() => focusControlInput('lineHeight')}
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
-                  style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 focus:border-primary focus:outline-none"
+                  style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
                 />
               </div>
               <div>
@@ -4479,8 +4479,8 @@ const QuillWrapper = forwardRef(({
                   onBlur={handleControlInputBlur}
                   onClick={(e) => e.stopPropagation()}
                   onFocus={() => focusControlInput('lineHeightMobile')}
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 text-xs focus:border-primary focus:outline-none"
-                  style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 focus:border-primary focus:outline-none"
+                  style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
                 />
               </div>
             </div>
@@ -4568,7 +4568,8 @@ const QuillWrapper = forwardRef(({
                     onBlur={handleControlInputBlur}
                     onClick={(e) => e.stopPropagation()}
                     onFocus={() => focusControlInput('fontSize')}
-                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    style={{ fontSize: '16px' }}
                     placeholder=""
                   />
                 </div>
@@ -4619,7 +4620,8 @@ const QuillWrapper = forwardRef(({
                     onBlur={handleControlInputBlur}
                     onClick={(e) => e.stopPropagation()}
                     onFocus={() => focusControlInput('fontSizeMobile')}
-                    className="w-10 h-6 text-center bg-white border border-gray-200 rounded text-xs font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    style={{ fontSize: '16px' }}
                     placeholder=""
                   />
                 </div>
@@ -4688,8 +4690,8 @@ const QuillWrapper = forwardRef(({
                 onBlur={handleControlInputBlur}
                 onClick={(e) => e.stopPropagation()}
                 onFocus={() => focusControlInput('translateY')}
-                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
+                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
               />
             </div>
             <div>
@@ -4709,8 +4711,8 @@ const QuillWrapper = forwardRef(({
                 onBlur={handleControlInputBlur}
                 onClick={(e) => e.stopPropagation()}
                 onFocus={() => focusControlInput('translateYMobile')}
-                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
+                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
               />
             </div>
 
@@ -6398,6 +6400,20 @@ const QuillWrapper = forwardRef(({
         }
         .ql-font-size-popup input {
           color: #000000 !important;
+        }
+
+        .quill-wrapper-container input,
+        .ql-font-size-popup input,
+        .ql-line-height-popup input,
+        .ql-translate-y-popup input,
+        .custom-size-dropdown-input,
+        .ql-custom-size-input,
+        #quill-custom-color-picker,
+        #quill-custom-background-picker {
+          font-size: 16px !important;
+          -webkit-text-size-adjust: 100% !important;
+          text-size-adjust: 100% !important;
+          touch-action: manipulation !important;
         }
 
         .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text {

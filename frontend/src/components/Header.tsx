@@ -301,7 +301,7 @@ const Header = ({ icon }: HeaderProps) => {
           <div
             className={`z-[9998] -top-[10px] -right-[18px] sm:right-0 sm:-top-2 absolute bg-nav text-white shadow-lg rounded-bl-full transform transition-all duration-500 ease-in-out rounded-tr-[15px] sm:rounded-tr-[20px] ${isHomePage
               ? "w-[250px] sm:w-111 h-[250px] sm:h-100"
-              : "w-[120px] sm:w-[140px] h-[120px] sm:h-[140px]"
+              : "w-[150px] sm:w-[165px] h-[150px] sm:h-[165px]"
               } ${isOpen ? "scale-100 opacity-100 pointer-events-auto" : "scale-0 opacity-0 pointer-events-none"
               }`}
             style={{
@@ -309,8 +309,8 @@ const Header = ({ icon }: HeaderProps) => {
             }}
 
           >
-            <div className={isHomePage ? "h-6 sm:h-8" : "h-4 sm:h-5"}></div>
-            <ul className={isHomePage ? "ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium leading-tight sm:leading-normal" : "ml-2 sm:ml-3 mt-1 text-center text-[12px] sm:text-base font-medium leading-tight sm:leading-normal"}>
+            <div className={isHomePage ? "h-6 sm:h-8" : "h-8 sm:h-10"}></div>
+            <ul className={isHomePage ? "ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium leading-tight sm:leading-normal" : "ml-2 sm:ml-3 mr-7 sm:mr-8 mt-1 text-center text-[13px] sm:text-base font-medium leading-tight sm:leading-normal"}>
               {menuItems.map((item, index) => (
                 <li key={index} className="mb-1 sm:mb-1 cursor-pointer pointer-events-auto">
                   <a
@@ -319,7 +319,7 @@ const Header = ({ icon }: HeaderProps) => {
                       if (item.href.startsWith("#")) e.preventDefault();
                       item.onClick?.();
                     }}
-                    className="hover:underline decoration-wavy py-1 sm:py-2 px-4 md:px-2 block w-full relative z-[10005] pointer-events-auto"                  >
+                    className="hover:underline decoration-wavy py-1 sm:py-2 pl-10 pr-2 md:px-2 block w-full relative z-[10005] pointer-events-auto"                  >
                     {item.label}
                   </a>
                 </li>

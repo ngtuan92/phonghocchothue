@@ -270,6 +270,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
   const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
   const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
+  const roomContentDraftRef = useRef("");
 
   const handleSingleImageChange = (event) => {
     const file = event.target.files[0];
@@ -286,6 +287,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
       setRoomContent(dataEdit.content || "");
       setRoomSlug(dataEdit.slug || "");
       setRoomDescription(dataEdit.description || "");
+      roomContentDraftRef.current = dataEdit.content || "";
 
       let mergedEquipment = dataEdit.equipment || "";
       if (dataEdit.contains && dataEdit.contains.trim() && dataEdit.contains.trim() !== "0") {
@@ -377,6 +379,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
   const handleSave = () => {
     if (validateInputs()) {
+      const currentRoomContent = roomContentDraftRef.current;
       const price = decorateRichTextWithControls(roomPrice, {
         fontSize: roomPriceFontSize,
         fontSizeMobile: roomPriceFontSizeMobile,
@@ -398,7 +401,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
         name_rich: roomNameRich,
         image: singleImage,
         imageDetail: multipleImages,
-        content: roomContent,
+        content: currentRoomContent,
         description: roomDescription,
         equipment,
         price,
@@ -817,7 +820,17 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 key={`quill-content-${id || 'new'}`}
                 theme="snow"
                 value={roomContent}
-                onChange={(val) => setRoomContent(val)}
+                onChange={(val) => {
+                  roomContentDraftRef.current = val;
+                  setRoomContent(val);
+                }}
+                onDraftChange={(val) => {
+                  roomContentDraftRef.current = val;
+                }}
+                onBlur={(val) => {
+                  roomContentDraftRef.current = val;
+                  setRoomContent(val);
+                }}
                 placeholder="Nhập mô tả chi tiết phòng học..."
                 isBlogEditor={true}
                 className="room-desc-editor"
@@ -837,6 +850,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 onChangeTranslateYMobile={setRoomTranslateYMobile}
                 hasResponsiveFontSize={true}
                 inlineSelectionControls={true}
+                commitOnBlurOnly={true}
               />
             </div>
           </div>
