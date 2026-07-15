@@ -530,6 +530,11 @@ const safeNumber = (value, fallback = 0) => {
   return Number.isFinite(num) ? num : fallback;
 };
 
+const isMobileAdminViewport = () => (
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(max-width: 767px)")?.matches
+);
+
 const cleanFontSizeStyle = (styleContent) => styleContent
   .split(';')
   .map(part => part.trim())
@@ -684,8 +689,8 @@ const normalizeImageWrappersForEdit = (html) => {
       ...IMAGE_WRAP_DISPLAY[wrap],
       'width': '',
       'max-width': '100%',
-      'margin-top': wrap === 'none' ? '20px' : '0',
-      'margin-bottom': '16px',
+      'margin-top': wrap === 'none' ? '12px' : '0',
+      'margin-bottom': '10px',
       'margin-left': wrap === 'right' ? '20px' : wrap === 'none' ? 'auto' : '0',
       'margin-right': wrap === 'left' ? '20px' : wrap === 'none' ? 'auto' : '0',
     });
@@ -1881,6 +1886,7 @@ const QuillWrapper = forwardRef(({
       const toolbar = container.querySelector('.ql-toolbar');
       if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (isMobileAdminViewport()) return;
 
         const quillInstance = getQuillEditor();
         if (quillInstance) {
@@ -3423,25 +3429,31 @@ const QuillWrapper = forwardRef(({
           const quill = this.quill;
           const applyColor = (nextValue) => {
             const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
-            if (range?.length > 0) {
-              try {
-                focusWithoutScroll(quill);
-                setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
-                savedSelectionRef.current = range;
-              } catch { /* ignore */ }
-              quill.format('color', nextValue || false, 'user');
-            } else if (disableImageWrap && quill.getLength?.() > 1) {
-              quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'color', nextValue || false, 'user');
-            } else {
-              if (range) {
+            preserveEditorScrollDuring(() => {
+              if (range?.length > 0) {
                 try {
-                  focusWithoutScroll(quill);
+                  if (!isMobileAdminViewport()) {
+                    focusWithoutScroll(quill);
+                  }
                   setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
                   savedSelectionRef.current = range;
                 } catch { /* ignore */ }
+                quill.format('color', nextValue || false, 'user');
+              } else if (disableImageWrap && quill.getLength?.() > 1) {
+                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'color', nextValue || false, 'user');
+              } else {
+                if (range) {
+                  try {
+                    if (!isMobileAdminViewport()) {
+                      focusWithoutScroll(quill);
+                    }
+                    setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                    savedSelectionRef.current = range;
+                  } catch { /* ignore */ }
+                }
+                quill.format('color', nextValue || false, 'user');
               }
-              quill.format('color', nextValue || false, 'user');
-            }
+            });
             window.setTimeout(() => {
               try {
                 localEditorHtmlRef.current = quill.root.innerHTML;
@@ -3491,25 +3503,31 @@ const QuillWrapper = forwardRef(({
           const quill = this.quill;
           const applyBackground = (nextValue) => {
             const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
-            if (range?.length > 0) {
-              try {
-                focusWithoutScroll(quill);
-                setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
-                savedSelectionRef.current = range;
-              } catch { /* ignore */ }
-              quill.format('background', nextValue || false, 'user');
-            } else if (disableImageWrap && quill.getLength?.() > 1) {
-              quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'background', nextValue || false, 'user');
-            } else {
-              if (range) {
+            preserveEditorScrollDuring(() => {
+              if (range?.length > 0) {
                 try {
-                  focusWithoutScroll(quill);
+                  if (!isMobileAdminViewport()) {
+                    focusWithoutScroll(quill);
+                  }
                   setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
                   savedSelectionRef.current = range;
                 } catch { /* ignore */ }
+                quill.format('background', nextValue || false, 'user');
+              } else if (disableImageWrap && quill.getLength?.() > 1) {
+                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'background', nextValue || false, 'user');
+              } else {
+                if (range) {
+                  try {
+                    if (!isMobileAdminViewport()) {
+                      focusWithoutScroll(quill);
+                    }
+                    setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                    savedSelectionRef.current = range;
+                  } catch { /* ignore */ }
+                }
+                quill.format('background', nextValue || false, 'user');
               }
-              quill.format('background', nextValue || false, 'user');
-            }
+            });
             window.setTimeout(() => {
               try {
                 localEditorHtmlRef.current = quill.root.innerHTML;
@@ -4301,8 +4319,10 @@ const QuillWrapper = forwardRef(({
     };
 
     window.addEventListener('resize', updateOpenPopupPosition);
-    window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
-    window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
+    if (!isMobileAdminViewport()) {
+      window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
+      window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
+    }
 
     const raf = window.requestAnimationFrame(updateOpenPopupPosition);
     const timeoutId = window.setTimeout(updateOpenPopupPosition, 50);
@@ -4311,8 +4331,10 @@ const QuillWrapper = forwardRef(({
       window.cancelAnimationFrame(raf);
       window.clearTimeout(timeoutId);
       window.removeEventListener('resize', updateOpenPopupPosition);
-      window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
-      window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
+      if (!isMobileAdminViewport()) {
+        window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
+        window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
+      }
     };
   }, [
     getClampedControlPopupPosition,
@@ -4554,7 +4576,6 @@ const QuillWrapper = forwardRef(({
                 <div className="relative">
                   <input
                     type="text"
-                    autoFocus
                     value={getPopupInputValue('fontSize', fontSize)}
                     onBeforeInput={keepPopupInputKeyInInput}
                     onChange={(e) => updateControlDraftValue('fontSize', e.target.value, false, e.currentTarget)}
@@ -5875,13 +5896,13 @@ const QuillWrapper = forwardRef(({
           max-width: 100% !important;
           margin-left: auto !important;
           margin-right: auto !important;
-          margin-top: 20px !important;
-          margin-bottom: 16px !important;
+          margin-top: 12px !important;
+          margin-bottom: 10px !important;
         }
         .ql-editor .image-wrap-left {
           float: left !important;
           margin-right: 20px !important;
-          margin-bottom: 16px !important;
+          margin-bottom: 10px !important;
           margin-top: 0 !important;
           margin-left: 0 !important;
           display: inline-block !important;
@@ -5890,7 +5911,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrap-right {
           float: right !important;
           margin-left: 20px !important;
-          margin-bottom: 16px !important;
+          margin-bottom: 10px !important;
           margin-top: 0 !important;
           margin-right: 0 !important;
           display: inline-block !important;
@@ -5965,6 +5986,8 @@ const QuillWrapper = forwardRef(({
             width: 100% !important;
             margin-left: auto !important;
             margin-right: auto !important;
+            margin-top: 6px !important;
+            margin-bottom: 10px !important;
           }
           .quill-wrapper-container .ql-editor img {
             float: none !important;
@@ -5981,7 +6004,7 @@ const QuillWrapper = forwardRef(({
             line-height: 1.4 !important;
             padding: 0 8px !important;
             margin-top: 8px !important;
-            margin-bottom: 16px !important;
+            margin-bottom: 6px !important;
           }
           .editor-inline-image-caption {
             display: none !important;
@@ -6409,11 +6432,36 @@ const QuillWrapper = forwardRef(({
         .custom-size-dropdown-input,
         .ql-custom-size-input,
         #quill-custom-color-picker,
-        #quill-custom-background-picker {
+        #quill-custom-background-picker,
+        #quill-custom-bg-picker {
           font-size: 16px !important;
           -webkit-text-size-adjust: 100% !important;
           text-size-adjust: 100% !important;
           touch-action: manipulation !important;
+        }
+
+        @media (max-width: 767px) {
+          .ql-font-size-popup,
+          .ql-line-height-popup,
+          .ql-translate-y-popup {
+            position: fixed !important;
+            top: auto !important;
+            left: 12px !important;
+            right: 12px !important;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+            width: auto !important;
+            max-width: none !important;
+            max-height: min(70vh, 420px) !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            z-index: 9999 !important;
+          }
+
+          .ql-font-size-popup input,
+          .ql-line-height-popup input,
+          .ql-translate-y-popup input {
+            min-height: 36px !important;
+          }
         }
 
         .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text {
