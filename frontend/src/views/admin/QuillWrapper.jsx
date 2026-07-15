@@ -813,6 +813,8 @@ const QuillWrapper = forwardRef(({
   const lastRelativeContentRef = useRef("");
   const localEditorHtmlRef = useRef(null);
   const isUserEditingRef = useRef(false);
+  const isSyncingExternalValueRef = useRef(false);
+  const lastSyncedExternalValueRef = useRef(null);
   const suppressControlInputBlurRef = useRef(false);
   const controlPopupOpenRef = useRef(false);
   const controlButtonRectRef = useRef({});
@@ -2960,6 +2962,7 @@ const QuillWrapper = forwardRef(({
   emitCurrentContentForSaveRef.current = emitCurrentContentForSave;
 
   const handleOnChange = useCallback((content, delta, source, editor) => {
+    if (isSyncingExternalValueRef.current) return;
     if (onChangeRef.current) {
       if (source !== 'user') return;
       const quillRoot = editor?.root || getQuillEditor()?.root;
@@ -4168,6 +4171,53 @@ const QuillWrapper = forwardRef(({
 
   useEffect(() => {
     if (!isReady) return;
+    const quill = getQuillEditor();
+    if (!quill?.root) return;
+
+    const nextValue = absoluteValue || "";
+    if (lastSyncedExternalValueRef.current === nextValue) return;
+
+    let hasFocus = false;
+    try {
+      hasFocus = !!quill.hasFocus?.();
+    } catch {
+      hasFocus = false;
+    }
+
+    if (hasFocus || isUserEditingRef.current || selectedImageRef.current) {
+      return;
+    }
+
+    const currentHtml = quill.root.innerHTML || "";
+    const currentRelative = normalizeContentForSave(currentHtml);
+    if (currentHtml === nextValue || currentRelative === (props.value || "")) {
+      lastSyncedExternalValueRef.current = nextValue;
+      lastRelativeContentRef.current = props.value || "";
+      return;
+    }
+
+    isSyncingExternalValueRef.current = true;
+    try {
+      if (quill.clipboard?.convert && quill.setContents) {
+        const delta = quill.clipboard.convert({ html: nextValue });
+        quill.setContents(delta, "silent");
+      } else if (quill.clipboard?.dangerouslyPasteHTML) {
+        quill.clipboard.dangerouslyPasteHTML(0, nextValue, "silent");
+      } else {
+        quill.root.innerHTML = nextValue;
+      }
+    } finally {
+      lastSyncedExternalValueRef.current = nextValue;
+      lastRelativeContentRef.current = props.value || "";
+      localEditorHtmlRef.current = null;
+      window.requestAnimationFrame(() => {
+        isSyncingExternalValueRef.current = false;
+      });
+    }
+  }, [absoluteValue, getQuillEditor, isReady, normalizeContentForSave, props.value]);
+
+  useEffect(() => {
+    if (!isReady) return;
 
     const timers = [0, 50, 150, 350].map((delay) => window.setTimeout(() => {
       const quill = getQuillEditor();
@@ -4179,7 +4229,13 @@ const QuillWrapper = forwardRef(({
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [absoluteValue, editorValue, getQuillEditor, isReady]);
 
-  const { formats: quillFormats, ...quillProps } = props;
+  const {
+    formats: quillFormats,
+    value: _controlledValue,
+    onChange: _controlledOnChange,
+    onBlur: _controlledOnBlur,
+    ...quillProps
+  } = props;
 
   const isEditingInlineSelection = canUseInlineSelectionControls && !!controlSelectionRef.current?.length;
   const getPreviewControlValue = (key, propValue) => (
@@ -4696,7 +4752,7 @@ const QuillWrapper = forwardRef(({
         <ReactQuill
           ref={editorRef}
           {...quillProps}
-          value={editorValue}
+          defaultValue={editorValue || ""}
           onChange={handleOnChange}
           onChangeSelection={handleSelectionChange}
           onBlur={handleBlur}
