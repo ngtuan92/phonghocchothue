@@ -310,16 +310,16 @@ const Header = ({ icon }: HeaderProps) => {
 
           >
             <div className={isHomePage ? "h-6 sm:h-8" : "h-4 sm:h-5"}></div>
-            <ul className={isHomePage ? "ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium" : "ml-2 sm:ml-3 mt-1 text-center text-[12px] sm:text-base font-medium"}>
+            <ul className={isHomePage ? "ml-12 sm:ml-16 mt-0 sm:mt-4 text-center text-[13px] sm:text-xl font-medium leading-tight sm:leading-normal" : "ml-2 sm:ml-3 mt-1 text-center text-[12px] sm:text-base font-medium leading-tight sm:leading-normal"}>
               {menuItems.map((item, index) => (
-                <li key={index} className="mb-3 sm:mb-1 cursor-pointer pointer-events-auto">
+                <li key={index} className="mb-1 sm:mb-1 cursor-pointer pointer-events-auto">
                   <a
                     href={item.href}
                     onClick={(e) => {
                       if (item.href.startsWith("#")) e.preventDefault();
                       item.onClick?.();
                     }}
-                    className="hover:underline decoration-wavy py-2 md:py-2 px-4 md:px-2 block w-full relative z-[10005] pointer-events-auto"                  >
+                    className="hover:underline decoration-wavy py-1 sm:py-2 px-4 md:px-2 block w-full relative z-[10005] pointer-events-auto"                  >
                     {item.label}
                   </a>
                 </li>
