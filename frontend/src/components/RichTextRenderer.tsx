@@ -648,7 +648,19 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
         .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
         .rich-text-renderer .image-wrapper .image-caption {
-          font-size: 16px !important;
+          font-size: inherit !important;
+        }
+        @media (min-width: 768px) {
+          .rich-text-renderer [style*="--fs-desktop"] .image-caption,
+          .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption {
+            font-size: var(--fs-desktop) !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .rich-text-renderer [style*="--fs-mobile"] .image-caption,
+          .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
+            font-size: var(--fs-mobile) !important;
+          }
         }
         .rich-text-renderer [style*="--custom-line-height"],
         .rich-text-renderer [style*="--custom-line-height"] * {
@@ -758,7 +770,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
-          font-size: 16px !important;
+          font-size: inherit !important;
           line-height: 1.4 !important;
           padding: 0 4px !important;
           margin-top: 8px !important;
@@ -804,7 +816,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             width: 100% !important;
             margin-left: auto !important;
             margin-right: auto !important;
-            margin-top: 16px !important;
+            margin-top: 6px !important;
             margin-bottom: 0px !important;
           }
           .rich-text-renderer .image-wrapper.image-wrap-left,
@@ -814,8 +826,8 @@ const RICH_TEXT_RENDERER_STYLES = `
             width: 100% !important;
             margin-left: auto !important;
             margin-right: auto !important;
-            margin-top: 16px !important;
-            margin-bottom: 24px !important;
+            margin-top: 6px !important;
+            margin-bottom: 12px !important;
           }
           /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
           .rich-text-renderer img[data-wrap="none"],
@@ -826,15 +838,16 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
           .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
             width: 100% !important;
-            margin-bottom: 24px !important;
+            margin-top: 6px !important;
+            margin-bottom: 12px !important;
           }
           .rich-text-renderer .image-caption {
             display: block !important;
             position: static !important;
             clear: both !important;
-            font-size: 16px !important;
+            font-size: inherit !important;
             margin-top: 8px !important;
-            margin-bottom: 18px !important;
+            margin-bottom: 8px !important;
             padding: 0 8px !important;
             line-height: 1.45 !important;
             font-style: italic !important;
@@ -845,7 +858,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
             margin-top: 8px !important;
-            margin-bottom: 18px !important;
+            margin-bottom: 8px !important;
           }
           .rich-text-renderer .image-wrap-left img,
           .rich-text-renderer .image-wrap-right img {
@@ -856,7 +869,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         .image-caption {
           text-align: center;
           color: #666;
-          font-size: 16px;
+          font-size: inherit;
           margin-top: 12px;
           margin-bottom: 0;
           font-style: italic;
