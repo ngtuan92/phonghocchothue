@@ -1090,6 +1090,16 @@ const QuillWrapper = forwardRef(({
     restoreEditorScrollSnapshot(snapshot);
   }, [getQuillEditor, preserveScrollAround, restoreEditorScrollSnapshot, takeEditorScrollSnapshot]);
 
+  const updateMobileKeyboardInset = useCallback(() => {
+    if (typeof window === 'undefined' || !isMobileAdminViewport()) return;
+    const viewport = window.visualViewport;
+    const viewportBottom = viewport
+      ? viewport.height + viewport.offsetTop
+      : window.innerHeight;
+    const keyboardInset = Math.max(0, window.innerHeight - viewportBottom);
+    document.documentElement.style.setProperty('--admin-mobile-keyboard-inset', `${keyboardInset}px`);
+  }, []);
+
   const keepPopupInteractionStable = useCallback((event) => {
     event.stopPropagation();
     event.stopImmediatePropagation?.();
@@ -1099,8 +1109,9 @@ const QuillWrapper = forwardRef(({
   const focusControlInput = useCallback((key) => {
     activeControlInputKeyRef.current = key;
     setActiveControlInputKey(key);
+    updateMobileKeyboardInset();
     preserveAdminScrollDuring();
-  }, [preserveAdminScrollDuring]);
+  }, [preserveAdminScrollDuring, updateMobileKeyboardInset]);
 
   useEffect(() => {
     activeControlInputKeyRef.current = activeControlInputKey;
@@ -4304,6 +4315,8 @@ const QuillWrapper = forwardRef(({
       const root = containerRef.current;
       if (!root) return;
 
+      updateMobileKeyboardInset();
+
       if (showFontSizePopup) {
         const button = root.querySelector('.ql-font-size-custom');
         setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize'));
@@ -4322,18 +4335,25 @@ const QuillWrapper = forwardRef(({
     if (!isMobileAdminViewport()) {
       window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
       window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
+    } else {
+      window.visualViewport?.addEventListener('resize', updateMobileKeyboardInset);
     }
 
     const raf = window.requestAnimationFrame(updateOpenPopupPosition);
     const timeoutId = window.setTimeout(updateOpenPopupPosition, 50);
+    const keyboardTimeoutId = window.setTimeout(updateMobileKeyboardInset, 350);
 
     return () => {
       window.cancelAnimationFrame(raf);
       window.clearTimeout(timeoutId);
+      window.clearTimeout(keyboardTimeoutId);
       window.removeEventListener('resize', updateOpenPopupPosition);
       if (!isMobileAdminViewport()) {
         window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
         window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
+      } else {
+        window.visualViewport?.removeEventListener('resize', updateMobileKeyboardInset);
+        document.documentElement.style.removeProperty('--admin-mobile-keyboard-inset');
       }
     };
   }, [
@@ -4341,6 +4361,7 @@ const QuillWrapper = forwardRef(({
     showFontSizePopup,
     showSpacingPopup,
     showTranslatePopup,
+    updateMobileKeyboardInset,
   ]);
 
   useEffect(() => {
@@ -6448,7 +6469,7 @@ const QuillWrapper = forwardRef(({
             top: auto !important;
             left: 12px !important;
             right: 12px !important;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+            bottom: calc(var(--admin-mobile-keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px) + 12px) !important;
             width: auto !important;
             max-width: none !important;
             max-height: min(70vh, 420px) !important;
