@@ -4,6 +4,7 @@ import { Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 import Cropper from "react-easy-crop";
 import { showToastError } from "@/helpers/toast";
+import LiteRichTextEditor, { useLiteEditorMode } from "@/components/admin/LiteRichTextEditor";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -40,15 +41,6 @@ const enqueueQuillMount = (mount) => {
     const index = pendingQuillMounts.indexOf(mount);
     if (index >= 0) pendingQuillMounts.splice(index, 1);
   };
-};
-
-const isLowPowerDevice = () => {
-  if (typeof window === "undefined") return false;
-  const coarsePointer = window.matchMedia?.("(pointer: coarse)").matches;
-  const smallScreen = window.matchMedia?.("(max-width: 767px)").matches;
-  const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
-  const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
-  return Boolean(coarsePointer || smallScreen || lowCpu || lowMemory);
 };
 
 const getPlainText = (html) => {
@@ -135,16 +127,16 @@ const decorateRichTextWithControls = (html, controls = {}) => {
 };
 
 function LazyQuillWrapper({ minHeight = "120px", ...props }) {
+  const useLiteEditor = useLiteEditorMode();
   const [shouldRender, setShouldRender] = useState(false);
   const containerRef = React.useRef(null);
   const cancelQueuedMountRef = React.useRef(null);
 
   useEffect(() => {
+    if (useLiteEditor) return;
     if (shouldRender) return;
     const node = containerRef.current;
     if (!node || typeof window === "undefined") return;
-
-    if (isLowPowerDevice()) return;
 
     const renderNow = () => {
       if (cancelQueuedMountRef.current) return;
@@ -183,9 +175,19 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
       cancelQueuedMountRef.current?.();
       cancelQueuedMountRef.current = null;
     };
-  }, [shouldRender]);
+  }, [shouldRender, useLiteEditor]);
 
   const previewText = getPlainText(props.value);
+
+  if (useLiteEditor) {
+    return (
+      <LiteRichTextEditor
+        {...props}
+        minHeight={minHeight}
+        maxHeight={props.maxHeight || "360px"}
+      />
+    );
+  }
 
   return (
     <div ref={containerRef}>
