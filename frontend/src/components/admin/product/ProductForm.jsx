@@ -522,7 +522,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   />
                   <span className="flex-1">
                     <Typography variant="h6" className="font-bold text-navy-700 text-sm">
-                      Phòng nổi bật
+                      Hết phòng
                     </Typography>
                   </span>
                 </label>
