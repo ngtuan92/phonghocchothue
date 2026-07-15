@@ -48,6 +48,15 @@ const enqueueQuillMount = (mount) => {
   };
 };
 
+const isLowPowerDevice = () => {
+  if (typeof window === "undefined") return false;
+  const coarsePointer = window.matchMedia?.("(pointer: coarse)").matches;
+  const smallScreen = window.matchMedia?.("(max-width: 767px)").matches;
+  const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
+  const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
+  return Boolean(coarsePointer || smallScreen || lowCpu || lowMemory);
+};
+
 const getPlainText = (html) => {
   if (!html || typeof html !== "string") return "";
   return html
@@ -143,6 +152,8 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
     if (shouldRender) return;
     const node = containerRef.current;
     if (!node || typeof window === "undefined") return;
+
+    if (isLowPowerDevice()) return;
 
     cancelQueuedMountRef.current = enqueueQuillMount(() => {
       setShouldRender(true);

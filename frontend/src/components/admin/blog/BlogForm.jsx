@@ -42,6 +42,15 @@ const enqueueQuillMount = (mount) => {
   };
 };
 
+const isLowPowerDevice = () => {
+  if (typeof window === "undefined") return false;
+  const coarsePointer = window.matchMedia?.("(pointer: coarse)").matches;
+  const smallScreen = window.matchMedia?.("(max-width: 767px)").matches;
+  const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
+  const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
+  return Boolean(coarsePointer || smallScreen || lowCpu || lowMemory);
+};
+
 const getPlainText = (html) => {
   if (!html || typeof html !== "string") return "";
   return html
@@ -134,6 +143,8 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
     if (shouldRender) return;
     const node = containerRef.current;
     if (!node || typeof window === "undefined") return;
+
+    if (isLowPowerDevice()) return;
 
     const renderNow = () => {
       if (cancelQueuedMountRef.current) return;
@@ -249,21 +260,38 @@ const getCroppedImg = (imageSrc, croppedAreaPixels) => {
 
 export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const showScrollTopRef = useRef(false);
 
   useEffect(() => {
+    let frameId = null;
+
     const handleScroll = () => {
-      let isScrolled = window.scrollY > 300;
-      if (!isScrolled) {
-        const scrollable = document.querySelector("main, .overflow-y-auto");
-        if (scrollable) {
-          isScrolled = scrollable.scrollTop > 300;
+      if (frameId !== null) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        let isScrolled = window.scrollY > 300;
+        if (!isScrolled) {
+          const scrollable = document.querySelector("main, .overflow-y-auto");
+          if (scrollable) {
+            isScrolled = scrollable.scrollTop > 300;
+          }
         }
-      }
-      setShowScrollTop(isScrolled);
+
+        if (showScrollTopRef.current !== isScrolled) {
+          showScrollTopRef.current = isScrolled;
+          setShowScrollTop(isScrolled);
+        }
+      });
     };
 
     window.addEventListener("scroll", handleScroll, true);
-    return () => window.removeEventListener("scroll", handleScroll, true);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, []);
 
   const scrollToTop = () => {
