@@ -906,7 +906,7 @@ const QuillWrapper = forwardRef(({
     window.requestAnimationFrame(restore);
   }, []);
 
-  const getClampedControlPopupPosition = useCallback((button, popupWidth = 220, cacheKey = "") => {
+  const getClampedControlPopupPosition = useCallback((button, popupWidth = 220, cacheKey = "", popupHeight = 220) => {
     if (typeof window === 'undefined') {
       return { top: 0, left: 12, width: popupWidth };
     }
@@ -929,14 +929,21 @@ const QuillWrapper = forwardRef(({
     const viewportLeft = safeNumber(viewport?.offsetLeft, 0);
     const viewportTop = safeNumber(viewport?.offsetTop, 0);
     const viewportWidth = safeNumber(viewport?.width, window.innerWidth || document.documentElement.clientWidth || popupWidth);
+    const viewportHeight = safeNumber(viewport?.height, window.innerHeight || document.documentElement.clientHeight || popupHeight);
     const gutter = 12;
     const width = Math.min(popupWidth, Math.max(160, viewportWidth - gutter * 2));
     const minLeft = viewportLeft + gutter;
     const maxLeft = viewportLeft + viewportWidth - width - gutter;
     const preferredLeft = safeNumber(rect?.left, minLeft);
+    const belowTop = safeNumber((rect?.bottom || 0) + viewportTop + 5);
+    const aboveTop = safeNumber((rect?.top || 0) + viewportTop - popupHeight - 5);
+    const maxTop = viewportTop + viewportHeight - Math.min(popupHeight, viewportHeight - gutter * 2) - gutter;
+    const preferredTop = belowTop + popupHeight <= viewportTop + viewportHeight - gutter
+      ? belowTop
+      : aboveTop;
 
     return {
-      top: safeNumber((rect?.bottom || 0) + viewportTop + 5),
+      top: Math.max(viewportTop + gutter, Math.min(preferredTop, maxTop)),
       left: Math.max(minLeft, Math.min(preferredLeft, maxLeft)),
       width,
     };
@@ -1090,16 +1097,6 @@ const QuillWrapper = forwardRef(({
     restoreEditorScrollSnapshot(snapshot);
   }, [getQuillEditor, preserveScrollAround, restoreEditorScrollSnapshot, takeEditorScrollSnapshot]);
 
-  const updateMobileKeyboardInset = useCallback(() => {
-    if (typeof window === 'undefined' || !isMobileAdminViewport()) return;
-    const viewport = window.visualViewport;
-    const viewportBottom = viewport
-      ? viewport.height + viewport.offsetTop
-      : window.innerHeight;
-    const keyboardInset = Math.max(0, window.innerHeight - viewportBottom);
-    document.documentElement.style.setProperty('--admin-mobile-keyboard-inset', `${keyboardInset}px`);
-  }, []);
-
   const keepPopupInteractionStable = useCallback((event) => {
     event.stopPropagation();
     event.stopImmediatePropagation?.();
@@ -1109,9 +1106,8 @@ const QuillWrapper = forwardRef(({
   const focusControlInput = useCallback((key) => {
     activeControlInputKeyRef.current = key;
     setActiveControlInputKey(key);
-    updateMobileKeyboardInset();
     preserveAdminScrollDuring();
-  }, [preserveAdminScrollDuring, updateMobileKeyboardInset]);
+  }, [preserveAdminScrollDuring]);
 
   useEffect(() => {
     activeControlInputKeyRef.current = activeControlInputKey;
@@ -3312,7 +3308,7 @@ const QuillWrapper = forwardRef(({
                 setPopupValueVersion((prev) => prev + 1);
               }, 0);
 
-              setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize'));
+              setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
               setShowSpacingPopup(false);
               setShowTranslatePopup(false);
               setShowFontSizePopup(true);
@@ -3325,7 +3321,7 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
-              setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight'));
+              setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
               setShowFontSizePopup(false);
               setShowTranslatePopup(false);
               setShowSpacingPopup(true);
@@ -3338,7 +3334,7 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
-              setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY'));
+              setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
               setShowFontSizePopup(false);
               setShowSpacingPopup(false);
               setShowTranslatePopup(true);
@@ -4315,19 +4311,17 @@ const QuillWrapper = forwardRef(({
       const root = containerRef.current;
       if (!root) return;
 
-      updateMobileKeyboardInset();
-
       if (showFontSizePopup) {
         const button = root.querySelector('.ql-font-size-custom');
-        setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize'));
+        setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
       }
       if (showSpacingPopup) {
         const button = root.querySelector('.ql-line-height');
-        setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight'));
+        setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
       }
       if (showTranslatePopup) {
         const button = root.querySelector('.ql-translate-y');
-        setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY'));
+        setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
       }
     };
 
@@ -4336,12 +4330,12 @@ const QuillWrapper = forwardRef(({
       window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
       window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
     } else {
-      window.visualViewport?.addEventListener('resize', updateMobileKeyboardInset);
+      window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
     }
 
     const raf = window.requestAnimationFrame(updateOpenPopupPosition);
     const timeoutId = window.setTimeout(updateOpenPopupPosition, 50);
-    const keyboardTimeoutId = window.setTimeout(updateMobileKeyboardInset, 350);
+    const keyboardTimeoutId = window.setTimeout(updateOpenPopupPosition, 350);
 
     return () => {
       window.cancelAnimationFrame(raf);
@@ -4352,8 +4346,7 @@ const QuillWrapper = forwardRef(({
         window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
         window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
       } else {
-        window.visualViewport?.removeEventListener('resize', updateMobileKeyboardInset);
-        document.documentElement.style.removeProperty('--admin-mobile-keyboard-inset');
+        window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
       }
     };
   }, [
@@ -4361,7 +4354,6 @@ const QuillWrapper = forwardRef(({
     showFontSizePopup,
     showSpacingPopup,
     showTranslatePopup,
-    updateMobileKeyboardInset,
   ]);
 
   useEffect(() => {
@@ -6466,13 +6458,10 @@ const QuillWrapper = forwardRef(({
           .ql-line-height-popup,
           .ql-translate-y-popup {
             position: fixed !important;
-            top: auto !important;
-            left: 12px !important;
-            right: 12px !important;
-            bottom: calc(var(--admin-mobile-keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px) + 12px) !important;
-            width: auto !important;
-            max-width: none !important;
-            max-height: min(70vh, 420px) !important;
+            right: auto !important;
+            bottom: auto !important;
+            max-width: calc(100vw - 24px) !important;
+            max-height: min(56vh, 360px) !important;
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
             z-index: 9999 !important;
