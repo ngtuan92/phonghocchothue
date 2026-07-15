@@ -11,7 +11,6 @@ import dynamic from "next/dynamic";
 import PropTypes from "prop-types";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdSave, MdClose } from "react-icons/md";
-import LiteRichTextEditor, { useLiteEditorMode } from "@/components/admin/LiteRichTextEditor";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -136,13 +135,11 @@ const decorateRichTextWithControls = (html, controls = {}) => {
 };
 
 function LazyQuillWrapper({ minHeight = "120px", ...props }) {
-  const useLiteEditor = useLiteEditorMode();
   const containerRef = useRef(null);
   const cancelQueuedMountRef = useRef(null);
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    if (useLiteEditor) return;
     if (shouldRender) return;
     const node = containerRef.current;
     if (!node || typeof window === "undefined") return;
@@ -156,19 +153,9 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
         cancelQueuedMountRef.current();
       }
     };
-  }, [shouldRender, useLiteEditor]);
+  }, [shouldRender]);
 
   const previewText = getPlainText(props.value);
-
-  if (useLiteEditor) {
-    return (
-      <LiteRichTextEditor
-        {...props}
-        minHeight={minHeight}
-        maxHeight={props.maxHeight || "360px"}
-      />
-    );
-  }
 
   return (
     <div ref={containerRef}>
@@ -204,7 +191,6 @@ LazyQuillWrapper.propTypes = {
 };
 
 export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = false }) {
-  const useLiteEditor = useLiteEditorMode();
   const [showScrollTop, setShowScrollTop] = useState(false);
   const showScrollTopRef = useRef(false);
 
@@ -284,29 +270,6 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
   const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
   const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
-
-  const handleRoomNameRichChange = (val) => {
-    setRoomNameRich(val);
-    let plainText = "";
-    if (typeof window !== "undefined") {
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = val;
-      plainText = (tempDiv.textContent || tempDiv.innerText || "").trim();
-    } else {
-      plainText = val.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
-    }
-    setRoomName(plainText);
-    const generatedSlug = plainText
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/[^a-z0-9\s-]/g, "")
-      .trim()
-      .replace(/[\s-]+/g, "-");
-    setRoomSlug(generatedSlug);
-    setErrors((prev) => ({ ...prev, roomName: "" }));
-  };
 
   const handleSingleImageChange = (event) => {
     const file = event.target.files[0];
@@ -486,20 +449,32 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 Tên phòng (Nghệ thuật - H1, H2, Kiểu chữ...) <span className="text-red-500">*</span>
               </label>
               <div id="room-name-rich" className="product-dialog-quill product-dialog-quill--name border border-gray-200 rounded-xl overflow-visible bg-white">
-                {useLiteEditor ? (
-                  <LiteRichTextEditor
-                    value={roomNameRich}
-                    onChange={handleRoomNameRichChange}
-                    placeholder="Nhap ten phong..."
-                    minHeight="100px"
-                    maxHeight="180px"
-                  />
-                ) : (
                 <QuillWrapper
                   key={`quill-name-${id || 'new'}`}
                   theme="snow"
                   value={roomNameRich}
-                  onChange={handleRoomNameRichChange}
+                  onChange={(val) => {
+                    setRoomNameRich(val);
+                    let plainText = "";
+                    if (typeof window !== "undefined") {
+                      const tempDiv = document.createElement("div");
+                      tempDiv.innerHTML = val;
+                      plainText = (tempDiv.textContent || tempDiv.innerText || "").trim();
+                    } else {
+                      plainText = val.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+                    }
+                    setRoomName(plainText);
+                    const generatedSlug = plainText
+                      .toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/đ/g, "d")
+                      .replace(/[^a-z0-9\s-]/g, "")
+                      .trim()
+                      .replace(/[\s-]+/g, "-");
+                    setRoomSlug(generatedSlug);
+                    setErrors((prev) => ({ ...prev, roomName: "" }));
+                  }}
                   placeholder="Nhập tên phòng..."
                   isBlogEditor={true}
                   lineHeight={roomLineHeight}
@@ -516,7 +491,6 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   onChangeTranslateYMobile={setRoomTranslateYMobile}
                   hasResponsiveFontSize={true}
                 />
-                )}
               </div>
               {errors.roomName && (
                 <Typography variant="small" color="red" className="mt-1 flex items-center gap-1 font-medium text-xs">
@@ -839,16 +813,6 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
           {/* Canvas rộng tối đa đạt đúng cấu trúc tỉ lệ hiển thị trên trang public */}
           <div className="w-full bg-white rounded-xl ckeditor-content content-img py-2">
             <div className="product-dialog-quill product-dialog-quill--content border border-gray-200 rounded-xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
-              {useLiteEditor ? (
-                <LiteRichTextEditor
-                  value={roomContent}
-                  onChange={(val) => setRoomContent(val)}
-                  placeholder="Nhap mo ta chi tiet phong..."
-                  minHeight="160px"
-                  maxHeight="420px"
-                  className="room-desc-editor"
-                />
-              ) : (
               <QuillWrapper
                 key={`quill-content-${id || 'new'}`}
                 theme="snow"
@@ -874,7 +838,6 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 hasResponsiveFontSize={true}
                 inlineSelectionControls={true}
               />
-              )}
             </div>
           </div>
         </div>

@@ -4,7 +4,6 @@ import { Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 import Cropper from "react-easy-crop";
 import { showToastError } from "@/helpers/toast";
-import LiteRichTextEditor, { useLiteEditorMode } from "@/components/admin/LiteRichTextEditor";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -127,13 +126,11 @@ const decorateRichTextWithControls = (html, controls = {}) => {
 };
 
 function LazyQuillWrapper({ minHeight = "120px", ...props }) {
-  const useLiteEditor = useLiteEditorMode();
   const [shouldRender, setShouldRender] = useState(false);
   const containerRef = React.useRef(null);
   const cancelQueuedMountRef = React.useRef(null);
 
   useEffect(() => {
-    if (useLiteEditor) return;
     if (shouldRender) return;
     const node = containerRef.current;
     if (!node || typeof window === "undefined") return;
@@ -175,19 +172,9 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
       cancelQueuedMountRef.current?.();
       cancelQueuedMountRef.current = null;
     };
-  }, [shouldRender, useLiteEditor]);
+  }, [shouldRender]);
 
   const previewText = getPlainText(props.value);
-
-  if (useLiteEditor) {
-    return (
-      <LiteRichTextEditor
-        {...props}
-        minHeight={minHeight}
-        maxHeight={props.maxHeight || "360px"}
-      />
-    );
-  }
 
   return (
     <div ref={containerRef}>
@@ -262,38 +249,21 @@ const getCroppedImg = (imageSrc, croppedAreaPixels) => {
 
 export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const showScrollTopRef = useRef(false);
 
   useEffect(() => {
-    let frameId = null;
-
     const handleScroll = () => {
-      if (frameId !== null) return;
-
-      frameId = window.requestAnimationFrame(() => {
-        frameId = null;
-        let isScrolled = window.scrollY > 300;
-        if (!isScrolled) {
-          const scrollable = document.querySelector("main, .overflow-y-auto");
-          if (scrollable) {
-            isScrolled = scrollable.scrollTop > 300;
-          }
+      let isScrolled = window.scrollY > 300;
+      if (!isScrolled) {
+        const scrollable = document.querySelector("main, .overflow-y-auto");
+        if (scrollable) {
+          isScrolled = scrollable.scrollTop > 300;
         }
-
-        if (showScrollTopRef.current !== isScrolled) {
-          showScrollTopRef.current = isScrolled;
-          setShowScrollTop(isScrolled);
-        }
-      });
+      }
+      setShowScrollTop(isScrolled);
     };
 
     window.addEventListener("scroll", handleScroll, true);
-    return () => {
-      window.removeEventListener("scroll", handleScroll, true);
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
-      }
-    };
+    return () => window.removeEventListener("scroll", handleScroll, true);
   }, []);
 
   const scrollToTop = () => {

@@ -4255,8 +4255,6 @@ const QuillWrapper = forwardRef(({
   const previewFontSizeMobile = globalFontSizeMobile;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const activeViewportFontSize = toCssUnit(isMobileViewport ? previewFontSizeMobile || previewFontSizeDesktop : previewFontSizeDesktop || previewFontSizeMobile);
-  const isLowPowerViewport = isMobileViewport;
-  const shouldUseStickyToolbar = isSticky && !isLowPowerViewport;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');
@@ -4394,7 +4392,7 @@ const QuillWrapper = forwardRef(({
 
   return (
     <div
-      className={`quill-wrapper-container relative ${className} ${disableImageWrap ? "disable-image-wrap" : ""}${shouldUseStickyToolbar ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`}
+      className={`quill-wrapper-container relative ${className} ${disableImageWrap ? "disable-image-wrap" : ""}${isSticky ? " is-sticky" : ""}${isBlogEditor ? " is-blog-editor" : ""}`}
       ref={containerRef}
       style={{
         '--quill-toolbar-top': toolbarTop,
@@ -6526,7 +6524,7 @@ const QuillWrapper = forwardRef(({
         }
       `}} />
 
-      {isMounted && resizerRect && !isLowPowerViewport && createPortal((
+      {isMounted && resizerRect && createPortal((
         <div
           ref={resizerOverlayRef}
           className={`fixed editor-image-resizer-overlay ${isModalOpen ? 'hidden' : 'block'}`}
