@@ -243,6 +243,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           if (wrapMode === 'left' || wrapMode === 'right') {
             wrapperEl.classList.add(`image-wrap-${wrapMode}`);
           }
+          wrapperEl.style.removeProperty('margin');
+          wrapperEl.style.marginLeft = 'auto';
+          wrapperEl.style.marginRight = 'auto';
         }
 
         if (wrapperEl && imgEl && !wrapperEl.style.width) {
