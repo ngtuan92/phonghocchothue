@@ -192,21 +192,38 @@ LazyQuillWrapper.propTypes = {
 
 export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = false }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const showScrollTopRef = useRef(false);
 
   useEffect(() => {
+    let frameId = null;
+
     const handleScroll = () => {
-      let isScrolled = window.scrollY > 300;
-      if (!isScrolled) {
-        const scrollable = document.querySelector("main, .overflow-y-auto");
-        if (scrollable) {
-          isScrolled = scrollable.scrollTop > 300;
+      if (frameId !== null) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        let isScrolled = window.scrollY > 300;
+        if (!isScrolled) {
+          const scrollable = document.querySelector("main, .overflow-y-auto");
+          if (scrollable) {
+            isScrolled = scrollable.scrollTop > 300;
+          }
         }
-      }
-      setShowScrollTop(isScrolled);
+
+        if (showScrollTopRef.current !== isScrolled) {
+          showScrollTopRef.current = isScrolled;
+          setShowScrollTop(isScrolled);
+        }
+      });
     };
 
     window.addEventListener("scroll", handleScroll, true);
-    return () => window.removeEventListener("scroll", handleScroll, true);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, []);
 
   const scrollToTop = () => {

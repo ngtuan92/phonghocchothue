@@ -23,6 +23,14 @@ function AdminScrollStabilizer() {
   const restoringScrollRef = React.useRef(false);
 
   React.useEffect(() => {
+    const isTouchOrSmallScreen =
+      window.matchMedia?.("(pointer: coarse)").matches ||
+      window.matchMedia?.("(max-width: 767px)").matches;
+
+    if (isTouchOrSmallScreen) {
+      return;
+    }
+
     const isEditableElement = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
       return Boolean(
