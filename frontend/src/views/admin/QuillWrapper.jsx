@@ -11,6 +11,7 @@ const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 let cachedFonts = null;
 let fetchPromise = null;
 const COLORS = [
+  "no-color",
   "#000000", "#e60000", "#ff9900", "#ffff00", "#008a00", "#0066cc", "#9933ff",
   "#ffffff", "#facccc", "#ffebcc", "#ffffcc", "#cce8cc", "#cce0f5", "#ebd6ff",
   "#bbbbbb", "#f06666", "#ffc266", "#ffff66", "#66b966", "#66a3e0", "#c285ff",
@@ -3469,7 +3470,9 @@ const QuillWrapper = forwardRef(({
             }, 0);
           };
 
-          if (value === 'custom-color') {
+          if (value === 'no-color') {
+            applyColor(false);
+          } else if (value === 'custom-color') {
             let picker = document.getElementById('quill-custom-color-picker');
             if (!picker) {
               picker = document.createElement('input');
@@ -3543,7 +3546,9 @@ const QuillWrapper = forwardRef(({
             }, 0);
           };
 
-          if (value === 'custom-color') {
+          if (value === 'no-color') {
+            applyBackground(false);
+          } else if (value === 'custom-color') {
             let picker = document.getElementById('quill-custom-bg-picker');
             if (!picker) {
               picker = document.createElement('input');
@@ -5212,6 +5217,56 @@ const QuillWrapper = forwardRef(({
           white-space: nowrap !important;
         }
 
+        .ql-snow .ql-color .ql-picker-options [data-value="no-color"],
+        .ql-snow .ql-background .ql-picker-options [data-value="no-color"],
+        .ql-snow .ql-color-picker .ql-picker-options [data-value="no-color"],
+        .ql-snow .ql-background-picker .ql-picker-options [data-value="no-color"] {
+          background: #ffffff !important;
+          width: 100% !important;
+          height: 24px !important;
+          border: 1px solid #d1d5db !important;
+          border-radius: 6px !important;
+          margin-bottom: 6px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          cursor: pointer !important;
+          position: relative !important;
+          overflow: hidden !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .ql-snow .ql-color .ql-picker-options [data-value="no-color"]::before,
+        .ql-snow .ql-background .ql-picker-options [data-value="no-color"]::before,
+        .ql-snow .ql-color-picker .ql-picker-options [data-value="no-color"]::before,
+        .ql-snow .ql-background-picker .ql-picker-options [data-value="no-color"]::before {
+          content: "" !important;
+          position: absolute !important;
+          width: 120% !important;
+          height: 2px !important;
+          background: #ef4444 !important;
+          transform: rotate(-12deg) !important;
+          opacity: 0.85 !important;
+        }
+
+        .ql-snow .ql-color .ql-picker-options [data-value="no-color"]::after,
+        .ql-snow .ql-background .ql-picker-options [data-value="no-color"]::after,
+        .ql-snow .ql-color-picker .ql-picker-options [data-value="no-color"]::after,
+        .ql-snow .ql-background-picker .ql-picker-options [data-value="no-color"]::after {
+          content: "Không" !important;
+          font-family: 'Inter', sans-serif !important;
+          color: #111827 !important;
+          background: rgba(255, 255, 255, 0.88) !important;
+          padding: 0 6px !important;
+          border-radius: 4px !important;
+          font-size: 12px !important;
+          font-weight: 700 !important;
+          pointer-events: none !important;
+          position: relative !important;
+          z-index: 1 !important;
+          white-space: nowrap !important;
+        }
+
         .quill-wrapper-container.is-blog-editor .ql-editor {
           font-family: 'Montserrat', sans-serif;
           line-height: 1.6;
@@ -6208,7 +6263,11 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-options [data-value="custom-color"],
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-options [data-value="custom-color"],
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-options [data-value="custom-color"],
-          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"] {
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-options [data-value="custom-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color .ql-picker-options [data-value="no-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background .ql-picker-options [data-value="no-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-color-picker .ql-picker-options [data-value="no-color"],
+          .quill-wrapper-container .ql-toolbar.ql-snow .ql-background-picker .ql-picker-options [data-value="no-color"] {
             grid-column: 1 / -1 !important;
             width: 100% !important;
             height: 24px !important;

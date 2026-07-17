@@ -669,16 +669,28 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer [style*="--custom-line-height"] * {
           line-height: var(--custom-line-height) !important;
         }
+        .rich-text-renderer[style*="--translate-y"],
         .rich-text-renderer [style*="--translate-y"] {
           transform: translateY(var(--translate-y)) !important;
+        }
+        .rich-text-renderer.inline-rich-text[style*="--translate-y"] {
+          position: relative !important;
+          top: var(--translate-y) !important;
+          transform: none !important;
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--custom-line-height-mobile"],
           .rich-text-renderer [style*="--custom-line-height-mobile"] * {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
+          .rich-text-renderer[style*="--translate-y-mobile"],
           .rich-text-renderer [style*="--translate-y-mobile"] {
             transform: translateY(var(--translate-y-mobile, var(--translate-y, 0px))) !important;
+          }
+          .rich-text-renderer.inline-rich-text[style*="--translate-y-mobile"] {
+            position: relative !important;
+            top: var(--translate-y-mobile, var(--translate-y, 0px)) !important;
+            transform: none !important;
           }
         }
         /* Style for image wrappers */

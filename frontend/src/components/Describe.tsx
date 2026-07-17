@@ -163,11 +163,11 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
-                            <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
+                            <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"
-                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] leading-none text-[#f8ebdb] opacity-60 flex items-center justify-center transform -translate-x-[15px] md:-translate-x-[10px] sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
+                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] leading-none text-[#f8ebdb] flex items-center justify-center transform -translate-x-[15px] md:-translate-x-[10px] sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
                                 />
                             </div>
 
@@ -237,7 +237,7 @@ const Describe = () => {
                         )}
 
                         <div className="relative w-full flex items-center justify-center py-0.5 watermark-container-wrapper">
-                            <div className="absolute -top-12 -bottom-12 left-0 right-0 w-full flex items-center justify-center opacity-50 select-none pointer-events-none z-0 overflow-visible">
+                            <div className="absolute -top-12 -bottom-12 left-0 right-0 w-full flex items-center justify-center select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"

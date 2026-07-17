@@ -361,7 +361,7 @@
 
 .title-bg-text {
   font-family: 'Bebas Neue', sans-serif;
-  opacity: 0.12;
+  opacity: 1;
   color: #d4908a;
   z-index: 0;
   line-height: 0.75 !important;
