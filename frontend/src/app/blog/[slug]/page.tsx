@@ -291,6 +291,7 @@ export default function BlogDetail() {
                   lineHeightMobile={blog.lineHeightMobile}
                   translateY={blog.translateY}
                   translateYMobile={blog.translateYMobile}
+                  preserveNbsp
                 />
               </h1>
 
@@ -308,6 +309,7 @@ export default function BlogDetail() {
                       lineHeightMobile={blog.excerptLineHeightMobile}
                       translateY={blog.excerptTranslateY}
                       translateYMobile={blog.excerptTranslateYMobile}
+                      preserveNbsp
                     />
                     <span className="text-[#b8c7b0] text-3xl font-serif ml-1 sm:hidden leading-none">”</span>
                   </div>
@@ -325,6 +327,7 @@ export default function BlogDetail() {
                 lineHeightMobile={blog.lineHeightMobile}
                 translateY={blog.translateY}
                 translateYMobile={blog.translateYMobile}
+                preserveNbsp
               />
             </article>
 

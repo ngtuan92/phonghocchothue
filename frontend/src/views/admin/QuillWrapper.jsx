@@ -2090,7 +2090,6 @@ const QuillWrapper = forwardRef(({
           const keepFontPickerOpen = () => {
             fontSearchDropdownOpenRef.current = true;
             fontPicker?.classList.add('ql-expanded');
-            input.focus?.();
           };
           const keepSearchInteraction = (event, { allowDefault = false } = {}) => {
             if (!allowDefault) event.preventDefault();
@@ -2136,18 +2135,18 @@ const QuillWrapper = forwardRef(({
             wrapper.dataset.fontSearchEventsBound = 'true';
             ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach((eventName) => {
               wrapper.addEventListener(eventName, (event) => {
-                keepSearchInteraction(event);
+                keepSearchInteraction(event, { allowDefault: event.target === input });
               }, true);
             });
           }
           ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach((eventName) => {
-            input[`on${eventName}`] = (event) => keepSearchInteraction(event);
+            input[`on${eventName}`] = (event) => keepSearchInteraction(event, { allowDefault: true });
           });
           input.onclick = (e) => {
-            keepSearchInteraction(e);
+            keepSearchInteraction(e, { allowDefault: true });
           };
           input.onmousedown = (e) => {
-            keepSearchInteraction(e);
+            keepSearchInteraction(e, { allowDefault: true });
           };
           input.onfocus = () => {
             keepFontPickerOpen();
@@ -4107,7 +4106,8 @@ const QuillWrapper = forwardRef(({
 
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
-    let val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value)).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    const whitespaceOptions = { preserveWhitespaceOnly: preserveWhitespaceOnlyBlocks };
+    let val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value), whitespaceOptions).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
 
     const cleanBlockStyleString = (styleStr, tag = '') => {
       return styleStr
@@ -4151,8 +4151,8 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    return removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(normalizeImageWrappersForEdit(val)));
-  }, [props.value, hasResponsive, isSimpleTextField]);
+    return removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(normalizeImageWrappersForEdit(val)), whitespaceOptions);
+  }, [props.value, hasResponsive, isSimpleTextField, preserveWhitespaceOnlyBlocks]);
 
   const handleBlur = useCallback(() => {
     let blurContent = lastRelativeContentRef.current;
@@ -5669,7 +5669,7 @@ const QuillWrapper = forwardRef(({
           border-color: rgba(26, 148, 255, 0.3);
         }
         .ql-snow .ql-picker.ql-font {
-          width: 160px !important;
+          width: 200px !important;
         }
         .ql-snow .ql-picker.ql-header {
           width: 120px !important;

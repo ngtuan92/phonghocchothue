@@ -692,6 +692,7 @@ export default function DetailPage() {
                     lineHeightMobile={product.lineHeightMobile}
                     translateY={product.translateY}
                     translateYMobile={product.translateYMobile}
+                    preserveNbsp
                   />
                 ) : (
                   <p className="text-[20px] max-sm:mb-[10px] sm:text-[35px] text-[#9F853A] font-bold cursor-pointer">
@@ -714,6 +715,7 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
+                        preserveNbsp
                       />
                     ) : (
                       formatNumber(toNumber(productData.product.contains) || 0)
@@ -734,6 +736,7 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
+                        preserveNbsp
                       />
                     ) : (
                       productData.product.equipment
@@ -753,6 +756,7 @@ export default function DetailPage() {
                     lineHeightMobile={product.lineHeightMobile}
                     translateY={product.translateY}
                     translateYMobile={product.translateYMobile}
+                    preserveNbsp
                   />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
@@ -999,6 +1003,7 @@ export default function DetailPage() {
                 lineHeightMobile={product.lineHeightMobile}
                 translateY={product.translateY}
                 translateYMobile={product.translateYMobile}
+                preserveNbsp
               />
             </div>
           </>
