@@ -71,6 +71,29 @@ const normalizeBlockHighlightHtml = (html: string) => {
   });
 };
 
+const normalizeWhitespaceSpacers = (html: string) => {
+  if (!html || typeof DOMParser === 'undefined') return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+  const root = doc.body.firstElementChild;
+
+  root?.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6').forEach((block) => {
+    if (!(block instanceof HTMLElement)) return;
+    if (block.querySelector('img, video, iframe, svg, canvas, table')) return;
+
+    const text = (block.textContent || '').replace(/\u00a0/g, ' ');
+    const hasOnlyWhitespaceText = text.length > 0 && text.trim() === '';
+    const hasOnlyBreaks = !text && /^(?:\s|<br\s*\/?>|&nbsp;)*$/i.test(block.innerHTML || '');
+    if (!hasOnlyWhitespaceText && !hasOnlyBreaks) return;
+
+    block.classList.add('ql-whitespace-spacer');
+    block.setAttribute('aria-hidden', 'true');
+    block.textContent = hasOnlyWhitespaceText ? text : ' ';
+  });
+
+  return root?.innerHTML || html;
+};
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -404,6 +427,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       if (root) processedHtml = root.innerHTML;
     }
 
+    if (preserveNbsp) {
+      processedHtml = normalizeWhitespaceSpacers(processedHtml);
+    }
+
     return normalizeBlockHighlightHtml(processedHtml);
   }, [html, preserveNbsp, configKey, stripAllFontStyles]);
 
@@ -563,6 +590,18 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer li::before {
           content: none !important;
           display: none !important;
+        }
+        .rich-text-renderer .ql-whitespace-spacer {
+          display: block !important;
+          min-height: 1em !important;
+          line-height: inherit !important;
+          margin: 0.75em 0 !important;
+          white-space: pre-wrap !important;
+          overflow-wrap: anywhere !important;
+        }
+        .rich-text-renderer .ql-whitespace-spacer * {
+          white-space: inherit !important;
+          overflow-wrap: inherit !important;
         }
         .rich-text-renderer .ql-align-center,
         .rich-text-renderer [style*="text-align: center"],

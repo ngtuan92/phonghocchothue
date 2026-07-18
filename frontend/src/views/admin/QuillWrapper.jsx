@@ -365,6 +365,12 @@ if (typeof window !== "undefined" && Quill) {
     const lineHeightAttributor = new StyleAttributor("lineHeight", "line-height", {
       scope: Parchment.Scope.INLINE
     });
+    const whiteSpaceAttributor = new StyleAttributor("whiteSpace", "white-space", {
+      scope: Parchment.Scope.BLOCK
+    });
+    const overflowWrapAttributor = new StyleAttributor("overflowWrap", "overflow-wrap", {
+      scope: Parchment.Scope.BLOCK
+    });
     const verticalAlignAttributor = new StyleAttributor("translateY", "vertical-align", {
       scope: Parchment.Scope.INLINE
     });
@@ -382,6 +388,8 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(borderRadiusAttributor, true);
     Quill.register(widthAttributor, true);
     Quill.register(lineHeightAttributor, true);
+    Quill.register(whiteSpaceAttributor, true);
+    Quill.register(overflowWrapAttributor, true);
     Quill.register(verticalAlignAttributor, true);
     Quill.register(fontSizeDesktopAttributor, true);
     Quill.register(fontSizeMobileAttributor, true);
@@ -443,7 +451,7 @@ const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
   "color", "background", "list", "align", "link", "image", "wrap",
   "alt", "title", "caption", "borderRadius", "width", "lineHeight", "translateY",
-  "fontSizeDesktop", "fontSizeMobile"
+  "fontSizeDesktop", "fontSizeMobile", "whiteSpace", "overflowWrap"
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -663,6 +671,45 @@ const removeEmptyQuillParagraphs = (html, { preserveWhitespaceOnly = false } = {
   const root = doc.body.firstElementChild;
   if (!root) return html;
   removeEmptyQuillParagraphElements(root);
+  return root.innerHTML;
+};
+
+const normalizeWhitespaceOnlyBlocksForQuill = (html) => {
+  if (!html || typeof html !== "string" || typeof window === "undefined" || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  const normalizeTextNodes = (node) => {
+    Array.from(node.childNodes || []).forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        child.textContent = String(child.textContent || "").replace(/\u00a0/g, " ");
+        return;
+      }
+      normalizeTextNodes(child);
+    });
+  };
+
+  root.querySelectorAll("p, div, h1, h2, h3, h4, h5, h6").forEach((block) => {
+    if (block.querySelector("img, video, iframe, svg, canvas, table")) return;
+
+    const text = (block.textContent || "").replace(/\u00a0/g, " ");
+    const hasOnlyWhitespaceText = text.length > 0 && text.trim() === "";
+    const hasOnlyBreaks = text.length === 0 && /^(?:\s|<br\s*\/?>|&nbsp;)*$/i.test(block.innerHTML || "");
+    if (!hasOnlyWhitespaceText && !hasOnlyBreaks) return;
+
+    block.classList.add("ql-whitespace-preserve");
+    block.style.whiteSpace = "break-spaces";
+    block.style.overflowWrap = "anywhere";
+
+    if (hasOnlyBreaks) {
+      block.textContent = " ";
+    } else {
+      normalizeTextNodes(block);
+    }
+  });
+
   return root.innerHTML;
 };
 
@@ -2919,6 +2966,9 @@ const QuillWrapper = forwardRef(({
       stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || "", whitespaceOptions)),
       whitespaceOptions
     ).replace(regex, 'src="/$1"');
+    if (preserveWhitespaceOnlyBlocks) {
+      relativeContent = normalizeWhitespaceOnlyBlocksForQuill(relativeContent);
+    }
     relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
     const cleanBlockStyleString = (styleStr, tag = '') => {
@@ -2963,7 +3013,8 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    return removeEmptyQuillParagraphs(relativeContent, whitespaceOptions);
+    relativeContent = removeEmptyQuillParagraphs(relativeContent, whitespaceOptions);
+    return preserveWhitespaceOnlyBlocks ? normalizeWhitespaceOnlyBlocksForQuill(relativeContent) : relativeContent;
   }, [hasResponsive, isSimpleTextField, preserveWhitespaceOnlyBlocks]);
 
   const emitCurrentContentForSave = useCallback((forceCommit = false) => {
@@ -4108,6 +4159,9 @@ const QuillWrapper = forwardRef(({
     if (!props.value || typeof props.value !== 'string') return props.value;
     const whitespaceOptions = { preserveWhitespaceOnly: preserveWhitespaceOnlyBlocks };
     let val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value), whitespaceOptions).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    if (preserveWhitespaceOnlyBlocks) {
+      val = normalizeWhitespaceOnlyBlocksForQuill(val);
+    }
 
     const cleanBlockStyleString = (styleStr, tag = '') => {
       return styleStr
@@ -4151,7 +4205,8 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    return removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(normalizeImageWrappersForEdit(val)), whitespaceOptions);
+    val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(normalizeImageWrappersForEdit(val)), whitespaceOptions);
+    return preserveWhitespaceOnlyBlocks ? normalizeWhitespaceOnlyBlocksForQuill(val) : val;
   }, [props.value, hasResponsive, isSimpleTextField, preserveWhitespaceOnlyBlocks]);
 
   const handleBlur = useCallback(() => {
@@ -5471,6 +5526,13 @@ const QuillWrapper = forwardRef(({
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-ui,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-ui {
           display: none !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"],
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"] {
+          white-space: break-spaces !important;
+          overflow-wrap: anywhere !important;
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]),
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]) {
