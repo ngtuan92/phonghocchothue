@@ -6,6 +6,16 @@ const redis = require("../config/redis");
     const queryInterface = db.sequelize.getQueryInterface();
     const tableDescription = await queryInterface.describeTable("configs");
 
+    if (!tableDescription.line_height) {
+      await queryInterface.addColumn("configs", "line_height", {
+        type: db.Sequelize.STRING(50),
+        allowNull: true,
+      });
+      console.log("Added configs.line_height");
+    } else {
+      console.log("configs.line_height already exists");
+    }
+
     if (!tableDescription.line_height_mobile) {
       await queryInterface.addColumn("configs", "line_height_mobile", {
         type: db.Sequelize.STRING(50),
@@ -19,7 +29,7 @@ const redis = require("../config/redis");
     await redis.del("configs:v2");
     process.exit(0);
   } catch (error) {
-    console.error("Failed to add configs.line_height_mobile:", error);
+    console.error("Failed to add configs line-height columns:", error);
     process.exit(1);
   }
 })();
