@@ -551,8 +551,9 @@ const cleanFontSizeStyle = (styleContent) => styleContent
 const cleanStyleForSave = cleanFontSizeStyle;
 const cleanStyleForEdit = cleanFontSizeStyle;
 
-const removeEmptyStyledSpans = (html) => {
+const removeEmptyStyledSpans = (html, { preserveWhitespaceOnly = false } = {}) => {
   if (!html || typeof html !== "string") return html;
+  if (preserveWhitespaceOnly) return html;
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
     return html.replace(/<span\b(?=[^>]*\bstyle=)[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/span>/gi, "");
   }
@@ -651,8 +652,9 @@ const removeEmptyQuillParagraphElements = (root) => {
   });
 };
 
-const removeEmptyQuillParagraphs = (html) => {
+const removeEmptyQuillParagraphs = (html, { preserveWhitespaceOnly = false } = {}) => {
   if (!html || typeof html !== "string") return html;
+  if (preserveWhitespaceOnly) return html;
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
     return html.replace(/<p\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "");
   }
@@ -763,6 +765,9 @@ const QuillWrapper = forwardRef(({
     className.includes('describe-phone') ||
     className.includes('describe-quote-text') ||
     className.includes('seo-h1-main');
+  const preserveWhitespaceOnlyBlocks =
+    className.includes('blog-desc-editor') ||
+    className.includes('room-desc-editor');
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const hasOnChangeFontSize = !!onChangeFontSize;
   const hasOnChangeFontSizeMobile = !!onChangeFontSizeMobile;
@@ -2910,7 +2915,11 @@ const QuillWrapper = forwardRef(({
   const normalizeContentForSave = useCallback((content) => {
     const escapedUrlApi = URL_API.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(`src=["']${escapedUrlApi}(assets/[^"']+)["']`, 'gi');
-    let relativeContent = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || ""))).replace(regex, 'src="/$1"');
+    const whitespaceOptions = { preserveWhitespaceOnly: preserveWhitespaceOnlyBlocks };
+    let relativeContent = removeEmptyQuillParagraphs(
+      stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || "", whitespaceOptions)),
+      whitespaceOptions
+    ).replace(regex, 'src="/$1"');
     relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
     const cleanBlockStyleString = (styleStr, tag = '') => {
@@ -2947,7 +2956,7 @@ const QuillWrapper = forwardRef(({
         const cleaned = stripFontSizeFromStyle(styleContent);
         return cleaned ? `style=${quote}${cleaned}${cleaned ? quote : ""}` : "";
       });
-      relativeContent = removeEmptyQuillParagraphs(removeEmptyStyledSpans(relativeContent));
+      relativeContent = removeEmptyQuillParagraphs(removeEmptyStyledSpans(relativeContent, whitespaceOptions), whitespaceOptions);
     } else {
       relativeContent = relativeContent.replace(/style=(["'])([^"']*?)\1/gi, (match, quote, styleContent) => {
         const cleaned = cleanStyleForSave(styleContent);
@@ -2955,8 +2964,8 @@ const QuillWrapper = forwardRef(({
       });
     }
 
-    return removeEmptyQuillParagraphs(relativeContent);
-  }, [hasResponsive, isSimpleTextField]);
+    return removeEmptyQuillParagraphs(relativeContent, whitespaceOptions);
+  }, [hasResponsive, isSimpleTextField, preserveWhitespaceOnlyBlocks]);
 
   const emitCurrentContentForSave = useCallback((forceCommit = false) => {
     const quill = getQuillEditor();
@@ -2980,21 +2989,11 @@ const QuillWrapper = forwardRef(({
     if (onChangeRef.current) {
       if (source !== 'user') return;
       const quillRoot = editor?.root || getQuillEditor()?.root;
-      if (quillRoot) {
-        syncListItemFontSizeFromChildren(quillRoot);
-      }
-      const syncedContent = quillRoot?.innerHTML || content;
-      isUserEditingRef.current = true;
-      localEditorHtmlRef.current = syncedContent;
 
-      const relativeContent = normalizeContentForSave(syncedContent);
-
-      if (typeof props.value === "string" && relativeContent === props.value) {
-        return;
-      }
-
-      lastRelativeContentRef.current = relativeContent;
       if (commitOnBlurOnly) {
+        const draftContent = content || quillRoot?.innerHTML || "";
+        isUserEditingRef.current = true;
+        localEditorHtmlRef.current = draftContent;
         const selectionAfterChange = (() => {
           try {
             return editor?.getSelection?.();
@@ -3005,7 +3004,8 @@ const QuillWrapper = forwardRef(({
         if (selectionAfterChange) {
           typingSelectionRef.current = selectionAfterChange;
         }
-        onDraftChange?.(relativeContent);
+        lastRelativeContentRef.current = draftContent;
+        onDraftChange?.(draftContent);
         const previousSelection = selectionAfterChange || typingSelectionRef.current;
         window.requestAnimationFrame(() => {
           try {
@@ -3035,6 +3035,19 @@ const QuillWrapper = forwardRef(({
       if (onChangeTimeoutRef.current) {
         clearTimeout(onChangeTimeoutRef.current);
       }
+      if (quillRoot) {
+        syncListItemFontSizeFromChildren(quillRoot);
+      }
+      const syncedContent = quillRoot?.innerHTML || content;
+      isUserEditingRef.current = true;
+      localEditorHtmlRef.current = syncedContent;
+      const relativeContent = normalizeContentForSave(syncedContent);
+
+      if (typeof props.value === "string" && relativeContent === props.value) {
+        return;
+      }
+
+      lastRelativeContentRef.current = relativeContent;
       onChangeTimeoutRef.current = setTimeout(() => {
         if (onChangeRef.current) {
           onChangeRef.current(relativeContent, delta, source, editor);
@@ -3044,20 +3057,21 @@ const QuillWrapper = forwardRef(({
   }, [props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, normalizeContentForSave]);
 
   const handleSelectionChange = useCallback((range) => {
+    const isControlPopupOpen = showFontSizePopup || showSpacingPopup || showTranslatePopup;
     if (range) {
       typingSelectionRef.current = range;
       savedSelectionRef.current = range;
       if (range.length > 0) {
         lastHighlightSelectionRef.current = range;
       }
-      const isOpen = showFontSizePopup || showSpacingPopup || showTranslatePopup;
-      if (isOpen) {
+      if (isControlPopupOpen) {
         controlSelectionRef.current = range.length > 0 ? { ...range } : null;
         syncSelectionControlsFromFormat(range);
       }
     }
+    if (commitOnBlurOnly && !isControlPopupOpen) return;
     updateSizePickerLabel(range);
-  }, [showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateSizePickerLabel]);
+  }, [commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateSizePickerLabel]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -4141,22 +4155,30 @@ const QuillWrapper = forwardRef(({
   }, [props.value, hasResponsive, isSimpleTextField]);
 
   const handleBlur = useCallback(() => {
-    if (props.onBlur && lastRelativeContentRef.current != null) {
-      props.onBlur(lastRelativeContentRef.current);
+    let blurContent = lastRelativeContentRef.current;
+    if (commitOnBlurOnly && blurContent != null) {
+      const quill = getQuillEditor();
+      const html = quill?.root?.innerHTML || localEditorHtmlRef.current || blurContent;
+      blurContent = normalizeContentForSave(html);
+      lastRelativeContentRef.current = blurContent;
+    }
+
+    if (props.onBlur && blurContent != null) {
+      props.onBlur(blurContent);
     }
 
     if (onChangeTimeoutRef.current) {
       clearTimeout(onChangeTimeoutRef.current);
       onChangeTimeoutRef.current = null;
-      if (onChangeRef.current && lastRelativeContentRef.current != null) {
-        onChangeRef.current(lastRelativeContentRef.current);
+      if (onChangeRef.current && blurContent != null) {
+        onChangeRef.current(blurContent);
       }
     }
 
     isUserEditingRef.current = false;
     localEditorHtmlRef.current = null;
     setSyncTrigger(prev => !prev);
-  }, [props.onBlur]);
+  }, [commitOnBlurOnly, getQuillEditor, normalizeContentForSave, props.onBlur]);
 
   useEffect(() => {
     let isFocused = false;

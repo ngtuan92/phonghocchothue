@@ -69,6 +69,9 @@ const ProductCard = ({ product }: { product?: Product }) => {
   }
 
   const roomHeading = useConfigContentByKey("room-heading");
+  const shouldAutoSlide = products.length > 1;
+  const sliderProducts = shouldAutoSlide && products.length <= 4 ? [...products, ...products] : products;
+  const sliderKey = `room-slider-${products.length}-${sliderProducts.length}`;
 
   return (
     <div className="w-full mx-auto main-container relative mt-[60px] mb-0 sm:mt-36 sm:mb-36">
@@ -80,18 +83,19 @@ const ProductCard = ({ product }: { product?: Product }) => {
         />
       </div>
       <Swiper
+        key={sliderKey}
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={9}
         slidesPerView={1}
-        loop={products && products.length > 4}
+        loop={shouldAutoSlide}
         navigation={{
           nextEl: ".swiper-button-next-custom",
           prevEl: ".swiper-button-prev-custom",
         }}
-        autoplay={products && products.length > 4 ? {
-          delay: 5000,
+        autoplay={shouldAutoSlide ? {
+          delay: 3000,
           disableOnInteraction: false,
-          pauseOnMouseEnter: true,
+          pauseOnMouseEnter: false,
         } : false}
         breakpoints={{
           320: { slidesPerView: 1, spaceBetween: 10 },
@@ -102,8 +106,8 @@ const ProductCard = ({ product }: { product?: Product }) => {
         }}
         className="w-full h-auto"
       >
-        {products.map((product: any) => (
-          <SwiperSlide key={product.id || product._id} className="bg-transparent" style={{ backgroundColor: "transparent" }}>
+        {sliderProducts.map((product: any, index: number) => (
+          <SwiperSlide key={`${product.id || product._id}-${index}`} className="bg-transparent" style={{ backgroundColor: "transparent" }}>
             <Link 
               href={getProductUrl(product)}
               className="h-[266px] sm:h-[300px] mx-auto overflow-hidden group relative block bg-transparent"

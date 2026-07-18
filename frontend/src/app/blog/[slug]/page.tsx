@@ -246,7 +246,7 @@ export default function BlogDetail() {
             </nav>
 
             <header className="mb-2 sm:mb-4 text-center sm:text-left flex flex-col">
-              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 mb-4 order-2 sm:order-1">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-start gap-4 sm:gap-10 py-2 mb-4 order-1">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#f8f9fa] border border-gray-100 flex items-center justify-center text-[#563c39] overflow-hidden relative">
                     {authorAvatarSrc ? (
@@ -276,7 +276,11 @@ export default function BlogDetail() {
                 </div>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-4 order-1 sm:order-2">
+              <div className="order-2 w-full text-left">
+                <TableOfContents html={blog.content} />
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mb-4 order-3">
                 <RichTextRenderer 
                   html={blog.title} 
                   as="span" 
@@ -291,7 +295,7 @@ export default function BlogDetail() {
               </h1>
 
               {blog.excerpt && (
-                <div className="mb-1 sm:mb-4 px-2 sm:px-0 py-1 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6 order-3 sm:order-3">
+                <div className="mb-1 sm:mb-4 px-2 sm:px-0 py-1 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6 order-4">
                   <div className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
                     <span className="text-[#b8c7b0] text-3xl font-serif mr-1 sm:hidden leading-none">“</span>
                     <RichTextRenderer 
@@ -312,7 +316,6 @@ export default function BlogDetail() {
             </header>
 
             <article className="blog-content-area mb-20">
-              <TableOfContents html={blog.content} />
               <RichTextRenderer 
                 html={blog.content} 
                 className="blog-content" 

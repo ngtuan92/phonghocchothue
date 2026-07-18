@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardBody,
@@ -62,6 +62,16 @@ const getPlainText = (html) => {
     .replace(/\s+/g, " ")
     .trim();
 };
+
+const createSlug = (text) =>
+  String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u0111/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/[\s-]+/g, "-");
 
 const toCssUnit = (value, allowNegative = false) => {
   const text = String(value || "").trim();
@@ -138,7 +148,7 @@ const decorateRichTextWithControls = (html, controls = {}) => {
   return root.innerHTML;
 };
 
-function LazyQuillWrapper({ minHeight = "120px", ...props }) {
+const LazyQuillWrapper = React.memo(function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   const containerRef = useRef(null);
   const cancelQueuedMountRef = useRef(null);
   const [shouldRender, setShouldRender] = useState(false);
@@ -214,10 +224,27 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => (
+  prevProps.value === nextProps.value &&
+  prevProps.lineHeight === nextProps.lineHeight &&
+  prevProps.lineHeightMobile === nextProps.lineHeightMobile &&
+  prevProps.fontSize === nextProps.fontSize &&
+  prevProps.fontSizeMobile === nextProps.fontSizeMobile &&
+  prevProps.translateY === nextProps.translateY &&
+  prevProps.translateYMobile === nextProps.translateYMobile &&
+  prevProps.className === nextProps.className &&
+  prevProps.placeholder === nextProps.placeholder &&
+  prevProps.minHeight === nextProps.minHeight &&
+  prevProps.hasResponsiveFontSize === nextProps.hasResponsiveFontSize &&
+  prevProps.inlineSelectionControls === nextProps.inlineSelectionControls &&
+  prevProps.commitOnBlurOnly === nextProps.commitOnBlurOnly &&
+  prevProps.theme === nextProps.theme
+));
 
 LazyQuillWrapper.propTypes = {
   minHeight: PropTypes.string,
+  placeholder: PropTypes.string,
+  value: PropTypes.string,
 };
 
 function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
@@ -257,6 +284,10 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
   const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
+  const roomNameRichDraftRef = useRef("");
+  const roomContentDraftRef = useRef("");
+  const roomPriceDraftRef = useRef("");
+  const roomEquipmentDraftRef = useRef("");
 
   const setIfChanged = (setter, nextValue) => {
     setter((prev) => (prev === nextValue ? prev : nextValue));
@@ -273,9 +304,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   useEffect(() => {
     if (open) {
       if (dataEdit) {
+        const initialRoomNameRich = dataEdit.name_rich || (dataEdit.name ? `<h2>${dataEdit.name}</h2>` : "");
         setRoomName(dataEdit.name || "");
-        setRoomNameRich(dataEdit.name_rich || (dataEdit.name ? `<h2>${dataEdit.name}</h2>` : ""));
+        setRoomNameRich(initialRoomNameRich);
+        roomNameRichDraftRef.current = initialRoomNameRich;
         setRoomContent(dataEdit.content || "");
+        roomContentDraftRef.current = dataEdit.content || "";
         setRoomSlug(dataEdit.slug || "");
         setRoomDescription(dataEdit.description || "");
 
@@ -292,7 +326,9 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           }
         }
         setRoomEquipment(mergedEquipment);
+        roomEquipmentDraftRef.current = mergedEquipment;
         setRoomPrice(dataEdit.price || "");
+        roomPriceDraftRef.current = dataEdit.price || "";
         setIsChecked(dataEdit.isSpecial || false);
         if (dataEdit.status == 1) {
           setIsStatus(true);
@@ -344,11 +380,15 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
       } else {
         setRoomName("");
         setRoomNameRich("");
+        roomNameRichDraftRef.current = "";
         setRoomContent("");
+        roomContentDraftRef.current = "";
         setRoomSlug("");
         setRoomDescription("");
         setRoomEquipment("");
+        roomEquipmentDraftRef.current = "";
         setRoomPrice("");
+        roomPriceDraftRef.current = "";
         setIsChecked(false);
         setIsStatus(false);
         setSingleImage(null);
@@ -429,12 +469,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
     setSeoImage(null);
   };
 
-  const validateInputs = () => {
+  const validateInputs = (nextRoomName = roomName, nextRoomSlug = roomSlug) => {
     const newErrors = {};
-    if (!roomName.trim()) {
+    if (!String(nextRoomName || "").trim()) {
       newErrors.roomName = "Tên phòng không được để trống.";
     }
-    if (!roomSlug.trim()) {
+    if (!String(nextRoomSlug || "").trim()) {
       newErrors.roomSlug = "Slug không được để trống.";
     }
     if (!singleImage) {
@@ -445,8 +485,15 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   };
 
   const handleSave = () => {
-    if (validateInputs()) {
-      const price = decorateRichTextWithControls(roomPrice, {
+    const currentRoomNameRich = roomNameRichDraftRef.current || roomNameRich;
+    const currentRoomName = getPlainText(currentRoomNameRich) || roomName;
+    const currentRoomSlug = roomSlug || createSlug(currentRoomName);
+    const currentRoomContent = roomContentDraftRef.current || roomContent;
+    const currentRoomPrice = roomPriceDraftRef.current || roomPrice;
+    const currentRoomEquipment = roomEquipmentDraftRef.current || roomEquipment;
+
+    if (validateInputs(currentRoomName, currentRoomSlug)) {
+      const price = decorateRichTextWithControls(currentRoomPrice, {
         fontSize: roomPriceFontSize,
         fontSizeMobile: roomPriceFontSizeMobile,
         lineHeight: roomPriceLineHeight,
@@ -454,7 +501,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
         translateY: roomPriceTranslateY,
         translateYMobile: roomPriceTranslateYMobile,
       });
-      const equipment = decorateRichTextWithControls(roomEquipment, {
+      const equipment = decorateRichTextWithControls(currentRoomEquipment, {
         fontSize: roomEquipmentFontSize,
         fontSizeMobile: roomEquipmentFontSizeMobile,
         lineHeight: roomEquipmentLineHeight,
@@ -464,18 +511,18 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
       });
       const contains = "";
       const data = {
-        name: roomName,
-        name_rich: roomNameRich,
+        name: currentRoomName,
+        name_rich: currentRoomNameRich,
         image: singleImage,
         imageDetail: multipleImages,
-        content: roomContent,
+        content: currentRoomContent,
         description: roomDescription,
         equipment,
         price,
         contains,
         isSpecial: isChecked,
         status: isStatus ? 1 : 0,
-        slug: roomSlug,
+        slug: currentRoomSlug,
         seoTitle,
         seoDescription,
         seoKeywords,
@@ -561,11 +608,12 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   Tên phòng (Nghệ thuật - H1, H2, Font...) <span className="text-red-500">*</span>
                 </label>
                 <div id="room-name-rich" className="product-dialog-quill product-dialog-quill--name">
-                  <QuillWrapper
+                  <LazyQuillWrapper
                     key={`quill-name-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomNameRich}
                     onChange={(val) => {
+                      roomNameRichDraftRef.current = val;
                       setIfChanged(setRoomNameRich, val);
 
                       // Extract plain text safely, decoding HTML entities
@@ -593,6 +641,17 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                       setErrors((prev) => ({ ...prev, roomName: "" }));
                     }}
                     placeholder="Nhập tên phòng..."
+                    onDraftChange={(val) => {
+                      roomNameRichDraftRef.current = val;
+                    }}
+                    onBlur={(val) => {
+                      roomNameRichDraftRef.current = val;
+                      setIfChanged(setRoomNameRich, val);
+                      const plainText = getPlainText(val);
+                      setIfChanged(setRoomName, plainText);
+                      setIfChanged(setRoomSlug, createSlug(plainText));
+                      setErrors((prev) => ({ ...prev, roomName: "" }));
+                    }}
                     isBlogEditor={true}
                     lineHeight={roomLineHeight}
                     lineHeightMobile={roomLineHeightMobile}
@@ -607,6 +666,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChangeTranslateY={setRoomTranslateY}
                     onChangeTranslateYMobile={setRoomTranslateYMobile}
                     hasResponsiveFontSize={true}
+                    commitOnBlurOnly={true}
                   />
                 </div>
                 {errors.roomName && (
@@ -647,7 +707,17 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-price-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomPrice}
-                    onChange={(val) => setIfChanged(setRoomPrice, val)}
+                    onChange={(val) => {
+                      roomPriceDraftRef.current = val;
+                      setIfChanged(setRoomPrice, val);
+                    }}
+                    onDraftChange={(val) => {
+                      roomPriceDraftRef.current = val;
+                    }}
+                    onBlur={(val) => {
+                      roomPriceDraftRef.current = val;
+                      setIfChanged(setRoomPrice, val);
+                    }}
                     placeholder="Ví dụ: 80.000 đ/h..."
                     isBlogEditor={true}
                     disableImageWrap={true}
@@ -665,6 +735,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChangeTranslateYMobile={setRoomPriceTranslateYMobile}
                     hasResponsiveFontSize={true}
                     inlineSelectionControls={true}
+                    commitOnBlurOnly={true}
                   />
                 </div>
               </div>
@@ -679,7 +750,17 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     key={`quill-equipment-${id || 'new'}-${open}`}
                     theme="snow"
                     value={roomEquipment}
-                    onChange={(val) => setIfChanged(setRoomEquipment, val)}
+                    onChange={(val) => {
+                      roomEquipmentDraftRef.current = val;
+                      setIfChanged(setRoomEquipment, val);
+                    }}
+                    onDraftChange={(val) => {
+                      roomEquipmentDraftRef.current = val;
+                    }}
+                    onBlur={(val) => {
+                      roomEquipmentDraftRef.current = val;
+                      setIfChanged(setRoomEquipment, val);
+                    }}
                     placeholder="Ví dụ: Sức chứa 45 chỗ ngồi, máy chiếu, điều hòa, bảng trắng..."
                     isBlogEditor={true}
                     disableImageWrap={true}
@@ -697,6 +778,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChangeTranslateYMobile={setRoomEquipmentTranslateYMobile}
                     hasResponsiveFontSize={true}
                     inlineSelectionControls={true}
+                    commitOnBlurOnly={true}
                   />
                 </div>
               </div>
@@ -830,7 +912,17 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   key={`quill-content-${id || 'new'}-${open}`}
                   theme="snow"
                   value={roomContent}
-                  onChange={(val) => setIfChanged(setRoomContent, val)}
+                  onChange={(val) => {
+                    roomContentDraftRef.current = val;
+                    setIfChanged(setRoomContent, val);
+                  }}
+                  onDraftChange={(val) => {
+                    roomContentDraftRef.current = val;
+                  }}
+                  onBlur={(val) => {
+                    roomContentDraftRef.current = val;
+                    setIfChanged(setRoomContent, val);
+                  }}
                   placeholder="Nhập mô tả chi tiết về phòng..."
                   isBlogEditor={true}
                   className="room-desc-editor"
@@ -850,6 +942,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                   onChangeTranslateYMobile={setRoomTranslateYMobile}
                   hasResponsiveFontSize={true}
                   inlineSelectionControls={true}
+                  commitOnBlurOnly={true}
                 />
               </div>
             </div>
@@ -1088,5 +1181,13 @@ DialogComponent.propTypes = {
     seoDescription: PropTypes.string,
     seoKeywords: PropTypes.string,
     seoImage: PropTypes.string,
+    lineHeight: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    lineHeightMobile: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    fontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    fontSizeMobile: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    nameFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    nameFontSizeMobile: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    translateY: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    translateYMobile: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }),
 };

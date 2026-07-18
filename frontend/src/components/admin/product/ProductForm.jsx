@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+/* global process */
+
+import React, { useState, useEffect, useRef } from "react";
 import {
-  Card,
-  CardBody,
-  CardFooter,
   Typography,
 } from "@material-tailwind/react";
 import dynamic from "next/dynamic";
@@ -134,7 +133,7 @@ const decorateRichTextWithControls = (html, controls = {}) => {
   return root.innerHTML;
 };
 
-function LazyQuillWrapper({ minHeight = "120px", ...props }) {
+const LazyQuillWrapper = React.memo(function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   const containerRef = useRef(null);
   const cancelQueuedMountRef = useRef(null);
   const [shouldRender, setShouldRender] = useState(false);
@@ -182,7 +181,22 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => (
+  prevProps.value === nextProps.value &&
+  prevProps.lineHeight === nextProps.lineHeight &&
+  prevProps.lineHeightMobile === nextProps.lineHeightMobile &&
+  prevProps.fontSize === nextProps.fontSize &&
+  prevProps.fontSizeMobile === nextProps.fontSizeMobile &&
+  prevProps.translateY === nextProps.translateY &&
+  prevProps.translateYMobile === nextProps.translateYMobile &&
+  prevProps.className === nextProps.className &&
+  prevProps.placeholder === nextProps.placeholder &&
+  prevProps.minHeight === nextProps.minHeight &&
+  prevProps.hasResponsiveFontSize === nextProps.hasResponsiveFontSize &&
+  prevProps.inlineSelectionControls === nextProps.inlineSelectionControls &&
+  prevProps.commitOnBlurOnly === nextProps.commitOnBlurOnly &&
+  prevProps.theme === nextProps.theme
+));
 
 LazyQuillWrapper.propTypes = {
   minHeight: PropTypes.string,
@@ -190,7 +204,8 @@ LazyQuillWrapper.propTypes = {
   value: PropTypes.string,
 };
 
-export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = false }) {
+export default function ProductForm(props) {
+  const { dataEdit, onSave, onCancel, id } = props;
   const [showScrollTop, setShowScrollTop] = useState(false);
   const showScrollTopRef = useRef(false);
 
@@ -270,7 +285,10 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
   const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
   const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
+  const roomNameRichDraftRef = useRef("");
   const roomContentDraftRef = useRef("");
+  const roomPriceDraftRef = useRef("");
+  const roomEquipmentDraftRef = useRef("");
 
   const handleSingleImageChange = (event) => {
     const file = event.target.files[0];
@@ -285,6 +303,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
       setRoomName(dataEdit.name || "");
       setRoomNameRich(dataEdit.name_rich || (dataEdit.name ? `<h2>${dataEdit.name}</h2>` : ""));
       setRoomContent(dataEdit.content || "");
+      roomNameRichDraftRef.current = dataEdit.name_rich || (dataEdit.name ? `<h2>${dataEdit.name}</h2>` : "");
       setRoomSlug(dataEdit.slug || "");
       setRoomDescription(dataEdit.description || "");
       roomContentDraftRef.current = dataEdit.content || "";
@@ -302,6 +321,8 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
       }
       setRoomEquipment(mergedEquipment);
       setRoomPrice(dataEdit.price || "");
+      roomEquipmentDraftRef.current = mergedEquipment;
+      roomPriceDraftRef.current = dataEdit.price || "";
       setIsChecked(dataEdit.isSpecial || false);
       setIsStatus(dataEdit.status == 1);
       setSeoTitle(dataEdit.seoTitle || "");
@@ -379,8 +400,11 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
 
   const handleSave = () => {
     if (validateInputs()) {
-      const currentRoomContent = roomContentDraftRef.current;
-      const price = decorateRichTextWithControls(roomPrice, {
+      const currentRoomContent = roomContentDraftRef.current || roomContent;
+      const currentRoomNameRich = roomNameRichDraftRef.current || roomNameRich;
+      const currentRoomPrice = roomPriceDraftRef.current || roomPrice;
+      const currentRoomEquipment = roomEquipmentDraftRef.current || roomEquipment;
+      const price = decorateRichTextWithControls(currentRoomPrice, {
         fontSize: roomPriceFontSize,
         fontSizeMobile: roomPriceFontSizeMobile,
         lineHeight: roomPriceLineHeight,
@@ -388,7 +412,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
         translateY: roomPriceTranslateY,
         translateYMobile: roomPriceTranslateYMobile,
       });
-      const equipment = decorateRichTextWithControls(roomEquipment, {
+      const equipment = decorateRichTextWithControls(currentRoomEquipment, {
         fontSize: roomEquipmentFontSize,
         fontSizeMobile: roomEquipmentFontSizeMobile,
         lineHeight: roomEquipmentLineHeight,
@@ -398,7 +422,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
       });
       const data = {
         name: roomName,
-        name_rich: roomNameRich,
+        name_rich: currentRoomNameRich,
         image: singleImage,
         imageDetail: multipleImages,
         content: currentRoomContent,
@@ -452,11 +476,12 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 Tên phòng (Nghệ thuật - H1, H2, Kiểu chữ...) <span className="text-red-500">*</span>
               </label>
               <div id="room-name-rich" className="product-dialog-quill product-dialog-quill--name border border-gray-200 rounded-xl overflow-visible bg-white">
-                <QuillWrapper
+                <LazyQuillWrapper
                   key={`quill-name-${id || 'new'}`}
                   theme="snow"
                   value={roomNameRich}
                   onChange={(val) => {
+                    roomNameRichDraftRef.current = val;
                     setRoomNameRich(val);
                     let plainText = "";
                     if (typeof window !== "undefined") {
@@ -471,7 +496,26 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                       .toLowerCase()
                       .normalize("NFD")
                       .replace(/[\u0300-\u036f]/g, "")
-                      .replace(/đ/g, "d")
+                      .replace(/\u0111/g, "d")
+                      .replace(/[^a-z0-9\s-]/g, "")
+                      .trim()
+                      .replace(/[\s-]+/g, "-");
+                    setRoomSlug(generatedSlug);
+                    setErrors((prev) => ({ ...prev, roomName: "" }));
+                  }}
+                  onDraftChange={(val) => {
+                    roomNameRichDraftRef.current = val;
+                  }}
+                  onBlur={(val) => {
+                    roomNameRichDraftRef.current = val;
+                    setRoomNameRich(val);
+                    const plainText = getPlainText(val);
+                    setRoomName(plainText);
+                    const generatedSlug = plainText
+                      .toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/\u0111/g, "d")
                       .replace(/[^a-z0-9\s-]/g, "")
                       .trim()
                       .replace(/[\s-]+/g, "-");
@@ -493,6 +537,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   onChangeTranslateY={setRoomTranslateY}
                   onChangeTranslateYMobile={setRoomTranslateYMobile}
                   hasResponsiveFontSize={true}
+                  commitOnBlurOnly={true}
                 />
               </div>
               {errors.roomName && (
@@ -577,7 +622,17 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   key={`quill-price-${id || 'new'}`}
                   theme="snow"
                   value={roomPrice}
-                  onChange={(val) => setRoomPrice(val)}
+                  onChange={(val) => {
+                    roomPriceDraftRef.current = val;
+                    setRoomPrice(val);
+                  }}
+                  onDraftChange={(val) => {
+                    roomPriceDraftRef.current = val;
+                  }}
+                  onBlur={(val) => {
+                    roomPriceDraftRef.current = val;
+                    setRoomPrice(val);
+                  }}
                   placeholder="Ví dụ: 80.000 đ/h..."
                   isBlogEditor={true}
                   disableImageWrap={true}
@@ -595,6 +650,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   onChangeTranslateYMobile={setRoomPriceTranslateYMobile}
                   hasResponsiveFontSize={true}
                   inlineSelectionControls={true}
+                  commitOnBlurOnly={true}
                 />
               </div>
             </div>
@@ -609,7 +665,17 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   key={`quill-equipment-${id || 'new'}`}
                   theme="snow"
                   value={roomEquipment}
-                  onChange={(val) => setRoomEquipment(val)}
+                  onChange={(val) => {
+                    roomEquipmentDraftRef.current = val;
+                    setRoomEquipment(val);
+                  }}
+                  onDraftChange={(val) => {
+                    roomEquipmentDraftRef.current = val;
+                  }}
+                  onBlur={(val) => {
+                    roomEquipmentDraftRef.current = val;
+                    setRoomEquipment(val);
+                  }}
                   placeholder="Ví dụ: Sức chứa 45 chỗ..."
                   isBlogEditor={true}
                   disableImageWrap={true}
@@ -627,6 +693,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                   onChangeTranslateYMobile={setRoomEquipmentTranslateYMobile}
                   hasResponsiveFontSize={true}
                   inlineSelectionControls={true}
+                  commitOnBlurOnly={true}
                 />
               </div>
             </div>
@@ -687,7 +754,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
                 Bộ sưu tập ảnh chi tiết
               </label>
               <p className="mb-2 text-xs font-medium text-gray-500">
-                Khuyến nghị: 1200 x 675px, tỷ lệ 16:9. Chụp ngang để gallery hiển thị đẹp và không bị cắt nhiều.
+                Khuyến nghị: 1000 x 750px, tỷ lệ 4:3. Dùng ảnh phòng rõ không gian; gallery sẽ tự ép ảnh khác tỷ lệ vào khung này.
               </p>
               <input
                 id="multiple-images"
@@ -700,7 +767,7 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
               {multipleImages.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   {multipleImages.map((image, index) => (
-                    <div key={index} className="relative w-full aspect-square border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div key={index} className="relative w-full aspect-[4/3] border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                       <img
                         src={typeof image === "string" ? image : URL.createObjectURL(image)}
                         alt={`Xem trước ảnh chi tiết ${index}`}
@@ -816,13 +883,12 @@ export default function ProductForm({ dataEdit, onSave, onCancel, id, isPage = f
           {/* Canvas rộng tối đa đạt đúng cấu trúc tỉ lệ hiển thị trên trang public */}
           <div className="w-full bg-white rounded-xl ckeditor-content content-img py-2">
             <div className="product-dialog-quill product-dialog-quill--content border border-gray-200 rounded-xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
-              <QuillWrapper
+              <LazyQuillWrapper
                 key={`quill-content-${id || 'new'}`}
                 theme="snow"
                 value={roomContent}
                 onChange={(val) => {
                   roomContentDraftRef.current = val;
-                  setRoomContent(val);
                 }}
                 onDraftChange={(val) => {
                   roomContentDraftRef.current = val;
@@ -966,4 +1032,5 @@ ProductForm.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  isPage: PropTypes.bool,
 };

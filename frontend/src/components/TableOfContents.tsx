@@ -128,7 +128,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl p-3.5 sm:p-4 mb-6 shadow-sm transition-all duration-300">
+    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl p-3 sm:p-3.5 mb-4 shadow-sm transition-all duration-300">
       {/* Header bar */}
       <div
         onClick={() => setIsOpen(!isOpen)}

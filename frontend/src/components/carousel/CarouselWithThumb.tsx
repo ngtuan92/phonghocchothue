@@ -33,7 +33,7 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
     slidesGap = 12,
     thumbsGap = 12,
     thumbsPerView = 4,
-    gutter = 16,
+    gutter = 8,
     thumbIndex = 0,
     colorBg = "#fbf8f0", // Default color
     classNames,
@@ -97,7 +97,7 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
     const normalizedAvatar = normalizePath(avatar);
 
     if (avatar) {
-      list.push({ image_detail: avatar });
+      list.push({ image_detail: avatar, isAvatar: true });
     }
 
     if (items && Array.isArray(items) && items.length > 0) {
@@ -142,11 +142,11 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
               }}
             >
               <div 
-                className="flex-1 relative overflow-hidden"
+                className="flex-1 relative aspect-[4/3] overflow-hidden"
                 style={{ backgroundColor: colorBg }}
               >
                 <img
-                  className="w-full h-auto object-contain"
+                  className={cn("h-full w-full", item?.isAvatar ? "object-contain" : "object-cover")}
                   src={`${URL_API}${item?.image_detail?.replaceAll("\\", "/") || ""}`}
                   alt={`Slide ${index + 1}`}
                   loading={index === 0 ? "eager" : "lazy"}

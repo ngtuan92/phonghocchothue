@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
@@ -203,6 +203,70 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   );
 }
 
+const DraftTextField = React.memo(function DraftTextField({
+  value = "",
+  onCommit,
+  className,
+  textarea = false,
+  rows = 2,
+  commitOnEnter = true,
+  ...props
+}) {
+  const [draft, setDraft] = useState(value || "");
+  const focusedRef = useRef(false);
+  const lastCommittedRef = useRef(value || "");
+
+  useEffect(() => {
+    const nextValue = value || "";
+    lastCommittedRef.current = nextValue;
+    if (!focusedRef.current) {
+      setDraft(nextValue);
+    }
+  }, [value]);
+
+  const commit = useCallback(() => {
+    focusedRef.current = false;
+    if (draft !== lastCommittedRef.current) {
+      lastCommittedRef.current = draft;
+      onCommit?.(draft);
+    }
+  }, [draft, onCommit]);
+
+  const sharedProps = {
+    ...props,
+    value: draft,
+    className,
+    onFocus: (event) => {
+      focusedRef.current = true;
+      props.onFocus?.(event);
+    },
+    onChange: (event) => {
+      setDraft(event.target.value);
+      props.onChange?.(event);
+    },
+    onBlur: (event) => {
+      commit();
+      props.onBlur?.(event);
+    },
+    onKeyDown: (event) => {
+      if (commitOnEnter && event.key === "Enter" && !event.shiftKey && !textarea) {
+        event.currentTarget.blur();
+      }
+      props.onKeyDown?.(event);
+    },
+  };
+
+  return textarea ? <textarea {...sharedProps} rows={rows} /> : <input {...sharedProps} />;
+}, (prevProps, nextProps) => (
+  prevProps.value === nextProps.value &&
+  prevProps.className === nextProps.className &&
+  prevProps.placeholder === nextProps.placeholder &&
+  prevProps.type === nextProps.type &&
+  prevProps.textarea === nextProps.textarea &&
+  prevProps.rows === nextProps.rows &&
+  prevProps.commitOnEnter === nextProps.commitOnEnter
+));
+
 const getCroppedImg = (imageSrc, croppedAreaPixels) => {
   return new Promise((resolve, reject) => {
     const image = new window.Image();
@@ -343,6 +407,14 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     if (!cat) return "";
     return cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " ");
   };
+
+  const handleCategoryCommit = useCallback((value) => {
+    setFormData(prev => ({ ...prev, category: value }));
+  }, []);
+
+  const handleAuthorNameCommit = useCallback((value) => {
+    setFormData(prev => ({ ...prev, authorName: value }));
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -520,12 +592,12 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
               </div>
             ) : (
               <div className="flex gap-2">
-                <input
+                <DraftTextField
                   type="text"
                   placeholder="Nhập chuyên mục mới..."
                   className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onCommit={handleCategoryCommit}
                 />
                 <Button 
                   size="sm"
@@ -566,12 +638,12 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 Tên tác giả
               </Typography>
             </div>
-            <input
+            <DraftTextField
               type="text"
               placeholder="Tên tác giả..."
               className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
               value={formData.authorName}
-              onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
+              onCommit={handleAuthorNameCommit}
             />
           </div>
         </div>
