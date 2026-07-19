@@ -12,6 +12,19 @@ function formatProductRichName(nameRich) {
   return nameRich;
 }
 
+const productListOrder = [["position", "ASC"], ["id", "DESC"]];
+
+async function clearProductListCache() {
+  await redis.del("products:all");
+  await redis.del("products:light:all");
+
+  const keys = await redis.keys("products:limit:*");
+  if (keys.length > 0) await redis.del(keys);
+
+  const lightKeys = await redis.keys("products:light:*");
+  if (lightKeys.length > 0) await redis.del(lightKeys);
+}
+
 let productRichTextColumnsReady = false;
 
 const ensureProductRichTextColumns = async () => {
@@ -22,6 +35,7 @@ const ensureProductRichTextColumns = async () => {
   const columnsToAdd = [
     { name: "name_font_size", type: Sequelize.STRING(50) },
     { name: "name_font_size_mobile", type: Sequelize.STRING(50) },
+    { name: "position", type: Sequelize.INTEGER, defaultValue: 0 },
   ];
 
   for (const col of columnsToAdd) {
@@ -29,6 +43,7 @@ const ensureProductRichTextColumns = async () => {
       await queryInterface.addColumn("products", col.name, {
         type: col.type,
         allowNull: true,
+        defaultValue: col.defaultValue,
       });
     }
   }
@@ -70,16 +85,16 @@ class ProductController {
       const productsJson = await getOrSetCache(cacheKey, async () => {
         const productData = await productModel.findAll({
           attributes: isLightList
-            ? ["id", "name", "slug", "image", "status", "description"]
+            ? ["id", "name", "slug", "image", "status", "description", "position"]
             : [
               "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
-              "contains", "description", "price", "unit", "capacity", "isSpecial",
+              "contains", "description", "price", "unit", "capacity", "position", "isSpecial",
               "seoTitle", "seoDescription", "seoKeywords", "seoImage",
               "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "nameFontSize", "nameFontSizeMobile", "translateY", "translateYMobile",
             ],
           include: isLightList ? [] : [{ model: productImageModel, as: "images" }],
           limit: limit ? parseInt(limit) : undefined,
-          order: [['id', 'DESC']]
+          order: productListOrder
         });
 
         const formattedProducts = mutipleConvertToObject(productData).map(p => {
@@ -120,6 +135,7 @@ class ProductController {
           "price",
           "unit",
           "capacity",
+          "position",
           "isSpecial",
           "seoTitle",
           "seoDescription",
@@ -175,7 +191,7 @@ class ProductController {
         const product = await productModel.findOne({
           attributes: [
             "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
-            "contains", "description", "price", "unit", "capacity", "isSpecial",
+            "contains", "description", "price", "unit", "capacity", "position", "isSpecial",
             "seoTitle", "seoDescription", "seoKeywords", "seoImage",
             "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "nameFontSize", "nameFontSizeMobile", "translateY", "translateYMobile",
           ],
@@ -188,12 +204,12 @@ class ProductController {
         const otherProducts = await productModel.findAll({
           attributes: [
             "id", "name", "name_rich", "slug", "content", "image", "status", "equipment",
-            "contains", "description", "price", "unit", "capacity", "isSpecial",
+            "contains", "description", "price", "unit", "capacity", "position", "isSpecial",
             "seoTitle", "seoDescription", "seoKeywords", "seoImage",
             "lineHeight", "lineHeightMobile", "fontSize", "fontSizeMobile", "nameFontSize", "nameFontSizeMobile", "translateY", "translateYMobile",
           ],
           where: { id: { [Op.ne]: product.id } },
-          order: [["id", "DESC"]],
+          order: productListOrder,
           limit: 4,
         });
 
@@ -350,16 +366,10 @@ class ProductController {
       }
 
       // XÓA CACHE
-      await redis.del("products:all");
-      await redis.del("products:light:all");
+      await clearProductListCache();
       await redis.del(`product:detail:${id}`);
       if (product.slug) await redis.del(`product:detail:${product.slug}`);
       if (productSlug) await redis.del(`product:detail:${productSlug}`);
-
-      const keys = await redis.keys("products:limit:*");
-      if (keys.length > 0) await redis.del(keys);
-      const lightKeys = await redis.keys("products:light:*");
-      if (lightKeys.length > 0) await redis.del(lightKeys);
 
       return res.json({
         success: true,
@@ -401,6 +411,8 @@ class ProductController {
         });
       }
 
+      const maxPosition = await productModel.max("position") || 0;
+
       const product = await productModel.create({
         name: name,
         name_rich: formatProductRichName(name_rich),
@@ -415,6 +427,7 @@ class ProductController {
         status: status,
         image: imagePatch,
         capacity: 0,
+        position: maxPosition + 1,
         seoTitle: seoTitle,
         seoDescription: seoDescription,
         seoKeywords: seoKeywords,
@@ -449,8 +462,7 @@ class ProductController {
 
       }
 
-      await redis.del("products:all");
-      await redis.del("products:light:all");
+      await clearProductListCache();
 
       return res.json({
         success: true,
@@ -461,6 +473,45 @@ class ProductController {
       return res.status(400).json({
         success: false,
         message: "Tạo sản phẩm thất bại!",
+      });
+    }
+  }
+
+  async reorder(req, res) {
+    try {
+      const { orders } = req.body;
+
+      if (!orders || !Array.isArray(orders)) {
+        return res.status(400).json({
+          success: false,
+          message: "Du lieu thu tu khong hop le!",
+        });
+      }
+
+      for (const item of orders) {
+        if (!item.id || !Number.isInteger(Number(item.position))) {
+          return res.status(400).json({
+            success: false,
+            message: "Du lieu thu tu khong hop le!",
+          });
+        }
+
+        await productModel.update(
+          { position: Number(item.position) },
+          { where: { id: item.id } }
+        );
+      }
+
+      await clearProductListCache();
+
+      return res.json({
+        success: true,
+        message: "Cap nhat thu tu phong thanh cong!",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Cap nhat thu tu phong that bai!",
       });
     }
   }
@@ -477,8 +528,7 @@ class ProductController {
         where: { id: id },
       });
 
-      await redis.del("products:all");
-      await redis.del("products:light:all");
+      await clearProductListCache();
       await redis.del(`product:detail:${id}`);
 
       return res.json({

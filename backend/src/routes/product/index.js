@@ -14,6 +14,8 @@ router.delete("/delete/:id", authenticateToken, productController.delete);
 
 router.post("/insert", authenticateToken, productController.save);
 
+router.post("/reorder", authenticateToken, productController.reorder);
+
 router.get("/", productController.index);
 
 module.exports = router;

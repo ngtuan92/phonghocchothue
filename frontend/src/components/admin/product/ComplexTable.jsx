@@ -1,6 +1,23 @@
+/* global process */
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import Card from "../card";
 import Confirm from "../confirm";
 import Loading from "../loading";
@@ -11,21 +28,108 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper();
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
+const SortableRowContext = React.createContext(null);
+
+function DragHandle() {
+  const sortable = React.useContext(SortableRowContext);
+
+  return (
+    <div
+      ref={sortable?.setActivatorNodeRef}
+      className="flex h-10 min-w-[104px] touch-none cursor-grab select-none items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-primary shadow-sm transition-all group-hover:bg-primary/10 group-active:cursor-grabbing"
+      title="Giữ và kéo dòng để đổi thứ tự phòng"
+      {...sortable?.attributes}
+      {...sortable?.listeners}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className="h-5 w-5"
+      >
+        <path d="M8 6.75A1.75 1.75 0 1 1 4.5 6.75 1.75 1.75 0 0 1 8 6.75ZM8 12A1.75 1.75 0 1 1 4.5 12 1.75 1.75 0 0 1 8 12ZM6.25 19.25A1.75 1.75 0 1 0 6.25 15.75 1.75 1.75 0 0 0 6.25 19.25ZM15.75 8.5A1.75 1.75 0 1 0 15.75 5 1.75 1.75 0 0 0 15.75 8.5ZM17.5 12A1.75 1.75 0 1 1 14 12 1.75 1.75 0 0 1 17.5 12ZM15.75 19.25A1.75 1.75 0 1 0 15.75 15.75 1.75 1.75 0 0 0 15.75 19.25Z" />
+      </svg>
+    </div>
+  );
+}
+
+function SortableRow({ row, isLoading }) {
+  const productId = row.original.id;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: productId,
+    disabled: isLoading,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    position: "relative",
+    zIndex: isDragging ? 20 : "auto",
+  };
+  const sortableValue = React.useMemo(
+    () => ({
+      attributes,
+      listeners,
+      setActivatorNodeRef,
+    }),
+    [attributes, listeners, setActivatorNodeRef]
+  );
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`group transition-all duration-150 ${
+        isDragging ? "scale-[1.01] bg-blue-50 opacity-90 shadow-xl" : "hover:bg-gray-50"
+      }`}
+    >
+      <SortableRowContext.Provider value={sortableValue}>
+        {row.getVisibleCells().map((cell) => (
+          <td
+            key={cell.id}
+            className="min-w-[150px] border-white/0 py-3 pr-4 transition-all duration-150"
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </SortableRowContext.Provider>
+    </tr>
+  );
+}
 
 export default function ComplexTable() {
   const queryClient = useQueryClient();
-  const [sorting, setSorting] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = useState([]);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [id, setId] = React.useState(null);
   const router = useRouter();
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 180,
+        tolerance: 8,
+      },
+    })
+  );
 
   const handleOpenConfirm = (id = null) => {
     setId(id);
@@ -83,7 +187,59 @@ export default function ComplexTable() {
     }
   };
 
+  const saveProductOrder = async (nextData) => {
+    setData(nextData);
+    setIsLoading(true);
+
+    try {
+      const orders = nextData.map((item, index) => ({
+        id: item.id,
+        position: index + 1,
+      }));
+
+      await fetchData(`${URL_API}api/product/reorder`, "POST", { orders });
+      showToastSuccess("Cập nhật thứ tự phòng thành công");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (error) {
+      if (error.response?.data?.message === "Invalid token") {
+        handleInvalidToken(router);
+      }
+      showToastError("Cập nhật thứ tự phòng thất bại");
+      fetchDataFromAPI();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+
+    const currentIndex = data.findIndex((item) => item.id === active.id);
+    const targetIndex = data.findIndex((item) => item.id === over.id);
+
+    if (currentIndex < 0 || targetIndex < 0) return;
+
+    await saveProductOrder(arrayMove(data, currentIndex, targetIndex));
+  };
+
   const columns = [
+    columnHelper.display({
+      id: "drag",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">Thứ tự</p>
+      ),
+      cell: (info) => {
+        const productId = info.row.original.id;
+        const index = data.findIndex((item) => item.id === productId);
+
+        return (
+          <div className="flex items-center gap-3">
+            <span className="min-w-6 text-sm font-bold text-black">{index + 1}</span>
+            <DragHandle />
+          </div>
+        );
+      },
+    }),
     columnHelper.accessor("name", {
       id: "name",
       header: () => (
@@ -104,12 +260,12 @@ export default function ComplexTable() {
         <div className="text-sm font-bold text-black">
           {info.getValue() ? (
             <img
-              className="w-[120px] h-[72px] object-contain rounded-lg bg-white"
+              className="h-[72px] w-[120px] rounded-lg bg-white object-contain"
               src={`${URL_API}${info.getValue().replace(/\\/g, "/")}`}
               alt="room"
             />
           ) : (
-            <div className="w-[120px] h-[72px] bg-gray-100 flex items-center justify-center rounded-lg text-xs text-gray-400">No image</div>
+            <div className="flex h-[72px] w-[120px] items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">No image</div>
           )}
         </div>
       ),
@@ -124,11 +280,11 @@ export default function ComplexTable() {
       cell: (info) => (
         <div className="flex items-center">
           {info.getValue() == "1" ? (
-            <div className="rounded-md bg-green-600 py-0.5 px-2.5 border border-transparent text-sm text-white transition-all shadow-sm">
+            <div className="rounded-md border border-transparent bg-green-600 px-2.5 py-0.5 text-sm text-white shadow-sm transition-all">
               Còn trống
             </div>
           ) : (
-            <div className="rounded-md bg-red-600 py-0.5 px-2.5 border border-transparent text-sm text-white transition-all shadow-sm">
+            <div className="rounded-md border border-transparent bg-red-600 px-2.5 py-0.5 text-sm text-white shadow-sm transition-all">
               Hết phòng
             </div>
           )}
@@ -150,13 +306,13 @@ export default function ComplexTable() {
             type="button"
             title="Sửa"
           >
-            <span className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 aria-hidden="true"
-                className="w-4 h-4"
+                className="h-4 w-4"
               >
                 <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z"></path>
               </svg>
@@ -168,14 +324,14 @@ export default function ComplexTable() {
             type="button"
             title="Xóa"
           >
-            <span className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="2"
                 stroke="currentColor"
-                className="w-6 h-6 text-red-500"
+                className="h-6 w-6 text-red-500"
               >
                 <path
                   strokeLinecap="round"
@@ -193,23 +349,18 @@ export default function ComplexTable() {
   const table = useReactTable({
     data,
     columns,
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     debugTable: true,
   });
 
   return (
     <Card extra={"w-full h-full px-6 pb-6 sm:overflow-x-auto"}>
       {isLoading && <Loading />}
-      <div className="w-full flex justify-between items-center mt-3 pl-3">
+      <div className="mt-3 flex w-full items-center justify-between pl-3">
         <div>
           <button
             onClick={() => router.push("/admin/products/new")}
-            className="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 font-bold"
+            className="w-full rounded-lg bg-green-600 px-5 py-2.5 text-center text-sm font-bold font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
             suppressHydrationWarning={true}
           >
             Thêm phòng
@@ -218,58 +369,56 @@ export default function ComplexTable() {
       </div>
       {data.length ? (
         <div className="mt-8 overflow-x-scroll">
-          <table className="w-full">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr
-                  key={headerGroup.id}
-                  className="!border-px !border-gray-400"
-                >
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <th
-                        key={header.id}
-                        colSpan={header.colSpan}
-                        onClick={header.column.getToggleSortingHandler()}
-                        className="cursor-pointer border-b-[1px] border-primary pt-4 pb-2 pr-4 text-start"
-                      >
-                        <div className="items-center justify-between text-xs text-primary color-header-table">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table
-                .getRowModel()
-                .rows
-                .map((row) => {
-                  return (
-                    <tr key={row.id}>
-                      {row.getVisibleCells().map((cell) => {
-                        return (
-                          <td
-                            key={cell.id}
-                            className="min-w-[150px] border-white/0 py-3  pr-4"
-                          >
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <table className="w-full">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr
+                    key={headerGroup.id}
+                    className="!border-px !border-gray-400"
+                  >
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <th
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          className="border-b-[1px] border-primary pb-2 pr-4 pt-4 text-start"
+                        >
+                          <div className="items-center justify-between text-xs text-primary color-header-table">
                             {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
+                              header.column.columnDef.header,
+                              header.getContext()
                             )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <SortableContext
+                items={data.map((item) => item.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <tbody>
+                  {table
+                    .getRowModel()
+                    .rows
+                    .map((row) => (
+                      <SortableRow
+                        key={row.original.id}
+                        row={row}
+                        isLoading={isLoading}
+                      />
+                    ))}
+                </tbody>
+              </SortableContext>
+            </table>
+          </DndContext>
         </div>
       ) : (
         <p className="mt-4 text-sm font-semibold text-gray-500">Không có dữ liệu</p>

@@ -14,6 +14,7 @@ const ProductModel = db.sequelize.define("products", {
     price: { type: DataTypes.TEXT },
     unit: { type: DataTypes.STRING, maxLength: 50, allowNull: true, defaultValue: "buổi" },
     capacity: { type: DataTypes.STRING, maxLength: 255 },
+    position: { type: DataTypes.INTEGER, defaultValue: 0 },
     isSpecial : { type: DataTypes.BOOLEAN, maxLength: false },
     status: { type: DataTypes.INTEGER, defaultValue: 1 },
     seoTitle: { type: DataTypes.STRING, maxLength: 255 },

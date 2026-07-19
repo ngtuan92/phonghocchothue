@@ -16,6 +16,7 @@ const migrationFiles = [
   "update-local-seo-configs.js",
   "update-products-and-configs-seo.js",
   "add-responsive-settings-to-products-and-blogs.js",
+  "add-position-to-products.js",
   "add-blog-title-excerpt-font-sizes.js",
   "add-product-name-font-sizes.js",
   "strip-inline-font-size-from-responsive-configs.js"

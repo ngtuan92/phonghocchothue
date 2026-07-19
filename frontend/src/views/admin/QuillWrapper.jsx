@@ -3141,6 +3141,7 @@ const QuillWrapper = forwardRef(({
       preserveAdminScrollDuring();
     };
 
+    quill.root.addEventListener('pointerdown', preserveEditorInteractionScroll, true);
     quill.root.addEventListener('beforeinput', rememberTypingSelection, true);
     quill.root.addEventListener('keydown', rememberTypingSelection, true);
     quill.root.addEventListener('mousedown', preserveEditorInteractionScroll, true);
@@ -3151,6 +3152,7 @@ const QuillWrapper = forwardRef(({
     quill.root.addEventListener('keyup', rememberTypingSelection, true);
 
     return () => {
+      quill.root.removeEventListener('pointerdown', preserveEditorInteractionScroll, true);
       quill.root.removeEventListener('beforeinput', rememberTypingSelection, true);
       quill.root.removeEventListener('keydown', rememberTypingSelection, true);
       quill.root.removeEventListener('mousedown', preserveEditorInteractionScroll, true);
@@ -6620,9 +6622,15 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text {
           padding: 24px 18px 18px !important;
           min-height: calc(var(--quill-editor-min-height, 120px) + 24px) !important;
+          height: calc(var(--quill-editor-min-height, 120px) + 24px) !important;
           box-sizing: border-box !important;
           line-height: 1.35 !important;
           overflow: visible !important;
+        }
+        .quill-wrapper-container.quill-editor-describe-phone .ql-container.ql-snow {
+          min-height: calc(var(--quill-editor-min-height, 120px) + 42px) !important;
+          height: calc(var(--quill-editor-min-height, 120px) + 42px) !important;
+          flex: 0 0 auto !important;
         }
         .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text,
         .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,

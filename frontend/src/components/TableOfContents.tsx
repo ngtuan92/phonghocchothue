@@ -128,13 +128,13 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl p-3 mb-4 shadow-sm transition-all duration-300">
+    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl px-3 py-2 mb-0 shadow-sm transition-all duration-300">
       {/* Header bar */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between cursor-pointer select-none"
       >
-        <span className="text-[#563c39] font-bold text-sm sm:text-base raleway">
+        <span className="text-[#563c39] font-bold text-[13px] sm:text-sm raleway">
           Nội dung bài viết
         </span>
         <button
