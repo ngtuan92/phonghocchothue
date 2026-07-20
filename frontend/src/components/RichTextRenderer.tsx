@@ -459,7 +459,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const normalizeLineHeight = (value: string) => {
     const cleanValue = String(value).trim();
     if (cleanValue.startsWith("-")) return "";
-    return /^\d+(\.\d+)?$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
+    if (/^\d+(\.\d+)?$/.test(cleanValue)) {
+      return Number(cleanValue) > 10 ? `${cleanValue}px` : cleanValue;
+    }
+    return cleanValue;
   };
 
   const customStyles = useMemo(() => {

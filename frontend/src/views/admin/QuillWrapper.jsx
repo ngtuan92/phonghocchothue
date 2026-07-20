@@ -142,12 +142,23 @@ const isValidControlInput = (value, signed = false) => (
     : value === '' || /^\d+$/.test(value)
 );
 
+const toLineHeightCssValue = (value) => {
+  const text = String(value || '').trim();
+  if (!text || text.startsWith("-")) return undefined;
+  if (/^\d+(\.\d+)?$/.test(text)) {
+    return Number(text) > 10 ? `${text}px` : text;
+  }
+  return text;
+};
+
 const toInlineControlFormat = (key, value) => {
   const formatName = RESPONSIVE_INLINE_FORMATS[key] || key;
   if (!value) return { formatName, formatValue: false };
 
   const allowsNegative = key === 'translateY' || key === 'translateYMobile';
-  const unitValue = toCssUnit(value, allowsNegative) || value;
+  const unitValue = key === 'lineHeight' || key === 'lineHeightMobile'
+    ? toLineHeightCssValue(value)
+    : toCssUnit(value, allowsNegative);
   return { formatName, formatValue: unitValue };
 };
 
@@ -1321,8 +1332,13 @@ const QuillWrapper = forwardRef(({
         ...selectionControlDraftsRef.current,
         [key]: nextValue,
       };
+      controlDraftsRef.current = {
+        ...controlDraftsRef.current,
+        [key]: nextValue,
+      };
       popupInputValuesRef.current[key] = nextValue;
       setPopupValueVersion((prev) => prev + 1);
+      onControlDraftChange?.(key, nextValue);
 
       let shouldApplyPreview = true;
       if (nextValue === "") {
@@ -1519,7 +1535,9 @@ const QuillWrapper = forwardRef(({
       return;
     }
 
-    const cssValue = toCssUnit(value, key.includes('translateY'));
+    const cssValue = key === 'lineHeight' || key === 'lineHeightMobile'
+      ? toLineHeightCssValue(value)
+      : toCssUnit(value, key.includes('translateY'));
     if (cssValue) {
       root.style.setProperty(cssVar, cssValue);
     }
@@ -4517,8 +4535,8 @@ const QuillWrapper = forwardRef(({
         '--quill-toolbar-top': toolbarTop,
         '--quill-editor-max-height': maxHeight,
         '--quill-editor-min-height': minHeight,
-        '--custom-line-height': globalLineHeight && !String(globalLineHeight).trim().startsWith("-") ? toCssUnit(globalLineHeight) : undefined,
-        '--custom-line-height-mobile': globalLineHeightMobile && !String(globalLineHeightMobile).trim().startsWith("-") ? toCssUnit(globalLineHeightMobile) : undefined,
+        '--custom-line-height': toLineHeightCssValue(globalLineHeight),
+        '--custom-line-height-mobile': toLineHeightCssValue(globalLineHeightMobile),
         '--fs-desktop': toCssUnit(previewFontSizeDesktop),
         '--fs-mobile': toCssUnit(previewFontSizeMobile),
         '--fs': activeViewportFontSize,
