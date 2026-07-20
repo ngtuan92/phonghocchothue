@@ -1318,6 +1318,12 @@
   margin-bottom: -20px !important;
 }
 
+@media (min-width: 768px) {
+  .about-copy-column {
+    transform: translateY(clamp(-34px, -2.2vw, -18px));
+  }
+}
+
 @media (max-width: 767px) {
 
   h3.text-lg.font-bold:not([style*="--fs"]):not([style*="font-size"]) {
