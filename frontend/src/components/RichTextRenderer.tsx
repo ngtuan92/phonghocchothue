@@ -94,6 +94,20 @@ const normalizeWhitespaceSpacers = (html: string) => {
   return root?.innerHTML || html;
 };
 
+const normalizeNumericLineHeightUnits = (html: string) => {
+  if (!html) return html;
+
+  return html.replace(/style=(["'])(.*?)\1/gi, (_match: string, quote: string, styleContent: string) => {
+    const normalizedStyle = styleContent.replace(
+      /(^|;)\s*(line-height|--custom-line-height(?:-mobile)?)\s*:\s*(\d+(?:\.\d+)?)\s*(?=;|$)/gi,
+      (_styleMatch: string, prefix: string, property: string, value: string) =>
+        `${prefix ? `${prefix} ` : ""}${property}: ${value}px`
+    );
+
+    return `style=${quote}${normalizedStyle}${quote}`;
+  });
+};
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -431,7 +445,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       processedHtml = normalizeWhitespaceSpacers(processedHtml);
     }
 
-    return normalizeBlockHighlightHtml(processedHtml);
+    processedHtml = normalizeBlockHighlightHtml(processedHtml);
+    processedHtml = normalizeNumericLineHeightUnits(processedHtml);
+
+    return processedHtml;
   }, [html, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;

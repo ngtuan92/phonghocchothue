@@ -146,7 +146,7 @@ const toLineHeightCssValue = (value) => {
   const text = String(value || '').trim();
   if (!text || text.startsWith("-")) return undefined;
   if (/^\d+(\.\d+)?$/.test(text)) {
-    return Number(text) > 10 ? `${text}px` : text;
+    return `${text}px`;
   }
   return text;
 };
