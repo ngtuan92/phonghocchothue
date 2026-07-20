@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   closestCenter,
+  DragOverlay,
   DndContext,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -67,7 +68,32 @@ function DragHandle() {
   );
 }
 
-function SortableRow({ row, isLoading }) {
+function ProductDragPreview({ product, index }) {
+  if (!product) return null;
+
+  return (
+    <div className="flex w-[min(92vw,520px)] items-center gap-4 rounded-xl border border-primary/20 bg-white p-3 shadow-2xl">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+        {index + 1}
+      </div>
+      {product.image ? (
+        <img
+          className="h-14 w-20 shrink-0 rounded-lg bg-white object-contain"
+          src={`${URL_API}${product.image.replace(/\\/g, "/")}`}
+          alt="room"
+        />
+      ) : (
+        <div className="h-14 w-20 shrink-0 rounded-lg bg-gray-100" />
+      )}
+      <div className="min-w-0">
+        <p className="truncate text-sm font-bold text-black">{product.name}</p>
+        <p className="mt-1 text-xs font-semibold text-gray-500">Đang đổi thứ tự phòng</p>
+      </div>
+    </div>
+  );
+}
+
+function SortableRow({ row, isLoading, activeId }) {
   const productId = row.original.id;
   const {
     attributes,
@@ -81,6 +107,7 @@ function SortableRow({ row, isLoading }) {
     id: productId,
     disabled: isLoading,
   });
+  const isActiveRow = activeId === productId;
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -103,7 +130,7 @@ function SortableRow({ row, isLoading }) {
       ref={setNodeRef}
       style={style}
       className={`group transition-all duration-150 ${
-        isDragging ? "scale-[1.01] bg-blue-50 opacity-90 shadow-xl" : "hover:bg-gray-50"
+        isActiveRow ? "bg-blue-50 opacity-40" : "hover:bg-gray-50"
       }`}
     >
       <SortableRowContext.Provider value={sortableValue}>
@@ -124,11 +151,12 @@ export default function ComplexTable() {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = useState([]);
+  const [activeId, setActiveId] = useState(null);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [id, setId] = React.useState(null);
   const router = useRouter();
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 8,
       },
@@ -222,6 +250,7 @@ export default function ComplexTable() {
   };
 
   const handleDragEnd = async ({ active, over }) => {
+    setActiveId(null);
     if (!over || active.id === over.id) return;
 
     const currentIndex = data.findIndex((item) => item.id === active.id);
@@ -231,6 +260,8 @@ export default function ComplexTable() {
 
     await saveProductOrder(arrayMove(data, currentIndex, targetIndex));
   };
+  const activeIndex = data.findIndex((item) => item.id === activeId);
+  const activeProduct = activeIndex >= 0 ? data[activeIndex] : null;
 
   const columns = [
     columnHelper.display({
@@ -383,7 +414,10 @@ export default function ComplexTable() {
             sensors={sensors}
             collisionDetection={closestCenter}
             modifiers={[restrictToVerticalTransform]}
+            autoScroll={false}
+            onDragStart={({ active }) => setActiveId(active.id)}
             onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveId(null)}
           >
             <table className="w-full">
               <thead>
@@ -424,11 +458,15 @@ export default function ComplexTable() {
                         key={row.original.id}
                         row={row}
                         isLoading={isLoading}
+                        activeId={activeId}
                       />
                     ))}
                 </tbody>
               </SortableContext>
             </table>
+            <DragOverlay dropAnimation={null}>
+              <ProductDragPreview product={activeProduct} index={activeIndex} />
+            </DragOverlay>
           </DndContext>
         </div>
       ) : (
