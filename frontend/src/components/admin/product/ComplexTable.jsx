@@ -34,6 +34,10 @@ import {
 const columnHelper = createColumnHelper();
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
 const SortableRowContext = React.createContext(null);
+const restrictToVerticalTransform = ({ transform }) => ({
+  ...transform,
+  x: 0,
+});
 
 function DragHandle() {
   const sortable = React.useContext(SortableRowContext);
@@ -41,7 +45,12 @@ function DragHandle() {
   return (
     <div
       ref={sortable?.setActivatorNodeRef}
-      className="flex h-10 min-w-[104px] touch-none cursor-grab select-none items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-primary shadow-sm transition-all group-hover:bg-primary/10 group-active:cursor-grabbing"
+      className="flex h-12 min-w-[130px] touch-none cursor-grab select-none items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-primary shadow-sm transition-all group-hover:bg-primary/10 group-active:cursor-grabbing md:h-10 md:min-w-[104px]"
+      style={{
+        touchAction: "none",
+        WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
+      }}
       title="Giữ và kéo dòng để đổi thứ tự phòng"
       {...sortable?.attributes}
       {...sortable?.listeners}
@@ -74,10 +83,11 @@ function SortableRow({ row, isLoading }) {
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     position: "relative",
     zIndex: isDragging ? 20 : "auto",
+    willChange: isDragging ? "transform" : undefined,
   };
   const sortableValue = React.useMemo(
     () => ({
@@ -125,8 +135,8 @@ export default function ComplexTable() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 180,
-        tolerance: 8,
+        delay: 120,
+        tolerance: 12,
       },
     })
   );
@@ -372,6 +382,7 @@ export default function ComplexTable() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalTransform]}
             onDragEnd={handleDragEnd}
           >
             <table className="w-full">
