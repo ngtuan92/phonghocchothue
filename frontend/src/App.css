@@ -103,6 +103,10 @@
 }
 
 @media (max-width: 767px) {
+  .describe-mobile-seo {
+    padding-bottom: 16px;
+  }
+
   .describe-mobile-meta {
     min-height: 18px;
     align-items: center !important;

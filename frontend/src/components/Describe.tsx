@@ -254,7 +254,7 @@ const Describe = () => {
                             </div>
                         </div>
 
-                        <div className="w-full text-center mt-[14px] mb-0 relative z-10">
+                        <div className="describe-mobile-seo w-full text-center mt-[14px] mb-0 relative z-10">
                             <RichTextRenderer
                                 html={normalizeSeoH1Html(h1Text)}
                                 configKey="seo-h1-main"
@@ -263,7 +263,7 @@ const Describe = () => {
                             />
                         </div>
 
-                        <div className="describe-mobile-meta w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-2 relative z-10">
+                        <div className="describe-mobile-meta w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-0 relative z-10">
                             <div className="flex-shrink-0 flex items-center describe-mobile-meta-item">
                                 <span className="text-[10px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center">
                                     <RichTextRenderer
