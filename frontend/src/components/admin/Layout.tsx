@@ -152,6 +152,13 @@ function AdminScrollStabilizer() {
       scheduleRestore();
     };
 
+    const protectAfterEditableBlur = (event: Event) => {
+      rememberScroll(event.target);
+      if (lastScrollRef.current.length === 0) return;
+      protectScrollUntilRef.current = Date.now() + 700;
+      scheduleRestore();
+    };
+
     const protectBeforeSaveClick = (event: Event) => {
       const activeElement = document.activeElement;
       const target = event.target;
@@ -159,10 +166,10 @@ function AdminScrollStabilizer() {
         target instanceof HTMLElement &&
         Boolean(target.closest('button, input[type="submit"], [role="button"]'));
 
-      if (!clickedSaveControl || !isEditableElement(activeElement)) return;
+      if (!isEditableElement(activeElement)) return;
 
       rememberScroll(activeElement);
-      protectScrollUntilRef.current = Date.now() + 3000;
+      protectScrollUntilRef.current = Date.now() + (clickedSaveControl ? 3000 : 700);
       if (restoreFrameRef.current !== null) {
         window.cancelAnimationFrame(restoreFrameRef.current);
       }
@@ -223,6 +230,7 @@ function AdminScrollStabilizer() {
     });
 
     document.addEventListener("focusin", protectAfterEditableFocus, true);
+    document.addEventListener("focusout", protectAfterEditableBlur, true);
     document.addEventListener("pointerdown", protectBeforeSaveClick, true);
     document.addEventListener("scroll", handleProgrammaticScroll, true);
     document.addEventListener("keydown", markKeyboardScroll, true);
@@ -232,6 +240,7 @@ function AdminScrollStabilizer() {
     return () => {
       mutationObserver.disconnect();
       document.removeEventListener("focusin", protectAfterEditableFocus, true);
+      document.removeEventListener("focusout", protectAfterEditableBlur, true);
       document.removeEventListener("pointerdown", protectBeforeSaveClick, true);
       document.removeEventListener("scroll", handleProgrammaticScroll, true);
       document.removeEventListener("keydown", markKeyboardScroll, true);

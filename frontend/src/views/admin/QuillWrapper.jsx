@@ -6645,12 +6645,18 @@ const QuillWrapper = forwardRef(({
           height: calc(var(--quill-editor-min-height, 120px) + 24px) !important;
           box-sizing: border-box !important;
           line-height: 1.35 !important;
-          overflow: visible !important;
+          overflow: hidden !important;
+          overflow-anchor: none !important;
+          overscroll-behavior: contain !important;
+          contain: layout paint !important;
         }
         .quill-wrapper-container.quill-editor-describe-phone .ql-container.ql-snow {
           min-height: calc(var(--quill-editor-min-height, 120px) + 42px) !important;
           height: calc(var(--quill-editor-min-height, 120px) + 42px) !important;
           flex: 0 0 auto !important;
+          overflow: hidden !important;
+          overflow-anchor: none !important;
+          overscroll-behavior: contain !important;
         }
         .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text,
         .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
@@ -6662,6 +6668,7 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text span {
           line-height: 1.35 !important;
           overflow: visible !important;
+          overflow-anchor: none !important;
         }
         .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text *,
         .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text *,
@@ -6691,7 +6698,7 @@ const QuillWrapper = forwardRef(({
           margin-top: 18px !important;
           border-top-left-radius: 12px !important;
           border-top-right-radius: 12px !important;
-          overflow: visible !important;
+          overflow: hidden !important;
         }
 
         .quill-wrapper-container,
