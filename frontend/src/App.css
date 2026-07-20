@@ -102,6 +102,22 @@
   line-height: 1.2;
 }
 
+@media (max-width: 767px) {
+  .hero-phone-text,
+  .hero-slogan-text {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+  }
+
+  .hero-phone-text *,
+  .hero-slogan-text * {
+    line-height: inherit !important;
+    vertical-align: middle !important;
+  }
+}
+
 .describe-anchor {
   flex-shrink: 0;
 }
