@@ -103,16 +103,31 @@
 }
 
 @media (max-width: 767px) {
+  .describe-mobile-meta {
+    min-height: 18px;
+    align-items: center !important;
+  }
+
+  .describe-mobile-meta-item,
+  .describe-mobile-meta-item > span {
+    height: 18px;
+    align-items: center !important;
+  }
+
   .hero-phone-text,
   .hero-slogan-text {
     display: inline-flex !important;
     align-items: center !important;
+    height: 18px !important;
     line-height: 1 !important;
     vertical-align: middle !important;
   }
 
   .hero-phone-text *,
   .hero-slogan-text * {
+    display: inline-flex !important;
+    align-items: center !important;
+    height: 18px !important;
     line-height: inherit !important;
     vertical-align: middle !important;
   }
