@@ -4325,7 +4325,9 @@ const QuillWrapper = forwardRef(({
 
     isSyncingExternalValueRef.current = true;
     try {
-      if (quill.clipboard?.convert && quill.setContents) {
+      if (preserveWhitespaceOnlyBlocks) {
+        quill.root.innerHTML = nextValue;
+      } else if (quill.clipboard?.convert && quill.setContents) {
         const delta = quill.clipboard.convert({ html: nextValue });
         quill.setContents(delta, "silent");
       } else if (quill.clipboard?.dangerouslyPasteHTML) {
@@ -4341,7 +4343,7 @@ const QuillWrapper = forwardRef(({
         isSyncingExternalValueRef.current = false;
       });
     }
-  }, [absoluteValue, getQuillEditor, isReady, normalizeContentForSave, props.value]);
+  }, [absoluteValue, getQuillEditor, isReady, normalizeContentForSave, preserveWhitespaceOnlyBlocks, props.value]);
 
   useEffect(() => {
     if (!isReady) return;
