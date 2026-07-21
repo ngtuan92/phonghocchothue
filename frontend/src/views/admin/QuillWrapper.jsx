@@ -1177,14 +1177,6 @@ const QuillWrapper = forwardRef(({
     activeControlInputKeyRef.current = activeControlInputKey;
   }, [activeControlInputKey]);
 
-  const clearPopupControlCache = useCallback((keys = null) => {
-    const keyList = keys || Object.keys(popupInputValuesRef.current);
-    keyList.forEach((key) => {
-      delete popupInputValuesRef.current[key];
-    });
-    setPopupValueVersion((prev) => prev + 1);
-  }, []);
-
   const getCurrentControlSelection = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
     const preferred = rangeOverride || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current || quill?.getSelection?.();
@@ -1316,7 +1308,7 @@ const QuillWrapper = forwardRef(({
           translateYInputs[0].value = translateYVal;
         }
         if (document.activeElement !== translateYInputs[1]) {
-          translateYInputs[1].value = translateYMobileVal;
+          translateYMobileVal && (translateYInputs[1].value = translateYMobileVal);
         }
       }
     }
@@ -1509,7 +1501,7 @@ const QuillWrapper = forwardRef(({
     });
     setSelectionControlDrafts({});
     selectionControlDraftsRef.current = {};
-    clearPopupControlCache(Object.keys(RESPONSIVE_CONTROL_CSS_VAR));
+    setPopupValueVersion((prev) => prev + 1);
     if (!commitOnBlurOnly) return;
 
     Object.entries(controlDraftsRef.current).forEach(([key, value]) => {
@@ -1517,13 +1509,11 @@ const QuillWrapper = forwardRef(({
     });
     controlDraftsRef.current = {};
     setControlDrafts({});
-    clearPopupControlCache(Object.keys(RESPONSIVE_CONTROL_CSS_VAR));
   }, [
     commitOnBlurOnly,
     controlDrafts,
     selectionControlDrafts,
     applyInlineControlToSelection,
-    clearPopupControlCache,
     disableImageWrap,
     onChangeLineHeight,
     onChangeLineHeightMobile,
@@ -3416,7 +3406,6 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
-              syncSelectionControlsFromFormat(controlSelectionRef.current);
               setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
               setShowFontSizePopup(false);
               setShowTranslatePopup(false);
@@ -3430,7 +3419,6 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
-              syncSelectionControlsFromFormat(controlSelectionRef.current);
               setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
               setShowFontSizePopup(false);
               setShowSpacingPopup(false);
