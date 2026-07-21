@@ -60,9 +60,9 @@ const RESPONSIVE_INLINE_FORMATS = {
   fontSize: 'fontSizeDesktop',
   fontSizeMobile: 'fontSizeMobile',
   lineHeight: 'lineHeight',
-  lineHeightMobile: 'lineHeight',
+  lineHeightMobile: 'lineHeightMobile',
   translateY: 'translateY',
-  translateYMobile: 'translateY',
+  translateYMobile: 'translateYMobile',
 };
 
 const normalizeImageWrapMode = (mode) => (mode === 'left' || mode === 'right' ? mode : 'none');
@@ -376,6 +376,9 @@ if (typeof window !== "undefined" && Quill) {
     const lineHeightAttributor = new StyleAttributor("lineHeight", "line-height", {
       scope: Parchment.Scope.INLINE
     });
+    const lineHeightMobileAttributor = new CssVariableAttributor("lineHeightMobile", "--custom-line-height-mobile", {
+      scope: Parchment.Scope.INLINE
+    });
     const whiteSpaceAttributor = new StyleAttributor("whiteSpace", "white-space", {
       scope: Parchment.Scope.BLOCK
     });
@@ -383,6 +386,9 @@ if (typeof window !== "undefined" && Quill) {
       scope: Parchment.Scope.BLOCK
     });
     const verticalAlignAttributor = new StyleAttributor("translateY", "vertical-align", {
+      scope: Parchment.Scope.INLINE
+    });
+    const translateYMobileAttributor = new CssVariableAttributor("translateYMobile", "--translate-y-mobile", {
       scope: Parchment.Scope.INLINE
     });
     const fontSizeDesktopAttributor = new CssVariableAttributor("fontSizeDesktop", "--fs-desktop", {
@@ -399,9 +405,11 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(borderRadiusAttributor, true);
     Quill.register(widthAttributor, true);
     Quill.register(lineHeightAttributor, true);
+    Quill.register(lineHeightMobileAttributor, true);
     Quill.register(whiteSpaceAttributor, true);
     Quill.register(overflowWrapAttributor, true);
     Quill.register(verticalAlignAttributor, true);
+    Quill.register(translateYMobileAttributor, true);
     Quill.register(fontSizeDesktopAttributor, true);
     Quill.register(fontSizeMobileAttributor, true);
   }
@@ -461,8 +469,8 @@ if (typeof window !== "undefined" && Quill) {
 const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
   "color", "background", "list", "align", "link", "image", "wrap",
-  "alt", "title", "caption", "borderRadius", "width", "lineHeight", "translateY",
-  "fontSizeDesktop", "fontSizeMobile", "whiteSpace", "overflowWrap"
+  "alt", "title", "caption", "borderRadius", "width", "lineHeight", "lineHeightMobile",
+  "translateY", "translateYMobile", "fontSizeDesktop", "fontSizeMobile", "whiteSpace", "overflowWrap"
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -1328,17 +1336,8 @@ const QuillWrapper = forwardRef(({
 
     const nextValue = normalizeUnsignedControlValue(key, value);
     if (hasResponsive && isResponsiveControlKey(key)) {
-      selectionControlDraftsRef.current = {
-        ...selectionControlDraftsRef.current,
-        [key]: nextValue,
-      };
-      controlDraftsRef.current = {
-        ...controlDraftsRef.current,
-        [key]: nextValue,
-      };
       popupInputValuesRef.current[key] = nextValue;
       setPopupValueVersion((prev) => prev + 1);
-      onControlDraftChange?.(key, nextValue);
 
       let shouldApplyPreview = true;
       if (nextValue === "") {
@@ -1354,6 +1353,10 @@ const QuillWrapper = forwardRef(({
       const isInline = selection && selection.length > 0;
 
       if (isInline) {
+        selectionControlDraftsRef.current = {
+          ...selectionControlDraftsRef.current,
+          [key]: nextValue,
+        };
         if (shouldApplyPreview) {
           applyInlineControlToSelection(key, nextValue);
           preserveEditorScrollDuring(() => {
@@ -1361,6 +1364,11 @@ const QuillWrapper = forwardRef(({
           });
         }
       } else {
+        controlDraftsRef.current = {
+          ...controlDraftsRef.current,
+          [key]: nextValue,
+        };
+        onControlDraftChange?.(key, nextValue);
         preserveEditorScrollDuring(() => {
           applyPreviewControlToContainer(key, nextValue);
           emitCurrentContentForSaveRef.current?.(true);
