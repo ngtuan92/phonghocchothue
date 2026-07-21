@@ -6639,68 +6639,6 @@ const QuillWrapper = forwardRef(({
           }
         }
 
-        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text {
-          padding: 24px 18px 18px !important;
-          min-height: calc(var(--quill-editor-min-height, 120px) + 24px) !important;
-          height: calc(var(--quill-editor-min-height, 120px) + 24px) !important;
-          box-sizing: border-box !important;
-          line-height: 1.35 !important;
-          overflow: hidden !important;
-          overflow-anchor: none !important;
-          overscroll-behavior: contain !important;
-          contain: layout paint !important;
-        }
-        .quill-wrapper-container.quill-editor-describe-phone .ql-container.ql-snow {
-          min-height: calc(var(--quill-editor-min-height, 120px) + 42px) !important;
-          height: calc(var(--quill-editor-min-height, 120px) + 42px) !important;
-          flex: 0 0 auto !important;
-          overflow: hidden !important;
-          overflow-anchor: none !important;
-          overscroll-behavior: contain !important;
-        }
-        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text,
-        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
-        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text {
-          line-height: 1.35 !important;
-        }
-        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text *,
-        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text p,
-        .quill-wrapper-container.quill-editor-describe-phone .ql-editor.hero-phone-text span {
-          line-height: 1.35 !important;
-          overflow: visible !important;
-          overflow-anchor: none !important;
-        }
-        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text *,
-        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text *,
-        .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text * {
-          line-height: 1.35 !important;
-          overflow: visible !important;
-        }
-        @media (min-width: 768px) {
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text *,
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text p,
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text span {
-            line-height: max(var(--custom-line-height), 1.35em) !important;
-            overflow: visible !important;
-          }
-        }
-        @media (max-width: 767px) {
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text,
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text *,
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text p,
-          .quill-wrapper-container.quill-editor-describe-phone[style*="--custom-line-height"] .ql-editor.hero-phone-text span {
-            line-height: max(var(--custom-line-height-mobile, var(--custom-line-height)), 1.35em) !important;
-            overflow: visible !important;
-          }
-        }
-        .quill-wrapper-container.quill-editor-describe-phone .ql-toolbar.ql-snow + .ql-container.ql-snow {
-          margin-top: 18px !important;
-          border-top-left-radius: 12px !important;
-          border-top-right-radius: 12px !important;
-          overflow: hidden !important;
-        }
-
         .quill-wrapper-container,
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
