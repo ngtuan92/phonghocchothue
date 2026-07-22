@@ -162,6 +162,23 @@ const toInlineControlFormat = (key, value) => {
   return { formatName, formatValue: unitValue };
 };
 
+const scheduleIdleWork = (callback, timeout = 300) => {
+  if (typeof window === "undefined") return 0;
+  if (typeof window.requestIdleCallback === "function") {
+    return window.requestIdleCallback(callback, { timeout });
+  }
+  return window.setTimeout(callback, 80);
+};
+
+const cancelIdleWork = (id) => {
+  if (!id || typeof window === "undefined") return;
+  if (typeof window.cancelIdleCallback === "function") {
+    window.cancelIdleCallback(id);
+  } else {
+    window.clearTimeout(id);
+  }
+};
+
 const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation) => {
   const mediaGroup = ["link", "image"];
   if (showSpacingAndTranslation) {
@@ -650,6 +667,21 @@ const syncListItemFontSizeFromChildren = (root) => {
   return changedCount;
 };
 
+const selectionTouchesList = (quill, selection) => {
+  if (!quill || !selection || selection.length <= 0) return false;
+
+  try {
+    const startLeaf = quill.getLeaf(selection.index)?.[0]?.domNode;
+    const endLeaf = quill.getLeaf(Math.max(selection.index + selection.length - 1, selection.index))?.[0]?.domNode;
+    return Boolean(
+      startLeaf?.parentElement?.closest?.("li") ||
+      endLeaf?.parentElement?.closest?.("li")
+    );
+  } catch {
+    return false;
+  }
+};
+
 
 const stripEditorCaptionArtifacts = (html) => {
   if (!html || typeof html !== "string") return html;
@@ -916,6 +948,8 @@ const QuillWrapper = forwardRef(({
   const mobileTranslateButtonRef = useRef(null);
   const toolbarScrollSnapshotRef = useRef(null);
   const emitCurrentContentForSaveRef = useRef(null);
+  const idleContentCleanupRef = useRef(0);
+  const listSizeSyncFrameRef = useRef(0);
 
 
   const onChangeTimeoutRef = useRef(null);
@@ -1328,6 +1362,7 @@ const QuillWrapper = forwardRef(({
 
     const normalized = normalizeUnsignedControlValue(key, value);
     const { formatName, formatValue } = toInlineControlFormat(key, normalized);
+    const needsListSync = selectionTouchesList(quill, selection);
 
     const hasFocus = quill.hasFocus();
 
@@ -1339,13 +1374,27 @@ const QuillWrapper = forwardRef(({
         quill.formatText(selection.index, selection.length, 'size', false, 'user');
       }
       quill.formatText(selection.index, selection.length, formatName, formatValue || false, 'user');
-      removeEmptyStyledSpanElements(quill.root);
-      syncListItemFontSizeFromChildren(quill.root);
+      if (needsListSync) {
+        syncListItemFontSizeFromChildren(quill.root);
+      }
       if (hasFocus) {
         setSelectionWithoutScroll(quill, selection.index, selection.length, 'silent');
       }
       localEditorHtmlRef.current = quill.root.innerHTML;
       isUserEditingRef.current = true;
+    });
+
+    if (idleContentCleanupRef.current) {
+      cancelIdleWork(idleContentCleanupRef.current);
+    }
+    idleContentCleanupRef.current = scheduleIdleWork(() => {
+      idleContentCleanupRef.current = 0;
+      try {
+        removeEmptyStyledSpanElements(quill.root);
+        if (!needsListSync) {
+          syncListItemFontSizeFromChildren(quill.root);
+        }
+      } catch { /* ignore */ }
     });
 
     if (updateDraft) {
@@ -2247,11 +2296,33 @@ const QuillWrapper = forwardRef(({
       } catch { /* ignore */ }
     };
     const handleResize = () => {
+      if (resizeDragRef.current) return;
       syncResizerAfterScroll();
     };
 
-    const handleContentChange = () => {
-      const hasImg = (() => {
+    function scheduleListSizeSync() {
+      if (listSizeSyncFrameRef.current) return;
+      listSizeSyncFrameRef.current = window.requestAnimationFrame(() => {
+        listSizeSyncFrameRef.current = 0;
+        syncListItemFontSizeFromChildren(quill.root);
+      });
+    }
+
+    const handleContentChange = (delta) => {
+      const ops = Array.isArray(delta?.ops) ? delta.ops : [];
+      const hasImageDelta = ops.some((op) => op.insert?.image || op.attributes?.caption || op.attributes?.wrap || op.attributes?.borderRadius);
+      const hasListDelta = ops.some((op) => op.attributes?.list);
+      const hasStyleDelta = ops.some((op) => (
+        op.attributes?.size ||
+        op.attributes?.fontSizeDesktop ||
+        op.attributes?.fontSizeMobile ||
+        op.attributes?.lineHeight ||
+        op.attributes?.lineHeightMobile ||
+        op.attributes?.translateY ||
+        op.attributes?.translateYMobile
+      ));
+
+      const hasImg = hasImageDelta && (() => {
         try {
           return !!quill.root.querySelector('img');
         } catch {
@@ -2268,9 +2339,25 @@ const QuillWrapper = forwardRef(({
         }, 0);
       }
 
-      syncCustomFontSizes();
-      syncListItemFontSizeFromChildren(quill.root);
-      cleanEmptyEditorParagraphs();
+      if (hasListDelta) {
+        scheduleListSizeSync();
+      }
+
+      if (!hasStyleDelta && !hasListDelta && !hasImageDelta) return;
+
+      if (idleContentCleanupRef.current) {
+        cancelIdleWork(idleContentCleanupRef.current);
+      }
+      idleContentCleanupRef.current = scheduleIdleWork(() => {
+        idleContentCleanupRef.current = 0;
+        try {
+          syncCustomFontSizes();
+          if (hasListDelta) {
+            syncListItemFontSizeFromChildren(quill.root);
+          }
+          cleanEmptyEditorParagraphs();
+        } catch { /* ignore */ }
+      });
     };
 
     window.addEventListener('scroll', handleScroll, true);
@@ -2280,20 +2367,13 @@ const QuillWrapper = forwardRef(({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(quill.root);
 
-    let listSizeSyncFrame = 0;
-    const scheduleListSizeSync = () => {
-      if (listSizeSyncFrame) return;
-      listSizeSyncFrame = window.requestAnimationFrame(() => {
-        listSizeSyncFrame = 0;
-        syncListItemFontSizeFromChildren(quill.root);
-      });
-    };
     const listSizeObserver = new MutationObserver((mutations) => {
       const shouldSync = mutations.some((mutation) => (
-        mutation.type === 'childList'
-        || mutation.attributeName === 'style'
-        || mutation.attributeName === 'class'
-        || mutation.attributeName === 'data-list'
+        mutation.attributeName === 'data-list'
+        || mutation.target?.closest?.('li')
+        || Array.from(mutation.addedNodes || []).some((node) => (
+          node.nodeType === 1 && (node.matches?.('li') || node.querySelector?.('li'))
+        ))
       ));
       if (shouldSync) scheduleListSizeSync();
     });
@@ -2329,7 +2409,14 @@ const QuillWrapper = forwardRef(({
       window.removeEventListener('resize', handleResize);
       quill.root.removeEventListener('scroll', handleScroll, true);
       if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
-      if (listSizeSyncFrame) window.cancelAnimationFrame(listSizeSyncFrame);
+      if (listSizeSyncFrameRef.current) {
+        window.cancelAnimationFrame(listSizeSyncFrameRef.current);
+        listSizeSyncFrameRef.current = 0;
+      }
+      if (idleContentCleanupRef.current) {
+        cancelIdleWork(idleContentCleanupRef.current);
+        idleContentCleanupRef.current = 0;
+      }
       resizeObserver.disconnect();
       listSizeObserver.disconnect();
       container.querySelectorAll('.editor-inline-image-caption').forEach((el) => el.remove());
@@ -4129,10 +4216,10 @@ const QuillWrapper = forwardRef(({
       }
       document.body.style.cursor = previousCursor;
       document.body.style.userSelect = previousUserSelect;
+      resizeDragRef.current = false;
       if (shouldCommit) {
         commitResize();
       }
-      resizeDragRef.current = false;
       imageResizeSessionRef.current = null;
     };
 
@@ -5306,6 +5393,7 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-container,
         .quill-wrapper-container .ql-editor {
           min-height: var(--quill-editor-min-height, 120px) !important;
+          overflow-anchor: none !important;
         }
 
         .ql-editor .editor-image-caption,

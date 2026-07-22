@@ -715,7 +715,6 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
-                        preserveNbsp
                       />
                     ) : (
                       formatNumber(toNumber(productData.product.contains) || 0)
@@ -736,7 +735,6 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
-                        preserveNbsp
                       />
                     ) : (
                       productData.product.equipment
@@ -744,7 +742,7 @@ export default function DetailPage() {
                   </div>
                 )}
               </div>
-              <div className="text-xs sm:text-base mt-2 mb-4">
+              <div className="room-price-summary text-xs sm:text-base mt-2 mb-4">
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                   <RichTextRenderer
                     html={productData.product.price}
@@ -756,7 +754,6 @@ export default function DetailPage() {
                     lineHeightMobile={product.lineHeightMobile}
                     translateY={product.translateY}
                     translateYMobile={product.translateYMobile}
-                    preserveNbsp
                   />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"

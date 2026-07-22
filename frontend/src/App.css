@@ -952,6 +952,23 @@
   text-align: left !important;
 }
 
+.room-summary-desc,
+.room-summary-desc *,
+.room-price-summary,
+.room-price-summary * {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.room-summary-desc .inline-rich-text,
+.room-price-summary .inline-rich-text {
+  display: inline !important;
+  width: auto !important;
+}
+
 
 @media (max-width: 767px) {
   .blog-content p {
