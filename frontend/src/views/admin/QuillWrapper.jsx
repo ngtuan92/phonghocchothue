@@ -1449,6 +1449,18 @@ const QuillWrapper = forwardRef(({
     if (!isValidControlInput(value, signed)) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);
+    if (commitOnBlurOnly && hasResponsive && isResponsiveControlKey(key)) {
+      popupInputValuesRef.current[key] = nextValue;
+      controlDraftsRef.current = {
+        ...controlDraftsRef.current,
+        [key]: nextValue,
+      };
+      applyPreviewControlToContainer(key, nextValue);
+      setPopupValueVersion((prev) => prev + 1);
+      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      return;
+    }
+
     if (hasResponsive && isResponsiveControlKey(key)) {
       popupInputValuesRef.current[key] = nextValue;
       setPopupValueVersion((prev) => prev + 1);
@@ -1537,6 +1549,7 @@ const QuillWrapper = forwardRef(({
     hasResponsive,
     normalizeUnsignedControlValue,
     applyInlineControlToSelection,
+    applyPreviewControlToContainer,
     getCurrentControlSelection,
     getQuillEditor,
     preserveEditorScrollDuring,
@@ -1553,6 +1566,18 @@ const QuillWrapper = forwardRef(({
     if (!isValidControlInput(value, signed)) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);
+    if (commitOnBlurOnly && hasResponsive && isResponsiveControlKey(key)) {
+      popupInputValuesRef.current[key] = nextValue;
+      controlDraftsRef.current = {
+        ...controlDraftsRef.current,
+        [key]: nextValue,
+      };
+      applyPreviewControlToContainer(key, nextValue);
+      setPopupValueVersion((prev) => prev + 1);
+      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      return;
+    }
+
     if (hasResponsive && isResponsiveControlKey(key)) {
       const responsiveCallbacks = createControlCallbacks({
         onChangeLineHeight,
@@ -1595,6 +1620,7 @@ const QuillWrapper = forwardRef(({
     onChange?.(nextValue);
   }, [
     applyInlineControlToSelection,
+    applyPreviewControlToContainer,
     commitOnBlurOnly,
     disableImageWrap,
     hasResponsive,
