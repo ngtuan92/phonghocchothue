@@ -1470,6 +1470,12 @@ const QuillWrapper = forwardRef(({
           ...selectionControlDraftsRef.current,
           [key]: nextValue,
         };
+        controlDraftsRef.current = {
+          ...controlDraftsRef.current,
+          [key]: nextValue,
+        };
+        onControlDraftChange?.(key, nextValue);
+        setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
         if (shouldApplyPreview) {
           applyInlineControlToSelection(key, nextValue);
           preserveEditorScrollDuring(() => {
@@ -1613,9 +1619,7 @@ const QuillWrapper = forwardRef(({
     });
 
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
-      if (applyInlineControlToSelection(key, value, { updateDraft: false })) {
-        return;
-      }
+      applyInlineControlToSelection(key, value, { updateDraft: false });
       if (callbacks[key]) {
         callbacks[key](normalizeUnsignedControlValue(key, value));
       }
