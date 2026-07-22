@@ -848,8 +848,8 @@ const QuillWrapper = forwardRef(({
   const preserveWhitespaceOnlyBlocks =
     className.includes('blog-desc-editor') ||
     className.includes('room-desc-editor');
-  const canUseInlineSelectionControls = !!inlineSelectionControls;
-  const canUseMobileSelectionToolbar = preserveWhitespaceOnlyBlocks;
+  const canUseInlineSelectionControls = false;
+  const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;
   const hasOnChangeFontSizeMobile = !!onChangeFontSizeMobile;
   const hasResponsive = hasResponsiveFontSize !== undefined

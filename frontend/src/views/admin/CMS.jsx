@@ -812,10 +812,7 @@ export default function CMS() {
   const restoreConfigCardPosition = (snapshot) => {
     if (!snapshot || typeof window === "undefined") return;
 
-    const startedAt = Date.now();
-    let frameId = 0;
-
-    const restore = () => {
+    window.requestAnimationFrame(() => {
       const element = configCardRefs.current[snapshot.key];
       if (!element) return;
 
@@ -823,17 +820,7 @@ export default function CMS() {
       if (Math.abs(deltaTop) > 0.5) {
         window.scrollBy(0, deltaTop);
       }
-
-      if (Date.now() - startedAt < 900) {
-        frameId = window.requestAnimationFrame(restore);
-      }
-    };
-
-    frameId = window.requestAnimationFrame(restore);
-    window.setTimeout(() => {
-      if (frameId) window.cancelAnimationFrame(frameId);
-      restore();
-    }, 950);
+    });
   };
 
 
@@ -1459,7 +1446,7 @@ export default function CMS() {
             editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
             minHeight={minHeight}
             hasResponsiveFontSize={true}
-            inlineSelectionControls={true}
+            inlineSelectionControls={false}
             commitOnBlurOnly={commitOnBlurOnly}
           />
         </div>
