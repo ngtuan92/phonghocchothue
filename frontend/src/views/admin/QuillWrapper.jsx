@@ -849,6 +849,7 @@ const QuillWrapper = forwardRef(({
     className.includes('blog-desc-editor') ||
     className.includes('room-desc-editor');
   const canUseInlineSelectionControls = !!inlineSelectionControls;
+  const canUseMobileSelectionToolbar = preserveWhitespaceOnlyBlocks;
   const hasOnChangeFontSize = !!onChangeFontSize;
   const hasOnChangeFontSizeMobile = !!onChangeFontSizeMobile;
   const hasResponsive = hasResponsiveFontSize !== undefined
@@ -1054,7 +1055,7 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const updateMobileSelectionToolbarPosition = useCallback((rangeOverride = null) => {
-    if (!isMobileAdminViewport() || !canUseInlineSelectionControls) {
+    if (!isMobileAdminViewport() || !canUseMobileSelectionToolbar) {
       setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
       return;
     }
@@ -1095,7 +1096,7 @@ const QuillWrapper = forwardRef(({
     } catch {
       setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
     }
-  }, [canUseInlineSelectionControls, getQuillEditor]);
+  }, [canUseMobileSelectionToolbar, getQuillEditor]);
 
   const getMobileSelectionPopupPosition = useCallback((popupWidth = 200, popupHeight = 220) => {
     if (!isMobileAdminViewport()) return null;
@@ -1729,6 +1730,39 @@ const QuillWrapper = forwardRef(({
     focusWithoutScroll,
     setSelectionWithoutScroll
   ]);
+
+  const clearMobileNativeSelectionOverlay = useCallback((selection = null) => {
+    if (!isMobileAdminViewport()) return;
+
+    const preservedSelection = selection?.length > 0
+      ? { ...selection }
+      : controlSelectionRef.current?.length > 0
+        ? { ...controlSelectionRef.current }
+        : lastHighlightSelectionRef.current?.length > 0
+          ? { ...lastHighlightSelectionRef.current }
+          : savedSelectionRef.current?.length > 0
+            ? { ...savedSelectionRef.current }
+            : null;
+
+    if (preservedSelection) {
+      controlSelectionRef.current = preservedSelection;
+      savedSelectionRef.current = preservedSelection;
+      lastHighlightSelectionRef.current = preservedSelection;
+    }
+
+    const clear = () => {
+      try {
+        window.getSelection?.()?.removeAllRanges?.();
+      } catch { /* ignore */ }
+      try {
+        getQuillEditor()?.setSelection?.(null, 'silent');
+      } catch { /* ignore */ }
+    };
+
+    clear();
+    window.requestAnimationFrame(clear);
+    window.setTimeout(clear, 60);
+  }, [getQuillEditor]);
 
   const getImageWrapMode = useCallback(normalizeImageWrapMode, []);
 
@@ -3254,7 +3288,7 @@ const QuillWrapper = forwardRef(({
       savedSelectionRef.current = range;
       if (range.length > 0) {
         lastHighlightSelectionRef.current = range;
-        if (isMobileAdminViewport() && canUseInlineSelectionControls) {
+        if (isMobileAdminViewport() && canUseMobileSelectionToolbar) {
           controlSelectionRef.current = { ...range };
           updateMobileSelectionToolbarPosition(range);
         }
@@ -3272,7 +3306,7 @@ const QuillWrapper = forwardRef(({
     if (!isEditingControlPopup) {
       updateSizePickerLabel(range);
     }
-  }, [canUseInlineSelectionControls, commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateMobileSelectionToolbarPosition, updateSizePickerLabel]);
+  }, [canUseMobileSelectionToolbar, commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateMobileSelectionToolbarPosition, updateSizePickerLabel]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -3531,6 +3565,7 @@ const QuillWrapper = forwardRef(({
               setShowSpacingPopup(false);
               setShowTranslatePopup(false);
               setShowFontSizePopup(true);
+              clearMobileNativeSelectionOverlay(finalSelection);
             });
           }
         },
@@ -3545,6 +3580,7 @@ const QuillWrapper = forwardRef(({
               setShowFontSizePopup(false);
               setShowTranslatePopup(false);
               setShowSpacingPopup(true);
+              clearMobileNativeSelectionOverlay(controlSelectionRef.current);
             });
           }
         },
@@ -3559,6 +3595,7 @@ const QuillWrapper = forwardRef(({
               setShowFontSizePopup(false);
               setShowSpacingPopup(false);
               setShowTranslatePopup(true);
+              clearMobileNativeSelectionOverlay(controlSelectionRef.current);
             });
           }
         },
@@ -3824,6 +3861,7 @@ const QuillWrapper = forwardRef(({
     updateSizePickerLabel,
     positionResizerDirectly,
     resolveImageElement,
+    clearMobileNativeSelectionOverlay,
     commitControlDrafts,
     getClampedControlPopupPosition,
     syncSelectionControlsFromFormat,
@@ -4534,7 +4572,7 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const openMobileSelectionControl = useCallback((control) => {
-    if (!isMobileAdminViewport() || !canUseInlineSelectionControls) return;
+    if (!isMobileAdminViewport() || !canUseMobileSelectionToolbar) return;
 
     const anchorMap = {
       fontSize: mobileFontSizeButtonRef.current,
@@ -4550,9 +4588,7 @@ const QuillWrapper = forwardRef(({
     lastHighlightSelectionRef.current = { ...selection };
     syncSelectionControlsFromFormat(selection);
     setMobileSelectionToolbar((prev) => ({ ...prev, visible: false }));
-    try {
-      window.getSelection?.()?.removeAllRanges?.();
-    } catch { /* ignore */ }
+    clearMobileNativeSelectionOverlay(selection);
 
     if (control === 'fontSize') {
       controlPopupAnchorRef.current.fontSize = anchor;
@@ -4580,7 +4616,8 @@ const QuillWrapper = forwardRef(({
       setShowTranslatePopup(true);
     }
   }, [
-    canUseInlineSelectionControls,
+    canUseMobileSelectionToolbar,
+    clearMobileNativeSelectionOverlay,
     getClampedControlPopupPosition,
     getCurrentControlSelection,
     getMobileSelectionPopupPosition,
@@ -4778,7 +4815,7 @@ const QuillWrapper = forwardRef(({
     >
       {renderModals()}
 
-      {mobileSelectionToolbar.visible && (hasResponsive || hasLineHeight || hasTranslateY) && (
+      {canUseMobileSelectionToolbar && mobileSelectionToolbar.visible && (hasResponsive || hasLineHeight || hasTranslateY) && (
         <div
           className="ql-mobile-selection-toolbar"
           style={{
