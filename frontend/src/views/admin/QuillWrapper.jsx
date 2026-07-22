@@ -563,6 +563,20 @@ const isMobileAdminViewport = () => (
   window.matchMedia?.("(max-width: 767px)")?.matches
 );
 
+const getMobileAdminChromeBottom = () => {
+  if (typeof document === "undefined" || !isMobileAdminViewport()) return 0;
+  const navbar = document.querySelector('nav.sticky.top-0');
+  const rect = navbar?.getBoundingClientRect?.();
+  if (!rect || rect.bottom <= 0) return 0;
+  return rect.bottom;
+};
+
+const isControlPopupInputActive = () => {
+  if (typeof document === "undefined") return false;
+  const activeElement = document.activeElement;
+  return Boolean(activeElement?.closest?.('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup'));
+};
+
 const cleanFontSizeStyle = (styleContent) => styleContent
   .split(';')
   .map(part => part.trim())
@@ -863,7 +877,6 @@ const QuillWrapper = forwardRef(({
   const selectionControlDraftsRef = useRef({});
   const popupInputValuesRef = useRef({});
   const [popupValueVersion, setPopupValueVersion] = useState(0);
-  const [activeControlInputKey, setActiveControlInputKey] = useState(null);
   const activeControlInputKeyRef = useRef(null);
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
@@ -997,25 +1010,39 @@ const QuillWrapper = forwardRef(({
     }
 
     const rect = isUsableRect ? nextRect : controlButtonRectRef.current[cacheKey];
+    const isMobilePopup = isMobileAdminViewport();
+    const mobileMetrics = {
+      fontSize: { width: 194, height: 164 },
+      lineHeight: { width: 190, height: 202 },
+      translateY: { width: 190, height: 202 },
+    };
+    const popupMetrics = isMobilePopup && mobileMetrics[cacheKey]
+      ? mobileMetrics[cacheKey]
+      : { width: popupWidth, height: popupHeight };
     const viewport = window.visualViewport;
     const viewportLeft = safeNumber(viewport?.offsetLeft, 0);
     const viewportTop = safeNumber(viewport?.offsetTop, 0);
-    const viewportWidth = safeNumber(viewport?.width, window.innerWidth || document.documentElement.clientWidth || popupWidth);
-    const viewportHeight = safeNumber(viewport?.height, window.innerHeight || document.documentElement.clientHeight || popupHeight);
-    const gutter = 12;
-    const width = Math.min(popupWidth, Math.max(160, viewportWidth - gutter * 2));
+    const viewportWidth = safeNumber(viewport?.width, window.innerWidth || document.documentElement.clientWidth || popupMetrics.width);
+    const viewportHeight = safeNumber(viewport?.height, window.innerHeight || document.documentElement.clientHeight || popupMetrics.height);
+    const gutter = isMobilePopup ? 8 : 12;
+    const width = Math.min(popupMetrics.width, Math.max(isMobilePopup ? 176 : 160, viewportWidth - gutter * 2));
+    const height = Math.min(popupMetrics.height, Math.max(120, viewportHeight - gutter * 2));
     const minLeft = viewportLeft + gutter;
     const maxLeft = viewportLeft + viewportWidth - width - gutter;
-    const preferredLeft = safeNumber(rect?.left, minLeft);
+    const preferredLeft = isMobilePopup
+      ? safeNumber((rect?.left || 0) + ((rect?.width || 0) / 2) - (width / 2), minLeft)
+      : safeNumber(rect?.left, minLeft);
+    const minTop = Math.max(viewportTop + gutter, getMobileAdminChromeBottom() + (isMobilePopup ? 8 : 0));
+    const viewportBottom = viewportTop + viewportHeight - gutter;
     const belowTop = safeNumber((rect?.bottom || 0) + viewportTop + 5);
-    const aboveTop = safeNumber((rect?.top || 0) + viewportTop - popupHeight - 5);
-    const maxTop = viewportTop + viewportHeight - Math.min(popupHeight, viewportHeight - gutter * 2) - gutter;
-    const preferredTop = belowTop + popupHeight <= viewportTop + viewportHeight - gutter
+    const aboveTop = safeNumber((rect?.top || 0) + viewportTop - height - 5);
+    const maxTop = Math.max(minTop, viewportBottom - height);
+    const preferredTop = belowTop + height <= viewportBottom
       ? belowTop
-      : aboveTop;
+      : Math.max(aboveTop, minTop);
 
     return {
-      top: Math.max(viewportTop + gutter, Math.min(preferredTop, maxTop)),
+      top: Math.max(minTop, Math.min(preferredTop, maxTop)),
       left: Math.max(minLeft, Math.min(preferredLeft, maxLeft)),
       width,
     };
@@ -1177,13 +1204,8 @@ const QuillWrapper = forwardRef(({
 
   const focusControlInput = useCallback((key) => {
     activeControlInputKeyRef.current = key;
-    setActiveControlInputKey(key);
     preserveAdminScrollDuring();
   }, [preserveAdminScrollDuring]);
-
-  useEffect(() => {
-    activeControlInputKeyRef.current = activeControlInputKey;
-  }, [activeControlInputKey]);
 
   const getCurrentControlSelection = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
@@ -1587,13 +1609,11 @@ const QuillWrapper = forwardRef(({
       return;
     }
     commitControlDrafts();
-    setActiveControlInputKey(null);
     activeControlInputKeyRef.current = null;
   }, [commitControlDrafts]);
 
   const commitControlInput = useCallback((restoreFocus = false) => {
     commitControlDrafts();
-    setActiveControlInputKey(null);
     activeControlInputKeyRef.current = null;
 
     if (restoreFocus) {
@@ -3134,19 +3154,22 @@ const QuillWrapper = forwardRef(({
 
   const handleSelectionChange = useCallback((range) => {
     const isControlPopupOpen = showFontSizePopup || showSpacingPopup || showTranslatePopup;
+    const isEditingControlPopup = isControlPopupInputActive();
     if (range) {
       typingSelectionRef.current = range;
       savedSelectionRef.current = range;
       if (range.length > 0) {
         lastHighlightSelectionRef.current = range;
       }
-      if (isControlPopupOpen) {
+      if (isControlPopupOpen && !isEditingControlPopup) {
         controlSelectionRef.current = range.length > 0 ? { ...range } : null;
         syncSelectionControlsFromFormat(range);
       }
     }
     if (commitOnBlurOnly && !isControlPopupOpen) return;
-    updateSizePickerLabel(range);
+    if (!isEditingControlPopup) {
+      updateSizePickerLabel(range);
+    }
   }, [commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateSizePickerLabel]);
 
   useEffect(() => {
@@ -4422,6 +4445,7 @@ const QuillWrapper = forwardRef(({
     const updateOpenPopupPosition = () => {
       const root = containerRef.current;
       if (!root) return;
+      if (isMobileAdminViewport() && isControlPopupInputActive()) return;
 
       if (showFontSizePopup) {
         const button = root.querySelector('.ql-font-size-custom');
@@ -4701,6 +4725,7 @@ const QuillWrapper = forwardRef(({
                 <div className="relative">
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={getPopupInputValue('fontSize', fontSize)}
                     onBeforeInput={keepPopupInputKeyInInput}
                     onChange={(e) => updateControlDraftValue('fontSize', e.target.value, false, e.currentTarget)}
@@ -4753,6 +4778,7 @@ const QuillWrapper = forwardRef(({
                 <div className="relative">
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={getPopupInputValue('fontSizeMobile', fontSizeMobile)}
                     onBeforeInput={keepPopupInputKeyInInput}
                     onChange={(e) => updateControlDraftValue('fontSizeMobile', e.target.value, false, e.currentTarget)}
@@ -6634,16 +6660,60 @@ const QuillWrapper = forwardRef(({
             right: auto !important;
             bottom: auto !important;
             max-width: calc(100vw - 24px) !important;
-            max-height: min(56vh, 360px) !important;
+            max-height: 220px !important;
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
             z-index: 9999 !important;
+            padding: 10px !important;
+            border-radius: 12px !important;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16) !important;
+          }
+
+          .ql-font-size-popup {
+            max-height: 180px !important;
+          }
+
+          .ql-font-size-popup > .flex:first-child,
+          .ql-line-height-popup > .flex:first-child,
+          .ql-translate-y-popup > .flex:first-child {
+            margin-bottom: 8px !important;
+          }
+
+          .ql-font-size-popup .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 10px !important;
+          }
+
+          .ql-line-height-popup .space-y-3 > :not([hidden]) ~ :not([hidden]),
+          .ql-translate-y-popup .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 8px !important;
+          }
+
+          .ql-line-height-popup label,
+          .ql-translate-y-popup label {
+            margin-bottom: 3px !important;
           }
 
           .ql-font-size-popup input,
           .ql-line-height-popup input,
           .ql-translate-y-popup input {
-            min-height: 36px !important;
+            min-height: 34px !important;
+            border-radius: 8px !important;
+          }
+
+          .ql-font-size-popup input {
+            height: 32px !important;
+          }
+
+          .ql-line-height-popup input,
+          .ql-translate-y-popup input {
+            padding-top: 5px !important;
+            padding-bottom: 5px !important;
+          }
+
+          .ql-font-size-popup button,
+          .ql-line-height-popup button,
+          .ql-translate-y-popup button {
+            touch-action: manipulation !important;
           }
         }
 
