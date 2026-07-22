@@ -4546,8 +4546,13 @@ const QuillWrapper = forwardRef(({
     if (!anchor || !selection || selection.length <= 0) return;
 
     controlSelectionRef.current = { ...selection };
+    savedSelectionRef.current = { ...selection };
+    lastHighlightSelectionRef.current = { ...selection };
     syncSelectionControlsFromFormat(selection);
     setMobileSelectionToolbar((prev) => ({ ...prev, visible: false }));
+    try {
+      window.getSelection?.()?.removeAllRanges?.();
+    } catch { /* ignore */ }
 
     if (control === 'fontSize') {
       controlPopupAnchorRef.current.fontSize = anchor;
