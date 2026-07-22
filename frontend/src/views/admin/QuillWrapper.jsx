@@ -871,6 +871,7 @@ const QuillWrapper = forwardRef(({
   const [fontSizePopupPosition, setFontSizePopupPosition] = useState({ top: 0, left: 0 });
   const [showTranslatePopup, setShowTranslatePopup] = useState(false);
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
+  const [mobileSelectionToolbar, setMobileSelectionToolbar] = useState({ visible: false, top: 0, left: 0 });
   const [controlDrafts, setControlDrafts] = useState({});
   const [selectionControlDrafts, setSelectionControlDrafts] = useState({});
   const controlDraftsRef = useRef({});
@@ -908,6 +909,10 @@ const QuillWrapper = forwardRef(({
   const suppressControlInputBlurRef = useRef(false);
   const controlPopupOpenRef = useRef(false);
   const controlButtonRectRef = useRef({});
+  const controlPopupAnchorRef = useRef({});
+  const mobileFontSizeButtonRef = useRef(null);
+  const mobileLineHeightButtonRef = useRef(null);
+  const mobileTranslateButtonRef = useRef(null);
   const toolbarScrollSnapshotRef = useRef(null);
   const emitCurrentContentForSaveRef = useRef(null);
 
@@ -1047,6 +1052,92 @@ const QuillWrapper = forwardRef(({
       width,
     };
   }, []);
+
+  const updateMobileSelectionToolbarPosition = useCallback((rangeOverride = null) => {
+    if (!isMobileAdminViewport() || !canUseInlineSelectionControls) {
+      setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
+      return;
+    }
+
+    const quill = getQuillEditor();
+    const selection = rangeOverride || controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current;
+    if (!quill?.root || !selection || selection.length <= 0) {
+      setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
+      return;
+    }
+
+    try {
+      const bounds = quill.getBounds(selection.index, selection.length);
+      const editorRect = quill.root.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportLeft = safeNumber(viewport?.offsetLeft, 0);
+      const viewportTop = safeNumber(viewport?.offsetTop, 0);
+      const viewportWidth = safeNumber(viewport?.width, window.innerWidth || document.documentElement.clientWidth || 360);
+      const viewportHeight = safeNumber(viewport?.height, window.innerHeight || document.documentElement.clientHeight || 640);
+      const toolbarWidth = 154;
+      const toolbarHeight = 42;
+      const gutter = 8;
+      const safeTop = Math.max(viewportTop + gutter, getMobileAdminChromeBottom() + gutter);
+      const viewportBottom = viewportTop + viewportHeight - gutter;
+      const selectionTop = editorRect.top + safeNumber(bounds.top) + viewportTop;
+      const selectionBottom = selectionTop + safeNumber(bounds.height, 24);
+      const selectionCenter = editorRect.left + safeNumber(bounds.left) + (safeNumber(bounds.width, 1) / 2) + viewportLeft;
+      const preferredTop = selectionBottom + toolbarHeight + gutter <= viewportBottom
+        ? selectionBottom + gutter
+        : selectionTop - toolbarHeight - gutter;
+      const top = Math.max(safeTop, Math.min(preferredTop, viewportBottom - toolbarHeight));
+      const left = Math.max(
+        viewportLeft + gutter,
+        Math.min(selectionCenter - (toolbarWidth / 2), viewportLeft + viewportWidth - toolbarWidth - gutter)
+      );
+
+      setMobileSelectionToolbar({ visible: true, top, left });
+    } catch {
+      setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
+    }
+  }, [canUseInlineSelectionControls, getQuillEditor]);
+
+  const getMobileSelectionPopupPosition = useCallback((popupWidth = 200, popupHeight = 220) => {
+    if (!isMobileAdminViewport()) return null;
+
+    const quill = getQuillEditor();
+    const selection = controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current;
+    if (!quill?.root || !selection || selection.length <= 0) return null;
+
+    try {
+      const bounds = quill.getBounds(selection.index, selection.length);
+      const editorRect = quill.root.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportLeft = safeNumber(viewport?.offsetLeft, 0);
+      const viewportTop = safeNumber(viewport?.offsetTop, 0);
+      const viewportWidth = safeNumber(viewport?.width, window.innerWidth || document.documentElement.clientWidth || popupWidth);
+      const viewportHeight = safeNumber(viewport?.height, window.innerHeight || document.documentElement.clientHeight || popupHeight);
+      const gutter = 8;
+      const width = Math.min(popupWidth, Math.max(176, viewportWidth - gutter * 2));
+      const height = Math.min(popupHeight, Math.max(120, viewportHeight - gutter * 2));
+      const minLeft = viewportLeft + gutter;
+      const maxLeft = viewportLeft + viewportWidth - width - gutter;
+      const safeTop = Math.max(viewportTop + gutter, getMobileAdminChromeBottom() + gutter);
+      const viewportBottom = viewportTop + viewportHeight - gutter;
+      const selectionTop = editorRect.top + safeNumber(bounds.top) + viewportTop;
+      const selectionBottom = selectionTop + safeNumber(bounds.height, 24);
+      const selectionCenter = editorRect.left + safeNumber(bounds.left) + (safeNumber(bounds.width, 1) / 2) + viewportLeft;
+      const topAboveSelection = selectionTop - height - gutter;
+      const topBelowSelection = selectionBottom + gutter;
+      const preferredTop = topAboveSelection >= safeTop
+        ? topAboveSelection
+        : topBelowSelection;
+      const maxTop = Math.max(safeTop, viewportBottom - height);
+
+      return {
+        top: Math.max(safeTop, Math.min(preferredTop, maxTop)),
+        left: Math.max(minLeft, Math.min(selectionCenter - (width / 2), maxLeft)),
+        width,
+      };
+    } catch {
+      return null;
+    }
+  }, [getQuillEditor]);
 
   const preserveScrollAround = useCallback((root, action) => {
     if (typeof window === 'undefined') {
@@ -1962,7 +2053,6 @@ const QuillWrapper = forwardRef(({
 
     // Keep highlight selection when clicking toolbar.
     const container = containerRef.current;
-
     const handleMousedown = (e) => {
       const toolbar = container.querySelector('.ql-toolbar');
       if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
@@ -3160,17 +3250,25 @@ const QuillWrapper = forwardRef(({
       savedSelectionRef.current = range;
       if (range.length > 0) {
         lastHighlightSelectionRef.current = range;
+        if (isMobileAdminViewport() && canUseInlineSelectionControls) {
+          controlSelectionRef.current = { ...range };
+          updateMobileSelectionToolbarPosition(range);
+        }
+      } else if (isMobileAdminViewport()) {
+        setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
       }
       if (isControlPopupOpen && !isEditingControlPopup) {
         controlSelectionRef.current = range.length > 0 ? { ...range } : null;
         syncSelectionControlsFromFormat(range);
       }
+    } else if (isMobileAdminViewport() && !isControlPopupOpen) {
+      setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
     }
     if (commitOnBlurOnly && !isControlPopupOpen) return;
     if (!isEditingControlPopup) {
       updateSizePickerLabel(range);
     }
-  }, [commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateSizePickerLabel]);
+  }, [canUseInlineSelectionControls, commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateMobileSelectionToolbarPosition, updateSizePickerLabel]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -3424,6 +3522,7 @@ const QuillWrapper = forwardRef(({
                 setPopupValueVersion((prev) => prev + 1);
               }, 0);
 
+              controlPopupAnchorRef.current.fontSize = button;
               setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
               setShowSpacingPopup(false);
               setShowTranslatePopup(false);
@@ -3437,6 +3536,7 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
+              controlPopupAnchorRef.current.lineHeight = button;
               setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
               setShowFontSizePopup(false);
               setShowTranslatePopup(false);
@@ -3450,6 +3550,7 @@ const QuillWrapper = forwardRef(({
             preserveEditorScrollDuring(() => {
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
+              controlPopupAnchorRef.current.translateY = button;
               setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
               setShowFontSizePopup(false);
               setShowSpacingPopup(false);
@@ -4428,6 +4529,75 @@ const QuillWrapper = forwardRef(({
     };
   }, []);
 
+  const openMobileSelectionControl = useCallback((control) => {
+    if (!isMobileAdminViewport() || !canUseInlineSelectionControls) return;
+
+    const anchorMap = {
+      fontSize: mobileFontSizeButtonRef.current,
+      lineHeight: mobileLineHeightButtonRef.current,
+      translateY: mobileTranslateButtonRef.current,
+    };
+    const anchor = anchorMap[control];
+    const selection = getCurrentControlSelection(controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current);
+    if (!anchor || !selection || selection.length <= 0) return;
+
+    controlSelectionRef.current = { ...selection };
+    syncSelectionControlsFromFormat(selection);
+    setMobileSelectionToolbar((prev) => ({ ...prev, visible: false }));
+
+    if (control === 'fontSize') {
+      controlPopupAnchorRef.current.fontSize = anchor;
+      setFontSizePopupPosition(getMobileSelectionPopupPosition(194, 164) || getClampedControlPopupPosition(anchor, 210, 'fontSize', 230));
+      setShowSpacingPopup(false);
+      setShowTranslatePopup(false);
+      setShowFontSizePopup(true);
+      return;
+    }
+
+    if (control === 'lineHeight') {
+      controlPopupAnchorRef.current.lineHeight = anchor;
+      setPopupPosition(getMobileSelectionPopupPosition(190, 202) || getClampedControlPopupPosition(anchor, 200, 'lineHeight', 220));
+      setShowFontSizePopup(false);
+      setShowTranslatePopup(false);
+      setShowSpacingPopup(true);
+      return;
+    }
+
+    if (control === 'translateY') {
+      controlPopupAnchorRef.current.translateY = anchor;
+      setTranslatePopupPosition(getMobileSelectionPopupPosition(190, 202) || getClampedControlPopupPosition(anchor, 200, 'translateY', 220));
+      setShowFontSizePopup(false);
+      setShowSpacingPopup(false);
+      setShowTranslatePopup(true);
+    }
+  }, [
+    canUseInlineSelectionControls,
+    getClampedControlPopupPosition,
+    getCurrentControlSelection,
+    getMobileSelectionPopupPosition,
+    syncSelectionControlsFromFormat,
+  ]);
+
+  useEffect(() => {
+    if (!mobileSelectionToolbar.visible) return;
+    if (!isMobileAdminViewport()) return;
+
+    const update = () => updateMobileSelectionToolbarPosition();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
+
+    const raf = window.requestAnimationFrame(update);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
+    };
+  }, [mobileSelectionToolbar.visible, updateMobileSelectionToolbarPosition]);
+
   useEffect(() => {
     controlPopupOpenRef.current = showFontSizePopup || showSpacingPopup || showTranslatePopup;
     const toolbar = containerRef.current?.querySelector('.ql-toolbar');
@@ -4446,18 +4616,36 @@ const QuillWrapper = forwardRef(({
       const root = containerRef.current;
       if (!root) return;
       if (isMobileAdminViewport() && isControlPopupInputActive()) return;
+      const getPopupAnchor = (key, fallbackSelector) => {
+        const anchor = controlPopupAnchorRef.current[key];
+        if (anchor?.isConnected) return anchor;
+        if (anchor && controlButtonRectRef.current[key]) return null;
+        return root.querySelector(fallbackSelector);
+      };
 
       if (showFontSizePopup) {
-        const button = root.querySelector('.ql-font-size-custom');
-        setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
+        const button = getPopupAnchor('fontSize', '.ql-font-size-custom');
+        const fromMobileToolbar = controlPopupAnchorRef.current.fontSize === mobileFontSizeButtonRef.current;
+        setFontSizePopupPosition(
+          (fromMobileToolbar ? getMobileSelectionPopupPosition(194, 164) : null)
+          || getClampedControlPopupPosition(button, 210, 'fontSize', 230)
+        );
       }
       if (showSpacingPopup) {
-        const button = root.querySelector('.ql-line-height');
-        setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
+        const button = getPopupAnchor('lineHeight', '.ql-line-height');
+        const fromMobileToolbar = controlPopupAnchorRef.current.lineHeight === mobileLineHeightButtonRef.current;
+        setPopupPosition(
+          (fromMobileToolbar ? getMobileSelectionPopupPosition(190, 202) : null)
+          || getClampedControlPopupPosition(button, 200, 'lineHeight', 220)
+        );
       }
       if (showTranslatePopup) {
-        const button = root.querySelector('.ql-translate-y');
-        setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
+        const button = getPopupAnchor('translateY', '.ql-translate-y');
+        const fromMobileToolbar = controlPopupAnchorRef.current.translateY === mobileTranslateButtonRef.current;
+        setTranslatePopupPosition(
+          (fromMobileToolbar ? getMobileSelectionPopupPosition(190, 202) : null)
+          || getClampedControlPopupPosition(button, 200, 'translateY', 220)
+        );
       }
     };
 
@@ -4487,6 +4675,7 @@ const QuillWrapper = forwardRef(({
     };
   }, [
     getClampedControlPopupPosition,
+    getMobileSelectionPopupPosition,
     showFontSizePopup,
     showSpacingPopup,
     showTranslatePopup,
@@ -4579,6 +4768,76 @@ const QuillWrapper = forwardRef(({
       }}
     >
       {renderModals()}
+
+      {mobileSelectionToolbar.visible && (hasResponsive || hasLineHeight || hasTranslateY) && (
+        <div
+          className="ql-mobile-selection-toolbar"
+          style={{
+            position: 'fixed',
+            top: `${safeNumber(mobileSelectionToolbar.top)}px`,
+            left: `${safeNumber(mobileSelectionToolbar.left)}px`,
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            preserveAdminScrollDuring();
+          }}
+          onMouseDown={keepPopupInteractionStable}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {hasResponsive && (
+            <button
+              ref={mobileFontSizeButtonRef}
+              type="button"
+              aria-label="Font size"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openMobileSelectionControl('fontSize');
+              }}
+              onClick={(e) => e.preventDefault()}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="currentColor" d="M9 4v3h5v12h3V7h5V4H9zm-6 6v3h3v6h3v-6h3v-3H3z" />
+              </svg>
+            </button>
+          )}
+          {hasLineHeight && (
+            <button
+              ref={mobileLineHeightButtonRef}
+              type="button"
+              aria-label="Line height"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openMobileSelectionControl('lineHeight');
+              }}
+              onClick={(e) => e.preventDefault()}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="currentColor" d="M10 5h12v2H10V5zm0 6h12v2H10v-2zm0 6h12v2H10v-2zM4 4.5l-3 3h2v9H1v3h6v-3H5v-9h2l-3-3z" />
+              </svg>
+            </button>
+          )}
+          {hasTranslateY && (
+            <button
+              ref={mobileTranslateButtonRef}
+              type="button"
+              aria-label="Text offset"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openMobileSelectionControl('translateY');
+              }}
+              onClick={(e) => e.preventDefault()}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="currentColor" d="M12 2L8 6h3v12H8l4 4 4-4h-3V6h3l-4-4z" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
 
       {showSpacingPopup && (
         <div
@@ -6653,6 +6912,54 @@ const QuillWrapper = forwardRef(({
         }
 
         @media (max-width: 767px) {
+          .ql-mobile-selection-toolbar {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            padding: 5px !important;
+            border: 1px solid rgba(148, 163, 184, 0.35) !important;
+            border-radius: 10px !important;
+            background: #ffffff !important;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18) !important;
+            z-index: 2147483200 !important;
+            box-sizing: border-box !important;
+            touch-action: manipulation !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+          }
+
+          .ql-mobile-selection-toolbar button {
+            width: 42px !important;
+            height: 32px !important;
+            min-width: 42px !important;
+            min-height: 32px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: 0 !important;
+            border-radius: 7px !important;
+            background: #f8fafc !important;
+            color: #1f2937 !important;
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            padding: 0 !important;
+            touch-action: manipulation !important;
+          }
+
+          .ql-mobile-selection-toolbar button:active {
+            background: #e0f2fe !important;
+            color: #0284c7 !important;
+          }
+
+          .ql-mobile-selection-toolbar button svg {
+            width: 18px !important;
+            height: 18px !important;
+            display: block !important;
+            pointer-events: none !important;
+          }
+
           .ql-font-size-popup,
           .ql-line-height-popup,
           .ql-translate-y-popup {
@@ -6663,7 +6970,7 @@ const QuillWrapper = forwardRef(({
             max-height: 220px !important;
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
-            z-index: 9999 !important;
+            z-index: 2147483647 !important;
             padding: 10px !important;
             border-radius: 12px !important;
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16) !important;
