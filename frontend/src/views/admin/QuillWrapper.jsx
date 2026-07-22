@@ -1445,6 +1445,25 @@ const QuillWrapper = forwardRef(({
     translateYMobile
   ]);
 
+  const applyPreviewControlToContainer = useCallback((key, value) => {
+    const root = containerRef.current;
+    if (!root) return;
+    const cssVar = RESPONSIVE_CONTROL_CSS_VAR[key];
+    if (!cssVar) return;
+
+    if (value === "" || value == null) {
+      root.style.removeProperty(cssVar);
+      return;
+    }
+
+    const cssValue = key === 'lineHeight' || key === 'lineHeightMobile'
+      ? toLineHeightCssValue(value)
+      : toCssUnit(value, key.includes('translateY'));
+    if (cssValue) {
+      root.style.setProperty(cssVar, cssValue);
+    }
+  }, []);
+
   const updateControlDraftValue = useCallback((key, value, signed = false, inputElement = null) => {
     if (!isValidControlInput(value, signed)) return;
 
@@ -1675,25 +1694,6 @@ const QuillWrapper = forwardRef(({
     onChangeTranslateYMobile,
     normalizeUnsignedControlValue,
   ]);
-
-  const applyPreviewControlToContainer = useCallback((key, value) => {
-    const root = containerRef.current;
-    if (!root) return;
-    const cssVar = RESPONSIVE_CONTROL_CSS_VAR[key];
-    if (!cssVar) return;
-
-    if (value === "" || value == null) {
-      root.style.removeProperty(cssVar);
-      return;
-    }
-
-    const cssValue = key === 'lineHeight' || key === 'lineHeightMobile'
-      ? toLineHeightCssValue(value)
-      : toCssUnit(value, key.includes('translateY'));
-    if (cssValue) {
-      root.style.setProperty(cssVar, cssValue);
-    }
-  }, []);
 
   const applyAllPreviewControlStyles = useCallback(() => {
     const selection = controlSelectionRef.current || savedSelectionRef.current || getQuillEditor()?.getSelection();
