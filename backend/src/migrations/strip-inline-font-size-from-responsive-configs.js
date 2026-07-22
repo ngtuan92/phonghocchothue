@@ -64,7 +64,10 @@ function stripFontSizeFromFaqList(content) {
     const configs = await ConfigModel.findAll({
       attributes: ["id", "key", "content"],
       where: {
-        content: { [db.Sequelize.Op.like]: "%font-size%" },
+        [db.Sequelize.Op.or]: [
+          { content: { [db.Sequelize.Op.like]: "%font-size%" } },
+          { content: { [db.Sequelize.Op.like]: "%--fs%" } },
+        ],
       },
       order: [["id", "ASC"]],
     });

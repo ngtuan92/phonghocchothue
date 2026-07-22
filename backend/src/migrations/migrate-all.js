@@ -13,8 +13,6 @@ const migrationFiles = [
   "update-text-notification-richtext.js",
   "update-button-notification-richtext.js",
   "update-email-richtext.js",
-  "update-local-seo-configs.js",
-  "update-products-and-configs-seo.js",
   "add-responsive-settings-to-products-and-blogs.js",
   "add-position-to-products.js",
   "add-blog-title-excerpt-font-sizes.js",

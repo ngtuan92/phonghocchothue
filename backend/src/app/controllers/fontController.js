@@ -30,6 +30,8 @@ const fontController = {
                 url
             });
 
+            await clearSystemCache();
+
             res.status(201).json({
                 message: "Font created successfully",
                 font: newFont
@@ -48,6 +50,7 @@ const fontController = {
                 return res.status(404).json({ message: "Font not found" });
             }
             await font.destroy();
+            await clearSystemCache();
             res.status(200).json({ message: "Font deleted successfully" });
         } catch (error) {
             console.error('Error deleting font:', error);
