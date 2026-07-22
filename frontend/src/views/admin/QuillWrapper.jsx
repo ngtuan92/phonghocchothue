@@ -848,7 +848,7 @@ const QuillWrapper = forwardRef(({
   const preserveWhitespaceOnlyBlocks =
     className.includes('blog-desc-editor') ||
     className.includes('room-desc-editor');
-  const canUseInlineSelectionControls = false;
+  const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;
   const hasOnChangeFontSizeMobile = !!onChangeFontSizeMobile;
@@ -1470,13 +1470,27 @@ const QuillWrapper = forwardRef(({
     const nextValue = normalizeUnsignedControlValue(key, value);
     if (commitOnBlurOnly && hasResponsive && isResponsiveControlKey(key)) {
       popupInputValuesRef.current[key] = nextValue;
-      controlDraftsRef.current = {
-        ...controlDraftsRef.current,
-        [key]: nextValue,
-      };
-      applyPreviewControlToContainer(key, nextValue);
+      const selection = getCurrentControlSelection();
+      const isInline = canUseInlineSelectionControls && selection && selection.length > 0;
+
+      if (isInline) {
+        selectionControlDraftsRef.current = {
+          ...selectionControlDraftsRef.current,
+          [key]: nextValue,
+        };
+        setSelectionControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+        applyInlineControlToSelection(key, nextValue);
+        emitCurrentContentForSaveRef.current?.();
+      } else {
+        controlDraftsRef.current = {
+          ...controlDraftsRef.current,
+          [key]: nextValue,
+        };
+        applyPreviewControlToContainer(key, nextValue);
+        setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      }
+
       setPopupValueVersion((prev) => prev + 1);
-      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       return;
     }
 
@@ -1565,6 +1579,7 @@ const QuillWrapper = forwardRef(({
     callbacks[key]?.(nextValue);
   }, [
     commitOnBlurOnly,
+    canUseInlineSelectionControls,
     hasResponsive,
     normalizeUnsignedControlValue,
     applyInlineControlToSelection,
@@ -1587,13 +1602,27 @@ const QuillWrapper = forwardRef(({
     const nextValue = normalizeUnsignedControlValue(key, value);
     if (commitOnBlurOnly && hasResponsive && isResponsiveControlKey(key)) {
       popupInputValuesRef.current[key] = nextValue;
-      controlDraftsRef.current = {
-        ...controlDraftsRef.current,
-        [key]: nextValue,
-      };
-      applyPreviewControlToContainer(key, nextValue);
+      const selection = getCurrentControlSelection();
+      const isInline = canUseInlineSelectionControls && selection && selection.length > 0;
+
+      if (isInline) {
+        selectionControlDraftsRef.current = {
+          ...selectionControlDraftsRef.current,
+          [key]: nextValue,
+        };
+        setSelectionControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+        applyInlineControlToSelection(key, nextValue);
+        emitCurrentContentForSaveRef.current?.();
+      } else {
+        controlDraftsRef.current = {
+          ...controlDraftsRef.current,
+          [key]: nextValue,
+        };
+        applyPreviewControlToContainer(key, nextValue);
+        setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
+      }
+
       setPopupValueVersion((prev) => prev + 1);
-      setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       return;
     }
 
@@ -1641,7 +1670,9 @@ const QuillWrapper = forwardRef(({
     applyInlineControlToSelection,
     applyPreviewControlToContainer,
     commitOnBlurOnly,
+    canUseInlineSelectionControls,
     disableImageWrap,
+    getCurrentControlSelection,
     hasResponsive,
     normalizeUnsignedControlValue,
     preserveEditorScrollDuring,
@@ -1666,9 +1697,6 @@ const QuillWrapper = forwardRef(({
 
     Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
       applyInlineControlToSelection(key, value, { updateDraft: false });
-      if (callbacks[key]) {
-        callbacks[key](normalizeUnsignedControlValue(key, value));
-      }
     });
     setSelectionControlDrafts({});
     selectionControlDraftsRef.current = {};
@@ -4566,11 +4594,8 @@ const QuillWrapper = forwardRef(({
     ...quillProps
   } = props;
 
-  const isEditingInlineSelection = canUseInlineSelectionControls && !!controlSelectionRef.current?.length;
   const getPreviewControlValue = (key, propValue) => (
-    !isEditingInlineSelection && Object.prototype.hasOwnProperty.call(selectionControlDrafts, key)
-      ? normalizeUnsignedControlValue(key, selectionControlDrafts[key])
-      : commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, key)
+    commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDrafts, key)
         ? normalizeUnsignedControlValue(key, controlDrafts[key])
         : normalizeUnsignedControlValue(key, propValue)
   );
