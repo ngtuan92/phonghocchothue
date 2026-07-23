@@ -941,6 +941,11 @@ const QuillWrapper = forwardRef(({
   const lastSyncedExternalValueRef = useRef(null);
   const suppressControlInputBlurRef = useRef(false);
   const controlPopupOpenRef = useRef(false);
+  const controlPopupVisibleRef = useRef({
+    fontSize: false,
+    lineHeight: false,
+    translateY: false,
+  });
   const controlButtonRectRef = useRef({});
   const controlPopupAnchorRef = useRef({});
   const mobileFontSizeButtonRef = useRef(null);
@@ -950,6 +955,7 @@ const QuillWrapper = forwardRef(({
   const emitCurrentContentForSaveRef = useRef(null);
   const idleContentCleanupRef = useRef(0);
   const listSizeSyncFrameRef = useRef(0);
+  const toolbarHandlerRefs = useRef({});
 
 
   const onChangeTimeoutRef = useRef(null);
@@ -1744,25 +1750,28 @@ const QuillWrapper = forwardRef(({
       onChangeTranslateYMobile,
     });
 
-    Object.entries(selectionControlDraftsRef.current).forEach(([key, value]) => {
+    const selectionDraftEntries = Object.entries(selectionControlDraftsRef.current);
+    selectionDraftEntries.forEach(([key, value]) => {
       applyInlineControlToSelection(key, value, { updateDraft: false });
     });
-    setSelectionControlDrafts({});
-    selectionControlDraftsRef.current = {};
-    setPopupValueVersion((prev) => prev + 1);
+    if (selectionDraftEntries.length > 0) {
+      setSelectionControlDrafts({});
+      selectionControlDraftsRef.current = {};
+      setPopupValueVersion((prev) => prev + 1);
+    }
     if (!commitOnBlurOnly) return;
 
-    Object.entries(controlDraftsRef.current).forEach(([key, value]) => {
+    const controlDraftEntries = Object.entries(controlDraftsRef.current);
+    controlDraftEntries.forEach(([key, value]) => {
       callbacks[key]?.(normalizeUnsignedControlValue(key, value));
     });
-    controlDraftsRef.current = {};
-    setControlDrafts({});
+    if (controlDraftEntries.length > 0) {
+      controlDraftsRef.current = {};
+      setControlDrafts({});
+    }
   }, [
     commitOnBlurOnly,
-    controlDrafts,
-    selectionControlDrafts,
     applyInlineControlToSelection,
-    disableImageWrap,
     onChangeLineHeight,
     onChangeLineHeightMobile,
     onChangeFontSize,
@@ -1771,6 +1780,7 @@ const QuillWrapper = forwardRef(({
     onChangeTranslateYMobile,
     normalizeUnsignedControlValue,
   ]);
+  toolbarHandlerRefs.current.commitControlDrafts = commitControlDrafts;
 
   const applyAllPreviewControlStyles = useCallback(() => {
     const selection = controlSelectionRef.current || savedSelectionRef.current || getQuillEditor()?.getSelection();
@@ -1790,8 +1800,6 @@ const QuillWrapper = forwardRef(({
     if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
     applyAllPreviewControlStyles();
   }, [showFontSizePopup, showSpacingPopup, showTranslatePopup, applyAllPreviewControlStyles]);
-
-
 
   const keepPopupInputKeyInInput = useCallback((event) => {
     event.stopPropagation();
@@ -1832,6 +1840,72 @@ const QuillWrapper = forwardRef(({
     preserveEditorScrollDuring,
     focusWithoutScroll,
     setSelectionWithoutScroll
+  ]);
+
+  const hasOpenControlPopup = useCallback(() => (
+    controlPopupOpenRef.current ||
+    controlPopupVisibleRef.current.fontSize ||
+    controlPopupVisibleRef.current.lineHeight ||
+    controlPopupVisibleRef.current.translateY
+  ), []);
+
+  const closeAllToolbarPickers = useCallback(() => {
+    const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+    if (!toolbar) return;
+    toolbar.querySelectorAll('.ql-picker.ql-expanded').forEach((picker) => {
+      picker.classList.remove('ql-expanded');
+      picker.querySelector('.ql-picker-label')?.setAttribute('aria-expanded', 'false');
+      picker.querySelector('.ql-picker-options')?.setAttribute('aria-hidden', 'true');
+    });
+    toolbar.classList.remove('ql-toolbar-expanded');
+  }, []);
+
+  const closeControlPopups = useCallback(() => {
+    if (!hasOpenControlPopup()) return;
+
+    commitControlInput();
+    controlPopupOpenRef.current = false;
+    controlPopupVisibleRef.current = {
+      fontSize: false,
+      lineHeight: false,
+      translateY: false,
+    };
+    setShowFontSizePopup(false);
+    setShowSpacingPopup(false);
+    setShowTranslatePopup(false);
+    containerRef.current?.querySelector('.ql-toolbar')?.classList.remove('ql-control-popup-open');
+  }, [commitControlInput, hasOpenControlPopup]);
+
+  const isCustomControlTarget = useCallback((target) => {
+    if (!(target instanceof Element)) return false;
+    return Boolean(target.closest?.(
+      '.ql-font-size-custom, .ql-line-height, .ql-translate-y, .ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup'
+    ));
+  }, []);
+
+  useEffect(() => {
+    if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
+
+    const closeWhenChangingToolbarTool = (event) => {
+      if (isCustomControlTarget(event.target)) return;
+      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
+      if (toolbar?.contains(event.target)) return;
+      closeControlPopups();
+    };
+
+    document.addEventListener('pointerdown', closeWhenChangingToolbarTool, true);
+    document.addEventListener('mousedown', closeWhenChangingToolbarTool, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', closeWhenChangingToolbarTool, true);
+      document.removeEventListener('mousedown', closeWhenChangingToolbarTool, true);
+    };
+  }, [
+    closeControlPopups,
+    isCustomControlTarget,
+    showFontSizePopup,
+    showSpacingPopup,
+    showTranslatePopup,
   ]);
 
   const clearMobileNativeSelectionOverlay = useCallback((selection = null) => {
@@ -2199,6 +2273,7 @@ const QuillWrapper = forwardRef(({
       if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
         // Do not block inputs/textareas inside toolbar.
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        const isPickerTarget = e.target instanceof Element && Boolean(e.target.closest?.('.ql-picker'));
 
         // Allow scrolling dropdown lists when dragging their scrollbar.
         const isScrollbarClick = e.target.scrollHeight > e.target.clientHeight && e.offsetX > e.target.clientWidth;
@@ -2214,6 +2289,16 @@ const QuillWrapper = forwardRef(({
             }
           }
         }
+        if (hasOpenControlPopup() && !isCustomControlTarget(e.target)) {
+          if (isPickerTarget) {
+            // Quill opens its picker from the label's native mousedown. Commit
+            // and unmount the custom popup only after that handler has run.
+            window.setTimeout(closeControlPopups, 0);
+          } else {
+            closeControlPopups();
+          }
+        }
+        if (isPickerTarget) return;
         // Prevent editor from losing focus when clicking toolbar.
         e.preventDefault();
       }
@@ -2223,6 +2308,7 @@ const QuillWrapper = forwardRef(({
       const toolbar = container.querySelector('.ql-toolbar');
       if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.target instanceof Element && e.target.closest?.('.ql-picker')) return;
         if (isMobileAdminViewport()) return;
 
         const quillInstance = getQuillEditor();
@@ -2426,6 +2512,8 @@ const QuillWrapper = forwardRef(({
     };
   }, [
     isReady,
+    closeControlPopups,
+    isCustomControlTarget,
     syncImageCaptionBlots,
     positionResizerDirectly,
     syncSelectedImageRect,
@@ -2623,48 +2711,23 @@ const QuillWrapper = forwardRef(({
     if (!isReady || !containerRef.current) return;
 
     const toolbar = containerRef.current.querySelector('.ql-toolbar');
-    if (!toolbar || toolbar.__mobilePickerToggleBound) return;
-    toolbar.__mobilePickerToggleBound = true;
+    if (!toolbar) return;
 
-    const isOverflowPicker = (picker) => (
-      picker?.classList?.contains('ql-picker') &&
-      (
-        picker.classList.contains('ql-color') ||
-        picker.classList.contains('ql-background') ||
-        picker.classList.contains('ql-color-picker') ||
-        picker.classList.contains('ql-background-picker') ||
-        picker.classList.contains('ql-align')
-      )
-    );
-    const closeSiblingPickers = (activePicker) => {
-      toolbar.querySelectorAll('.ql-picker').forEach((picker) => {
-        if (!isOverflowPicker(picker)) return;
-        if (picker !== activePicker) picker.classList.remove('ql-expanded');
-      });
-    };
+    const positionNativePicker = (event) => {
+      const label = event.target instanceof Element
+        ? event.target.closest('.ql-picker-label')
+        : null;
+      const picker = label?.closest('.ql-picker');
+      if (!picker || !toolbar.contains(picker)) return;
 
-    const handlePickerLabelPointer = (event) => {
-      const label = event.target.closest?.('.ql-picker-label');
-      if (!label || !toolbar.contains(label)) return;
+      // Quill toggles the picker on the target mousedown. Position only after
+      // that native handler has run; this listener never opens or closes it.
+      window.requestAnimationFrame(() => {
+        if (!picker.isConnected || !picker.classList.contains('ql-expanded')) return;
+        if (!picker.classList.contains('ql-color') &&
+            !picker.classList.contains('ql-background') &&
+            !picker.classList.contains('ql-align')) return;
 
-      const picker = label.closest('.ql-picker');
-      if (!isOverflowPicker(picker)) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation?.();
-
-      const shouldOpen = !picker.classList.contains('ql-expanded');
-      closeSiblingPickers(picker);
-      picker.classList.toggle('ql-expanded', shouldOpen);
-      toolbar.classList.add('ql-toolbar-expanded');
-      if (shouldOpen && (
-        picker.classList.contains('ql-color') ||
-        picker.classList.contains('ql-background') ||
-        picker.classList.contains('ql-color-picker') ||
-        picker.classList.contains('ql-background-picker') ||
-        picker.classList.contains('ql-align')
-      )) {
         const labelRect = label.getBoundingClientRect();
         const paletteHeight = picker.classList.contains('ql-align') ? 80 : 210;
         const top = Math.max(12, Math.min(labelRect.bottom + 8, window.innerHeight - paletteHeight - 12));
@@ -2674,31 +2737,11 @@ const QuillWrapper = forwardRef(({
           options?.style.setProperty('width', '166px', 'important');
           options?.style.setProperty('max-width', 'calc(100vw - 24px)', 'important');
         }
-      }
+      });
     };
 
-    const handlePickerItemClick = (event) => {
-      const item = event.target.closest?.('.ql-picker-item');
-      if (!item || !toolbar.contains(item)) return;
-
-      const ownerPicker = item.closest('.ql-picker');
-      if (!isOverflowPicker(ownerPicker)) return;
-
-      window.setTimeout(() => {
-        const picker = item.closest('.ql-picker');
-        picker?.classList.remove('ql-expanded');
-      }, 0);
-    };
-
-    const pickerToggleEvent = window.PointerEvent ? 'pointerdown' : 'mousedown';
-    toolbar.addEventListener(pickerToggleEvent, handlePickerLabelPointer, true);
-    toolbar.addEventListener('click', handlePickerItemClick, true);
-
-    return () => {
-      toolbar.removeEventListener(pickerToggleEvent, handlePickerLabelPointer, true);
-      toolbar.removeEventListener('click', handlePickerItemClick, true);
-      toolbar.__mobilePickerToggleBound = false;
-    };
+    toolbar.addEventListener('mousedown', positionNativePicker, true);
+    return () => toolbar.removeEventListener('mousedown', positionNativePicker, true);
   }, [isReady]);
 
   useEffect(() => {
@@ -3420,6 +3463,7 @@ const QuillWrapper = forwardRef(({
       }, 300);
     }
   }, [props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, normalizeContentForSave]);
+  toolbarHandlerRefs.current.handleOnChange = handleOnChange;
 
   const handleSelectionChange = useCallback((range) => {
     const isControlPopupOpen = showFontSizePopup || showSpacingPopup || showTranslatePopup;
@@ -3499,6 +3543,7 @@ const QuillWrapper = forwardRef(({
 
     handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
   }, [handleOnChange]);
+  toolbarHandlerRefs.current.syncImageEditChange = syncImageEditChange;
 
   const applyImageMetadata = useCallback((quill, imgIndex, newData) => {
     if (imgIndex === -1 || !quill) return;
@@ -3679,7 +3724,7 @@ const QuillWrapper = forwardRef(({
           window.setTimeout(() => {
             try {
               localEditorHtmlRef.current = quill.root.innerHTML;
-              handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
               updateSizePickerLabel();
               syncFontPickerDisplay();
               window.setTimeout(syncFontPickerDisplay, 80);
@@ -3690,7 +3735,8 @@ const QuillWrapper = forwardRef(({
           const button = containerRef.current?.querySelector('.ql-font-size-custom');
           if (button && containerRef.current) {
             preserveEditorScrollDuring(() => {
-              commitControlDrafts();
+              toolbarHandlerRefs.current.commitControlDrafts?.();
+              closeAllToolbarPickers();
               const qSel = this.quill?.getSelection?.();
               const currentSelection = qSel || savedSelectionRef.current || typingSelectionRef.current;
               const finalSelection = getCurrentControlSelection(currentSelection);
@@ -3714,6 +3760,7 @@ const QuillWrapper = forwardRef(({
           const button = containerRef.current?.querySelector('.ql-line-height');
           if (button && containerRef.current) {
             preserveEditorScrollDuring(() => {
+              closeAllToolbarPickers();
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
               controlPopupAnchorRef.current.lineHeight = button;
@@ -3729,6 +3776,7 @@ const QuillWrapper = forwardRef(({
           const button = containerRef.current?.querySelector('.ql-translate-y');
           if (button && containerRef.current) {
             preserveEditorScrollDuring(() => {
+              closeAllToolbarPickers();
               const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
               controlSelectionRef.current = getCurrentControlSelection(currentSelection);
               controlPopupAnchorRef.current.translateY = button;
@@ -3806,7 +3854,7 @@ const QuillWrapper = forwardRef(({
           if (currentImg && quill?.root?.contains(currentImg)) {
             const mode = value === 'right' ? 'right' : value === 'center' ? 'none' : 'left';
             const wrapMode = applyImageWrapDom(currentImg, mode);
-            syncImageEditChange(quill);
+            toolbarHandlerRefs.current.syncImageEditChange?.(quill);
 
             setImageWrapMode(wrapMode);
             setTimeout(() => {
@@ -3827,7 +3875,7 @@ const QuillWrapper = forwardRef(({
           window.setTimeout(() => {
             try {
               localEditorHtmlRef.current = quill.root.innerHTML;
-              handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
             } catch { /* ignore */ }
           }, 0);
         },
@@ -3863,7 +3911,7 @@ const QuillWrapper = forwardRef(({
             window.setTimeout(() => {
               try {
                 localEditorHtmlRef.current = quill.root.innerHTML;
-                handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
               } catch { /* ignore */ }
             }, 0);
           };
@@ -3939,7 +3987,7 @@ const QuillWrapper = forwardRef(({
             window.setTimeout(() => {
               try {
                 localEditorHtmlRef.current = quill.root.innerHTML;
-                handleOnChange(quill.root.innerHTML, quill.getContents(), 'user', quill);
+                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
               } catch { /* ignore */ }
             }, 0);
           };
@@ -3993,8 +4041,6 @@ const QuillWrapper = forwardRef(({
     hasTranslateY,
     applyImageWrapDom,
     getActiveImage,
-    syncImageEditChange,
-    handleOnChange,
     focusWithoutScroll,
     setSelectionWithoutScroll,
     updateResizerRect,
@@ -4003,7 +4049,7 @@ const QuillWrapper = forwardRef(({
     positionResizerDirectly,
     resolveImageElement,
     clearMobileNativeSelectionOverlay,
-    commitControlDrafts,
+    closeAllToolbarPickers,
     getClampedControlPopupPosition,
     syncSelectionControlsFromFormat,
     preserveEditorScrollDuring
@@ -4724,6 +4770,7 @@ const QuillWrapper = forwardRef(({
     controlSelectionRef.current = { ...selection };
     savedSelectionRef.current = { ...selection };
     lastHighlightSelectionRef.current = { ...selection };
+    closeAllToolbarPickers();
     syncSelectionControlsFromFormat(selection);
     setMobileSelectionToolbar((prev) => ({ ...prev, visible: false }));
     clearMobileNativeSelectionOverlay(selection);
@@ -4756,6 +4803,7 @@ const QuillWrapper = forwardRef(({
   }, [
     canUseMobileSelectionToolbar,
     clearMobileNativeSelectionOverlay,
+    closeAllToolbarPickers,
     getClampedControlPopupPosition,
     getCurrentControlSelection,
     getMobileSelectionPopupPosition,
@@ -4784,6 +4832,11 @@ const QuillWrapper = forwardRef(({
 
   useEffect(() => {
     controlPopupOpenRef.current = showFontSizePopup || showSpacingPopup || showTranslatePopup;
+    controlPopupVisibleRef.current = {
+      fontSize: showFontSizePopup,
+      lineHeight: showSpacingPopup,
+      translateY: showTranslatePopup,
+    };
     const toolbar = containerRef.current?.querySelector('.ql-toolbar');
     toolbar?.classList.toggle('ql-control-popup-open', controlPopupOpenRef.current);
     if (controlPopupOpenRef.current) {
@@ -4866,42 +4919,6 @@ const QuillWrapper = forwardRef(({
   ]);
 
   useEffect(() => {
-    if (!showSpacingPopup) return;
-    const handleOutsideClick = (e) => {
-      const popup = containerRef.current?.querySelector('.ql-line-height-popup');
-      const button = containerRef.current?.querySelector('.ql-line-height');
-      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
-      if (toolbar?.contains(e.target)) return;
-      if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
-        preserveAdminScrollDuring(() => {
-          commitControlInput();
-          setShowSpacingPopup(false);
-        });
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showSpacingPopup, commitControlInput, preserveAdminScrollDuring]);
-
-  useEffect(() => {
-    if (!showFontSizePopup) return;
-    const handleOutsideClick = (e) => {
-      const popup = containerRef.current?.querySelector('.ql-font-size-popup');
-      const button = containerRef.current?.querySelector('.ql-font-size-custom');
-      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
-      if (toolbar?.contains(e.target)) return;
-      if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
-        preserveAdminScrollDuring(() => {
-          commitControlInput();
-          setShowFontSizePopup(false);
-        });
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showFontSizePopup, commitControlInput, preserveAdminScrollDuring]);
-
-  useEffect(() => {
     const buttonStates = [
       ['.ql-font-size-custom', showFontSizePopup],
       ['.ql-line-height', showSpacingPopup],
@@ -4913,24 +4930,6 @@ const QuillWrapper = forwardRef(({
       button?.classList.toggle('ql-active', isActive);
     });
   }, [showFontSizePopup, showSpacingPopup, showTranslatePopup]);
-
-  useEffect(() => {
-    if (!showTranslatePopup) return;
-    const handleOutsideClick = (e) => {
-      const popup = containerRef.current?.querySelector('.ql-translate-y-popup');
-      const button = containerRef.current?.querySelector('.ql-translate-y');
-      const toolbar = containerRef.current?.querySelector('.ql-toolbar');
-      if (toolbar?.contains(e.target)) return;
-      if (popup && !popup.contains(e.target) && button && !button.contains(e.target)) {
-        preserveAdminScrollDuring(() => {
-          commitControlInput();
-          setShowTranslatePopup(false);
-        });
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showTranslatePopup, commitControlInput, preserveAdminScrollDuring]);
 
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
