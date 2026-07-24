@@ -9,6 +9,7 @@ import routes from "@/routes";
 import { Toaster } from "react-hot-toast";
 
 function AdminScrollStabilizer() {
+  const pathname = usePathname();
   const lastScrollRef = React.useRef<Array<{ element: Window | HTMLElement; top: number; left: number }>>([]);
   const activeAnchorRef = React.useRef<{
     element: HTMLElement;
@@ -21,6 +22,53 @@ function AdminScrollStabilizer() {
   const userIsScrollingRef = React.useRef(false);
   const protectScrollUntilRef = React.useRef(0);
   const restoringScrollRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+
+    return () => {
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
+  }, []);
+
+  React.useLayoutEffect(() => {
+    activeAnchorRef.current = null;
+    lastScrollRef.current = [];
+    protectScrollUntilRef.current = 0;
+    userIsScrollingRef.current = false;
+
+    if (restoreFrameRef.current !== null) {
+      window.cancelAnimationFrame(restoreFrameRef.current);
+      restoreFrameRef.current = null;
+    }
+
+    const scrollTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.scrollingElement?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.documentElement.scrollLeft = 0;
+      document.body.scrollTop = 0;
+      document.body.scrollLeft = 0;
+      document.querySelectorAll<HTMLElement>(".overflow-y-auto").forEach((element) => {
+        element.scrollTop = 0;
+        element.scrollLeft = 0;
+      });
+    };
+
+    scrollTop();
+    const frameId = window.requestAnimationFrame(scrollTop);
+    const timeoutId = window.setTimeout(scrollTop, 80);
+    const lateTimeoutId = window.setTimeout(scrollTop, 350);
+    const finalTimeoutId = window.setTimeout(scrollTop, 700);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+      window.clearTimeout(lateTimeoutId);
+      window.clearTimeout(finalTimeoutId);
+    };
+  }, [pathname]);
 
   React.useEffect(() => {
     const isTouchOrSmallScreen =

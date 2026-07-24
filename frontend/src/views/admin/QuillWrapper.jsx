@@ -1499,6 +1499,7 @@ const QuillWrapper = forwardRef(({
     translateY,
     translateYMobile
   ]);
+  toolbarHandlerRefs.current.syncSelectionControlsFromFormat = syncSelectionControlsFromFormat;
 
   const applyPreviewControlToContainer = useCallback((key, value) => {
     const root = containerRef.current;
@@ -3741,7 +3742,7 @@ const QuillWrapper = forwardRef(({
               const currentSelection = qSel || savedSelectionRef.current || typingSelectionRef.current;
               const finalSelection = getCurrentControlSelection(currentSelection);
               controlSelectionRef.current = finalSelection;
-              syncSelectionControlsFromFormat(finalSelection);
+              toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
 
               window.setTimeout(() => {
                 setPopupValueVersion((prev) => prev + 1);
@@ -4051,7 +4052,6 @@ const QuillWrapper = forwardRef(({
     clearMobileNativeSelectionOverlay,
     closeAllToolbarPickers,
     getClampedControlPopupPosition,
-    syncSelectionControlsFromFormat,
     preserveEditorScrollDuring
   ]);
 
