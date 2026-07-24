@@ -617,7 +617,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           line-height: inherit !important;
           margin: 0.75em 0 !important;
           white-space: pre-wrap !important;
-          overflow-wrap: anywhere !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .rich-text-renderer .ql-whitespace-spacer * {
           white-space: inherit !important;
