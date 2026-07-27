@@ -5,6 +5,9 @@ const fs = require('fs');
 const { createSlug } = require('../../util/slug');
 const { clearSystemCache } = require('../../util/cacheUtil');
 
+const LOCAL_FONT_MAX_SIZE_MB = 20;
+const LOCAL_FONT_MAX_SIZE_BYTES = LOCAL_FONT_MAX_SIZE_MB * 1024 * 1024;
+
 const fontController = {
     getFonts: async (req, res) => {
         try {
@@ -79,9 +82,9 @@ const fontController = {
                 return res.status(400).json({ message: "Invalid file format. Allowed: .ttf, .woff, .woff2" });
             }
 
-            // Max size 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                return res.status(400).json({ message: "File size exceeds 5MB limit" });
+            // Max size 20MB
+            if (file.size > LOCAL_FONT_MAX_SIZE_BYTES) {
+                return res.status(400).json({ message: `File size exceeds ${LOCAL_FONT_MAX_SIZE_MB}MB limit` });
             }
 
             const fontFamily = custom_family ? createSlug(custom_family) : createSlug(display_name);
@@ -186,8 +189,8 @@ const fontController = {
                     return res.status(400).json({ message: "Invalid file format. Allowed: .ttf, .woff, .woff2" });
                 }
 
-                if (newFile.size > 5 * 1024 * 1024) {
-                    return res.status(400).json({ message: "File size exceeds 5MB limit" });
+                if (newFile.size > LOCAL_FONT_MAX_SIZE_BYTES) {
+                    return res.status(400).json({ message: `File size exceeds ${LOCAL_FONT_MAX_SIZE_MB}MB limit` });
                 }
 
                 const oldPath = path.join(__dirname, '../../../public', font.file_url);
