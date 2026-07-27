@@ -16,11 +16,7 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
 const AmenitySlider: React.FC<{ data: any[], keyPrefix: string, borderRadius: string, colorBg: string }> = ({ data, keyPrefix, borderRadius, colorBg }) => {
   if (data.length === 0) {
-    return (
-      <div className="w-full h-full bg-gray-50 rounded-[12px] flex items-center justify-center border-2 border-dashed border-gray-200">
-        <p className="text-gray-400 font-medium italic">Tiện ích đang được cập nhật...</p>
-      </div>
-    );
+    return null;
   }
 
   const hasBorder = borderRadius !== "0px";
