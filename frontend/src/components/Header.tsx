@@ -105,6 +105,8 @@ const Header = ({ icon }: HeaderProps) => {
         headerOffset = 0;
       } else if (targetId === "#about") {
         headerOffset = 30; // cuộn xuống thêm 50px (bớt khoảng cách lề trên)
+      } else if (targetId === "#room") {
+        headerOffset = 120;
       }
 
       if (!container) {
