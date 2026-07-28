@@ -142,7 +142,7 @@
 }
 
 .describe-anchor-desktop {
-  height: 296px;
+  min-height: 296px;
 }
 
 .describe-anchor-mobile {
@@ -150,64 +150,52 @@
 }
 
 @media (min-width: 640px) {
+  .describe-anchor-desktop {
+    height: auto;
+    justify-content: flex-start;
+  }
+
   .describe-title-main-slot {
-    position: absolute !important;
-    left: 0;
-    right: 0;
-    top: 112px;
     margin: 0 !important;
+    min-height: 92px;
   }
 
   .describe-desktop-seo {
-    position: absolute !important;
-    left: 0;
-    right: 0;
-    top: 220px;
-    margin: 0 !important;
+    margin: 16px 0 10px !important;
   }
 
   .describe-desktop-meta {
-    position: absolute !important;
-    left: 0;
-    right: 0;
-    top: 252px;
     margin: 0 !important;
   }
 }
 
 @media (min-width: 768px) {
   .describe-anchor-desktop {
-    height: 385px;
+    min-height: 385px;
   }
 
   .describe-title-main-slot {
-    top: 144px;
+    min-height: 128px;
   }
 
   .describe-desktop-seo {
-    top: 292px;
-  }
-
-  .describe-desktop-meta {
-    top: 330px;
+    margin-top: 22px !important;
+    margin-bottom: 14px !important;
   }
 }
 
 @media (min-width: 1024px) {
   .describe-anchor-desktop {
-    height: 502px;
+    min-height: 502px;
   }
 
   .describe-title-main-slot {
-    top: 182px;
+    min-height: 178px;
   }
 
   .describe-desktop-seo {
-    top: 392px;
-  }
-
-  .describe-desktop-meta {
-    top: 444px;
+    margin-top: 26px !important;
+    margin-bottom: 18px !important;
   }
 }
 
