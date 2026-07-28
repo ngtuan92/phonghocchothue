@@ -530,8 +530,25 @@ export default function CMS() {
 
     .ql-snow .ql-picker.ql-font {
       width: 160px !important;
+      max-width: 160px !important;
+      flex-shrink: 0 !important;
+    }
+    .ql-snow .ql-picker.ql-font .ql-picker-label {
+      overflow: hidden !important;
+      padding-right: 20px !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    .ql-snow .ql-picker.ql-font .ql-picker-label::before {
+      display: block !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
     }
     .ql-snow .ql-picker.ql-font .ql-picker-options {
+      width: 300px !important;
+      min-width: 300px !important;
       max-height: 250px;
       overflow-y: auto;
     }
@@ -643,6 +660,7 @@ export default function CMS() {
       }
       .ql-snow .ql-picker.ql-font {
         width: 90px !important;
+        max-width: 90px !important;
       }
       .ql-snow .ql-picker.ql-header {
         width: 80px !important;
@@ -750,6 +768,18 @@ export default function CMS() {
               .ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-options {
                 display: flex !important;
                 flex-direction: column !important;
+              }
+              .ql-snow .ql-picker.ql-font > .font-search-wrapper {
+                width: 300px !important;
+                min-width: 300px !important;
+                box-sizing: border-box !important;
+              }
+              @media (max-width: 767px) {
+                .ql-snow .ql-picker.ql-font .ql-picker-options,
+                .ql-snow .ql-picker.ql-font > .font-search-wrapper {
+                  width: 160px !important;
+                  min-width: 160px !important;
+                }
               }
             `;
             document.head.appendChild(style);

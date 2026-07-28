@@ -140,7 +140,7 @@ const Describe = () => {
                     <div className="describe-anchor describe-anchor-desktop relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[14px] md:-translate-y-[15px] lg:-translate-y-[16px]">
                         {describeFrameImage && (
                             <div
-                                className="describe-frame absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="describe-frame absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
                                 style={{ borderRadius: frameBorderRadius }}
                             >
                                 <img
@@ -153,16 +153,16 @@ const Describe = () => {
                         )}
 
                         {logo && (
-                            <div className="transition-all duration-700 mb-4 md:mb-6 lg:mb-8">
+                            <div className="w-[95px] md:w-[120px] lg:w-[150px] h-[95px] md:h-[120px] lg:h-[150px] flex items-center justify-center transition-all duration-700 mb-4 md:mb-6 lg:mb-8">
                                 <img
                                     src={buildUrl(logo)}
                                     alt="Logo"
-                                    className="w-[95px] md:w-[120px] lg:w-[150px] h-auto object-contain drop-shadow-xl relative z-10"
+                                    className="w-[76px] md:w-[95px] lg:w-[118px] h-auto object-contain drop-shadow-xl relative z-10 translate-y-[8px]"
                                 />
                             </div>
                         )}
 
-                        <div className="relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
+                        <div className="describe-title-main-slot relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
                             <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
@@ -214,7 +214,7 @@ const Describe = () => {
                     <div className="describe-anchor describe-anchor-mobile relative w-full flex flex-col items-center -translate-y-[10px]">
                         {activeMobileFrameImage && (
                             <div
-                                className="describe-frame-mobile absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none border-2 border-red-500"
+                                className="describe-frame-mobile absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
@@ -315,7 +315,7 @@ const Describe = () => {
 
                     <div className="md:col-span-6 w-full flex justify-center relative">
                         <div
-                            className={`w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden ${galleryRadius !== "0px" ? "shadow-sm border-2 border-red-500" : ""
+                            className={`w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-none relative z-10 overflow-hidden ${galleryRadius !== "0px" ? "shadow-sm" : ""
                                 }`}
                             style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}
                         >

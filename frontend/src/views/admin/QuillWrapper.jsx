@@ -6231,6 +6231,8 @@ const QuillWrapper = forwardRef(({
         }
         .ql-snow .ql-picker.ql-font {
           width: 200px !important;
+          max-width: 200px !important;
+          flex-shrink: 0 !important;
         }
         .ql-snow .ql-picker.ql-header {
           width: 120px !important;
@@ -6255,6 +6257,8 @@ const QuillWrapper = forwardRef(({
         .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before { content: 'Heading 6' !important; }
 
         .ql-snow .ql-picker.ql-font .ql-picker-options {
+          width: 300px !important;
+          min-width: 300px !important;
           max-height: 250px !important;
           overflow-y: auto !important;
           padding-top: 0 !important;
@@ -6264,7 +6268,8 @@ const QuillWrapper = forwardRef(({
           position: absolute !important;
           top: 100% !important;
           left: 0 !important;
-          width: 100% !important;
+          width: 300px !important;
+          min-width: 300px !important;
           box-sizing: border-box !important;
           padding: 8px !important;
           background: #fff !important;
@@ -6312,8 +6317,17 @@ const QuillWrapper = forwardRef(({
           line-height: 20px !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label {
+          overflow: hidden !important;
+          padding-right: 20px !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label::before {
+          display: block !important;
+          max-width: 100% !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before {
           content: 'Inter' !important;
@@ -6988,6 +7002,7 @@ const QuillWrapper = forwardRef(({
           /* Override wildcard rules for Font Search component on mobile */
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font {
             width: 90px !important;
+            max-width: 90px !important;
           }
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-picker.ql-font .ql-picker-options {
             width: 160px !important;
