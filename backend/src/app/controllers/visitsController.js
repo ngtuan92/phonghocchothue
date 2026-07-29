@@ -3,6 +3,7 @@ require('dotenv').config();
 const db = require('../../config/db');
 const VisitsModel = require('../models/visitsModel')
 const { mutipleConvertToObject } = require('../../util/convert');
+const { clearCache } = require('../../util/cacheUtil');
 
 class VisitsController {
 
@@ -44,6 +45,8 @@ class VisitsController {
                 ip_address: ip,
                 user_agent: userAgent
             });
+
+            await clearCache('dashboard:stats');
     
             return res.json({
                 success: true,

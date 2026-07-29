@@ -91,6 +91,13 @@ const Dashboard = () => {
   useEffect(() => {
     fetchRoomAPI();
     fetchVisitAPI();
+
+    const intervalId = setInterval(() => {
+      fetchRoomAPI();
+      fetchVisitAPI();
+    }, 30000);
+
+    return () => clearInterval(intervalId);
   }, [fetchRoomAPI, fetchVisitAPI]);
 
   return (
