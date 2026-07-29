@@ -332,7 +332,7 @@ const Describe = () => {
                                             src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
                                             alt={`Slide ${index + 1}`}
                                             width={1200}
-                                            height={800}
+                                            height={625}
                                             sizes="(max-width: 768px) 95vw, 58vw"
                                             quality={95}
                                             priority={index === 0}

@@ -614,7 +614,7 @@ export default function DetailPage() {
                 onAbort={handleInputAbort("phone")}
               />
               <TextInput
-                placeholder="Môn học"
+                placeholder="Bộ môn"
                 value={formData.subject}
                 onChange={handleInputChange("subject")}
                 onAbort={handleInputAbort("subject")}

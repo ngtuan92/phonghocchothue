@@ -21,7 +21,7 @@ export const useBookings = (params?: { limit?: number; status?: string }) => {
   return useQuery({
     queryKey: bookingKeys.list(queryParams),
     queryFn: async () => {
-      const res = await fetchData(`${URL_API}api/bookings${queryParams}`, "GET");
+      const res = await fetchData(`${URL_API}api/order${queryParams}`, "GET");
       return res.data || [];
     },
   });
@@ -33,7 +33,11 @@ export const useCreateBooking = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      return await fetchData(`${URL_API}api/bookings`, "POST", data);
+      const { productId, ...rest } = data;
+      return await fetchData(`${URL_API}api/order/insert`, "POST", {
+        ...rest,
+        product_id: data.product_id || productId,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookingKeys.all });
@@ -61,7 +65,7 @@ export const useDeleteBooking = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await fetchData(`${URL_API}api/bookings/${id}`, "DELETE");
+      return await fetchData(`${URL_API}api/order/delete/${id}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookingKeys.all });

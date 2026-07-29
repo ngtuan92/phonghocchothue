@@ -58,8 +58,9 @@ class OrderController {
   async insert(req, res, next) {
 
     const EMAIL = process.env.EMAIL_SENDMAIL;
-    const { email, phone, name, message, studentNum, subject, product_id } =
+    const { email, phone, name, message, studentNum, subject, product_id, productId } =
       req.body;
+    const bookingProductId = product_id || productId;
     try {
       if (!validator.isMobilePhone(phone, "vi-VN")) {
         return res.status(400).json({
@@ -75,14 +76,14 @@ class OrderController {
         });
       }
 
-      if (!product_id) {
+      if (!bookingProductId) {
         return res.status(400).json({
           success: false,
           message: "Bắt buộc có phòng để đặt",
         });
       }
 
-      const product = await productModel.findByPk(product_id);
+      const product = await productModel.findByPk(bookingProductId);
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -98,7 +99,7 @@ class OrderController {
         email,
         phone,
         full_name: name,
-        product_id,
+        product_id: bookingProductId,
         subject: subject,
         note: message || null,
         student_number: studentNum || 0,

@@ -500,6 +500,7 @@ export default function CMS() {
   const [openAdd, setOpenAdd] = useState(false);
   const [newConfig, setNewConfig] = useState(EMPTY_NEW_CONFIG);
   const [savingKey, setSavingKey] = useState(null);
+  const [introSliders, setIntroSliders] = useState([]);
   const [sliders, setSliders] = useState([]);
   const [amenitySliders, setAmenitySliders] = useState([]);
   const [dynamicFonts, setDynamicFonts] = useState([]);
@@ -707,6 +708,9 @@ export default function CMS() {
   };
 
   useEffect(() => {
+    if (activeSection === "about") {
+      loadSliders("gallery");
+    }
     if (activeSection === "gallery") {
       loadSliders("spaces");
     }
@@ -859,7 +863,8 @@ export default function CMS() {
     setIsLoading(true);
     try {
       const res = await fetchData(`${URL_API}api/slider?type=${type}&t=${Date.now()}`, "GET");
-      if (type === "spaces") setSliders(res.data || []);
+      if (type === "gallery") setIntroSliders(res.data || []);
+      else if (type === "spaces") setSliders(res.data || []);
       else setAmenitySliders(res.data || []);
     } catch (error) {
       showToastError(`Không thể tải ảnh: ${error?.message || "Lỗi không xác định"}`);
@@ -954,11 +959,17 @@ export default function CMS() {
     const draggedType = e.dataTransfer.getData("draggedType");
     if (draggedIndex === droppedIndex || draggedType !== type) return;
 
-    const currentSliders = type === "spaces" ? [...sliders] : [...amenitySliders];
+    const currentSliders =
+      type === "gallery"
+        ? [...introSliders]
+        : type === "spaces"
+          ? [...sliders]
+          : [...amenitySliders];
     const [draggedItem] = currentSliders.splice(draggedIndex, 1);
     currentSliders.splice(droppedIndex, 0, draggedItem);
 
-    if (type === "spaces") setSliders(currentSliders);
+    if (type === "gallery") setIntroSliders(currentSliders);
+    else if (type === "spaces") setSliders(currentSliders);
     else setAmenitySliders(currentSliders);
 
     try {
@@ -1724,6 +1735,92 @@ export default function CMS() {
                 </div>
               ))}
 
+              {activeSection === "about" && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-md transition-shadow duration-300 mt-6">
+                  <div className="px-6 py-4 bg-gray-50/10 border-b border-gray-50">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-1 h-8 bg-primary rounded-full" />
+                        <div>
+                          <h3 className="text-sm font-bold text-navy-700">Slider ảnh phần Giới thiệu</h3>
+                          <p className="text-[10px] text-navy-700/60 font-bold uppercase tracking-wider">Hiển thị cuối phần "Đừng tìm đâu xa nữa"</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <label className="cursor-pointer bg-primary text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-100">
+                          <MdPhotoLibrary size={16} />
+                          <span>Thêm ảnh mới</span>
+                          <input
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleUploadSliders(e, "gallery")}
+                            accept="image/*"
+                          />
+                        </label>
+                        <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">Khuyên dùng: 1400x730px hoặc 1200x625px (tỷ lệ khoảng 1.92:1)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {introSliders.map((slider, index) => (
+                        <div
+                          key={slider.id}
+                          className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+                          style={{ borderRadius: gallerySliderRadius }}
+                        >
+                          <div
+                            draggable
+                            onDragStart={(e) => onDragStart(e, index, "gallery")}
+                            onDragOver={onDragOver}
+                            onDrop={(e) => onDrop(e, index, "gallery")}
+                            className="group relative aspect-[192/100] border-b border-gray-50 bg-[#fdf8e9] cursor-move overflow-hidden"
+                            style={{ borderRadius: gallerySliderRadius }}
+                          >
+                            <img
+                              src={`${URL_API}${slider.image.replace(/\\/g, "/")}`}
+                              alt={slider.name}
+                              className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                              style={{ borderRadius: gallerySliderRadius }}
+                            />
+
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <label className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all cursor-pointer shadow-lg" title="Thay đổi ảnh">
+                                <MdEdit size={16} />
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleUpdateSlider(slider.id, e.target.files[0], "gallery")}
+                                  accept="image/*"
+                                />
+                              </label>
+                              <button
+                                onClick={() => handleDeleteSlider(slider.id, "gallery")}
+                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all shadow-lg"
+                                title="Xóa ảnh"
+                              >
+                                <MdDelete size={16} />
+                              </button>
+                            </div>
+                            <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm text-[9px] font-bold px-1.5 py-0.5 rounded text-gray-600">
+                              #{index + 1}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {introSliders.length === 0 && (
+                        <div className="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                          <MdPhotoLibrary size={32} className="text-gray-300 mb-2" />
+                          <p className="text-gray-500 text-xs font-bold">Chưa có ảnh nào trong slider giới thiệu</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {activeSection === "gallery" && (
                 <div className="mt-10 pt-10 border-t border-gray-100">

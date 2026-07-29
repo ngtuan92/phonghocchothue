@@ -2,6 +2,7 @@ const homeRouter = require('./home');
 const productRouter = require('./product');
 const configRouter = require('./config');
 const orderRouter = require('./order');
+const bookingsRouter = require('./bookings');
 const sliderRouter = require('./slider');
 const uploadRouter = require('./upload');
 const redirectRouter = require('./redirect');
@@ -19,6 +20,8 @@ function route(app) {
     app.use('/api/slider', sliderRouter);
 
     app.use('/api/order', orderRouter);
+
+    app.use('/api/bookings', bookingsRouter);
 
     app.use('/api/upload', uploadRouter);
 
