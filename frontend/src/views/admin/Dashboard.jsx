@@ -11,6 +11,7 @@ import VisitChart from "../../components/admin/dashboard/visit-chart";
 
 // eslint-disable-next-line no-undef
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const DASHBOARD_VISIT_LIMIT = 5000;
 
 const Dashboard = () => {
   useEffect(() => {
@@ -44,7 +45,7 @@ const Dashboard = () => {
 
   const fetchVisitAPI = useCallback(async () => {
     try {
-      const response = await fetchData(`${URL_API}api/list-visits`, "GET");
+      const response = await fetchData(`${URL_API}api/list-visits?page=1&limit=${DASHBOARD_VISIT_LIMIT}`, "GET");
 
       // fetchData trả về response.data từ axios, nên response ở đây chính là data từ API
       // API có thể trả về { data: [...] } hoặc trực tiếp [...]
