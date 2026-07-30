@@ -25,6 +25,14 @@ const ABOUT_KEYS = [
   "textDecription"
 ];
 
+const CONFIG_KEY_CLASS_NAMES: Record<string, string> = {
+  "blog-heading": "describe-h2-wrapper blog-heading-rich",
+  "faq-heading": "describe-h2-wrapper",
+  "describe-h2": "describe-h2-wrapper",
+  "room-heading": "describe-h2-wrapper",
+  "amenities-content": "describe-h2-wrapper",
+};
+
 const splitBackgroundFromStyle = (styleContent: string) => {
   const kept: string[] = [];
   const background: string[] = [];
@@ -499,11 +507,18 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
     if (activeLineHeight) {
       const normalized = normalizeLineHeight(activeLineHeight);
-      if (normalized) styles['--custom-line-height' as any] = normalized;
+      if (normalized) {
+        styles['--custom-line-height' as any] = normalized;
+        styles.lineHeight = normalized;
+      }
     }
     if (activeLineHeightMobile) {
       const normalized = normalizeLineHeight(activeLineHeightMobile);
       if (normalized) styles['--custom-line-height-mobile' as any] = normalized;
+    }
+    if (isMobileViewport && activeLineHeightMobile) {
+      const normalized = normalizeLineHeight(activeLineHeightMobile);
+      if (normalized) styles.lineHeight = normalized;
     }
     if (activeFontSize) {
       styles['--fs-desktop' as any] = normalizeCssSize(activeFontSize);
@@ -542,19 +557,22 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   useEffect(() => {
     if (typeof document === "undefined") return;
     const styleId = "rich-text-renderer-styles";
-    if (document.getElementById(styleId)) return;
-
-    const styleEl = document.createElement("style");
+    const styleEl = document.getElementById(styleId) || document.createElement("style");
     styleEl.id = styleId;
     styleEl.innerHTML = RICH_TEXT_RENDERER_STYLES;
-    document.head.appendChild(styleEl);
+    if (!styleEl.parentNode) {
+      document.head.appendChild(styleEl);
+    }
   }, []);
 
-  if (!html) return fallback ? <Component className={`rich-text-renderer ${className}`} style={customStyles}>{fallback}</Component> : null;
+  const configClassName = configKey ? CONFIG_KEY_CLASS_NAMES[configKey] || "" : "";
+  const rendererClassName = `rich-text-renderer ${configClassName} ${className}`.replace(/\s+/g, " ").trim();
+
+  if (!html) return fallback ? <Component className={rendererClassName} style={customStyles}>{fallback}</Component> : null;
 
   return (
     <Component
-      className={`rich-text-renderer ${className}`}
+      className={rendererClassName}
       style={customStyles}
       dangerouslySetInnerHTML={{ __html: cleanHtml }}
     />
@@ -1117,6 +1135,25 @@ const RICH_TEXT_RENDERER_STYLES = `
           vertical-align: middle !important;
           box-decoration-break: clone !important;
           -webkit-box-decoration-break: clone !important;
+        }
+        .rich-text-renderer.blog-heading-rich,
+        .rich-text-renderer.blog-heading-rich * {
+          line-height: inherit !important;
+          overflow: visible !important;
+        }
+        .rich-text-renderer.blog-heading-rich > p,
+        .rich-text-renderer.blog-heading-rich > h1,
+        .rich-text-renderer.blog-heading-rich > h2,
+        .rich-text-renderer.blog-heading-rich > h3,
+        .rich-text-renderer.blog-heading-rich > h4,
+        .rich-text-renderer.blog-heading-rich > h5,
+        .rich-text-renderer.blog-heading-rich > h6 {
+          margin-top: 0 !important;
+          margin-bottom: 2px !important;
+          text-align: center !important;
+        }
+        .rich-text-renderer.blog-heading-rich > :last-child {
+          margin-bottom: 0 !important;
         }
 `;
 
