@@ -76,7 +76,10 @@ const createSlug = (text) =>
 const toCssUnit = (value, allowNegative = false) => {
   const text = String(value || "").trim();
   if (!text) return "";
-  const pattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
+  if (/p$/i.test(text) && !/px$/i.test(text)) return "";
+  const pattern = allowNegative
+    ? /^-?(?:\d+(?:\.\d+)?|\.\d+)$/
+    : /^(?:\d+(?:\.\d+)?|\.\d+)$/;
   return pattern.test(text) ? `${text}px` : text;
 };
 
@@ -94,13 +97,15 @@ const extractResponsiveControls = (html) => {
   if (!html || typeof window === "undefined") return empty;
 
   const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const styled = doc.body.firstElementChild?.querySelector("[style*='--fs'], [style*='--custom-line-height'], [style*='--translate-y']");
+  const styled = doc.body.firstElementChild?.querySelector("[style*='--fs'], [style*='--custom-line-height'], [style*='line-height'], [style*='--translate-y']");
   if (!styled) return empty;
 
   return {
     fontSize: stripCssUnit(styled.style.getPropertyValue("--fs-desktop")),
     fontSizeMobile: stripCssUnit(styled.style.getPropertyValue("--fs-mobile")),
-    lineHeight: stripCssUnit(styled.style.getPropertyValue("--custom-line-height")),
+    lineHeight: stripCssUnit(
+      styled.style.getPropertyValue("--custom-line-height") || styled.style.getPropertyValue("line-height")
+    ),
     lineHeightMobile: stripCssUnit(styled.style.getPropertyValue("--custom-line-height-mobile")),
     translateY: stripCssUnit(styled.style.getPropertyValue("--translate-y")),
     translateYMobile: stripCssUnit(styled.style.getPropertyValue("--translate-y-mobile")),
@@ -114,26 +119,59 @@ const decorateRichTextWithControls = (html, controls = {}) => {
   const root = doc.body.firstElementChild;
   if (!root) return html;
 
-  let targets = Array.from(root.children).filter((node) => node instanceof HTMLElement);
-  if (targets.length === 0) {
-    const p = doc.createElement("p");
-    p.innerHTML = root.innerHTML;
-    root.innerHTML = "";
-    root.appendChild(p);
-    targets = [p];
+  let controlsRoot =
+    root.children.length === 1 &&
+    root.firstElementChild instanceof HTMLElement &&
+    root.firstElementChild.matches("[data-rich-text-controls]")
+      ? root.firstElementChild
+      : null;
+
+  if (!controlsRoot) {
+    controlsRoot = doc.createElement("div");
+    controlsRoot.setAttribute("data-rich-text-controls", "true");
+    while (root.firstChild) {
+      controlsRoot.appendChild(root.firstChild);
+    }
+    root.appendChild(controlsRoot);
   }
 
-  const entries = [
-    ["--fs-desktop", toCssUnit(controls.fontSize)],
-    ["--fs-mobile", toCssUnit(controls.fontSizeMobile)],
+  const lineHeightEntries = [
     ["--custom-line-height", toCssUnit(controls.lineHeight)],
     ["--custom-line-height-mobile", toCssUnit(controls.lineHeightMobile)],
+  ];
+  const inlineEntries = [
+    ["--fs-desktop", toCssUnit(controls.fontSize)],
+    ["--fs-mobile", toCssUnit(controls.fontSizeMobile)],
     ["--translate-y", toCssUnit(controls.translateY, true)],
     ["--translate-y-mobile", toCssUnit(controls.translateYMobile, true)],
   ];
 
+  controlsRoot.querySelectorAll("[style]").forEach((node) => {
+    if (!(node instanceof HTMLElement)) return;
+    node.style.removeProperty("line-height");
+    node.style.removeProperty("--custom-line-height");
+    node.style.removeProperty("--custom-line-height-mobile");
+    if (!node.getAttribute("style")) node.removeAttribute("style");
+  });
+
+  lineHeightEntries.forEach(([name, value]) => {
+    if (value) {
+      controlsRoot.style.setProperty(name, value);
+    } else {
+      controlsRoot.style.removeProperty(name);
+    }
+  });
+  const desktopLineHeight = toCssUnit(controls.lineHeight);
+  if (desktopLineHeight) {
+    controlsRoot.style.setProperty("line-height", desktopLineHeight);
+  } else {
+    controlsRoot.style.removeProperty("line-height");
+  }
+
+  let targets = Array.from(controlsRoot.children).filter((node) => node instanceof HTMLElement);
+  if (targets.length === 0) targets = [controlsRoot];
   targets.forEach((target) => {
-    entries.forEach(([name, value]) => {
+    inlineEntries.forEach(([name, value]) => {
       if (value) {
         target.style.setProperty(name, value);
       } else {
@@ -144,6 +182,7 @@ const decorateRichTextWithControls = (html, controls = {}) => {
       target.removeAttribute("style");
     }
   });
+  if (!controlsRoot.getAttribute("style")) controlsRoot.removeAttribute("style");
 
   return root.innerHTML;
 };
@@ -733,6 +772,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChangeFontSizeMobile={setRoomPriceFontSizeMobile}
                     onChangeTranslateY={setRoomPriceTranslateY}
                     onChangeTranslateYMobile={setRoomPriceTranslateYMobile}
+                    className="room-summary-editor"
                     hasResponsiveFontSize={true}
                     inlineSelectionControls={true}
                     commitOnBlurOnly={true}
@@ -776,6 +816,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     onChangeFontSizeMobile={setRoomEquipmentFontSizeMobile}
                     onChangeTranslateY={setRoomEquipmentTranslateY}
                     onChangeTranslateYMobile={setRoomEquipmentTranslateYMobile}
+                    className="room-summary-editor"
                     hasResponsiveFontSize={true}
                     inlineSelectionControls={true}
                     commitOnBlurOnly={true}

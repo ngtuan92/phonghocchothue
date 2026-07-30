@@ -56,7 +56,10 @@ const getPlainText = (html) => {
 const toCssUnit = (value, allowNegative = false) => {
   const text = String(value || "").trim();
   if (!text) return "";
-  const pattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
+  if (/p$/i.test(text) && !/px$/i.test(text)) return "";
+  const pattern = allowNegative
+    ? /^-?(?:\d+(?:\.\d+)?|\.\d+)$/
+    : /^(?:\d+(?:\.\d+)?|\.\d+)$/;
   return pattern.test(text) ? `${text}px` : text;
 };
 

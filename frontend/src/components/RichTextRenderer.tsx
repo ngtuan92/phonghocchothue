@@ -107,13 +107,68 @@ const normalizeNumericLineHeightUnits = (html: string) => {
 
   return html.replace(/style=(["'])(.*?)\1/gi, (_match: string, quote: string, styleContent: string) => {
     const normalizedStyle = styleContent.replace(
-      /(^|;)\s*(line-height|--custom-line-height(?:-mobile)?)\s*:\s*(\d+(?:\.\d+)?)\s*(?=;|$)/gi,
+      /(^|;)\s*(line-height|--custom-line-height(?:-mobile)?)\s*:\s*((?:\d+(?:\.\d+)?|\.\d+))\s*(?=;|$)/gi,
       (_styleMatch: string, prefix: string, property: string, value: string) =>
         `${prefix ? `${prefix} ` : ""}${property}: ${value}px`
     );
 
     return `style=${quote}${normalizedStyle}${quote}`;
   });
+};
+
+const hoistLineHeightToControlsBlock = (html: string) => {
+  if (!html || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  let controlsRoot =
+    root.children.length === 1 &&
+    root.firstElementChild instanceof HTMLElement &&
+    root.firstElementChild.matches("[data-rich-text-controls]")
+      ? root.firstElementChild
+      : null;
+  const styledElements = Array.from(root.querySelectorAll<HTMLElement>("[style]"));
+  let desktopLineHeight = "";
+  let mobileLineHeight = "";
+
+  styledElements.forEach((element) => {
+    if (!desktopLineHeight) {
+      desktopLineHeight =
+        element.style.getPropertyValue("--custom-line-height").trim() ||
+        element.style.getPropertyValue("line-height").trim();
+    }
+    if (!mobileLineHeight) {
+      mobileLineHeight = element.style.getPropertyValue("--custom-line-height-mobile").trim();
+    }
+  });
+
+  if (!desktopLineHeight && !mobileLineHeight) return html;
+
+  if (!controlsRoot) {
+    controlsRoot = doc.createElement("div");
+    controlsRoot.setAttribute("data-rich-text-controls", "true");
+    while (root.firstChild) controlsRoot.appendChild(root.firstChild);
+    root.appendChild(controlsRoot);
+  }
+
+  controlsRoot.querySelectorAll<HTMLElement>("[style]").forEach((element) => {
+    element.style.removeProperty("line-height");
+    element.style.removeProperty("--custom-line-height");
+    element.style.removeProperty("--custom-line-height-mobile");
+    if (!element.getAttribute("style")) element.removeAttribute("style");
+  });
+
+  if (desktopLineHeight) {
+    controlsRoot.style.setProperty("line-height", desktopLineHeight);
+    controlsRoot.style.setProperty("--custom-line-height", desktopLineHeight);
+  }
+  if (mobileLineHeight) {
+    controlsRoot.style.setProperty("--custom-line-height-mobile", mobileLineHeight);
+  }
+
+  return root.innerHTML;
 };
 
 interface RichTextRendererProps {
@@ -130,6 +185,7 @@ interface RichTextRendererProps {
   translateYMobile?: string;
   preserveNbsp?: boolean;
   stripAllFontStyles?: boolean;
+  blockLineHeight?: boolean;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
@@ -146,6 +202,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   translateYMobile,
   preserveNbsp = false,
   stripAllFontStyles = false,
+  blockLineHeight = false,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -401,11 +458,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           }
           return (
             !lower.startsWith('--fs-desktop') &&
-            !lower.startsWith('--fs-mobile') &&
-            !lower.startsWith('--custom-line-height') &&
-            !lower.startsWith('--custom-line-height-mobile') &&
-            !lower.startsWith('--translate-y') &&
-            !lower.startsWith('--translate-y-mobile')
+            !lower.startsWith('--fs-mobile')
           );
         })
         .join('; ');
@@ -455,9 +508,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
     processedHtml = normalizeNumericLineHeightUnits(processedHtml);
+    if (blockLineHeight) {
+      processedHtml = hoistLineHeightToControlsBlock(processedHtml);
+    }
 
     return processedHtml;
-  }, [html, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [blockLineHeight, html, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
@@ -484,10 +540,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const normalizeLineHeight = (value: string) => {
     const cleanValue = String(value).trim();
     if (cleanValue.startsWith("-")) return "";
-    if (/^\d+(\.\d+)?$/.test(cleanValue)) {
-      return Number(cleanValue) > 10 ? `${cleanValue}px` : cleanValue;
-    }
-    return cleanValue;
+    return /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
   };
 
   const customStyles = useMemo(() => {
@@ -498,7 +551,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       wordBreak: "normal",
       overflowWrap: "break-word",
       wordWrap: "break-word",
-      whiteSpace: "normal",
+      whiteSpace: preserveNbsp ? "pre-wrap" : "normal",
       maxWidth: "100%",
       display: Component === "span" ? "inline" : "block",
     };
@@ -540,7 +593,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, stripAllFontStyles]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, preserveNbsp, stripAllFontStyles]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');
@@ -751,6 +804,9 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer [style*="--translate-y"] {
           transform: translateY(var(--translate-y)) !important;
         }
+        .rich-text-renderer span[style*="--translate-y"] {
+          display: inline-block !important;
+        }
         .rich-text-renderer.inline-rich-text[style*="--translate-y"] {
           position: relative !important;
           top: var(--translate-y) !important;
@@ -764,6 +820,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer[style*="--translate-y-mobile"],
           .rich-text-renderer [style*="--translate-y-mobile"] {
             transform: translateY(var(--translate-y-mobile, var(--translate-y, 0px))) !important;
+          }
+          .rich-text-renderer span[style*="--translate-y-mobile"] {
+            display: inline-block !important;
           }
           .rich-text-renderer.inline-rich-text[style*="--translate-y-mobile"] {
             position: relative !important;

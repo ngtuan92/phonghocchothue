@@ -135,17 +135,24 @@ const createControlCallbacks = (callbacks) => Object.fromEntries(
 );
 
 const isResponsiveControlKey = (key) => RESPONSIVE_CONTROL_KEYS.includes(key);
+const isGlobalLineHeightControlKey = (key) => key === 'lineHeight' || key === 'lineHeightMobile';
 
-const isValidControlInput = (value, signed = false) => (
-  signed
-    ? value === '' || value === '-' || /^-?\d+$/.test(value)
-    : value === '' || /^\d+$/.test(value)
-);
+const isValidControlInput = (value, signed = false) => {
+  const text = String(value || '').trim();
+  if (!text) return true;
+  if (signed && text === '-') return true;
+
+  const pattern = signed
+    ? /^-?(?:\d+(?:\.\d*)?|\.\d+)(?:p|px)?$/i
+    : /^(?:\d+(?:\.\d*)?|\.\d+)(?:p|px)?$/i;
+  return pattern.test(text);
+};
 
 const toLineHeightCssValue = (value) => {
   const text = String(value || '').trim();
   if (!text || text.startsWith("-")) return undefined;
-  if (/^\d+(\.\d+)?$/.test(text)) {
+  if (/p$/i.test(text) && !/px$/i.test(text)) return undefined;
+  if (/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(text)) {
     return `${text}px`;
   }
   return text;
@@ -778,6 +785,38 @@ const normalizeWhitespaceOnlyBlocksForQuill = (html) => {
   return root.innerHTML;
 };
 
+const preserveSignificantInlineWhitespaceForQuill = (html) => {
+  if (!html || typeof html !== "string" || typeof window === "undefined" || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  let current = walker.nextNode();
+  while (current) {
+    textNodes.push(current);
+    current = walker.nextNode();
+  }
+
+  textNodes.forEach((node) => {
+    const parent = node.parentElement;
+    if (!parent || parent.closest("script, style")) return;
+
+    const text = String(node.textContent || "").replace(/\u00a0/g, " ");
+    node.textContent = text.replace(/(^ +| {2,}| +$)/g, (spaces) => "\u00a0".repeat(spaces.length));
+  });
+
+  root.querySelectorAll("p, div, h1, h2, h3, h4, h5, h6, li").forEach((block) => {
+    if (!/\u00a0| {2,}/.test(block.textContent || "")) return;
+    block.style.whiteSpace = "break-spaces";
+    block.style.overflowWrap = "anywhere";
+  });
+
+  return root.innerHTML;
+};
+
 const findImageBlot = (img) => {
   if (!img) return null;
   return Quill.find(img) || Quill.find(img.closest?.('.image-wrapper'));
@@ -841,8 +880,11 @@ const removeEmptyStyledSpanElements = (root) => {
 const toCssUnit = (value, allowNegative = false) => {
   const text = String(value || '').trim();
   if (!text) return undefined;
-  const integerPattern = allowNegative ? /^-?\d+$/ : /^\d+$/;
-  return integerPattern.test(text) ? `${text}px` : text;
+  if (/p$/i.test(text) && !/px$/i.test(text)) return undefined;
+  const numberPattern = allowNegative
+    ? /^-?(?:\d+(?:\.\d+)?|\.\d+)$/
+    : /^(?:\d+(?:\.\d+)?|\.\d+)$/;
+  return numberPattern.test(text) ? `${text}px` : text;
 };
 
 const QuillWrapper = forwardRef(({
@@ -879,7 +921,10 @@ const QuillWrapper = forwardRef(({
     className.includes('seo-h1-main');
   const preserveWhitespaceOnlyBlocks =
     className.includes('blog-desc-editor') ||
-    className.includes('room-desc-editor');
+    className.includes('room-desc-editor') ||
+    className.includes('room-summary-editor');
+  const preserveInlineWhitespace =
+    className.includes('room-summary-editor');
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;
@@ -1360,7 +1405,11 @@ const QuillWrapper = forwardRef(({
 
   const applyInlineControlToSelection = useCallback((key, value, options = {}) => {
     const { updateDraft = true } = options;
-    if (!canUseInlineSelectionControls || !isResponsiveControlKey(key)) return false;
+    if (
+      !canUseInlineSelectionControls ||
+      !isResponsiveControlKey(key) ||
+      isGlobalLineHeightControlKey(key)
+    ) return false;
 
     const quill = getQuillEditor();
     const selection = getCurrentControlSelection();
@@ -1428,12 +1477,8 @@ const QuillWrapper = forwardRef(({
     const mobileSize = format.fontSizeMobile
       ? String(format.fontSizeMobile).replace('px', '')
       : String(fontSizeMobile || "").replace('px', '');
-    const lh = format.lineHeight
-      ? String(format.lineHeight).replace('px', '')
-      : String(lineHeight || "").replace('px', '');
-    const lhMobile = format.lineHeightMobile
-      ? String(format.lineHeightMobile).replace('px', '')
-      : String(lineHeightMobile || "").replace('px', '');
+    const lh = String(lineHeight || "").replace('px', '');
+    const lhMobile = String(lineHeightMobile || "").replace('px', '');
     const translateYVal = format.translateY
       ? String(format.translateY).replace('px', '')
       : String(translateY || "").replace('px', '');
@@ -1527,7 +1572,11 @@ const QuillWrapper = forwardRef(({
     if (commitOnBlurOnly && hasResponsive && isResponsiveControlKey(key)) {
       popupInputValuesRef.current[key] = nextValue;
       const selection = getCurrentControlSelection();
-      const isInline = canUseInlineSelectionControls && selection && selection.length > 0;
+      const isInline =
+        !isGlobalLineHeightControlKey(key) &&
+        canUseInlineSelectionControls &&
+        selection &&
+        selection.length > 0;
 
       if (isInline) {
         selectionControlDraftsRef.current = {
@@ -1554,18 +1603,14 @@ const QuillWrapper = forwardRef(({
       popupInputValuesRef.current[key] = nextValue;
       setPopupValueVersion((prev) => prev + 1);
 
-      let shouldApplyPreview = true;
-      if (nextValue === "") {
-        shouldApplyPreview = false;
-      } else if (key === 'fontSize' || key === 'fontSizeMobile') {
-        const num = parseInt(nextValue);
-        if (isNaN(num) || num < 8) {
-          shouldApplyPreview = false;
-        }
-      }
+      const shouldApplyPreview = nextValue !== "";
 
       const selection = getCurrentControlSelection();
-      const isInline = selection && selection.length > 0;
+      const isInline =
+        !isGlobalLineHeightControlKey(key) &&
+        canUseInlineSelectionControls &&
+        selection &&
+        selection.length > 0;
 
       if (isInline) {
         selectionControlDraftsRef.current = {
@@ -1659,7 +1704,11 @@ const QuillWrapper = forwardRef(({
     if (commitOnBlurOnly && hasResponsive && isResponsiveControlKey(key)) {
       popupInputValuesRef.current[key] = nextValue;
       const selection = getCurrentControlSelection();
-      const isInline = canUseInlineSelectionControls && selection && selection.length > 0;
+      const isInline =
+        !isGlobalLineHeightControlKey(key) &&
+        canUseInlineSelectionControls &&
+        selection &&
+        selection.length > 0;
 
       if (isInline) {
         selectionControlDraftsRef.current = {
@@ -1694,13 +1743,18 @@ const QuillWrapper = forwardRef(({
 
       const appliedInline = applyInlineControlToSelection(key, value);
 
-      selectionControlDraftsRef.current = {
-        ...selectionControlDraftsRef.current,
-        [key]: nextValue,
-      };
       popupInputValuesRef.current[key] = nextValue;
 
-      if (!appliedInline) {
+      if (appliedInline) {
+        selectionControlDraftsRef.current = {
+          ...selectionControlDraftsRef.current,
+          [key]: nextValue,
+        };
+      } else {
+        controlDraftsRef.current = {
+          ...controlDraftsRef.current,
+          [key]: nextValue,
+        };
         applyPreviewControlToContainer(key, nextValue);
         setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
       }
@@ -3328,6 +3382,9 @@ const QuillWrapper = forwardRef(({
     if (preserveWhitespaceOnlyBlocks) {
       relativeContent = normalizeWhitespaceOnlyBlocksForQuill(relativeContent);
     }
+    if (preserveInlineWhitespace) {
+      relativeContent = preserveSignificantInlineWhitespaceForQuill(relativeContent);
+    }
     relativeContent = relativeContent.replace(/src=["']https?:\/\/[^/]+\/(assets\/[^"']+)["']/gi, 'src="/$1"');
 
     const cleanBlockStyleString = (styleStr, tag = '') => {
@@ -3373,8 +3430,13 @@ const QuillWrapper = forwardRef(({
     }
 
     relativeContent = removeEmptyQuillParagraphs(relativeContent, whitespaceOptions);
-    return preserveWhitespaceOnlyBlocks ? normalizeWhitespaceOnlyBlocksForQuill(relativeContent) : relativeContent;
-  }, [hasResponsive, isSimpleTextField, preserveWhitespaceOnlyBlocks]);
+    if (preserveWhitespaceOnlyBlocks) {
+      relativeContent = normalizeWhitespaceOnlyBlocksForQuill(relativeContent);
+    }
+    return preserveInlineWhitespace
+      ? preserveSignificantInlineWhitespaceForQuill(relativeContent)
+      : relativeContent;
+  }, [hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks]);
 
   const emitCurrentContentForSave = useCallback((forceCommit = false) => {
     const quill = getQuillEditor();
@@ -4543,6 +4605,9 @@ const QuillWrapper = forwardRef(({
     if (preserveWhitespaceOnlyBlocks) {
       val = normalizeWhitespaceOnlyBlocksForQuill(val);
     }
+    if (preserveInlineWhitespace) {
+      val = preserveSignificantInlineWhitespaceForQuill(val);
+    }
 
     const cleanBlockStyleString = (styleStr, tag = '') => {
       return styleStr
@@ -4587,8 +4652,13 @@ const QuillWrapper = forwardRef(({
     }
 
     val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(normalizeImageWrappersForEdit(val)), whitespaceOptions);
-    return preserveWhitespaceOnlyBlocks ? normalizeWhitespaceOnlyBlocksForQuill(val) : val;
-  }, [props.value, hasResponsive, isSimpleTextField, preserveWhitespaceOnlyBlocks]);
+    if (preserveWhitespaceOnlyBlocks) {
+      val = normalizeWhitespaceOnlyBlocksForQuill(val);
+    }
+    return preserveInlineWhitespace
+      ? preserveSignificantInlineWhitespaceForQuill(val)
+      : val;
+  }, [props.value, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks]);
 
   const handleBlur = useCallback(() => {
     let blurContent = lastRelativeContentRef.current;
@@ -5548,6 +5618,9 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-editor [style*="--translate-y"] {
           transform: translateY(var(--translate-y)) !important;
         }
+        .quill-wrapper-container .ql-editor span[style*="--translate-y"] {
+          display: inline-block !important;
+        }
         @media (max-width: 767px) {
           .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile"],
           .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile"] * {
@@ -5555,6 +5628,9 @@ const QuillWrapper = forwardRef(({
           }
           .quill-wrapper-container .ql-editor [style*="--translate-y-mobile"] {
             transform: translateY(var(--translate-y-mobile, var(--translate-y, 0px))) !important;
+          }
+          .quill-wrapper-container .ql-editor span[style*="--translate-y-mobile"] {
+            display: inline-block !important;
           }
         }
 
@@ -5942,6 +6018,31 @@ const QuillWrapper = forwardRef(({
           overflow-wrap: anywhere !important;
           word-break: break-word !important;
         }
+        .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor *,
+        .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor * {
+          line-height: var(--custom-line-height, 1.6) !important;
+        }
+        @media (max-width: 767px) {
+          .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+          .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor *,
+          .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+          .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor * {
+            line-height: var(--custom-line-height-mobile, var(--custom-line-height, 1.6)) !important;
+          }
+        }
+        .product-dialog-quill--price .quill-wrapper-container.is-blog-editor .ql-editor p,
+        .product-dialog-quill--equipment .quill-wrapper-container.is-blog-editor .ql-editor p {
+          margin: 0 !important;
+          line-height: inherit !important;
+        }
+        .product-dialog-quill--price .quill-wrapper-container.is-blog-editor .ql-editor li,
+        .product-dialog-quill--equipment .quill-wrapper-container.is-blog-editor .ql-editor li {
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+          line-height: inherit !important;
+        }
         /* 1:1 responsive content widths matching Details page (W - screen-padding) & main-container padding */
         @media (max-width: 639px) {
           .quill-wrapper-container.is-blog-editor .ql-editor {
@@ -6028,8 +6129,14 @@ const QuillWrapper = forwardRef(({
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor span,
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor li,
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"],
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"] {
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"],
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"] {
           white-space: break-spaces !important;
           overflow-wrap: anywhere !important;
         }

@@ -715,6 +715,8 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
+                        preserveNbsp
+                        blockLineHeight
                       />
                     ) : (
                       formatNumber(toNumber(productData.product.contains) || 0)
@@ -735,6 +737,8 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
+                        preserveNbsp
+                        blockLineHeight
                       />
                     ) : (
                       productData.product.equipment
@@ -754,6 +758,8 @@ export default function DetailPage() {
                     lineHeightMobile={product.lineHeightMobile}
                     translateY={product.translateY}
                     translateYMobile={product.translateYMobile}
+                    preserveNbsp
+                    blockLineHeight
                   />
                 ) : (
                   `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
@@ -814,6 +820,21 @@ export default function DetailPage() {
                   line-height: 1.6 !important;
                   list-style-position: outside !important;
                   padding-left: 0 !important;
+                }
+                .room-summary-desc .rich-text-renderer li {
+                  margin-top: 0 !important;
+                  margin-bottom: 0 !important;
+                  line-height: inherit !important;
+                }
+                .room-summary-desc .rich-text-renderer [style*="--custom-line-height"],
+                .room-summary-desc .rich-text-renderer [style*="--custom-line-height"] * {
+                  line-height: var(--custom-line-height) !important;
+                }
+                @media (max-width: 767px) {
+                  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile"],
+                  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile"] * {
+                    line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
+                  }
                 }
                 .room-summary-desc li::marker {
                   color: currentColor;
