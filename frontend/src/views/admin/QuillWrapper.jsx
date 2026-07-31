@@ -4017,7 +4017,7 @@ const QuillWrapper = forwardRef(({
               lastAppliedColor = picker.value;
               applyColor(picker.value);
             };
-            picker.oninput = applyPickedColor;
+            picker.oninput = isMobileAdminViewport() ? null : applyPickedColor;
             picker.onchange = applyPickedColor;
             picker.focus({ preventScroll: true });
             try {
@@ -4108,7 +4108,7 @@ const QuillWrapper = forwardRef(({
               lastAppliedBackground = picker.value;
               applyBackground(picker.value);
             };
-            picker.oninput = applyPickedBackground;
+            picker.oninput = isMobileAdminViewport() ? null : applyPickedBackground;
             picker.onchange = applyPickedBackground;
             picker.focus({ preventScroll: true });
             try {
