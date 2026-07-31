@@ -2150,4 +2150,8 @@ footer .rich-text-renderer * {
     overflow-wrap: normal !important;
     word-break: keep-all !important;
   }
+
+  .describe-mobile-meta .hero-slogan-text [style*="background"] {
+    vertical-align: middle !important;
+  }
 }
