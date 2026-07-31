@@ -152,6 +152,11 @@
     align-items: center !important;
   }
 
+  .describe-mobile-meta-item.hero-slogan-container {
+    flex: 0 0 min(58vw, 180px) !important;
+    min-width: min(58vw, 180px) !important;
+  }
+
   .hero-phone-text,
   .hero-slogan-text {
     display: block !important;
