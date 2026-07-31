@@ -1900,6 +1900,12 @@ footer .rich-text-renderer * {
   line-height: inherit;
 }
 
+.notification-link-button {
+  min-height: calc(1em * 1.45);
+  padding: 0.28em 0.9em;
+  line-height: 1.15;
+}
+
 .notification-rich-text p,
 .notification-rich-text span,
 .notification-rich-text div,
