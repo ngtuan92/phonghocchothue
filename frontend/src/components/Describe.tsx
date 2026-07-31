@@ -213,10 +213,10 @@ const Describe = () => {
                 </div>
 
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-0 pb-0">
-                    <div className="describe-anchor describe-anchor-mobile relative isolate w-full flex flex-col items-center -translate-y-[10px]">
+                    <div className="describe-anchor describe-anchor-mobile relative w-full flex flex-col items-center -translate-y-[10px]">
                         {activeMobileFrameImage && (
                             <div
-                                className="describe-frame-mobile absolute z-0 top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+2rem)] max-w-[390px] overflow-hidden pointer-events-none"
+                                className="describe-frame-mobile absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none"
                                 style={{ borderRadius: activeMobileFrameRadius }}
                             >
                                 <img
@@ -229,7 +229,7 @@ const Describe = () => {
                         )}
 
                         {logo && (
-                            <div className="relative z-10 transition-all duration-700 mb-12">
+                            <div className="transition-all duration-700 mb-12">
                                 <img
                                     src={buildUrl(logo)}
                                     alt="Logo"
