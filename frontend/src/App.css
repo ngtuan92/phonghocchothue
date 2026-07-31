@@ -164,7 +164,6 @@
     height: 18px !important;
     line-height: 1 !important;
     vertical-align: middle !important;
-    white-space: nowrap !important;
   }
 
   .hero-phone-text *,
@@ -172,9 +171,6 @@
     min-height: 18px !important;
     line-height: inherit !important;
     vertical-align: middle !important;
-    white-space: nowrap !important;
-    overflow-wrap: normal !important;
-    word-break: keep-all !important;
   }
 
   .describe-mobile-meta-item:has(.hero-phone-text .ql-align-center),
@@ -2131,27 +2127,6 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
-  .describe-mobile-meta {
-    justify-content: space-between !important;
-    gap: 8px !important;
-  }
-
-  .describe-mobile-meta .describe-mobile-meta-item,
-  .describe-mobile-meta .describe-mobile-meta-item.hero-slogan-container {
-    flex: 0 1 auto !important;
-    min-width: 0 !important;
-  }
-
-  .describe-mobile-meta .hero-phone-text,
-  .describe-mobile-meta .hero-slogan-text {
-    width: max-content !important;
-    max-width: none !important;
-  }
-
-  .describe-mobile-meta .hero-slogan-text {
-    text-align: right !important;
-  }
-
   .rich-text-renderer.hero-phone-text,
   .rich-text-renderer.hero-phone-text *,
   .rich-text-renderer.hero-slogan-text,
