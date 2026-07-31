@@ -212,8 +212,8 @@ const Describe = () => {
                     </div>
                 </div>
 
-                <div className="describe-mobile-viewport sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-0 pb-0">
-                    <div className="describe-anchor describe-anchor-mobile relative flex flex-col items-center">
+                <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-0 pb-0">
+                    <div className="describe-anchor describe-anchor-mobile relative w-full flex flex-col items-center -translate-y-[10px]">
                         {activeMobileFrameImage && (
                             <div
                                 className="describe-frame-mobile absolute z-[-1] top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none"
@@ -251,7 +251,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={cleanHeadingHtml(replaceTagName(describeHeading, "div"))}
                                     configKey="describe-heading"
-                                    className="title-main-text text-center mx-auto w-max max-w-full transform translate-x-[1px]"
+                                    className="title-main-text text-center mx-auto w-max transform translate-x-[1px]"
                                 />
                             </div>
                         </div>
@@ -265,13 +265,13 @@ const Describe = () => {
                             />
                         </div>
 
-                        <div className="describe-mobile-meta w-[calc(100%+2rem)] flex flex-row justify-between items-center px-0 gap-1 mt-0 relative z-10">
+                        <div className="describe-mobile-meta w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-0 relative z-10">
                             <div className="flex-1 min-w-0 flex items-center describe-mobile-meta-item">
                                 <div className="text-[10px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center w-full">
                                     <RichTextRenderer
                                         html={describePhone}
                                         configKey="describe-phone"
-                                        className="describe-single-line block w-full [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
+                                        className="block w-full [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
                                         as="div"
                                         preserveNbsp={true}
                                     />
@@ -281,7 +281,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
-                                    className="describe-single-line block w-full [&_*]:m-0 [&_*]:p-0 text-[11px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
+                                    className="block w-full [&_*]:m-0 [&_*]:p-0 text-[11px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
                                     as="div"
                                     preserveNbsp={true}
                                 />

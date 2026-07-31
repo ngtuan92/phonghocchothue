@@ -136,31 +136,14 @@
 }
 
 @media (max-width: 767px) {
-  .describe-mobile-viewport {
-    /*
-     * Admin composes the hero on a 390px canvas. The decorative frame is
-     * 420px wide, so smaller viewports scale the complete composition as one.
-     */
-    --describe-mobile-scale: min(1, calc((100vw - 8px) / 420px));
-  }
-
-  .describe-anchor-mobile {
-    width: 390px !important;
-    transform: translateY(-10px) scale(var(--describe-mobile-scale));
-    transform-origin: center center;
-  }
-
   .describe-mobile-seo {
     padding-bottom: 4px;
   }
 
   .describe-mobile-meta {
-    width: min(calc(100vw - 20px), 410px) !important;
     margin-top: -4px !important;
     min-height: 18px;
     align-items: center !important;
-    transform: scale(calc(1 / var(--describe-mobile-scale)));
-    transform-origin: center center;
   }
 
   .describe-mobile-meta-item,
@@ -188,13 +171,6 @@
     min-height: 18px !important;
     line-height: inherit !important;
     vertical-align: middle !important;
-  }
-
-  .describe-single-line,
-  .describe-single-line * {
-    white-space: nowrap !important;
-    overflow-wrap: normal !important;
-    word-break: keep-all !important;
   }
 
   .describe-mobile-meta-item:has(.hero-phone-text .ql-align-center),
