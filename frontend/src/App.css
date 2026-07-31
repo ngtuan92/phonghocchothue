@@ -164,6 +164,7 @@
     height: 18px !important;
     line-height: 1 !important;
     vertical-align: middle !important;
+    white-space: nowrap !important;
   }
 
   .hero-phone-text *,
@@ -171,6 +172,9 @@
     min-height: 18px !important;
     line-height: inherit !important;
     vertical-align: middle !important;
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
   }
 
   .describe-mobile-meta-item:has(.hero-phone-text .ql-align-center),
