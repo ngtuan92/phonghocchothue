@@ -48,6 +48,8 @@ export default function Home() {
   const notificationText = useConfigContentByKey("textNotication");
   const notificationLink = useConfigContentByKey("linkNotication");
   const textBtnNotication = useConfigContentByKey("textBtnNotication") || "Go";
+  const textBtnNoticationFontSize = useConfigContentByKey("textBtnNotication", "fontSize");
+  const textBtnNoticationFontSizeMobile = useConfigContentByKey("textBtnNotication", "fontSizeMobile");
   const logo = useConfigContentByKey("logo");
 
   const origin =
@@ -70,6 +72,17 @@ export default function Home() {
     const cleanPath = value.replaceAll("\\", "/").replace(/^\//, "");
     return `${canonicalUrl}/${cleanPath}`;
   };
+
+  const normalizeCssSize = (value: string | undefined) => {
+    const cleanValue = String(value || "").trim();
+    if (!cleanValue) return undefined;
+    return /^-?\d+(\.\d+)?$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
+  };
+
+  const notificationButtonStyle = {
+    "--notification-button-font-size": normalizeCssSize(textBtnNoticationFontSize),
+    "--notification-button-font-size-mobile": normalizeCssSize(textBtnNoticationFontSizeMobile),
+  } as React.CSSProperties;
 
   const seoImageUrl = buildCanonicalAssetUrl(seoImage);
   const phone = useConfigContentByKey("phone");
@@ -346,6 +359,7 @@ export default function Home() {
             <a
               href={notificationLink}
               className="notification-link-button inline-flex items-center justify-center cursor-pointer mt-2 font-bold bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none text-xs transition-all duration-300 ease-in-out"
+              style={notificationButtonStyle}
             >
               <RichTextRenderer
                 html={textBtnNotication}

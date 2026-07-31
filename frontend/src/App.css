@@ -1901,9 +1901,11 @@ footer .rich-text-renderer * {
 }
 
 .notification-link-button {
-  min-height: calc(1em * 1.45);
-  padding: 0.28em 0.9em;
-  line-height: 1.15;
+  font-size: var(--notification-button-font-size, 0.75rem);
+  min-height: calc(1em * 1.7);
+  padding: 0.34em 0.9em 0.38em;
+  line-height: 1.35;
+  overflow: visible;
 }
 
 .notification-rich-text p,
@@ -1925,6 +1927,10 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+
+  .notification-link-button {
+    font-size: var(--notification-button-font-size-mobile, var(--notification-button-font-size, 0.75rem));
+  }
 
   .notification-rich-text[style*="--fs-mobile"],
   .notification-rich-text[style*="--fs-mobile"] *,
@@ -1949,6 +1955,14 @@ footer .rich-text-renderer * {
   .notification-button-rich-text[style*="--fs-desktop"] * {
     font-size: var(--fs-desktop) !important;
   }
+}
+
+.notification-link-button .notification-button-rich-text,
+.notification-link-button .notification-button-rich-text *,
+.notification-link-button .notification-button-rich-text[style*="--custom-line-height"],
+.notification-link-button .notification-button-rich-text[style*="--custom-line-height"] * {
+  line-height: 1.35 !important;
+  overflow: visible !important;
 }
 
 /* Configurable vertical offset for rich text blocks. */
