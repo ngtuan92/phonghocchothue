@@ -2127,6 +2127,23 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+  .describe-mobile-meta {
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .describe-mobile-meta .describe-mobile-meta-item,
+  .describe-mobile-meta .describe-mobile-meta-item.hero-slogan-container {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .describe-mobile-meta .hero-phone-text,
+  .describe-mobile-meta .hero-slogan-text {
+    width: max-content !important;
+    max-width: none !important;
+  }
+
   .rich-text-renderer.hero-phone-text,
   .rich-text-renderer.hero-phone-text *,
   .rich-text-renderer.hero-slogan-text,
