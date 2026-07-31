@@ -2129,3 +2129,14 @@ footer .rich-text-renderer * {
 .blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > :last-child {
   margin-bottom: 0 !important;
 }
+
+@media (max-width: 767px) {
+  .rich-text-renderer.hero-phone-text,
+  .rich-text-renderer.hero-phone-text *,
+  .rich-text-renderer.hero-slogan-text,
+  .rich-text-renderer.hero-slogan-text * {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+  }
+}
