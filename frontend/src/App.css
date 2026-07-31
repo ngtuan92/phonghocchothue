@@ -102,6 +102,39 @@
   line-height: 1.2;
 }
 
+.hero-phone-text,
+.hero-phone-text *,
+.hero-slogan-text,
+.hero-slogan-text * {
+  white-space: break-spaces;
+}
+
+.hero-phone-text,
+.hero-slogan-text {
+  text-align: inherit;
+}
+
+.hero-phone-text:has(.ql-align-center),
+.hero-phone-text[style*="text-align: center"],
+.hero-slogan-text:has(.ql-align-center),
+.hero-slogan-text[style*="text-align: center"] {
+  text-align: center !important;
+}
+
+.hero-phone-text:has(.ql-align-right),
+.hero-phone-text[style*="text-align: right"],
+.hero-slogan-text:has(.ql-align-right),
+.hero-slogan-text[style*="text-align: right"] {
+  text-align: right !important;
+}
+
+.hero-phone-text:has(.ql-align-justify),
+.hero-phone-text[style*="text-align: justify"],
+.hero-slogan-text:has(.ql-align-justify),
+.hero-slogan-text[style*="text-align: justify"] {
+  text-align: justify !important;
+}
+
 @media (max-width: 767px) {
   .describe-mobile-seo {
     padding-bottom: 4px;
@@ -133,6 +166,16 @@
     min-height: 18px !important;
     line-height: inherit !important;
     vertical-align: middle !important;
+  }
+
+  .describe-mobile-meta-item:has(.hero-phone-text .ql-align-center),
+  .describe-mobile-meta-item:has(.hero-slogan-text .ql-align-center) {
+    justify-content: center !important;
+  }
+
+  .describe-mobile-meta-item:has(.hero-phone-text .ql-align-right),
+  .describe-mobile-meta-item:has(.hero-slogan-text .ql-align-right) {
+    justify-content: flex-end !important;
   }
 }
 

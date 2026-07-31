@@ -167,7 +167,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"
-                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] leading-none text-[#f8ebdb] flex items-center justify-center transform -translate-x-[15px] md:-translate-x-[10px] sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
+                                    className="title-bg-text text-[60px] sm:text-[13vw] lg:text-[15vw] leading-none text-[#f8ebdb] flex items-center justify-center transform sm:translate-y-[5px] md:translate-y-[8px] lg:translate-y-[10px]"
                                 />
                             </div>
 
@@ -175,7 +175,7 @@ const Describe = () => {
                                 <RichTextRenderer
                                     html={cleanHeadingHtml(replaceTagName(describeHeading, "div"))}
                                     configKey="describe-heading"
-                                    className="title-main-text text-center mx-auto w-max transform -translate-x-[13px] md:-translate-x-[8px]"
+                                    className="title-main-text text-center mx-auto w-max"
                                 />
                             </div>
                         </div>
@@ -196,6 +196,7 @@ const Describe = () => {
                                     configKey="describe-phone"
                                     className="block w-full !tracking-normal [&_*]:!tracking-normal hero-phone-text"
                                     as="div"
+                                    preserveNbsp={true}
                                 />
                             </div>
                             <div className="flex items-center gap-2 hero-slogan-container flex-1 min-w-0">
@@ -204,6 +205,7 @@ const Describe = () => {
                                     configKey="describe-quote-text"
                                     className="block w-full [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
                                     as="div"
+                                    preserveNbsp={true}
                                 />
                             </div>
                         </div>
@@ -271,6 +273,7 @@ const Describe = () => {
                                         configKey="describe-phone"
                                         className="block w-full [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
                                         as="div"
+                                        preserveNbsp={true}
                                     />
                                 </div>
                             </div>
@@ -280,6 +283,7 @@ const Describe = () => {
                                     configKey="describe-quote-text"
                                     className="block w-full [&_*]:m-0 [&_*]:p-0 text-[11px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
                                     as="div"
+                                    preserveNbsp={true}
                                 />
                             </div>
                         </div>
