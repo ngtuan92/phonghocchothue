@@ -3987,19 +3987,25 @@ const QuillWrapper = forwardRef(({
               picker = document.createElement('input');
               picker.id = 'quill-custom-color-picker';
               picker.type = 'color';
-              picker.style.position = 'absolute';
-              picker.style.width = '1px';
-              picker.style.height = '1px';
-              picker.style.opacity = '0';
-              picker.style.pointerEvents = 'none';
+              picker.style.position = 'fixed';
+              picker.style.width = '44px';
+              picker.style.height = '32px';
+              picker.style.opacity = '0.01';
+              picker.style.pointerEvents = 'auto';
+              picker.style.zIndex = '2147483647';
               document.body.appendChild(picker);
             }
-            // Position hidden color input below the toolbar button.
+            // Mobile browsers often block the native color dialog for fully
+            // hidden inputs, so keep this input tangible and place it where the
+            // user just tapped.
             const expandedPicker = document.querySelector('.ql-color.ql-expanded');
             if (expandedPicker) {
-              const rect = expandedPicker.getBoundingClientRect();
-              picker.style.top = `${rect.top + window.scrollY}px`;
-              picker.style.left = `${rect.left + window.scrollX}px`;
+              const customColorItem = expandedPicker.querySelector('[data-value="custom-color"]');
+              const rect = (customColorItem || expandedPicker).getBoundingClientRect();
+              picker.style.top = `${rect.top}px`;
+              picker.style.left = `${rect.left}px`;
+              picker.style.width = `${Math.max(rect.width, 44)}px`;
+              picker.style.height = `${Math.max(rect.height, 32)}px`;
             }
             const currentFormat = this.quill.getFormat();
             if (currentFormat && currentFormat.color && currentFormat.color.startsWith('#')) {
@@ -4013,7 +4019,16 @@ const QuillWrapper = forwardRef(({
             };
             picker.oninput = applyPickedColor;
             picker.onchange = applyPickedColor;
-            picker.click();
+            picker.focus({ preventScroll: true });
+            try {
+              if (typeof picker.showPicker === 'function') {
+                picker.showPicker();
+              } else {
+                picker.click();
+              }
+            } catch {
+              picker.click();
+            }
           } else {
             applyColor(value);
           }
@@ -4063,19 +4078,25 @@ const QuillWrapper = forwardRef(({
               picker = document.createElement('input');
               picker.id = 'quill-custom-bg-picker';
               picker.type = 'color';
-              picker.style.position = 'absolute';
-              picker.style.width = '1px';
-              picker.style.height = '1px';
-              picker.style.opacity = '0';
-              picker.style.pointerEvents = 'none';
+              picker.style.position = 'fixed';
+              picker.style.width = '44px';
+              picker.style.height = '32px';
+              picker.style.opacity = '0.01';
+              picker.style.pointerEvents = 'auto';
+              picker.style.zIndex = '2147483647';
               document.body.appendChild(picker);
             }
-            // Position hidden color input below the toolbar button.
+            // Mobile browsers often block the native color dialog for fully
+            // hidden inputs, so keep this input tangible and place it where the
+            // user just tapped.
             const expandedPicker = document.querySelector('.ql-background.ql-expanded');
             if (expandedPicker) {
-              const rect = expandedPicker.getBoundingClientRect();
-              picker.style.top = `${rect.top + window.scrollY}px`;
-              picker.style.left = `${rect.left + window.scrollX}px`;
+              const customColorItem = expandedPicker.querySelector('[data-value="custom-color"]');
+              const rect = (customColorItem || expandedPicker).getBoundingClientRect();
+              picker.style.top = `${rect.top}px`;
+              picker.style.left = `${rect.left}px`;
+              picker.style.width = `${Math.max(rect.width, 44)}px`;
+              picker.style.height = `${Math.max(rect.height, 32)}px`;
             }
             const currentFormat = this.quill.getFormat();
             if (currentFormat && currentFormat.background && currentFormat.background.startsWith('#')) {
@@ -4089,7 +4110,16 @@ const QuillWrapper = forwardRef(({
             };
             picker.oninput = applyPickedBackground;
             picker.onchange = applyPickedBackground;
-            picker.click();
+            picker.focus({ preventScroll: true });
+            try {
+              if (typeof picker.showPicker === 'function') {
+                picker.showPicker();
+              } else {
+                picker.click();
+              }
+            } catch {
+              picker.click();
+            }
           } else {
             applyBackground(value);
           }
