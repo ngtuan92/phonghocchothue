@@ -152,11 +152,6 @@
     align-items: center !important;
   }
 
-  .describe-mobile-meta-item.hero-slogan-container {
-    flex: 0 0 min(58vw, 180px) !important;
-    min-width: min(58vw, 180px) !important;
-  }
-
   .hero-phone-text,
   .hero-slogan-text {
     display: block !important;
@@ -2127,23 +2122,6 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
-  .describe-mobile-meta {
-    justify-content: space-between !important;
-    gap: 8px !important;
-  }
-
-  .describe-mobile-meta .describe-mobile-meta-item,
-  .describe-mobile-meta .describe-mobile-meta-item.hero-slogan-container {
-    flex: 0 1 auto !important;
-    min-width: 0 !important;
-  }
-
-  .describe-mobile-meta .hero-phone-text,
-  .describe-mobile-meta .hero-slogan-text {
-    width: max-content !important;
-    max-width: none !important;
-  }
-
   .rich-text-renderer.hero-phone-text,
   .rich-text-renderer.hero-phone-text *,
   .rich-text-renderer.hero-slogan-text,
@@ -2151,15 +2129,5 @@ footer .rich-text-renderer * {
     white-space: nowrap !important;
     overflow-wrap: normal !important;
     word-break: keep-all !important;
-  }
-
-  .describe-mobile-meta .rich-text-renderer.hero-phone-text,
-  .describe-mobile-meta .rich-text-renderer.hero-phone-text * {
-    text-align: left !important;
-  }
-
-  .describe-mobile-meta .rich-text-renderer.hero-slogan-text,
-  .describe-mobile-meta .rich-text-renderer.hero-slogan-text * {
-    text-align: right !important;
   }
 }

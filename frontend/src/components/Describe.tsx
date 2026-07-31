@@ -266,23 +266,23 @@ const Describe = () => {
                         </div>
 
                         <div className="describe-mobile-meta w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-0 relative z-10">
-                            <div className="flex-1 min-w-0 flex items-center describe-mobile-meta-item">
-                                <div className="text-[10px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center w-full">
+                            <div className="flex-shrink-0 flex items-center describe-mobile-meta-item">
+                                <span className="text-[10px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center">
                                     <RichTextRenderer
                                         html={describePhone}
                                         configKey="describe-phone"
-                                        className="block w-full [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
-                                        as="div"
+                                        className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
+                                        as="span"
                                         preserveNbsp={true}
                                     />
-                                </div>
+                                </span>
                             </div>
-                            <div className="flex items-center gap-1 flex-1 min-w-0 hero-slogan-container describe-mobile-meta-item">
+                            <div className="flex items-center gap-1 flex-shrink-0 hero-slogan-container describe-mobile-meta-item">
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
-                                    className="block w-full [&_*]:m-0 [&_*]:p-0 text-[11px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
-                                    as="div"
+                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[11px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
+                                    as="span"
                                     preserveNbsp={true}
                                 />
                             </div>
