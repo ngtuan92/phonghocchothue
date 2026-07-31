@@ -2136,7 +2136,13 @@ footer .rich-text-renderer * {
     word-break: keep-all !important;
   }
 
-  .describe-mobile-meta .hero-slogan-text {
+  .describe-mobile-meta .rich-text-renderer.hero-phone-text,
+  .describe-mobile-meta .rich-text-renderer.hero-phone-text * {
+    text-align: left !important;
+  }
+
+  .describe-mobile-meta .rich-text-renderer.hero-slogan-text,
+  .describe-mobile-meta .rich-text-renderer.hero-slogan-text * {
     text-align: right !important;
   }
 }
