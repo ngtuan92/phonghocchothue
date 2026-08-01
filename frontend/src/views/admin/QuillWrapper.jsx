@@ -3960,7 +3960,7 @@ const QuillWrapper = forwardRef(({
               syncContent = true,
             } = options;
             const range = rangeOverride || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
-            preserveEditorScrollDuring(() => {
+            const applyFormat = () => {
               if (range?.length > 0) {
                 try {
                   if (!preserveNativePickerFocus && !isMobileAdminViewport()) {
@@ -3990,7 +3990,12 @@ const QuillWrapper = forwardRef(({
                 }
                 quill.format('color', nextValue || false, source);
               }
-            });
+            };
+            if (preserveNativePickerFocus) {
+              applyFormat();
+            } else {
+              preserveEditorScrollDuring(applyFormat);
+            }
             if (syncContent) {
               syncColorContent();
             }
@@ -4101,7 +4106,7 @@ const QuillWrapper = forwardRef(({
               syncContent = true,
             } = options;
             const range = rangeOverride || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
-            preserveEditorScrollDuring(() => {
+            const applyFormat = () => {
               if (range?.length > 0) {
                 try {
                   if (!preserveNativePickerFocus && !isMobileAdminViewport()) {
@@ -4131,7 +4136,12 @@ const QuillWrapper = forwardRef(({
                 }
                 quill.format('background', nextValue || false, source);
               }
-            });
+            };
+            if (preserveNativePickerFocus) {
+              applyFormat();
+            } else {
+              preserveEditorScrollDuring(applyFormat);
+            }
             if (syncContent) {
               syncBackgroundContent();
             }
