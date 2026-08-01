@@ -1,10 +1,14 @@
 "use client";
 
-import { Fade } from "react-slideshow-image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
 import useConfigContentByKey from "../hooks/useConfigContentByKey";
 import { useSliders } from "@/hooks/api/useSlider";
 import RichTextRenderer from "./RichTextRenderer";
+
+import "swiper/css";
+import "swiper/css/effect-fade";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -323,28 +327,42 @@ const Describe = () => {
                                 }`}
                             style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}
                         >
-                            <Fade
-                                autoplay={true}
-                                duration={3000}
-                                transitionDuration={800}
-                                arrows={false}
+                            <Swiper
+                                modules={[Autoplay, EffectFade]}
+                                effect="fade"
+                                fadeEffect={{ crossFade: true }}
+                                slidesPerView={1}
+                                loop={sliderData.length > 1}
+                                speed={450}
+                                autoplay={
+                                    sliderData.length > 1
+                                        ? { delay: 3500, disableOnInteraction: false }
+                                        : false
+                                }
+                                observer={true}
+                                observeParents={true}
+                                className="w-full h-full bg-transparent"
+                                style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}
                             >
                                 {sliderData.map((fadeImage: SliderItem, index: number) => (
-                                    <div key={index} className="relative w-full overflow-hidden bg-transparent" style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}>
+                                    <SwiperSlide key={index} className="bg-transparent" style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}>
+                                      <div className="relative w-full overflow-hidden bg-transparent" style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}>
                                         <Image
                                             className="w-full h-auto object-contain bg-transparent"
                                             src={encodeURI(`${URL_API.replace(/\/$/, "")}/${fadeImage.image?.replace(/\\/g, "/")}`)}
                                             alt={`Slide ${index + 1}`}
                                             width={1200}
                                             height={625}
-                                            sizes="(max-width: 768px) 95vw, 58vw"
-                                            quality={95}
+                                            sizes="(max-width: 768px) 95vw, 42vw"
+                                            quality={85}
                                             priority={index === 0}
+                                            loading={index === 0 ? "eager" : "lazy"}
                                             style={{ backgroundColor: "transparent" }}
                                         />
-                                    </div>
+                                      </div>
+                                    </SwiperSlide>
                                 ))}
-                            </Fade>
+                            </Swiper>
                         </div>
                     </div>
                 </div>
