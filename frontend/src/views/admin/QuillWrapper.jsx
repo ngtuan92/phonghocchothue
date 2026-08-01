@@ -1005,9 +1005,13 @@ const QuillWrapper = forwardRef(({
 
   const onChangeTimeoutRef = useRef(null);
   const onChangeRef = useRef(props.onChange);
+  const onDraftChangeRef = useRef(onDraftChange);
   useEffect(() => {
     onChangeRef.current = props.onChange;
   }, [props.onChange]);
+  useEffect(() => {
+    onDraftChangeRef.current = onDraftChange;
+  }, [onDraftChange]);
 
   const normalizeUnsignedControlValue = useCallback((key, value) => {
     if (value === null || value === undefined) return "";
@@ -3945,9 +3949,15 @@ const QuillWrapper = forwardRef(({
         color: function (value) {
           const quill = this.quill;
           const syncColorContent = () => {
+            const html = quill.root.innerHTML;
+            localEditorHtmlRef.current = html;
+            if (commitOnBlurOnly) {
+              lastRelativeContentRef.current = html;
+              onDraftChangeRef.current?.(html);
+              return;
+            }
             window.setTimeout(() => {
               try {
-                localEditorHtmlRef.current = quill.root.innerHTML;
                 toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
               } catch { /* ignore */ }
             }, 0);
@@ -4091,9 +4101,15 @@ const QuillWrapper = forwardRef(({
         background: function (value) {
           const quill = this.quill;
           const syncBackgroundContent = () => {
+            const html = quill.root.innerHTML;
+            localEditorHtmlRef.current = html;
+            if (commitOnBlurOnly) {
+              lastRelativeContentRef.current = html;
+              onDraftChangeRef.current?.(html);
+              return;
+            }
             window.setTimeout(() => {
               try {
-                localEditorHtmlRef.current = quill.root.innerHTML;
                 toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
               } catch { /* ignore */ }
             }, 0);
