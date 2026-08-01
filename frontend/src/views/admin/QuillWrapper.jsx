@@ -1934,7 +1934,7 @@ const QuillWrapper = forwardRef(({
   const isCustomControlTarget = useCallback((target) => {
     if (!(target instanceof Element)) return false;
     return Boolean(target.closest?.(
-      '.ql-font-size-custom, .ql-line-height, .ql-translate-y, .ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup'
+      '.ql-font-size-custom, .ql-line-height, .ql-translate-y, .ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup, #quill-custom-color-picker, #quill-custom-bg-picker'
     ));
   }, []);
 
@@ -3944,18 +3944,25 @@ const QuillWrapper = forwardRef(({
         },
         color: function (value) {
           const quill = this.quill;
-          const applyColor = (nextValue) => {
-            const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+          const applyColor = (nextValue, options = {}) => {
+            const { preserveNativePickerFocus = false, rangeOverride = null } = options;
+            const range = rangeOverride || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
             preserveEditorScrollDuring(() => {
               if (range?.length > 0) {
                 try {
-                  if (!isMobileAdminViewport()) {
+                  if (!preserveNativePickerFocus && !isMobileAdminViewport()) {
                     focusWithoutScroll(quill);
                   }
-                  setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                  if (!preserveNativePickerFocus) {
+                    setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                  }
                   savedSelectionRef.current = range;
                 } catch { /* ignore */ }
-                quill.format('color', nextValue || false, 'user');
+                if (preserveNativePickerFocus) {
+                  quill.formatText(range.index, range.length, 'color', nextValue || false, 'user');
+                } else {
+                  quill.format('color', nextValue || false, 'user');
+                }
               } else if (disableImageWrap && quill.getLength?.() > 1) {
                 quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'color', nextValue || false, 'user');
               } else {
@@ -3982,6 +3989,14 @@ const QuillWrapper = forwardRef(({
           if (value === 'no-color') {
             applyColor(false);
           } else if (value === 'custom-color') {
+            const isMobilePicker = isMobileAdminViewport();
+            const customColorRange = quill.getSelection() || controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
+            if (customColorRange) {
+              savedSelectionRef.current = { ...customColorRange };
+              if (customColorRange.length > 0) {
+                lastHighlightSelectionRef.current = { ...customColorRange };
+              }
+            }
             let picker = document.getElementById('quill-custom-color-picker');
             if (!picker) {
               picker = document.createElement('input');
@@ -3994,6 +4009,14 @@ const QuillWrapper = forwardRef(({
               picker.style.pointerEvents = 'auto';
               picker.style.zIndex = '2147483647';
               document.body.appendChild(picker);
+            }
+            if (picker.dataset.quillPickerEventsBound !== 'true') {
+              picker.dataset.quillPickerEventsBound = 'true';
+              ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'mouseup', 'click'].forEach((eventName) => {
+                picker.addEventListener(eventName, (event) => {
+                  event.stopPropagation();
+                }, true);
+              });
             }
             // Mobile browsers often block the native color dialog for fully
             // hidden inputs, so keep this input tangible and place it where the
@@ -4015,10 +4038,16 @@ const QuillWrapper = forwardRef(({
             const applyPickedColor = () => {
               if (picker.value === lastAppliedColor) return;
               lastAppliedColor = picker.value;
-              applyColor(picker.value);
+              applyColor(picker.value, {
+                preserveNativePickerFocus: isMobilePicker,
+                rangeOverride: customColorRange ? { ...customColorRange } : null,
+              });
             };
-            picker.oninput = isMobileAdminViewport() ? null : applyPickedColor;
+            picker.oninput = isMobilePicker ? null : applyPickedColor;
             picker.onchange = applyPickedColor;
+            picker.onblur = () => {
+              window.setTimeout(applyPickedColor, 0);
+            };
             picker.focus({ preventScroll: true });
             try {
               if (typeof picker.showPicker === 'function') {
@@ -4035,18 +4064,25 @@ const QuillWrapper = forwardRef(({
         },
         background: function (value) {
           const quill = this.quill;
-          const applyBackground = (nextValue) => {
-            const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+          const applyBackground = (nextValue, options = {}) => {
+            const { preserveNativePickerFocus = false, rangeOverride = null } = options;
+            const range = rangeOverride || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
             preserveEditorScrollDuring(() => {
               if (range?.length > 0) {
                 try {
-                  if (!isMobileAdminViewport()) {
+                  if (!preserveNativePickerFocus && !isMobileAdminViewport()) {
                     focusWithoutScroll(quill);
                   }
-                  setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                  if (!preserveNativePickerFocus) {
+                    setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                  }
                   savedSelectionRef.current = range;
                 } catch { /* ignore */ }
-                quill.format('background', nextValue || false, 'user');
+                if (preserveNativePickerFocus) {
+                  quill.formatText(range.index, range.length, 'background', nextValue || false, 'user');
+                } else {
+                  quill.format('background', nextValue || false, 'user');
+                }
               } else if (disableImageWrap && quill.getLength?.() > 1) {
                 quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'background', nextValue || false, 'user');
               } else {
@@ -4073,6 +4109,14 @@ const QuillWrapper = forwardRef(({
           if (value === 'no-color') {
             applyBackground(false);
           } else if (value === 'custom-color') {
+            const isMobilePicker = isMobileAdminViewport();
+            const customBackgroundRange = quill.getSelection() || controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
+            if (customBackgroundRange) {
+              savedSelectionRef.current = { ...customBackgroundRange };
+              if (customBackgroundRange.length > 0) {
+                lastHighlightSelectionRef.current = { ...customBackgroundRange };
+              }
+            }
             let picker = document.getElementById('quill-custom-bg-picker');
             if (!picker) {
               picker = document.createElement('input');
@@ -4085,6 +4129,14 @@ const QuillWrapper = forwardRef(({
               picker.style.pointerEvents = 'auto';
               picker.style.zIndex = '2147483647';
               document.body.appendChild(picker);
+            }
+            if (picker.dataset.quillPickerEventsBound !== 'true') {
+              picker.dataset.quillPickerEventsBound = 'true';
+              ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'mouseup', 'click'].forEach((eventName) => {
+                picker.addEventListener(eventName, (event) => {
+                  event.stopPropagation();
+                }, true);
+              });
             }
             // Mobile browsers often block the native color dialog for fully
             // hidden inputs, so keep this input tangible and place it where the
@@ -4106,10 +4158,16 @@ const QuillWrapper = forwardRef(({
             const applyPickedBackground = () => {
               if (picker.value === lastAppliedBackground) return;
               lastAppliedBackground = picker.value;
-              applyBackground(picker.value);
+              applyBackground(picker.value, {
+                preserveNativePickerFocus: isMobilePicker,
+                rangeOverride: customBackgroundRange ? { ...customBackgroundRange } : null,
+              });
             };
-            picker.oninput = isMobileAdminViewport() ? null : applyPickedBackground;
+            picker.oninput = isMobilePicker ? null : applyPickedBackground;
             picker.onchange = applyPickedBackground;
+            picker.onblur = () => {
+              window.setTimeout(applyPickedBackground, 0);
+            };
             picker.focus({ preventScroll: true });
             try {
               if (typeof picker.showPicker === 'function') {
