@@ -338,7 +338,7 @@ const Describe = () => {
                                 autoplay={
                                     sliderData.length > 1
                                         ? {
-                                            delay: 2000,
+                                            delay: 3500,
                                             disableOnInteraction: false,
                                             pauseOnMouseEnter: false,
                                             waitForTransition: false,
