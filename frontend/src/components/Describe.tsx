@@ -328,17 +328,30 @@ const Describe = () => {
                             style={{ borderRadius: galleryRadius, backgroundColor: "transparent" }}
                         >
                             <Swiper
+                                key={`gallery-slider-${sliderData.length}`}
                                 modules={[Autoplay, EffectFade]}
                                 effect="fade"
                                 fadeEffect={{ crossFade: true }}
                                 slidesPerView={1}
                                 loop={sliderData.length > 1}
-                                speed={450}
+                                speed={320}
                                 autoplay={
                                     sliderData.length > 1
-                                        ? { delay: 3500, disableOnInteraction: false }
+                                        ? {
+                                            delay: 2000,
+                                            disableOnInteraction: false,
+                                            pauseOnMouseEnter: false,
+                                            waitForTransition: false,
+                                        }
                                         : false
                                 }
+                                onSwiper={(swiper) => {
+                                    if (sliderData.length <= 1) return;
+                                    window.setTimeout(() => {
+                                        swiper.update();
+                                        swiper.autoplay?.start();
+                                    }, 0);
+                                }}
                                 observer={true}
                                 observeParents={true}
                                 className="w-full h-full bg-transparent"
