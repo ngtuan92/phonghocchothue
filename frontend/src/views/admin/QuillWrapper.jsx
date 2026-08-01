@@ -3944,8 +3944,21 @@ const QuillWrapper = forwardRef(({
         },
         color: function (value) {
           const quill = this.quill;
+          const syncColorContent = () => {
+            window.setTimeout(() => {
+              try {
+                localEditorHtmlRef.current = quill.root.innerHTML;
+                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              } catch { /* ignore */ }
+            }, 0);
+          };
           const applyColor = (nextValue, options = {}) => {
-            const { preserveNativePickerFocus = false, rangeOverride = null } = options;
+            const {
+              preserveNativePickerFocus = false,
+              rangeOverride = null,
+              source = 'user',
+              syncContent = true,
+            } = options;
             const range = rangeOverride || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
             preserveEditorScrollDuring(() => {
               if (range?.length > 0) {
@@ -3959,12 +3972,12 @@ const QuillWrapper = forwardRef(({
                   savedSelectionRef.current = range;
                 } catch { /* ignore */ }
                 if (preserveNativePickerFocus) {
-                  quill.formatText(range.index, range.length, 'color', nextValue || false, 'user');
+                  quill.formatText(range.index, range.length, 'color', nextValue || false, source);
                 } else {
-                  quill.format('color', nextValue || false, 'user');
+                  quill.format('color', nextValue || false, source);
                 }
               } else if (disableImageWrap && quill.getLength?.() > 1) {
-                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'color', nextValue || false, 'user');
+                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'color', nextValue || false, source);
               } else {
                 if (range) {
                   try {
@@ -3975,15 +3988,12 @@ const QuillWrapper = forwardRef(({
                     savedSelectionRef.current = range;
                   } catch { /* ignore */ }
                 }
-                quill.format('color', nextValue || false, 'user');
+                quill.format('color', nextValue || false, source);
               }
             });
-            window.setTimeout(() => {
-              try {
-                localEditorHtmlRef.current = quill.root.innerHTML;
-                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
-              } catch { /* ignore */ }
-            }, 0);
+            if (syncContent) {
+              syncColorContent();
+            }
           };
 
           if (value === 'no-color') {
@@ -4034,19 +4044,30 @@ const QuillWrapper = forwardRef(({
             if (currentFormat && currentFormat.color && currentFormat.color.startsWith('#')) {
               picker.value = currentFormat.color;
             }
-            let lastAppliedColor = picker.value;
-            const applyPickedColor = () => {
-              if (picker.value === lastAppliedColor) return;
-              lastAppliedColor = picker.value;
+            let lastRenderedColor = picker.value;
+            let lastCommittedColor = picker.value;
+            const renderPickedColor = () => {
+              if (picker.value === lastRenderedColor) return;
+              lastRenderedColor = picker.value;
               applyColor(picker.value, {
                 preserveNativePickerFocus: isMobilePicker,
                 rangeOverride: customColorRange ? { ...customColorRange } : null,
+                source: isMobilePicker ? 'silent' : 'user',
+                syncContent: !isMobilePicker,
               });
             };
-            picker.oninput = isMobilePicker ? null : applyPickedColor;
-            picker.onchange = applyPickedColor;
+            const commitPickedColor = () => {
+              renderPickedColor();
+              if (picker.value === lastCommittedColor) return;
+              lastCommittedColor = picker.value;
+              if (isMobilePicker) {
+                syncColorContent();
+              }
+            };
+            picker.oninput = renderPickedColor;
+            picker.onchange = commitPickedColor;
             picker.onblur = () => {
-              window.setTimeout(applyPickedColor, 0);
+              window.setTimeout(commitPickedColor, 0);
             };
             picker.focus({ preventScroll: true });
             try {
@@ -4064,8 +4085,21 @@ const QuillWrapper = forwardRef(({
         },
         background: function (value) {
           const quill = this.quill;
+          const syncBackgroundContent = () => {
+            window.setTimeout(() => {
+              try {
+                localEditorHtmlRef.current = quill.root.innerHTML;
+                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              } catch { /* ignore */ }
+            }, 0);
+          };
           const applyBackground = (nextValue, options = {}) => {
-            const { preserveNativePickerFocus = false, rangeOverride = null } = options;
+            const {
+              preserveNativePickerFocus = false,
+              rangeOverride = null,
+              source = 'user',
+              syncContent = true,
+            } = options;
             const range = rangeOverride || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
             preserveEditorScrollDuring(() => {
               if (range?.length > 0) {
@@ -4079,12 +4113,12 @@ const QuillWrapper = forwardRef(({
                   savedSelectionRef.current = range;
                 } catch { /* ignore */ }
                 if (preserveNativePickerFocus) {
-                  quill.formatText(range.index, range.length, 'background', nextValue || false, 'user');
+                  quill.formatText(range.index, range.length, 'background', nextValue || false, source);
                 } else {
-                  quill.format('background', nextValue || false, 'user');
+                  quill.format('background', nextValue || false, source);
                 }
               } else if (disableImageWrap && quill.getLength?.() > 1) {
-                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'background', nextValue || false, 'user');
+                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'background', nextValue || false, source);
               } else {
                 if (range) {
                   try {
@@ -4095,15 +4129,12 @@ const QuillWrapper = forwardRef(({
                     savedSelectionRef.current = range;
                   } catch { /* ignore */ }
                 }
-                quill.format('background', nextValue || false, 'user');
+                quill.format('background', nextValue || false, source);
               }
             });
-            window.setTimeout(() => {
-              try {
-                localEditorHtmlRef.current = quill.root.innerHTML;
-                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
-              } catch { /* ignore */ }
-            }, 0);
+            if (syncContent) {
+              syncBackgroundContent();
+            }
           };
 
           if (value === 'no-color') {
@@ -4154,19 +4185,30 @@ const QuillWrapper = forwardRef(({
             if (currentFormat && currentFormat.background && currentFormat.background.startsWith('#')) {
               picker.value = currentFormat.background;
             }
-            let lastAppliedBackground = picker.value;
-            const applyPickedBackground = () => {
-              if (picker.value === lastAppliedBackground) return;
-              lastAppliedBackground = picker.value;
+            let lastRenderedBackground = picker.value;
+            let lastCommittedBackground = picker.value;
+            const renderPickedBackground = () => {
+              if (picker.value === lastRenderedBackground) return;
+              lastRenderedBackground = picker.value;
               applyBackground(picker.value, {
                 preserveNativePickerFocus: isMobilePicker,
                 rangeOverride: customBackgroundRange ? { ...customBackgroundRange } : null,
+                source: isMobilePicker ? 'silent' : 'user',
+                syncContent: !isMobilePicker,
               });
             };
-            picker.oninput = isMobilePicker ? null : applyPickedBackground;
-            picker.onchange = applyPickedBackground;
+            const commitPickedBackground = () => {
+              renderPickedBackground();
+              if (picker.value === lastCommittedBackground) return;
+              lastCommittedBackground = picker.value;
+              if (isMobilePicker) {
+                syncBackgroundContent();
+              }
+            };
+            picker.oninput = renderPickedBackground;
+            picker.onchange = commitPickedBackground;
             picker.onblur = () => {
-              window.setTimeout(applyPickedBackground, 0);
+              window.setTimeout(commitPickedBackground, 0);
             };
             picker.focus({ preventScroll: true });
             try {
