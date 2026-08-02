@@ -507,6 +507,7 @@ export default function CMS() {
   const configCardRefs = useRef({});
   const lastNonEmptyContentRef = useRef({});
   const faqEditorRefsRef = useRef({});
+  const configEditorRefsRef = useRef({});
 
   const FONT_STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amatic+SC:wght@400;700&family=Bebas+Neue&family=Caveat:wght@400..700&family=Dancing+Script:wght@400..700&family=Great+Vibes&family=Inter:wght@400..700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Nunito:ital,wght@0,400..900;1,400..900&family=Oswald:wght@400..700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Quicksand:wght@400..700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
@@ -1028,7 +1029,19 @@ export default function CMS() {
     );
   };
 
+  const flushConfigEditorDrafts = (key) => {
+    const editor = configEditorRefsRef.current[key];
+    const snapshot = editor?.flushPendingChanges?.();
+    if (!snapshot || !Object.prototype.hasOwnProperty.call(snapshot, "content")) return;
+
+    configDraftsRef.current[key] = snapshot.content;
+    if (hasMeaningfulHtml(snapshot.content)) {
+      lastNonEmptyContentRef.current[key] = snapshot.content;
+    }
+  };
+
   const saveConfig = async (config) => {
+    flushConfigEditorDrafts(config.key);
     const latestConfig = configs.find((c) => c.key === config.key) || config;
     const controlDrafts = configControlDraftsRef.current[config.key] || {};
     const configToSave = {
@@ -1407,6 +1420,9 @@ export default function CMS() {
         <div className="border border-gray-100 rounded-xl transition-colors duration-200 bg-white">
           <LazyQuillWrapper
             ref={(el) => {
+              if (el) configEditorRefsRef.current[config.key] = el;
+              else delete configEditorRefsRef.current[config.key];
+
               if (el && el.getEditor) {
                 const quill = el.getEditor();
                 if (quill) {
