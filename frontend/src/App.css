@@ -188,7 +188,13 @@
 }
 
 .describe-anchor-mobile {
+  width: 322px;
   height: 258px;
+  transform-origin: top center;
+}
+
+.describe-mobile-viewport {
+  flex-shrink: 0;
 }
 
 @media (min-width: 640px) {

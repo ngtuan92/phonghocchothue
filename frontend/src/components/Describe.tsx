@@ -3,6 +3,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import useConfigContentByKey from "../hooks/useConfigContentByKey";
 import { useSliders } from "@/hooks/api/useSlider";
 import RichTextRenderer from "./RichTextRenderer";
@@ -11,6 +12,10 @@ import "swiper/css";
 import "swiper/css/effect-fade";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+// The existing mobile CMS values were tuned on a 390px viewport. After the
+// page's 34px side gutters, the actual hero design surface is 322px wide.
+const MOBILE_ARTBOARD_WIDTH = 322;
+const MOBILE_ARTBOARD_HEIGHT = 258;
 
 interface SliderItem {
     image: string;
@@ -76,6 +81,8 @@ const cleanHeadingHtml = (html: string | undefined) => {
 };
 
 const Describe = () => {
+    const mobileViewportRef = useRef<HTMLDivElement>(null);
+    const [mobileArtboardScale, setMobileArtboardScale] = useState<number | null>(null);
     const { data: sliderData = [] } = useSliders("gallery");
     const description = useConfigContentByKey("textDecription");
     const describeHeading = useConfigContentByKey("describe-heading");
@@ -95,6 +102,24 @@ const Describe = () => {
     const activeMobileFrameRadius = describeFrameImageMobileRadius ? `${describeFrameImageMobileRadius}px` : frameBorderRadius;
     const gallerySliderRadius = useConfigContentByKey("gallery-slider-radius");
     const galleryRadius = gallerySliderRadius ? `${gallerySliderRadius}px` : '0px';
+
+    useEffect(() => {
+        const viewport = mobileViewportRef.current;
+        if (!viewport) return;
+
+        const updateScale = () => {
+            const availableWidth = viewport.getBoundingClientRect().width;
+            if (!availableWidth) return;
+
+            setMobileArtboardScale(Math.min(1, availableWidth / MOBILE_ARTBOARD_WIDTH));
+        };
+
+        updateScale();
+        const resizeObserver = new ResizeObserver(updateScale);
+        resizeObserver.observe(viewport);
+
+        return () => resizeObserver.disconnect();
+    }, []);
 
     const buildUrl = (path: string | undefined) => {
         if (!path) return "";
@@ -217,7 +242,20 @@ const Describe = () => {
                 </div>
 
                 <div className="sm:hidden relative z-10 w-full h-full flex flex-col items-center justify-center pt-0 pb-0">
-                    <div className="describe-anchor describe-anchor-mobile relative isolate w-full flex flex-col items-center -translate-y-[10px]">
+                    <div
+                        ref={mobileViewportRef}
+                        className="describe-mobile-viewport relative w-full"
+                        style={{
+                            height: `${MOBILE_ARTBOARD_HEIGHT * (mobileArtboardScale ?? 1)}px`,
+                            visibility: mobileArtboardScale === null ? "hidden" : "visible",
+                        }}
+                    >
+                    <div
+                        className="describe-anchor describe-anchor-mobile absolute left-1/2 top-0 isolate flex flex-col items-center"
+                        style={{
+                            transform: `translateX(-50%) translateY(-10px) scale(${mobileArtboardScale ?? 1})`,
+                        }}
+                    >
                         {activeMobileFrameImage && (
                             <div
                                 className="describe-frame-mobile absolute z-0 top-[38px] aspect-[420/310] left-1/2 transform -translate-x-1/2 w-[calc(100%+4.5rem)] max-w-[420px] overflow-hidden pointer-events-none"
@@ -291,6 +329,7 @@ const Describe = () => {
                                 />
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
