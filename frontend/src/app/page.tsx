@@ -358,6 +358,8 @@ export default function Home() {
           {notificationLink && (
             <a
               href={notificationLink}
+              target="_blank"
+              rel="noopener noreferrer"
               className="notification-link-button inline-flex items-center justify-center cursor-pointer mt-2 font-bold bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none text-xs transition-all duration-300 ease-in-out"
               style={notificationButtonStyle}
             >
