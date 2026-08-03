@@ -938,12 +938,18 @@ const QuillWrapper = forwardRef(({
     className.includes('describe-phone') ||
     className.includes('describe-quote-text') ||
     className.includes('seo-h1-main');
+  const shouldPreserveHeroInlineWhitespace =
+    className.includes('describe-phone') ||
+    className.includes('describe-quote-text') ||
+    className.includes('hero-phone-text') ||
+    className.includes('hero-slogan-text');
   const preserveWhitespaceOnlyBlocks =
     className.includes('blog-desc-editor') ||
     className.includes('room-desc-editor') ||
     className.includes('room-summary-editor');
   const preserveInlineWhitespace =
-    className.includes('room-summary-editor');
+    className.includes('room-summary-editor') ||
+    shouldPreserveHeroInlineWhitespace;
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;

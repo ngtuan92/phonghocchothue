@@ -13,6 +13,7 @@ import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import classNames from "classnames";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { stripHtmlAndCss } from "@/utils/seoHelpers";
+import { isMobile, openMessengerApp } from "@/social/openExternalApp";
 
 const getAudioSrc = (pathStr: any) => {
   if (typeof pathStr !== "string") return "";
@@ -24,6 +25,7 @@ const getAudioSrc = (pathStr: any) => {
 };
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
+const MESSENGER_PAGE_ID = process.env.NEXT_PUBLIC_MESSENGER_PAGE_ID;
 
 type LegacyMarqueeProps = React.DetailedHTMLProps<
   React.HTMLAttributes<HTMLElement>,
@@ -191,6 +193,10 @@ const Header = ({ icon }: HeaderProps) => {
     }
   }, [homeMusic]);
 
+  // Mobile links stay in the current context so iOS/Android can dispatch the
+  // HTTPS Universal Link/App Link. Desktop links open in a separate tab.
+  const externalLinkTarget = isMounted && !isMobile() ? "_blank" : undefined;
+
   return (
     <header
       className="z-40 fixed left-[47px] right-[47px] sm:left-[70px] sm:right-[70px] 1400px:left-[70px] 1400px:right-[70px] 1700px:left-[85px] 1700px:right-[85px] mt-[10px] sm:mt-[8px] max-sm:pl-[5px] flex justify-between items-center"
@@ -198,7 +204,7 @@ const Header = ({ icon }: HeaderProps) => {
       <div className="flex items-center justify-start sm:ml-[25px] flex-shrink-0 gap-[16px] sm:gap-[20px]">
         <a
           href={linkFb || "#"}
-          target="_blank"
+          target={externalLinkTarget}
           rel="noopener noreferrer"
           aria-label="Trang Facebook của chúng tôi"
         >
@@ -209,8 +215,13 @@ const Header = ({ icon }: HeaderProps) => {
         </a>
         <a
           href={linkMess || "#"}
-          target="_blank"
+          target={externalLinkTarget}
           rel="noopener noreferrer"
+          onClick={(event) => {
+            if (!linkMess || !isMobile()) return;
+            event.preventDefault();
+            openMessengerApp(linkMess, MESSENGER_PAGE_ID);
+          }}
           aria-label="Nhắn tin với chúng tôi qua Messenger"
         >
           <FontAwesomeIcon
@@ -220,7 +231,7 @@ const Header = ({ icon }: HeaderProps) => {
         </a>
         <a
           href={linkYoutube || "#"}
-          target="_blank"
+          target={externalLinkTarget}
           rel="noopener noreferrer"
           aria-label="Kênh Youtube của chúng tôi"
         >
@@ -231,8 +242,6 @@ const Header = ({ icon }: HeaderProps) => {
         </a>
         <a
           href={cleanPhoneLink ? `tel:${cleanPhoneLink}` : "#"}
-          target="_blank"
-          rel="noopener noreferrer"
           aria-label="Gọi điện thoại hotline"
         >
           <FontAwesomeIcon

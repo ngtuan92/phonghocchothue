@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import { useSliders } from "@/hooks/api/useSlider";
@@ -11,6 +11,7 @@ import RichTextRenderer from "./RichTextRenderer";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "swiper/css/effect-fade";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -197,7 +198,9 @@ const Gallery: React.FC = () => {
               {/* Mobile/Tablet Swiper */}
               <div className="w-full h-full block lg:hidden">
                 <Swiper
-                  modules={[Navigation, Pagination, Autoplay]}
+                  modules={[Navigation, Pagination, Autoplay, EffectFade]}
+                  effect="fade"
+                  fadeEffect={{ crossFade: true }}
                   spaceBetween={20}
                   slidesPerView={1}
                   slidesPerGroup={1}

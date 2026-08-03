@@ -30,10 +30,11 @@ const nextConfig = {
     ],
   },
   allowedDevOrigins: [
+    '192.168.1.12',
     '192.168.1.43',
     'localhost',
     '127.0.0.1'
   ]
 }
 
-module.exports = nextConfig
+module.exports = nextConfig
