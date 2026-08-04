@@ -191,7 +191,6 @@ const Describe = () => {
                             </div>
                         )}
 
-                        <div className="describe-desktop-content-width">
                         <div className="describe-title-main-slot relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
                             <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
@@ -201,7 +200,7 @@ const Describe = () => {
                                 />
                             </div>
 
-                            <div className="relative z-10 w-full flex justify-center">
+                            <div className="relative z-10 w-max max-w-full flex justify-center">
                                 <RichTextRenderer
                                     html={cleanHeadingHtml(replaceTagName(describeHeading, "div"))}
                                     configKey="describe-heading"
@@ -219,8 +218,8 @@ const Describe = () => {
                             />
                         </div>
 
-                        <div className="describe-desktop-meta w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
-                            <div className="hero-phone-container text-lg md:text-[24px] lg:text-[26px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center flex-1 min-w-0">
+                        <div className="describe-desktop-meta relative z-10 w-full">
+                            <div className="hero-phone-container text-lg md:text-[24px] lg:text-[26px] font-bold text-[#563c39] font-wide whitespace-nowrap">
                                 <RichTextRenderer
                                     html={describePhone}
                                     configKey="describe-phone"
@@ -229,7 +228,7 @@ const Describe = () => {
                                     preserveNbsp={true}
                                 />
                             </div>
-                            <div className="flex items-center gap-2 hero-slogan-container flex-1 min-w-0">
+                            <div className="hero-slogan-container">
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
@@ -308,28 +307,27 @@ const Describe = () => {
                             />
                         </div>
 
-                        <div className="describe-mobile-meta w-[calc(100%+2.0rem)] flex flex-row justify-between items-center px-0 gap-1 mt-0 relative z-10">
-                            <div className="flex-shrink-0 flex items-center describe-mobile-meta-item">
-                                <span className="text-[10px] font-bold text-[#563c39] whitespace-nowrap flex items-center">
+                        <div className="describe-mobile-meta w-[calc(100%+2.0rem)] mt-0 relative z-10">
+                            <div className="describe-mobile-meta-item">
+                                <div className="text-[10px] font-bold text-[#563c39] whitespace-nowrap flex items-center w-full">
                                     <RichTextRenderer
                                         html={describePhone}
                                         configKey="describe-phone"
-                                        className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
-                                        as="span"
+                                        className="block [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
+                                        as="div"
                                         preserveNbsp={true}
                                     />
-                                </span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0 hero-slogan-container describe-mobile-meta-item">
+                            <div className="hero-slogan-container describe-mobile-meta-item">
                                 <RichTextRenderer
                                     html={describeQuoteText}
                                     configKey="describe-quote-text"
-                                    className="inline-block [&_*]:inline [&_*]:m-0 [&_*]:p-0 text-[10px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
-                                    as="span"
+                                    className="block [&_*]:m-0 [&_*]:p-0 text-[10px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
+                                    as="div"
                                     preserveNbsp={true}
                                 />
                             </div>
-                        </div>
                         </div>
                     </div>
                     </div>

@@ -150,7 +150,7 @@
     justify-content: initial !important;
   }
 
-  .describe-mobile-meta > .describe-mobile-meta-item:first-child {
+  .describe-mobile-meta > .describe-mobile-meta-item {
     position: absolute;
     left: 0;
     width: 100%;
@@ -158,16 +158,12 @@
     z-index: 1;
   }
 
-  .describe-mobile-meta > .describe-mobile-meta-item:last-child {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    min-width: 0;
-    z-index: 1;
+  .describe-mobile-meta > .hero-slogan-container {
+    margin-left: 0 !important;
   }
 
   .describe-mobile-meta-item,
-  .describe-mobile-meta-item > span {
+  .describe-mobile-meta-item > div {
     height: 18px;
     align-items: center !important;
   }
@@ -1899,27 +1895,11 @@ footer .rich-text-renderer * {
   }
 }
 
-/* Adjust spacing for Hero slogan (slogan in Describe component) */
-.hero-slogan-container {
-  margin-left: 12px !important;
-}
-
 @media (min-width: 768px) {
-  .describe-desktop-content-width {
-    display: flex;
-    width: max-content;
-    max-width: 100%;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .hero-slogan-container {
-    margin-left: 28px !important;
-  }
-
   .describe-desktop-meta {
     position: relative;
     justify-content: initial !important;
+    min-height: 32px;
   }
 
   .describe-desktop-meta > .hero-phone-container {
