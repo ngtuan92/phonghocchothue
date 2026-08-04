@@ -238,8 +238,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
-    width: calc(100% + 4rem);
-    margin: 0 -2rem !important;
+    width: 100%;
+    margin: 0 !important;
     min-height: 32px;
     gap: 1rem;
   }
@@ -259,11 +259,6 @@
     margin-bottom: 14px !important;
   }
 
-  .describe-desktop-meta {
-    width: calc(100% + 6rem);
-    margin-left: -3rem !important;
-    margin-right: -3rem !important;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -280,11 +275,6 @@
     margin-bottom: 18px !important;
   }
 
-  .describe-desktop-meta {
-    width: calc(100% + 8rem);
-    margin-left: -4rem !important;
-    margin-right: -4rem !important;
-  }
 }
 
 
