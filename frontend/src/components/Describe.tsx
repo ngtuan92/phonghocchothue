@@ -3,7 +3,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import useConfigContentByKey from "../hooks/useConfigContentByKey";
 import { useSliders } from "@/hooks/api/useSlider";
 import RichTextRenderer from "./RichTextRenderer";
@@ -82,7 +82,9 @@ const cleanHeadingHtml = (html: string | undefined) => {
 
 const Describe = () => {
     const mobileViewportRef = useRef<HTMLDivElement>(null);
+    const desktopWatermarkRef = useRef<HTMLDivElement>(null);
     const [mobileArtboardScale, setMobileArtboardScale] = useState<number | null>(null);
+    const [desktopWatermarkWidth, setDesktopWatermarkWidth] = useState<number | null>(null);
     const { data: sliderData = [] } = useSliders("gallery");
     const description = useConfigContentByKey("textDecription");
     const describeHeading = useConfigContentByKey("describe-heading");
@@ -120,6 +122,73 @@ const Describe = () => {
 
         return () => resizeObserver.disconnect();
     }, []);
+
+    useEffect(() => {
+        const watermark = desktopWatermarkRef.current;
+        if (!watermark) return;
+
+        let frame = 0;
+        let cancelled = false;
+
+        const measureTextWidth = () => {
+            const rects: DOMRect[] = [];
+            const walker = document.createTreeWalker(
+                watermark,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: (node) =>
+                        node.textContent?.trim()
+                            ? NodeFilter.FILTER_ACCEPT
+                            : NodeFilter.FILTER_REJECT,
+                }
+            );
+
+            let node = walker.nextNode();
+            while (node) {
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                Array.from(range.getClientRects()).forEach((rect) => {
+                    if (rect.width > 0 && rect.height > 0) rects.push(rect);
+                });
+                range.detach();
+                node = walker.nextNode();
+            }
+
+            if (!rects.length) {
+                const fallbackRect = watermark.getBoundingClientRect();
+                return fallbackRect.width;
+            }
+
+            const left = Math.min(...rects.map((rect) => rect.left));
+            const right = Math.max(...rects.map((rect) => rect.right));
+            return Math.ceil(right - left);
+        };
+
+        const updateWidth = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                if (cancelled) return;
+                const width = measureTextWidth();
+                if (!width) return;
+                setDesktopWatermarkWidth((current) =>
+                    current !== null && Math.abs(current - width) < 1 ? current : width
+                );
+            });
+        };
+
+        updateWidth();
+        const resizeObserver = new ResizeObserver(updateWidth);
+        resizeObserver.observe(watermark);
+        window.addEventListener("resize", updateWidth);
+        document.fonts?.ready.then(updateWidth);
+
+        return () => {
+            cancelled = true;
+            cancelAnimationFrame(frame);
+            resizeObserver.disconnect();
+            window.removeEventListener("resize", updateWidth);
+        };
+    }, [watermarkHtml]);
 
     const buildUrl = (path: string | undefined) => {
         if (!path) return "";
@@ -162,11 +231,18 @@ const Describe = () => {
             .trim();
     };
 
+    const desktopHeroStyle = desktopWatermarkWidth
+        ? ({ "--hero-watermark-width": `${desktopWatermarkWidth}px` } as CSSProperties)
+        : undefined;
+
     return (
         <div className="mb-[64px] sm:mb-36 main-container overflow-x-hidden">
             <div className="describe-stage relative w-full h-[calc(100dvh-60px)] sm:h-[calc(100vh-140px)] 1700px:h-[calc(100vh-170px)] sm:mb-12 md:mb-16 lg:mb-40">
                 <div className="hidden sm:flex absolute inset-0 flex-col items-center justify-center z-10 pt-0 pb-0">
-                    <div className="describe-anchor describe-anchor-desktop relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[14px] md:-translate-y-[15px] lg:-translate-y-[16px]">
+                    <div
+                        className="describe-anchor describe-anchor-desktop relative w-full max-w-[650px] md:max-w-[850px] lg:max-w-[1140px] flex flex-col items-center -translate-y-[14px] md:-translate-y-[15px] lg:-translate-y-[16px]"
+                        style={desktopHeroStyle}
+                    >
                         {describeFrameImage && (
                             <div
                                 className="describe-frame absolute z-[-1] top-[58px] md:top-[70px] lg:top-[82px] h-[238px] md:h-[315px] lg:h-[420px] -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 overflow-hidden pointer-events-none"
@@ -192,7 +268,10 @@ const Describe = () => {
                         )}
 
                         <div className="describe-title-main-slot relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
-                            <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center select-none pointer-events-none z-0 overflow-visible">
+                            <div
+                                ref={desktopWatermarkRef}
+                                className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center select-none pointer-events-none z-0 overflow-visible"
+                            >
                                 <RichTextRenderer
                                     html={replaceTagName(watermarkHtml, "div")}
                                     configKey="describe-bg-text"

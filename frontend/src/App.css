@@ -238,8 +238,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
-    width: 100%;
-    margin: 0 !important;
+    width: min(var(--hero-watermark-width, 100%), calc(100vw - (var(--site-gutter) * 2))) !important;
+    margin: 0 auto !important;
     min-height: 32px;
     gap: 1rem;
   }
