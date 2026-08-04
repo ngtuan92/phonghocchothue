@@ -235,7 +235,13 @@
   }
 
   .describe-desktop-meta {
-    margin: 0 !important;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    width: calc(100% + 4rem);
+    margin: 0 -2rem !important;
+    min-height: 32px;
+    gap: 1rem;
   }
 }
 
@@ -252,6 +258,12 @@
     margin-top: 22px !important;
     margin-bottom: 14px !important;
   }
+
+  .describe-desktop-meta {
+    width: calc(100% + 6rem);
+    margin-left: -3rem !important;
+    margin-right: -3rem !important;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -266,6 +278,12 @@
   .describe-desktop-seo {
     margin-top: 26px !important;
     margin-bottom: 18px !important;
+  }
+
+  .describe-desktop-meta {
+    width: calc(100% + 8rem);
+    margin-left: -4rem !important;
+    margin-right: -4rem !important;
   }
 }
 
@@ -1904,25 +1922,31 @@ footer .rich-text-renderer * {
 @media (min-width: 768px) {
   .describe-desktop-meta {
     position: relative;
-    justify-content: initial !important;
-    min-height: 32px;
   }
 
   .describe-desktop-meta > .hero-phone-container {
-    position: absolute;
-    left: 0;
-    width: 100%;
+    position: static;
+    justify-self: start;
+    width: auto;
     min-width: 0;
     z-index: 1;
   }
 
   .describe-desktop-meta > .hero-slogan-container {
-    position: absolute;
-    left: 0;
-    width: 100%;
+    position: static;
+    justify-self: end;
+    width: auto;
     min-width: 0;
     margin-left: 0 !important;
     z-index: 1;
+  }
+
+  .describe-desktop-meta .hero-phone-text,
+  .describe-desktop-meta .hero-slogan-text {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: none !important;
+    white-space: nowrap !important;
   }
 }
 
