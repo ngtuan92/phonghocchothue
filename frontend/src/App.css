@@ -143,18 +143,17 @@
   .describe-mobile-meta {
     margin-top: -4px !important;
     min-height: 18px;
+    display: flex;
     align-items: center !important;
-    /* Keep the two editable Hero texts independent.  They must not push
-       each other when one of them becomes wider (or uses justify). */
-    position: relative;
-    justify-content: initial !important;
+    justify-content: space-between !important;
+    gap: 8px;
   }
 
   .describe-mobile-meta > .describe-mobile-meta-item {
-    position: absolute;
-    left: 0;
-    width: 100%;
+    position: static;
+    width: auto;
     min-width: 0;
+    flex: 0 1 auto;
     z-index: 1;
   }
 
@@ -175,6 +174,13 @@
     height: 18px !important;
     line-height: 1 !important;
     vertical-align: middle !important;
+  }
+
+  .describe-mobile-meta .hero-phone-text,
+  .describe-mobile-meta .hero-phone-text *,
+  .describe-mobile-meta .hero-slogan-text,
+  .describe-mobile-meta .hero-slogan-text * {
+    white-space: normal !important;
   }
 
   .hero-phone-text *,
