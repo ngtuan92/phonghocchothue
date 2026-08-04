@@ -153,12 +153,16 @@
   .describe-mobile-meta > .describe-mobile-meta-item:first-child {
     position: absolute;
     left: 0;
+    width: 50%;
+    min-width: 0;
     z-index: 1;
   }
 
   .describe-mobile-meta > .describe-mobile-meta-item:last-child {
     position: absolute;
     right: 0;
+    width: 50%;
+    min-width: 0;
     z-index: 1;
   }
 
@@ -1913,12 +1917,16 @@ footer .rich-text-renderer * {
   .describe-desktop-meta > .hero-phone-container {
     position: absolute;
     left: 0;
+    width: 50%;
+    min-width: 0;
     z-index: 1;
   }
 
   .describe-desktop-meta > .hero-slogan-container {
     position: absolute;
     right: 0;
+    width: 50%;
+    min-width: 0;
     z-index: 1;
   }
 }
