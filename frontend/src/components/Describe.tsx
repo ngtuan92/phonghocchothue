@@ -191,6 +191,7 @@ const Describe = () => {
                             </div>
                         )}
 
+                        <div className="describe-desktop-content-width">
                         <div className="describe-title-main-slot relative w-full flex items-center justify-center py-2 md:py-3 lg:py-4">
                             <div className="absolute -top-16 -bottom-16 -left-8 -right-8 md:-left-12 md:-right-12 lg:-left-16 lg:-right-16 mx-auto w-max flex items-center justify-center select-none pointer-events-none z-0 overflow-visible">
                                 <RichTextRenderer
@@ -328,6 +329,7 @@ const Describe = () => {
                                     preserveNbsp={true}
                                 />
                             </div>
+                        </div>
                         </div>
                     </div>
                     </div>
