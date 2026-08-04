@@ -219,7 +219,7 @@ const Describe = () => {
                         </div>
 
                         <div className="describe-desktop-meta w-full flex flex-row justify-between items-center px-16 md:px-24 lg:px-30 relative z-10">
-                            <div className="text-lg md:text-[24px] lg:text-[26px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center flex-1 min-w-0">
+                            <div className="hero-phone-container text-lg md:text-[24px] lg:text-[26px] font-bold text-[#563c39] font-wide whitespace-nowrap flex items-center flex-1 min-w-0">
                                 <RichTextRenderer
                                     html={describePhone}
                                     configKey="describe-phone"

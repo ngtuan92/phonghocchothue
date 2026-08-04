@@ -144,6 +144,22 @@
     margin-top: -4px !important;
     min-height: 18px;
     align-items: center !important;
+    /* Keep the two editable Hero texts independent.  They must not push
+       each other when one of them becomes wider (or uses justify). */
+    position: relative;
+    justify-content: initial !important;
+  }
+
+  .describe-mobile-meta > .describe-mobile-meta-item:first-child {
+    position: absolute;
+    left: 0;
+    z-index: 1;
+  }
+
+  .describe-mobile-meta > .describe-mobile-meta-item:last-child {
+    position: absolute;
+    right: 0;
+    z-index: 1;
   }
 
   .describe-mobile-meta-item,
@@ -1887,6 +1903,23 @@ footer .rich-text-renderer * {
 @media (min-width: 768px) {
   .hero-slogan-container {
     margin-left: 28px !important;
+  }
+
+  .describe-desktop-meta {
+    position: relative;
+    justify-content: initial !important;
+  }
+
+  .describe-desktop-meta > .hero-phone-container {
+    position: absolute;
+    left: 0;
+    z-index: 1;
+  }
+
+  .describe-desktop-meta > .hero-slogan-container {
+    position: absolute;
+    right: 0;
+    z-index: 1;
   }
 }
 
