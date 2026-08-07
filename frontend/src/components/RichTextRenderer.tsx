@@ -755,6 +755,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
         }
         @media (max-width: 767px) {
+          .rich-text-renderer [style*="--color-mobile"] {
+            color: var(--color-mobile) !important;
+          }
           .rich-text-renderer[style*="--fs-mobile"] *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .rich-text-renderer [style*="--fs-mobile"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {

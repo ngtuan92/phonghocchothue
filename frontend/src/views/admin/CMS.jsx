@@ -1503,6 +1503,12 @@ export default function CMS() {
             editorClassName={`rich-text-renderer ${getFrontendClass(config.key)}`}
             minHeight={minHeight}
             hasResponsiveFontSize={true}
+            hasResponsiveColor={[
+              "describe-heading",
+              "describe-bg-text",
+              "describe-phone",
+              "describe-quote-text",
+            ].includes(config.key)}
             inlineSelectionControls={false}
             commitOnBlurOnly={commitOnBlurOnly}
           />

@@ -5,6 +5,7 @@ import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import Modal from "@/components/admin/Modal";
 import { Button } from "@material-tailwind/react";
+import { ColorPicker } from "@mantine/core";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
@@ -186,7 +187,7 @@ const cancelIdleWork = (id) => {
   }
 };
 
-const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation) => {
+const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation, hasResponsiveColor) => {
   const mediaGroup = ["link", "image"];
   if (showSpacingAndTranslation) {
     mediaGroup.push("line-height", "translate-y");
@@ -199,7 +200,9 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
       [{ font: fontList }],
       ...sizeControl,
       ["bold", "italic", "underline", "strike"],
-      [{ color: COLORS }, { background: COLORS }],
+      hasResponsiveColor
+        ? ["color-desktop-custom", "color-mobile-custom", { background: COLORS }]
+        : [{ color: COLORS }, { background: COLORS }],
       [{ list: "ordered" }, { list: "bullet" }],
       [{ align: [] }],
       mediaGroup,
@@ -421,6 +424,9 @@ if (typeof window !== "undefined" && Quill) {
     const fontSizeMobileAttributor = new CssVariableAttributor("fontSizeMobile", "--fs-mobile", {
       scope: Parchment.Scope.INLINE
     });
+    const colorMobileAttributor = new CssVariableAttributor("colorMobile", "--color-mobile", {
+      scope: Parchment.Scope.INLINE
+    });
 
     Quill.register(altAttributor, true);
     Quill.register(titleAttributor, true);
@@ -436,6 +442,7 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(translateYMobileAttributor, true);
     Quill.register(fontSizeDesktopAttributor, true);
     Quill.register(fontSizeMobileAttributor, true);
+    Quill.register(colorMobileAttributor, true);
   }
 
 
@@ -487,6 +494,12 @@ if (typeof window !== "undefined" && Quill) {
         <path fill="currentColor" d="M9 4v3h5v12h3V7h5V4H9zm-6 6v3h3v6h3v-6h3v-3H3z"/>
       </svg>
     `;
+    icons['color-desktop-custom'] = `
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M5 20h14v2H5v-2zm5.7-18h2.6l5.2 15h-2.7l-1.2-3.8H9.3L8.1 17H5.5l5.2-15zm-.7 9h3.9L12 5.1 10 11z"/>
+      </svg>
+    `;
+    icons['color-mobile-custom'] = icons['color-desktop-custom'];
   }
 }
 
@@ -494,7 +507,7 @@ const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
   "color", "background", "list", "align", "link", "image", "wrap",
   "alt", "title", "caption", "borderRadius", "width", "lineHeight", "lineHeightMobile",
-  "translateY", "translateYMobile", "fontSizeDesktop", "fontSizeMobile", "whiteSpace", "overflowWrap"
+  "translateY", "translateYMobile", "fontSizeDesktop", "fontSizeMobile", "colorMobile", "whiteSpace", "overflowWrap"
 ];
 
 const slugify = (name) => name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -928,6 +941,7 @@ const QuillWrapper = forwardRef(({
   className = "",
   editorClassName = "",
   hasResponsiveFontSize,
+  hasResponsiveColor = false,
   inlineSelectionControls = false,
   commitOnBlurOnly = false,
   onDraftChange,
@@ -974,6 +988,14 @@ const QuillWrapper = forwardRef(({
   const [fontSizePopupPosition, setFontSizePopupPosition] = useState({ top: 0, left: 0 });
   const [showTranslatePopup, setShowTranslatePopup] = useState(false);
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
+  const [responsiveColorPopup, setResponsiveColorPopup] = useState({
+    visible: false,
+    top: 0,
+    left: 0,
+    value: '#000000',
+    device: 'desktop',
+    applyColor: null,
+  });
   const [mobileSelectionToolbar, setMobileSelectionToolbar] = useState({ visible: false, top: 0, left: 0 });
   const [controlDrafts, setControlDrafts] = useState({});
   const [selectionControlDrafts, setSelectionControlDrafts] = useState({});
@@ -2816,6 +2838,7 @@ const QuillWrapper = forwardRef(({
       window.requestAnimationFrame(() => {
         if (!picker.isConnected || !picker.classList.contains('ql-expanded')) return;
         if (!picker.classList.contains('ql-color') &&
+            !picker.classList.contains('ql-colorMobile') &&
             !picker.classList.contains('ql-background') &&
             !picker.classList.contains('ql-align')) return;
 
@@ -2832,7 +2855,9 @@ const QuillWrapper = forwardRef(({
     };
 
     toolbar.addEventListener('mousedown', positionNativePicker, true);
-    return () => toolbar.removeEventListener('mousedown', positionNativePicker, true);
+    return () => {
+      toolbar.removeEventListener('mousedown', positionNativePicker, true);
+    };
   }, [isReady]);
 
   useEffect(() => {
@@ -2967,10 +2992,10 @@ const QuillWrapper = forwardRef(({
       const currentFonts = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
       const toolbarFontValues = [false, ...currentFonts.map(f => f.slug)];
       const showSpacingAndTranslation = hasLineHeight || hasTranslateY;
-      setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation));
+      setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation, hasResponsiveColor));
       setIsReady(true);
     }
-  }, [dynamicFonts, hasResponsive, hasLineHeight, hasTranslateY]);
+  }, [dynamicFonts, hasResponsive, hasLineHeight, hasTranslateY, hasResponsiveColor]);
 
   useEffect(() => {
     if (!isReady || !fontSearchDropdownOpenRef.current) return;
@@ -3776,9 +3801,67 @@ const QuillWrapper = forwardRef(({
         return group;
       });
     }
+    const openResponsiveColorPicker = (quill, formatName, device) => {
+      const range = quill.getSelection()
+        || controlSelectionRef.current
+        || lastHighlightSelectionRef.current
+        || savedSelectionRef.current
+        || typingSelectionRef.current;
+      if (range) savedSelectionRef.current = { ...range };
+
+      const currentFormat = range ? quill.getFormat(range) : quill.getFormat();
+      const currentColor = currentFormat?.[formatName];
+      const initialColor = /^#[0-9a-f]{6}$/i.test(currentColor || '') ? currentColor : '#000000';
+
+      const applyPickedColor = (nextColor) => {
+        if (!/^#[0-9a-f]{6}$/i.test(nextColor || '')) return;
+        const apply = () => {
+          if (range?.length > 0) {
+            quill.formatText(range.index, range.length, formatName, nextColor, 'user');
+          } else if (disableImageWrap && quill.getLength?.() > 1) {
+            quill.formatText(0, Math.max(quill.getLength() - 1, 0), formatName, nextColor, 'user');
+          } else {
+            if (range) setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+            quill.format(formatName, nextColor, 'user');
+          }
+        };
+        preserveEditorScrollDuring(apply);
+        const html = quill.root.innerHTML;
+        localEditorHtmlRef.current = html;
+        if (commitOnBlurOnly) {
+          lastRelativeContentRef.current = html;
+          onDraftChangeRef.current?.(html);
+        } else {
+          window.setTimeout(() => {
+            toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+          }, 0);
+        }
+      };
+
+      const button = containerRef.current?.querySelector(`.ql-color-${device}-custom`);
+      const rect = button?.getBoundingClientRect();
+      const popupWidth = 240;
+      const left = Math.max(12, Math.min(rect?.left || 12, window.innerWidth - popupWidth - 12));
+      const top = Math.max(12, Math.min((rect?.bottom || 12) + 8, window.innerHeight - 300));
+      setResponsiveColorPopup({
+        visible: true,
+        top,
+        left,
+        value: initialColor,
+        device,
+        applyColor: applyPickedColor,
+      });
+    };
+
     mods.toolbar = {
       container: newToolbar,
       handlers: {
+        'color-desktop-custom': function () {
+          openResponsiveColorPicker(this.quill, 'color', 'desktop');
+        },
+        'color-mobile-custom': function () {
+          openResponsiveColorPicker(this.quill, 'colorMobile', 'mobile');
+        },
         font: function (value) {
           const quill = this.quill;
           const nextValue = value && value !== 'macdinh' ? value : false;
@@ -4152,6 +4235,92 @@ const QuillWrapper = forwardRef(({
             }
           } else {
             applyColor(value);
+          }
+        },
+        colorMobile: function (value) {
+          const quill = this.quill;
+          const range = quill.getSelection()
+            || controlSelectionRef.current
+            || lastHighlightSelectionRef.current
+            || savedSelectionRef.current
+            || typingSelectionRef.current;
+
+          if (range) {
+            savedSelectionRef.current = { ...range };
+          }
+
+          const syncContent = () => {
+            const html = quill.root.innerHTML;
+            localEditorHtmlRef.current = html;
+            if (commitOnBlurOnly) {
+              lastRelativeContentRef.current = html;
+              onDraftChangeRef.current?.(html);
+              return;
+            }
+            window.setTimeout(() => {
+              toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+            }, 0);
+          };
+
+          const applyMobileColor = (nextValue) => {
+            const apply = () => {
+              if (range?.length > 0) {
+                quill.formatText(range.index, range.length, 'colorMobile', nextValue || false, 'user');
+              } else if (disableImageWrap && quill.getLength?.() > 1) {
+                quill.formatText(0, Math.max(quill.getLength() - 1, 0), 'colorMobile', nextValue || false, 'user');
+              } else {
+                if (range) {
+                  setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+                }
+                quill.format('colorMobile', nextValue || false, 'user');
+              }
+            };
+            preserveEditorScrollDuring(apply);
+            syncContent();
+          };
+
+          if (value === 'no-color') {
+            applyMobileColor(false);
+            return;
+          }
+
+          if (value !== 'custom-color') {
+            applyMobileColor(value);
+            return;
+          }
+
+          let picker = document.getElementById('quill-custom-mobile-color-picker');
+          if (!picker) {
+            picker = document.createElement('input');
+            picker.id = 'quill-custom-mobile-color-picker';
+            picker.type = 'color';
+            picker.style.position = 'fixed';
+            picker.style.width = '44px';
+            picker.style.height = '32px';
+            picker.style.opacity = '0.01';
+            picker.style.pointerEvents = 'auto';
+            picker.style.zIndex = '2147483647';
+            document.body.appendChild(picker);
+          }
+
+          const expandedPicker = containerRef.current?.querySelector('.ql-colorMobile.ql-expanded');
+          if (expandedPicker) {
+            const rect = (expandedPicker.querySelector('[data-value="custom-color"]') || expandedPicker).getBoundingClientRect();
+            picker.style.top = `${rect.top}px`;
+            picker.style.left = `${rect.left}px`;
+          }
+
+          const currentColor = range ? quill.getFormat(range).colorMobile : '';
+          if (/^#[0-9a-f]{6}$/i.test(currentColor || '')) {
+            picker.value = currentColor;
+          }
+          picker.oninput = () => applyMobileColor(picker.value);
+          picker.onchange = () => applyMobileColor(picker.value);
+          try {
+            picker.showPicker?.();
+            if (!picker.showPicker) picker.click();
+          } catch {
+            picker.click();
           }
         },
         background: function (value) {
@@ -5406,6 +5575,69 @@ const QuillWrapper = forwardRef(({
         </div>
       )}
 
+      {isMounted && responsiveColorPopup.visible && createPortal(
+        <>
+          <button
+            type="button"
+            aria-label="Đóng bảng chọn màu"
+            className="fixed inset-0 z-[3998] cursor-default bg-transparent"
+            onClick={() => setResponsiveColorPopup((prev) => ({ ...prev, visible: false }))}
+          />
+          <div
+            className="fixed z-[3999] w-[240px] rounded-xl border border-gray-200 bg-white p-3 shadow-2xl"
+            style={{ top: responsiveColorPopup.top, left: responsiveColorPopup.left }}
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-700">
+                Màu {responsiveColorPopup.device === 'mobile' ? 'Mobile' : 'Desktop'}
+              </span>
+              <button
+                type="button"
+                className="px-1 text-sm text-gray-400 hover:text-gray-700"
+                onClick={() => setResponsiveColorPopup((prev) => ({ ...prev, visible: false }))}
+              >
+                ×
+              </button>
+            </div>
+            <ColorPicker
+              fullWidth
+              format="hex"
+              value={responsiveColorPopup.value}
+              onChange={(value) => {
+                setResponsiveColorPopup((prev) => ({ ...prev, value }));
+                responsiveColorPopup.applyColor?.(value);
+              }}
+            />
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className="h-8 w-8 shrink-0 rounded-md border border-gray-200"
+                style={{ backgroundColor: responsiveColorPopup.value }}
+              />
+              <input
+                type="text"
+                inputMode="text"
+                maxLength={7}
+                aria-label="Mã màu HEX"
+                value={responsiveColorPopup.value}
+                onChange={(event) => {
+                  let value = event.target.value.trim();
+                  if (value && !value.startsWith('#')) value = `#${value}`;
+                  setResponsiveColorPopup((prev) => ({ ...prev, value }));
+                  if (/^#[0-9a-f]{6}$/i.test(value)) {
+                    responsiveColorPopup.applyColor?.(value);
+                  }
+                }}
+                className="h-8 min-w-0 flex-1 rounded-md border border-gray-300 px-2 font-mono text-sm uppercase text-gray-800 outline-none focus:border-blue-500"
+                placeholder="#000000"
+              />
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+
       {showFontSizePopup && hasResponsive && (
         <div
           className="ql-font-size-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
@@ -5842,6 +6074,9 @@ const QuillWrapper = forwardRef(({
           display: inline-block !important;
         }
         @media (max-width: 767px) {
+          .quill-wrapper-container .ql-editor [style*="--color-mobile"] {
+            color: var(--color-mobile) !important;
+          }
           .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile"],
           .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile"] * {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
@@ -5852,6 +6087,32 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor span[style*="--translate-y-mobile"] {
             display: inline-block !important;
           }
+        }
+
+        .quill-wrapper-container .ql-toolbar button.ql-color-desktop-custom,
+        .quill-wrapper-container .ql-toolbar button.ql-color-mobile-custom {
+          position: relative;
+        }
+        .quill-wrapper-container .ql-toolbar button.ql-color-desktop-custom::after,
+        .quill-wrapper-container .ql-toolbar button.ql-color-mobile-custom::after {
+          position: absolute;
+          right: -2px;
+          bottom: -3px;
+          z-index: 2;
+          padding: 0 2px;
+          border-radius: 3px;
+          background: #fff;
+          color: #4b5563;
+          font-size: 8px;
+          font-weight: 700;
+          line-height: 11px;
+          pointer-events: none;
+        }
+        .quill-wrapper-container .ql-toolbar button.ql-color-desktop-custom::after {
+          content: "D";
+        }
+        .quill-wrapper-container .ql-toolbar button.ql-color-mobile-custom::after {
+          content: "M";
         }
 
         .quill-wrapper-container .ql-container .ql-tooltip.ql-hidden,
@@ -7761,6 +8022,7 @@ const MemoizedQuillWrapper = React.memo(QuillWrapper, (prevProps, nextProps) => 
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.minHeight === nextProps.minHeight &&
     prevProps.hasResponsiveFontSize === nextProps.hasResponsiveFontSize &&
+    prevProps.hasResponsiveColor === nextProps.hasResponsiveColor &&
     prevProps.inlineSelectionControls === nextProps.inlineSelectionControls &&
     prevProps.commitOnBlurOnly === nextProps.commitOnBlurOnly &&
     prevProps.theme === nextProps.theme

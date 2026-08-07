@@ -30,6 +30,7 @@ const nextConfig = {
     ],
   },
   allowedDevOrigins: [
+    '192.168.1.38',
     '192.168.1.12',
     '192.168.1.43',
     'localhost',
