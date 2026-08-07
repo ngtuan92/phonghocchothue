@@ -53,7 +53,8 @@ export default function ColorPicker({ value, onChange, label }) {
                 }
               }}
               placeholder="#000000"
-              className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              className="admin-color-hex-input w-full px-3 py-2 text-sm font-bold bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              style={{ color: "#111827", WebkitTextFillColor: "#111827", opacity: 1 }}
             />
           </div>
         </div>

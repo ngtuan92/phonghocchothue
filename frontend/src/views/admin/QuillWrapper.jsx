@@ -5629,7 +5629,8 @@ const QuillWrapper = forwardRef(({
                     responsiveColorPopup.applyColor?.(value);
                   }
                 }}
-                className="h-8 min-w-0 flex-1 rounded-md border border-gray-300 px-2 font-mono text-sm uppercase text-gray-800 outline-none focus:border-blue-500"
+                className="responsive-color-hex-input h-8 min-w-0 flex-1 rounded-md border border-gray-300 px-2 font-mono text-sm font-bold uppercase outline-none focus:border-blue-500"
+                style={{ color: '#111827', WebkitTextFillColor: '#111827', opacity: 1, backgroundColor: '#ffffff' }}
                 placeholder="#000000"
               />
             </div>

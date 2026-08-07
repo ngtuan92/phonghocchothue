@@ -408,6 +408,21 @@
   display: none;
 }
 
+.responsive-color-hex-input,
+.admin-color-hex-input {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+.responsive-color-hex-input::placeholder,
+.admin-color-hex-input::placeholder {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
 .color-header-table p {
   color: #1a94ff;
 }
