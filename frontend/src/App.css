@@ -979,30 +979,35 @@
 
   .blog-excerpt-rich-text {
     box-sizing: border-box;
-    padding-inline: 1.25rem;
+    display: block !important;
+    margin-inline: auto;
+    max-width: min(100%, 21rem);
+    padding-inline: 1.75rem;
+    position: relative;
   }
 
   .blog-excerpt-rich-text > :first-child::before,
   .blog-excerpt-rich-text > :last-child::after {
     color: #b8c7b0;
-    display: inline;
+    display: block;
     font-family: serif;
     font-size: 1.65em !important;
     font-style: normal;
     font-weight: 400;
-    line-height: 0;
+    line-height: 1;
+    position: absolute;
   }
 
   .blog-excerpt-rich-text > :first-child::before {
     content: "\201C";
-    margin-right: 0.25rem;
-    vertical-align: -0.05em;
+    left: 0.25rem;
+    top: -0.2rem;
   }
 
   .blog-excerpt-rich-text > :last-child::after {
     content: "\201D";
-    margin-left: 0.25rem;
-    vertical-align: -0.35em;
+    bottom: -0.3rem;
+    right: 0.25rem;
   }
 }
 
