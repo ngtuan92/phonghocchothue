@@ -6,6 +6,16 @@ const { Op } = Sequelize;
 
 let blogFontColumnsReady = false;
 
+const logBlogError = (action, error, req) => {
+    console.error(`[BlogController.${action}]`, {
+        method: req.method,
+        path: req.originalUrl,
+        params: req.params,
+        message: error.message,
+        stack: error.stack,
+    });
+};
+
 const ensureBlogFontColumns = async () => {
     if (blogFontColumnsReady) return;
 
@@ -29,6 +39,13 @@ const ensureBlogFontColumns = async () => {
                 allowNull: true,
             });
         }
+    }
+
+    if (tableDescription.title && !/text/i.test(tableDescription.title.type || "")) {
+        await queryInterface.changeColumn("blogs", "title", {
+            type: Sequelize.TEXT,
+            allowNull: false,
+        });
     }
 
     blogFontColumnsReady = true;
@@ -86,6 +103,7 @@ class BlogController {
 
             res.json(JSON.parse(resultJson));
         } catch (error) {
+            logBlogError("index", error, req);
             res.status(500).json({ success: false, message: error.message });
         }
     }
@@ -108,6 +126,7 @@ class BlogController {
 
             res.json(JSON.parse(resultJson));
         } catch (error) {
+            logBlogError("show", error, req);
             res.status(500).json({ success: false, message: error.message });
         }
     }
@@ -151,6 +170,7 @@ class BlogController {
 
             res.status(201).json({ success: true, data: blog });
         } catch (error) {
+            logBlogError("store", error, req);
             res.status(500).json({ success: false, message: error.message });
         }
     }
@@ -206,6 +226,7 @@ class BlogController {
 
             res.json({ success: true, data: blog });
         } catch (error) {
+            logBlogError("update", error, req);
             res.status(500).json({ success: false, message: error.message });
         }
     }
@@ -226,6 +247,7 @@ class BlogController {
 
             res.json({ success: true, message: 'Đã xóa bài viết' });
         } catch (error) {
+            logBlogError("destroy", error, req);
             res.status(500).json({ success: false, message: error.message });
         }
     }
@@ -244,6 +266,7 @@ class BlogController {
             const categoryList = results.map(r => r.category).filter(Boolean);
             res.json({ success: true, data: categoryList });
         } catch (error) {
+            logBlogError("getCategories", error, req);
             res.status(500).json({ success: false, message: error.message });
         }
     }

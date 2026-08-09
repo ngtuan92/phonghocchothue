@@ -8,7 +8,7 @@ const BlogModel = db.sequelize.define("blogs", {
         autoIncrement: true 
     },
     title: { 
-        type: DataTypes.STRING(255), 
+        type: DataTypes.TEXT,
         allowNull: false 
     },
     slug: { 
