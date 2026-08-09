@@ -312,7 +312,6 @@ export default function BlogDetail() {
                       translateYMobile={blog.excerptTranslateYMobile}
                       preserveNbsp
                     />
-                    <span className="absolute bottom-0 right-0 text-[#b8c7b0] text-3xl font-serif sm:hidden leading-none" aria-hidden="true">”</span>
                   </div>
                 </div>
               )}
