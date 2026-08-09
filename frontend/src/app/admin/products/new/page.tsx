@@ -43,8 +43,10 @@ export default function NewProductPage() {
       showToastSuccess("Thêm phòng thành công");
       queryClient.invalidateQueries({ queryKey: ["products"] });
       router.push("/admin/products");
+      return true;
     } catch (error: any) {
       showToastError("Thêm phòng thất bại");
+      return false;
     } finally {
       setIsSubmitting(false);
     }

@@ -2,7 +2,7 @@
 
 /* global process */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Typography,
 } from "@material-tailwind/react";
@@ -10,6 +10,12 @@ import dynamic from "next/dynamic";
 import PropTypes from "prop-types";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { MdSave, MdClose } from "react-icons/md";
+import {
+  clearProductGalleryDraft,
+  getProductGalleryDraftKey,
+  loadProductGalleryDraft,
+  saveProductGalleryDraft,
+} from "@/utils/productGalleryDraft";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -299,6 +305,7 @@ export default function ProductForm(props) {
   const [isStatus, setIsStatus] = useState(true);
   const [singleImage, setSingleImage] = useState(null);
   const [multipleImages, setMultipleImages] = useState([]);
+  const [galleryDraftStatus, setGalleryDraftStatus] = useState("idle");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [seoKeywords, setSeoKeywords] = useState("");
@@ -328,6 +335,26 @@ export default function ProductForm(props) {
   const roomContentDraftRef = useRef("");
   const roomPriceDraftRef = useRef("");
   const roomEquipmentDraftRef = useRef("");
+  const galleryDraftWriteRef = useRef(Promise.resolve());
+  const galleryDraftKey = getProductGalleryDraftKey(id);
+
+  const persistGalleryDraft = useCallback((images) => {
+    const draftFiles = images.filter((image) => image instanceof File);
+    setGalleryDraftStatus("saving");
+    const writeOperation = galleryDraftWriteRef.current
+      .catch(() => undefined)
+      .then(() => saveProductGalleryDraft(galleryDraftKey, draftFiles));
+
+    galleryDraftWriteRef.current = writeOperation;
+    writeOperation
+      .then(() => setGalleryDraftStatus(draftFiles.length > 0 ? "saved" : "idle"))
+      .catch((error) => {
+        console.error("Unable to save product gallery draft", error);
+        setGalleryDraftStatus("error");
+      });
+
+    return writeOperation;
+  }, [galleryDraftKey]);
 
   const handleSingleImageChange = (event) => {
     const file = event.target.files[0];
@@ -409,16 +436,58 @@ export default function ProductForm(props) {
     }
   }, [dataEdit]);
 
+  useEffect(() => {
+    let active = true;
+
+    loadProductGalleryDraft(galleryDraftKey)
+      .then((draftFiles) => {
+        if (!active || draftFiles.length === 0) return;
+
+        setMultipleImages((currentImages) => {
+          const existingDraftKeys = new Set(
+            currentImages
+              .filter((image) => image instanceof File)
+              .map((file) => `${file.name}:${file.size}:${file.lastModified}`)
+          );
+          const restoredFiles = draftFiles.filter(
+            (file) => !existingDraftKeys.has(`${file.name}:${file.size}:${file.lastModified}`)
+          );
+          return [...currentImages, ...restoredFiles];
+        });
+        setGalleryDraftStatus("saved");
+      })
+      .catch((error) => {
+        if (!active) return;
+        console.error("Unable to restore product gallery draft", error);
+        setGalleryDraftStatus("error");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [galleryDraftKey]);
+
   const handleMultipleImagesChange = (event) => {
     const files = Array.from(event.target.files);
-    setMultipleImages((prev) => [...prev, ...files]);
+    setMultipleImages((prev) => {
+      const nextImages = [...prev, ...files];
+      void persistGalleryDraft(nextImages);
+      return nextImages;
+    });
+    event.target.value = "";
   };
 
   const handleRoomSlugChange = (event) => setRoomSlug(event.target.value);
   const handleStatusChange = (event) => setIsStatus(event.target.checked);
   const handleCheckboxChange = (event) => setIsChecked(event.target.checked);
   const removeSingleImage = () => setSingleImage(null);
-  const removeMultipleImage = (index) => setMultipleImages((prev) => prev.filter((_, i) => i !== index));
+  const removeMultipleImage = (index) => {
+    setMultipleImages((prev) => {
+      const nextImages = prev.filter((_, i) => i !== index);
+      void persistGalleryDraft(nextImages);
+      return nextImages;
+    });
+  };
   const handleSeoTitleChange = (event) => setSeoTitle(event.target.value);
   const handleSeoDescriptionChange = (event) => setSeoDescription(event.target.value);
   const handleSeoKeywordsChange = (event) => setSeoKeywords(event.target.value);
@@ -437,7 +506,7 @@ export default function ProductForm(props) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validateInputs()) {
       const currentRoomContent = roomContentDraftRef.current || roomContent;
       const currentRoomNameRich = roomNameRichDraftRef.current || roomNameRich;
@@ -485,7 +554,16 @@ export default function ProductForm(props) {
         translateY: roomTranslateY,
         translateYMobile: roomTranslateYMobile,
       };
-      onSave(data);
+      const saved = await onSave(data);
+      if (saved !== false) {
+        try {
+          await galleryDraftWriteRef.current.catch(() => undefined);
+          await clearProductGalleryDraft(galleryDraftKey);
+          setGalleryDraftStatus("idle");
+        } catch (error) {
+          console.error("Unable to clear product gallery draft", error);
+        }
+      }
     }
   };
 
@@ -805,6 +883,17 @@ export default function ProductForm(props) {
                 onChange={handleMultipleImagesChange}
                 accept="image/*"
               />
+              {galleryDraftStatus === "saving" && (
+                <p className="text-xs font-medium text-gray-500">Đang lưu ảnh nháp...</p>
+              )}
+              {galleryDraftStatus === "saved" && multipleImages.some((image) => image instanceof File) && (
+                <p className="text-xs font-bold text-[#15803d]">
+                  Đã lưu nháp {multipleImages.filter((image) => image instanceof File).length} ảnh trên thiết bị này.
+                </p>
+              )}
+              {galleryDraftStatus === "error" && (
+                <p className="text-xs font-bold text-red-500">Không thể lưu ảnh nháp trên trình duyệt này.</p>
+              )}
               {multipleImages.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   {multipleImages.map((image, index) => (
