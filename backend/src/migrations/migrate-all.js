@@ -9,6 +9,7 @@ const migrationFiles = [
   "add-translate-y-to-configs.js",
   "add-slug-to-products.js",
   "add-color-btn-purple-configs.js",
+  "add-room-slider-navigation-images.js",
   "change-keys-to-richtext.js",
   "update-text-notification-richtext.js",
   "update-button-notification-richtext.js",

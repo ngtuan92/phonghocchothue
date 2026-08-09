@@ -16,6 +16,13 @@ const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import RichTextRenderer from "./RichTextRenderer";
 
+const resolveConfigImageUrl = (value: unknown, fallback: string) => {
+  if (typeof value !== "string" || !value.trim()) return fallback;
+  const normalizedValue = value.trim().replaceAll("\\", "/");
+  if (/^https?:\/\//i.test(normalizedValue)) return normalizedValue;
+  return `${URL_API.replace(/\/+$/, "")}/${normalizedValue.replace(/^\/+/, "")}`;
+};
+
 interface Product {
   id?: string | number;
   _id?: string | number;
@@ -43,6 +50,9 @@ const stripHtml = (val: string) => {
 const ProductCard = ({ product }: { product?: Product }) => {
   const router = useRouter();
   const { data: products = [] } = useProducts();
+  const roomHeading = useConfigContentByKey("room-heading");
+  const roomSliderPrevImage = useConfigContentByKey("room-slider-prev-image");
+  const roomSliderNextImage = useConfigContentByKey("room-slider-next-image");
 
   const handleDetailProduct = (product: Product) => () => {
     router.push(getProductUrl(product));
@@ -68,7 +78,6 @@ const ProductCard = ({ product }: { product?: Product }) => {
     );
   }
 
-  const roomHeading = useConfigContentByKey("room-heading");
   const shouldAutoSlide = products.length > 1;
   const sliderProducts = shouldAutoSlide && products.length <= 4 ? [...products, ...products] : products;
   const sliderKey = `room-slider-${products.length}-${sliderProducts.length}`;
@@ -131,7 +140,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
       <div className="swiper-button-next-custom rounded-[50%]" role="button" aria-label="Hình ảnh kế tiếp">
         <Image
           className="w-full h-full rounded-[50%]"
-          src="/assets/images/next-new.jpg"
+          src={resolveConfigImageUrl(roomSliderNextImage, "/assets/images/next-new.jpg")}
           alt="Nút chuyển ảnh sau"
           fill
           sizes="50px"
@@ -142,7 +151,7 @@ const ProductCard = ({ product }: { product?: Product }) => {
       <div className="swiper-button-prev-custom rounded-[50%]" role="button" aria-label="Hình ảnh trước đó">
         <Image
           className="w-full h-full rounded-[50%]"
-          src="/assets/images/pre-new.jpg"
+          src={resolveConfigImageUrl(roomSliderPrevImage, "/assets/images/pre-new.jpg")}
           alt="Nút chuyển ảnh trước"
           fill
           sizes="50px"

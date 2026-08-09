@@ -271,7 +271,7 @@ const SECTIONS = [
 
 const SECTION_KEY_MAP = {
   about: ["describe-heading", "describe-bg-text", "describe-phone", "describe-quote-text", "seo-h1-main", "bgTitle", "describe-frame-image", "describe-frame-image-mobile", "textDecription"],
-  services: ["amenities-content", "amenities-description"],
+  services: ["amenities-content", "amenities-description", "room-slider-prev-image", "room-slider-next-image"],
   gallery: ["describe-h2", "describe-h2-image", "describe-h2-image-mobile", "gallery-heading", "room-heading"],
   faq: ["faq-heading", "faq_list"],
   blog: [
@@ -294,6 +294,8 @@ const KEY_LABEL_MAP = {
   "room-heading": "Tiêu đề khu vực phòng học",
   "amenities-content": "Tiêu đề khu vực tiện ích",
   "amenities-description": "Đoạn văn mô tả tiện ích chi tiết",
+  "room-slider-prev-image": "Ảnh nút chuyển phòng trước (mũi tên trái)",
+  "room-slider-next-image": "Ảnh nút chuyển phòng tiếp theo (mũi tên phải)",
   "gallery-heading": "Tiêu đề bộ sưu tập ảnh",
   "blog-heading": "Tiêu đề chuyên mục tin tức (Home)",
   "blog-decoration": "Ảnh trang trí tiêu đề chuyên mục blog (Home)",
@@ -331,6 +333,8 @@ const IMAGE_RECOMMENDATIONS = {
   "describe-h2-image": "Khuyên dùng: 1100x405px (Tỉ lệ ~ 2.7:1, Khung giải pháp trên Desktop)",
   "describe-h2-image-mobile": "Khuyên dùng: 600x300px (Tỉ lệ 2:1, Khung giải pháp trên Mobile)",
   "blog-decoration": "Khuyên dùng: 800x96px hoặc 400x48px (Tỉ lệ ~ 25:3, đúng tỉ lệ khung của phần này)",
+  "room-slider-prev-image": "Khuyên dùng: ảnh vuông, tối thiểu 128x128px (Tỉ lệ 1:1)",
+  "room-slider-next-image": "Khuyên dùng: ảnh vuông, tối thiểu 128x128px (Tỉ lệ 1:1)",
 };
 
 const getImagePreviewStyle = (key) => {
@@ -349,6 +353,14 @@ const getImagePreviewStyle = (key) => {
         imgClass: "w-full h-full object-contain block",
         aspectRatio: "1/1",
         maxWidth: "64px",
+      };
+    case "room-slider-prev-image":
+    case "room-slider-next-image":
+      return {
+        wrapperClass: "w-20 h-20 border border-gray-100 flex items-center justify-center bg-transparent",
+        imgClass: "w-full h-full object-contain block",
+        aspectRatio: "1/1",
+        maxWidth: "80px",
       };
     case "bgTitle":
       return {
