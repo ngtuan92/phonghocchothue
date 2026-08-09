@@ -25,6 +25,11 @@ import "react-quill-new/dist/quill.snow.css";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/";
 
+const DEFAULT_ROOM_FONT_SIZE = "16";
+const DEFAULT_ROOM_FONT_SIZE_MOBILE = "12";
+const DEFAULT_ROOM_NAME_FONT_SIZE = "35";
+const DEFAULT_ROOM_NAME_FONT_SIZE_MOBILE = "20";
+
 const pendingQuillMounts = [];
 let quillMountInProgress = false;
 
@@ -315,22 +320,22 @@ export default function ProductForm(props) {
   const [errors, setErrors] = useState({});
   const [roomLineHeight, setRoomLineHeight] = useState("");
   const [roomLineHeightMobile, setRoomLineHeightMobile] = useState("");
-  const [roomFontSize, setRoomFontSize] = useState("");
-  const [roomFontSizeMobile, setRoomFontSizeMobile] = useState("");
-  const [roomPriceFontSize, setRoomPriceFontSize] = useState("");
-  const [roomPriceFontSizeMobile, setRoomPriceFontSizeMobile] = useState("");
+  const [roomFontSize, setRoomFontSize] = useState(DEFAULT_ROOM_FONT_SIZE);
+  const [roomFontSizeMobile, setRoomFontSizeMobile] = useState(DEFAULT_ROOM_FONT_SIZE_MOBILE);
+  const [roomPriceFontSize, setRoomPriceFontSize] = useState(DEFAULT_ROOM_FONT_SIZE);
+  const [roomPriceFontSizeMobile, setRoomPriceFontSizeMobile] = useState(DEFAULT_ROOM_FONT_SIZE_MOBILE);
   const [roomPriceLineHeight, setRoomPriceLineHeight] = useState("");
   const [roomPriceLineHeightMobile, setRoomPriceLineHeightMobile] = useState("");
   const [roomPriceTranslateY, setRoomPriceTranslateY] = useState("");
   const [roomPriceTranslateYMobile, setRoomPriceTranslateYMobile] = useState("");
-  const [roomEquipmentFontSize, setRoomEquipmentFontSize] = useState("");
-  const [roomEquipmentFontSizeMobile, setRoomEquipmentFontSizeMobile] = useState("");
+  const [roomEquipmentFontSize, setRoomEquipmentFontSize] = useState(DEFAULT_ROOM_FONT_SIZE);
+  const [roomEquipmentFontSizeMobile, setRoomEquipmentFontSizeMobile] = useState(DEFAULT_ROOM_FONT_SIZE_MOBILE);
   const [roomEquipmentLineHeight, setRoomEquipmentLineHeight] = useState("");
   const [roomEquipmentLineHeightMobile, setRoomEquipmentLineHeightMobile] = useState("");
   const [roomEquipmentTranslateY, setRoomEquipmentTranslateY] = useState("");
   const [roomEquipmentTranslateYMobile, setRoomEquipmentTranslateYMobile] = useState("");
-  const [roomNameFontSize, setRoomNameFontSize] = useState("");
-  const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
+  const [roomNameFontSize, setRoomNameFontSize] = useState(DEFAULT_ROOM_NAME_FONT_SIZE);
+  const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState(DEFAULT_ROOM_NAME_FONT_SIZE_MOBILE);
   const [roomNameLineHeight, setRoomNameLineHeight] = useState("");
   const [roomNameLineHeightMobile, setRoomNameLineHeightMobile] = useState("");
   const [roomNameTranslateY, setRoomNameTranslateY] = useState("");
@@ -402,25 +407,25 @@ export default function ProductForm(props) {
       setSeoKeywords(dataEdit.seoKeywords || "");
       setRoomLineHeight(dataEdit.lineHeight || "");
       setRoomLineHeightMobile(dataEdit.lineHeightMobile || "");
-      setRoomFontSize(dataEdit.fontSize || "");
-      setRoomFontSizeMobile(dataEdit.fontSizeMobile || "");
+      setRoomFontSize(dataEdit.fontSize || DEFAULT_ROOM_FONT_SIZE);
+      setRoomFontSizeMobile(dataEdit.fontSizeMobile || DEFAULT_ROOM_FONT_SIZE_MOBILE);
       const priceControls = extractResponsiveControls(dataEdit.price || "");
       const equipmentControls = extractResponsiveControls(mergedEquipment || "");
       const nameControls = extractResponsiveControls(dataEdit.name_rich || "");
-      setRoomPriceFontSize(priceControls.fontSize || dataEdit.fontSize || "");
-      setRoomPriceFontSizeMobile(priceControls.fontSizeMobile || dataEdit.fontSizeMobile || "");
+      setRoomPriceFontSize(priceControls.fontSize || dataEdit.fontSize || DEFAULT_ROOM_FONT_SIZE);
+      setRoomPriceFontSizeMobile(priceControls.fontSizeMobile || dataEdit.fontSizeMobile || DEFAULT_ROOM_FONT_SIZE_MOBILE);
       setRoomPriceLineHeight(priceControls.lineHeight || dataEdit.lineHeight || "");
       setRoomPriceLineHeightMobile(priceControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
       setRoomPriceTranslateY(priceControls.translateY || dataEdit.translateY || "");
       setRoomPriceTranslateYMobile(priceControls.translateYMobile || dataEdit.translateYMobile || "");
-      setRoomEquipmentFontSize(equipmentControls.fontSize || dataEdit.fontSize || "");
-      setRoomEquipmentFontSizeMobile(equipmentControls.fontSizeMobile || dataEdit.fontSizeMobile || "");
+      setRoomEquipmentFontSize(equipmentControls.fontSize || dataEdit.fontSize || DEFAULT_ROOM_FONT_SIZE);
+      setRoomEquipmentFontSizeMobile(equipmentControls.fontSizeMobile || dataEdit.fontSizeMobile || DEFAULT_ROOM_FONT_SIZE_MOBILE);
       setRoomEquipmentLineHeight(equipmentControls.lineHeight || dataEdit.lineHeight || "");
       setRoomEquipmentLineHeightMobile(equipmentControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
       setRoomEquipmentTranslateY(equipmentControls.translateY || dataEdit.translateY || "");
       setRoomEquipmentTranslateYMobile(equipmentControls.translateYMobile || dataEdit.translateYMobile || "");
-      setRoomNameFontSize(dataEdit.nameFontSize || nameControls.fontSize || "");
-      setRoomNameFontSizeMobile(dataEdit.nameFontSizeMobile || nameControls.fontSizeMobile || "");
+      setRoomNameFontSize(dataEdit.nameFontSize || nameControls.fontSize || DEFAULT_ROOM_NAME_FONT_SIZE);
+      setRoomNameFontSizeMobile(dataEdit.nameFontSizeMobile || nameControls.fontSizeMobile || DEFAULT_ROOM_NAME_FONT_SIZE_MOBILE);
       setRoomNameLineHeight(nameControls.lineHeight || dataEdit.lineHeight || "");
       setRoomNameLineHeightMobile(nameControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
       setRoomNameTranslateY(nameControls.translateY || dataEdit.translateY || "");
@@ -1128,9 +1133,10 @@ export default function ProductForm(props) {
         .product-dialog-quill--name .ql-editor {
           min-height: 100px;
         }
-        .product-dialog-quill--price .ql-editor,
-        .product-dialog-quill--equipment .ql-editor {
+        .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor {
           min-height: 80px;
+          padding: 12px 16px !important;
         }
       ` }} />
       <div className="fixed bottom-8 right-8 z-[9998] flex items-center gap-3">
