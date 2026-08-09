@@ -86,15 +86,6 @@ function BlogCard({ blog }: { blog: Blog }) {
             <FaBookOpen className="text-[#b8c7b0]" size={40} />
           </div>
         )}
-        <span
-          className={classNames(
-            "absolute top-3 left-3 flex items-center gap-1 text-white text-[10px] font-semibold px-2 py-1 rounded-full",
-            cat.bg
-          )}
-        >
-          {cat.icon}
-          {cat.label}
-        </span>
       </div>
 
       <div className="p-4 flex flex-col flex-1">
@@ -117,13 +108,25 @@ function BlogCard({ blog }: { blog: Blog }) {
           <RichTextRenderer html={blog.excerpt} as="span" className="inline-rich-text blog-card-excerpt-rich" stripAllFontStyles={true} />
         </p>
 
-        <span
-          className="mt-2 self-start inline-flex items-center gap-2 text-xs sm:text-xs text-white bg-[var(--btn-color)] group-hover:bg-[#e57f7f] px-3.5 py-1.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out group-hover:rounded-bl-xl group-hover:rounded-tr-xl group-hover:rounded-br-none group-hover:rounded-tl-none"
-          style={{ '--btn-color': btnColor } as React.CSSProperties}
-        >
-          Đọc tiếp
-          <FaArrowRight size={10} />
-        </span>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span
+            className="inline-flex items-center gap-2 text-xs sm:text-xs text-white bg-[var(--btn-color)] group-hover:bg-[#e57f7f] px-3.5 py-1.5 rounded-tl-xl rounded-br-xl transition-all duration-300 ease-in-out group-hover:rounded-bl-xl group-hover:rounded-tr-xl group-hover:rounded-br-none group-hover:rounded-tl-none"
+            style={{ '--btn-color': btnColor } as React.CSSProperties}
+          >
+            Đọc tiếp
+            <FaArrowRight size={10} />
+          </span>
+
+          <span
+            className={classNames(
+              "inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 text-[8px] sm:text-[9px] leading-none font-semibold text-white [&>svg]:h-2 [&>svg]:w-2",
+              cat.bg
+            )}
+          >
+            {cat.icon}
+            {cat.label}
+          </span>
+        </div>
       </div>
     </Link>
   );
