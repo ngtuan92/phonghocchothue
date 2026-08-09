@@ -131,12 +131,12 @@ const normalizeNaturalTextWrapping = (html: string) => {
   return root.innerHTML;
 };
 
-const normalizeNumericLineHeightUnits = (html: string) => {
+const normalizeCustomLineHeightUnits = (html: string) => {
   if (!html) return html;
 
   return html.replace(/style=(["'])(.*?)\1/gi, (_match: string, quote: string, styleContent: string) => {
     const normalizedStyle = styleContent.replace(
-      /(^|;)\s*(line-height|--custom-line-height(?:-mobile)?)\s*:\s*((?:\d+(?:\.\d+)?|\.\d+))\s*(?=;|$)/gi,
+      /(^|;)\s*(--custom-line-height(?:-mobile)?)\s*:\s*((?:\d+(?:\.\d+)?|\.\d+))\s*(?=;|$)/gi,
       (_styleMatch: string, prefix: string, property: string, value: string) =>
         `${prefix ? `${prefix} ` : ""}${property}: ${value}px`
     );
@@ -542,7 +542,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
-    processedHtml = normalizeNumericLineHeightUnits(processedHtml);
+    processedHtml = normalizeCustomLineHeightUnits(processedHtml);
     if (blockLineHeight) {
       processedHtml = hoistLineHeightToControlsBlock(processedHtml);
     }
@@ -674,6 +674,10 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-right: auto;
           max-width: 100%;
           height: auto;
+        }
+        .rich-text-renderer :is(span, strong, b, em, i, u)[style*="width"] {
+          display: inline-block;
+          max-width: 100%;
         }
         .rich-text-renderer h1,
         .rich-text-renderer h2,
