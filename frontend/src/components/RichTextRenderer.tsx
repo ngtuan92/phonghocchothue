@@ -102,6 +102,35 @@ const normalizeWhitespaceSpacers = (html: string) => {
   return root?.innerHTML || html;
 };
 
+const normalizeNaturalTextWrapping = (html: string) => {
+  if (!html || typeof DOMParser === "undefined") return html;
+
+  const htmlWithSpacers = normalizeWhitespaceSpacers(html);
+  const doc = new DOMParser().parseFromString(`<div>${htmlWithSpacers}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let textNode = walker.nextNode();
+  while (textNode) {
+    const parent = textNode.parentElement;
+    if (!parent?.closest(".ql-whitespace-spacer")) {
+      textNode.textContent = (textNode.textContent || "").replace(/\u00a0/g, " ");
+    }
+    textNode = walker.nextNode();
+  }
+
+  root.querySelectorAll<HTMLElement>("[style]").forEach((element) => {
+    if (element.closest(".ql-whitespace-spacer")) return;
+    element.style.removeProperty("white-space");
+    element.style.removeProperty("overflow-wrap");
+    element.style.removeProperty("word-break");
+    if (!element.getAttribute("style")) element.removeAttribute("style");
+  });
+
+  return root.innerHTML;
+};
+
 const normalizeNumericLineHeightUnits = (html: string) => {
   if (!html) return html;
 
@@ -184,6 +213,7 @@ interface RichTextRendererProps {
   translateY?: string;
   translateYMobile?: string;
   preserveNbsp?: boolean;
+  naturalTextWrapping?: boolean;
   stripAllFontStyles?: boolean;
   blockLineHeight?: boolean;
 }
@@ -201,6 +231,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   translateY,
   translateYMobile,
   preserveNbsp = false,
+  naturalTextWrapping = false,
   stripAllFontStyles = false,
   blockLineHeight = false,
 }) => {
@@ -215,7 +246,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       })
       : html;
 
-    let processedHtml = preserveNbsp ? sanitized : sanitized.replace(/&nbsp;/g, " ");
+    let processedHtml = naturalTextWrapping
+      ? normalizeNaturalTextWrapping(sanitized)
+      : preserveNbsp
+        ? sanitized
+        : sanitized.replace(/(?:&nbsp;|\u00a0)/gi, " ");
 
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
@@ -513,7 +548,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     return processedHtml;
-  }, [blockLineHeight, html, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [blockLineHeight, html, naturalTextWrapping, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
@@ -551,7 +586,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       wordBreak: "normal",
       overflowWrap: "break-word",
       wordWrap: "break-word",
-      whiteSpace: preserveNbsp ? "pre-wrap" : "normal",
+      whiteSpace: preserveNbsp && !naturalTextWrapping ? "pre-wrap" : "normal",
       maxWidth: "100%",
       display: Component === "span" ? "inline" : "block",
     };
@@ -593,7 +628,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, preserveNbsp, stripAllFontStyles]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, naturalTextWrapping, preserveNbsp, stripAllFontStyles]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');

@@ -327,7 +327,7 @@ export default function BlogDetail() {
                 lineHeightMobile={blog.lineHeightMobile}
                 translateY={blog.translateY}
                 translateYMobile={blog.translateYMobile}
-                preserveNbsp
+                naturalTextWrapping
               />
             </article>
 

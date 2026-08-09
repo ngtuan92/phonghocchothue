@@ -1021,7 +1021,7 @@ export default function DetailPage() {
                 lineHeightMobile={product.lineHeightMobile}
                 translateY={product.translateY}
                 translateYMobile={product.translateYMobile}
-                preserveNbsp
+                naturalTextWrapping
               />
             </div>
           </>
