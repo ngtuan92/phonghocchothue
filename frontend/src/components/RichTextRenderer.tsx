@@ -676,8 +676,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           height: auto;
         }
         .rich-text-renderer :is(span, strong, b, em, i, u)[style*="width"] {
-          display: inline-block;
-          max-width: 100%;
+          display: inline-block !important;
+          max-width: 100% !important;
         }
         .rich-text-renderer h1,
         .rich-text-renderer h2,
