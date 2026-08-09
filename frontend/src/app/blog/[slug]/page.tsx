@@ -224,10 +224,10 @@ export default function BlogDetail() {
                 tabIndex={0}
                 src={iconHeader}
                 alt="logo"
-                width={110}
-                height={120}
-                className="w-[77px] sm:w-[110px] h-auto object-contain cursor-pointer"
-                sizes="(max-width: 640px) 77px, 110px"
+                width={73}
+                height={80}
+                className="w-[51px] sm:w-[73px] sm:mt-5 h-auto object-contain cursor-pointer"
+                sizes="(max-width: 640px) 51px, 73px"
                 quality={85}
                 priority
               />
