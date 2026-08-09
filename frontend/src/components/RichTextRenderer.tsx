@@ -849,6 +849,9 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer span[style*="--translate-y"] {
           display: inline-block !important;
         }
+        .rich-text-renderer.inline-rich-text [style*="--translate-y"] {
+          display: inline-block !important;
+        }
         .rich-text-renderer.inline-rich-text[style*="--translate-y"] {
           position: relative !important;
           top: var(--translate-y) !important;
@@ -864,6 +867,9 @@ const RICH_TEXT_RENDERER_STYLES = `
             transform: translateY(var(--translate-y-mobile, var(--translate-y, 0px))) !important;
           }
           .rich-text-renderer span[style*="--translate-y-mobile"] {
+            display: inline-block !important;
+          }
+          .rich-text-renderer.inline-rich-text [style*="--translate-y-mobile"] {
             display: inline-block !important;
           }
           .rich-text-renderer.inline-rich-text[style*="--translate-y-mobile"] {
