@@ -972,16 +972,37 @@
 }
 
 @media (max-width: 639px) {
+  .blog-excerpt-rich-text,
+  .blog-excerpt-rich-text > * {
+    text-align: center !important;
+  }
+
+  .blog-excerpt-rich-text {
+    box-sizing: border-box;
+    padding-inline: 1.25rem;
+  }
+
+  .blog-excerpt-rich-text > :first-child::before,
   .blog-excerpt-rich-text > :last-child::after {
-    content: "\201D";
     color: #b8c7b0;
+    display: inline;
     font-family: serif;
-    font-size: 1.875rem;
+    font-size: 1.65em !important;
     font-style: normal;
     font-weight: 400;
     line-height: 0;
-    margin-left: 0.2rem;
-    vertical-align: -0.2em;
+  }
+
+  .blog-excerpt-rich-text > :first-child::before {
+    content: "\201C";
+    margin-right: 0.25rem;
+    vertical-align: -0.05em;
+  }
+
+  .blog-excerpt-rich-text > :last-child::after {
+    content: "\201D";
+    margin-left: 0.25rem;
+    vertical-align: -0.35em;
   }
 }
 
