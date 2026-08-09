@@ -682,6 +682,7 @@ export default function DetailPage() {
                 items={productData.product.images}
                 avatar={productData.product.image}
                 colorBg={colorBg}
+                thumbsPerView={5}
               />
             </div>
             <div className="flex-1 rounded-lg text-left lg:pl-4">
