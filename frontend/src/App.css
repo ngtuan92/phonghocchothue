@@ -981,9 +981,10 @@
     box-sizing: border-box;
     display: block !important;
     margin-inline: auto;
-    max-width: min(100%, 23rem);
-    padding-inline: 1.2rem;
+    max-width: none;
+    padding-inline: 0;
     position: relative;
+    width: 100%;
   }
 
   .blog-excerpt-rich-text > :first-child::before,
@@ -1000,14 +1001,14 @@
 
   .blog-excerpt-rich-text > :first-child::before {
     content: "\201C";
-    left: 0;
+    left: -0.15rem;
     top: -0.2rem;
   }
 
   .blog-excerpt-rich-text > :last-child::after {
     content: "\201D";
     bottom: -0.3rem;
-    right: 0;
+    right: -0.15rem;
   }
 }
 
