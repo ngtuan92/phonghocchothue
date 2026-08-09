@@ -298,12 +298,12 @@ export default function BlogDetail() {
 
               {blog.excerpt && (
                 <div className="mb-1 sm:mb-4 px-2 sm:px-0 py-1 sm:py-1 sm:border-l-4 sm:border-[#b8c7b0] sm:pl-6 order-4">
-                  <div className="text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
-                    <span className="text-[#b8c7b0] text-3xl font-serif mr-1 sm:hidden leading-none">“</span>
+                  <div className="relative text-[17px] sm:text-xl text-gray-600 sm:text-gray-700 leading-relaxed italic sm:not-italic font-medium sm:font-bold text-center sm:text-left">
+                    <span className="absolute left-0 top-0 text-[#b8c7b0] text-3xl font-serif sm:hidden leading-none" aria-hidden="true">“</span>
                     <RichTextRenderer 
                       html={blog.excerpt} 
-                      as="span" 
-                      className="inline-rich-text" 
+                      as="div"
+                      className="blog-excerpt-rich-text"
                       fontSize={blog.excerptFontSize}
                       fontSizeMobile={blog.excerptFontSizeMobile}
                       lineHeight={blog.excerptLineHeight}
@@ -312,7 +312,7 @@ export default function BlogDetail() {
                       translateYMobile={blog.excerptTranslateYMobile}
                       preserveNbsp
                     />
-                    <span className="text-[#b8c7b0] text-3xl font-serif ml-1 sm:hidden leading-none">”</span>
+                    <span className="absolute bottom-0 right-0 text-[#b8c7b0] text-3xl font-serif sm:hidden leading-none" aria-hidden="true">”</span>
                   </div>
                 </div>
               )}

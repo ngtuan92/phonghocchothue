@@ -967,6 +967,10 @@
   font-weight: 400;
 }
 
+.blog-excerpt-rich-text p {
+  margin: 0 !important;
+}
+
 .ql-align-center {
   text-align: center !important;
 }
