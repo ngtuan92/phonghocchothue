@@ -168,12 +168,14 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
         <div
           data-name="thumbs-viewport"
           className="overflow-hidden"
-          style={{
-            marginLeft: `-${thumbsGap}px`,
-          }}
           ref={emblaThumbsRef}
         >
-          <div className="flex touch-pan-y touch-pinch-zoom">
+          <div
+            className="flex touch-pan-y touch-pinch-zoom"
+            style={{
+              marginLeft: `-${thumbsGap}px`,
+            }}
+          >
             {map(imagesData, (item, index) => (
               <div
                 key={index}
