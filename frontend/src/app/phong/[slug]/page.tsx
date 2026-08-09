@@ -585,7 +585,7 @@ export default function DetailPage() {
                 alt="logo"
                 width={73}
                 height={80}
-                className="w-[51px] sm:w-[73px] sm:mt-5 h-auto object-contain cursor-pointer"
+                className="w-[51px] sm:w-[73px] sm:mt-[30px] h-auto object-contain cursor-pointer"
                 sizes="(max-width: 640px) 51px, 73px"
                 quality={85}
                 priority
@@ -676,7 +676,7 @@ export default function DetailPage() {
             </div>
           </Modal>
           {/* Header section */}
-          <div className="flex flex-col lg:flex-row gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16 items-start" id="#">
+          <div className="flex flex-col lg:flex-row gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16 items-start sm:-mt-[30px]" id="#">
             <div className="flex-1 relative">
               <CarouselWithThumb
                 items={productData.product.images}

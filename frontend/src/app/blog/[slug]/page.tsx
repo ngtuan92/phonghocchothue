@@ -226,7 +226,7 @@ export default function BlogDetail() {
                 alt="logo"
                 width={73}
                 height={80}
-                className="w-[51px] sm:w-[73px] sm:mt-5 h-auto object-contain cursor-pointer"
+                className="w-[51px] sm:w-[73px] sm:mt-[30px] h-auto object-contain cursor-pointer"
                 sizes="(max-width: 640px) 51px, 73px"
                 quality={85}
                 priority
