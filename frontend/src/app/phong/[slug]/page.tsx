@@ -542,6 +542,10 @@ export default function DetailPage() {
     );
   }
 
+  const nameHasOwnLayout = /data-rich-text-controls|--custom-line-height|--translate-y/.test(
+    productData.product.name_rich || ""
+  );
+
   return (
     <div className="overflow-hidden">
       {bg && (
@@ -688,10 +692,10 @@ export default function DetailPage() {
                     className="title-product-detail-rich"
                     fontSize={product.nameFontSize}
                     fontSizeMobile={product.nameFontSizeMobile}
-                    lineHeight={product.lineHeight}
-                    lineHeightMobile={product.lineHeightMobile}
-                    translateY={product.translateY}
-                    translateYMobile={product.translateYMobile}
+                    lineHeight={nameHasOwnLayout ? undefined : product.lineHeight}
+                    lineHeightMobile={nameHasOwnLayout ? undefined : product.lineHeightMobile}
+                    translateY={nameHasOwnLayout ? undefined : product.translateY}
+                    translateYMobile={nameHasOwnLayout ? undefined : product.translateYMobile}
                     preserveNbsp
                   />
                 ) : (

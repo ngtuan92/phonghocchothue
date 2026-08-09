@@ -183,6 +183,7 @@ export default function BlogDetail() {
       ? blog.authorAvatar
       : `${URL_API}${blog.authorAvatar.replaceAll("\\", "/").replace(/^\/+/, "")}`
     : null;
+  const titleHasOwnLayout = /data-rich-text-controls|--custom-line-height|--translate-y/.test(blog.title || "");
 
   return (
     <div className="overflow-hidden">
@@ -287,10 +288,10 @@ export default function BlogDetail() {
                   className="inline-rich-text" 
                   fontSize={blog.titleFontSize}
                   fontSizeMobile={blog.titleFontSizeMobile}
-                  lineHeight={blog.lineHeight}
-                  lineHeightMobile={blog.lineHeightMobile}
-                  translateY={blog.translateY}
-                  translateYMobile={blog.translateYMobile}
+                  lineHeight={titleHasOwnLayout ? undefined : blog.lineHeight}
+                  lineHeightMobile={titleHasOwnLayout ? undefined : blog.lineHeightMobile}
+                  translateY={titleHasOwnLayout ? undefined : blog.translateY}
+                  translateYMobile={titleHasOwnLayout ? undefined : blog.translateYMobile}
                   preserveNbsp
                 />
               </h1>

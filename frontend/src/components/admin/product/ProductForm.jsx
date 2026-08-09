@@ -88,18 +88,20 @@ const extractResponsiveControls = (html) => {
   if (!html || typeof window === "undefined") return empty;
 
   const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const styled = doc.body.firstElementChild?.querySelector("[style*='--fs'], [style*='--custom-line-height'], [style*='line-height'], [style*='--translate-y']");
-  if (!styled) return empty;
+  const root = doc.body.firstElementChild;
+  const lineHeightStyled = root?.querySelector("[style*='--custom-line-height'], [style*='line-height']");
+  const inlineStyled = root?.querySelector("[style*='--fs'], [style*='--translate-y']");
+  if (!lineHeightStyled && !inlineStyled) return empty;
 
   return {
-    fontSize: stripCssUnit(styled.style.getPropertyValue("--fs-desktop")),
-    fontSizeMobile: stripCssUnit(styled.style.getPropertyValue("--fs-mobile")),
+    fontSize: stripCssUnit(inlineStyled?.style.getPropertyValue("--fs-desktop")),
+    fontSizeMobile: stripCssUnit(inlineStyled?.style.getPropertyValue("--fs-mobile")),
     lineHeight: stripCssUnit(
-      styled.style.getPropertyValue("--custom-line-height") || styled.style.getPropertyValue("line-height")
+      lineHeightStyled?.style.getPropertyValue("--custom-line-height") || lineHeightStyled?.style.getPropertyValue("line-height")
     ),
-    lineHeightMobile: stripCssUnit(styled.style.getPropertyValue("--custom-line-height-mobile")),
-    translateY: stripCssUnit(styled.style.getPropertyValue("--translate-y")),
-    translateYMobile: stripCssUnit(styled.style.getPropertyValue("--translate-y-mobile")),
+    lineHeightMobile: stripCssUnit(lineHeightStyled?.style.getPropertyValue("--custom-line-height-mobile")),
+    translateY: stripCssUnit(inlineStyled?.style.getPropertyValue("--translate-y")),
+    translateYMobile: stripCssUnit(inlineStyled?.style.getPropertyValue("--translate-y-mobile")),
   };
 };
 
@@ -329,6 +331,10 @@ export default function ProductForm(props) {
   const [roomEquipmentTranslateYMobile, setRoomEquipmentTranslateYMobile] = useState("");
   const [roomNameFontSize, setRoomNameFontSize] = useState("");
   const [roomNameFontSizeMobile, setRoomNameFontSizeMobile] = useState("");
+  const [roomNameLineHeight, setRoomNameLineHeight] = useState("");
+  const [roomNameLineHeightMobile, setRoomNameLineHeightMobile] = useState("");
+  const [roomNameTranslateY, setRoomNameTranslateY] = useState("");
+  const [roomNameTranslateYMobile, setRoomNameTranslateYMobile] = useState("");
   const [roomTranslateY, setRoomTranslateY] = useState("");
   const [roomTranslateYMobile, setRoomTranslateYMobile] = useState("");
   const roomNameRichDraftRef = useRef("");
@@ -400,6 +406,7 @@ export default function ProductForm(props) {
       setRoomFontSizeMobile(dataEdit.fontSizeMobile || "");
       const priceControls = extractResponsiveControls(dataEdit.price || "");
       const equipmentControls = extractResponsiveControls(mergedEquipment || "");
+      const nameControls = extractResponsiveControls(dataEdit.name_rich || "");
       setRoomPriceFontSize(priceControls.fontSize || dataEdit.fontSize || "");
       setRoomPriceFontSizeMobile(priceControls.fontSizeMobile || dataEdit.fontSizeMobile || "");
       setRoomPriceLineHeight(priceControls.lineHeight || dataEdit.lineHeight || "");
@@ -412,8 +419,12 @@ export default function ProductForm(props) {
       setRoomEquipmentLineHeightMobile(equipmentControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
       setRoomEquipmentTranslateY(equipmentControls.translateY || dataEdit.translateY || "");
       setRoomEquipmentTranslateYMobile(equipmentControls.translateYMobile || dataEdit.translateYMobile || "");
-      setRoomNameFontSize(dataEdit.nameFontSize || "");
-      setRoomNameFontSizeMobile(dataEdit.nameFontSizeMobile || "");
+      setRoomNameFontSize(dataEdit.nameFontSize || nameControls.fontSize || "");
+      setRoomNameFontSizeMobile(dataEdit.nameFontSizeMobile || nameControls.fontSizeMobile || "");
+      setRoomNameLineHeight(nameControls.lineHeight || dataEdit.lineHeight || "");
+      setRoomNameLineHeightMobile(nameControls.lineHeightMobile || dataEdit.lineHeightMobile || "");
+      setRoomNameTranslateY(nameControls.translateY || dataEdit.translateY || "");
+      setRoomNameTranslateYMobile(nameControls.translateYMobile || dataEdit.translateYMobile || "");
       setRoomTranslateY(dataEdit.translateY || "");
       setRoomTranslateYMobile(dataEdit.translateYMobile || "");
 
@@ -512,6 +523,14 @@ export default function ProductForm(props) {
       const currentRoomNameRich = roomNameRichDraftRef.current || roomNameRich;
       const currentRoomPrice = roomPriceDraftRef.current || roomPrice;
       const currentRoomEquipment = roomEquipmentDraftRef.current || roomEquipment;
+      const nameRich = decorateRichTextWithControls(currentRoomNameRich, {
+        fontSize: roomNameFontSize,
+        fontSizeMobile: roomNameFontSizeMobile,
+        lineHeight: roomNameLineHeight,
+        lineHeightMobile: roomNameLineHeightMobile,
+        translateY: roomNameTranslateY,
+        translateYMobile: roomNameTranslateYMobile,
+      });
       const price = decorateRichTextWithControls(currentRoomPrice, {
         fontSize: roomPriceFontSize,
         fontSizeMobile: roomPriceFontSizeMobile,
@@ -530,7 +549,7 @@ export default function ProductForm(props) {
       });
       const data = {
         name: roomName,
-        name_rich: currentRoomNameRich,
+        name_rich: nameRich,
         image: singleImage,
         imageDetail: multipleImages,
         content: currentRoomContent,
@@ -641,18 +660,18 @@ export default function ProductForm(props) {
                   }}
                   placeholder="Nhập tên phòng..."
                   isBlogEditor={true}
-                  lineHeight={roomLineHeight}
-                  lineHeightMobile={roomLineHeightMobile}
+                  lineHeight={roomNameLineHeight}
+                  lineHeightMobile={roomNameLineHeightMobile}
                   fontSize={roomNameFontSize}
                   fontSizeMobile={roomNameFontSizeMobile}
-                  translateY={roomTranslateY}
-                  translateYMobile={roomTranslateYMobile}
-                  onChangeLineHeight={setRoomLineHeight}
-                  onChangeLineHeightMobile={setRoomLineHeightMobile}
+                  translateY={roomNameTranslateY}
+                  translateYMobile={roomNameTranslateYMobile}
+                  onChangeLineHeight={setRoomNameLineHeight}
+                  onChangeLineHeightMobile={setRoomNameLineHeightMobile}
                   onChangeFontSize={setRoomNameFontSize}
                   onChangeFontSizeMobile={setRoomNameFontSizeMobile}
-                  onChangeTranslateY={setRoomTranslateY}
-                  onChangeTranslateYMobile={setRoomTranslateYMobile}
+                  onChangeTranslateY={setRoomNameTranslateY}
+                  onChangeTranslateYMobile={setRoomNameTranslateYMobile}
                   hasResponsiveFontSize={true}
                   commitOnBlurOnly={true}
                 />

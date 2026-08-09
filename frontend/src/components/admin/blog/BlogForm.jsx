@@ -116,6 +116,7 @@ const decorateRichTextWithControls = (html, controls = {}) => {
   ];
 
   targets.forEach((target) => {
+    target.setAttribute("data-rich-text-controls", "true");
     entries.forEach(([name, value]) => {
       if (value) {
         target.style.setProperty(name, value);
@@ -356,6 +357,10 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     ...data,
     titleFontSize: data?.titleFontSize || titleControls.fontSize || "",
     titleFontSizeMobile: data?.titleFontSizeMobile || titleControls.fontSizeMobile || "",
+    titleLineHeight: titleControls.lineHeight || data?.lineHeight || "",
+    titleLineHeightMobile: titleControls.lineHeightMobile || data?.lineHeightMobile || "",
+    titleTranslateY: titleControls.translateY || data?.translateY || "",
+    titleTranslateYMobile: titleControls.translateYMobile || data?.translateYMobile || "",
     excerptFontSize: data?.excerptFontSize || excerptControls.fontSize || "",
     excerptFontSizeMobile: data?.excerptFontSizeMobile || excerptControls.fontSizeMobile || "",
     excerptLineHeight: data?.excerptLineHeight || excerptControls.lineHeight || "",
@@ -364,10 +369,10 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     excerptTranslateYMobile: data?.excerptTranslateYMobile || excerptControls.translateYMobile || "",
     fontSize: data?.fontSize || contentControls.fontSize || "",
     fontSizeMobile: data?.fontSizeMobile || contentControls.fontSizeMobile || "",
-    lineHeight: data?.lineHeight || contentControls.lineHeight || titleControls.lineHeight || "",
-    lineHeightMobile: data?.lineHeightMobile || contentControls.lineHeightMobile || titleControls.lineHeightMobile || "",
-    translateY: data?.translateY || contentControls.translateY || titleControls.translateY || "",
-    translateYMobile: data?.translateYMobile || contentControls.translateYMobile || titleControls.translateYMobile || "",
+    lineHeight: data?.lineHeight || contentControls.lineHeight || "",
+    lineHeightMobile: data?.lineHeightMobile || contentControls.lineHeightMobile || "",
+    translateY: data?.translateY || contentControls.translateY || "",
+    translateYMobile: data?.translateYMobile || contentControls.translateYMobile || "",
   });
   const quillDraftsRef = useRef({});
 
@@ -479,10 +484,10 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
       title: decorateRichTextWithControls(currentFormData.title, {
         fontSize: currentFormData.titleFontSize,
         fontSizeMobile: currentFormData.titleFontSizeMobile,
-        lineHeight: currentFormData.lineHeight,
-        lineHeightMobile: currentFormData.lineHeightMobile,
-        translateY: currentFormData.translateY,
-        translateYMobile: currentFormData.translateYMobile,
+        lineHeight: currentFormData.titleLineHeight,
+        lineHeightMobile: currentFormData.titleLineHeightMobile,
+        translateY: currentFormData.titleTranslateY,
+        translateYMobile: currentFormData.titleTranslateYMobile,
       }),
       excerpt: decorateRichTextWithControls(currentFormData.excerpt, {
         fontSize: currentFormData.excerptFontSize,
@@ -537,18 +542,18 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
               maxHeight="150px"
               placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
               disableImageWrap={true}
-              lineHeight={formData.lineHeight}
-              lineHeightMobile={formData.lineHeightMobile}
+              lineHeight={formData.titleLineHeight}
+              lineHeightMobile={formData.titleLineHeightMobile}
               fontSize={formData.titleFontSize}
               fontSizeMobile={formData.titleFontSizeMobile}
-              translateY={formData.translateY}
-              translateYMobile={formData.translateYMobile}
-              onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, lineHeight: val }))}
-              onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, lineHeightMobile: val }))}
+              translateY={formData.titleTranslateY}
+              translateYMobile={formData.titleTranslateYMobile}
+              onChangeLineHeight={(val) => setFormData(prev => ({ ...prev, titleLineHeight: val }))}
+              onChangeLineHeightMobile={(val) => setFormData(prev => ({ ...prev, titleLineHeightMobile: val }))}
               onChangeFontSize={(val) => setFormData(prev => ({ ...prev, titleFontSize: val }))}
               onChangeFontSizeMobile={(val) => setFormData(prev => ({ ...prev, titleFontSizeMobile: val }))}
-              onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, translateY: val }))}
-              onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, translateYMobile: val }))}
+              onChangeTranslateY={(val) => setFormData(prev => ({ ...prev, titleTranslateY: val }))}
+              onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, titleTranslateYMobile: val }))}
               hasResponsiveFontSize={true}
               commitOnBlurOnly={true}
             />
