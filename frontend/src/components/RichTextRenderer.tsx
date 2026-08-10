@@ -457,7 +457,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             !lower.startsWith('font-size') &&
             !lower.startsWith('line-height') &&
             !lower.startsWith('--fs') &&
-            !lower.startsWith('--custom-line-height')
+            !lower.startsWith('--custom-line-height') &&
+            !lower.startsWith('--translate-y')
           );
         })
         .join('; ');
