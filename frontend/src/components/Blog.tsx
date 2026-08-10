@@ -42,7 +42,7 @@ function formatDate(dateStr: string) {
 function BlogCardSkeleton() {
   return (
     <div className="rounded-2xl overflow-hidden border border-[#799f85]/20 animate-pulse">
-      <div className="bg-gray-200 aspect-video w-full" />
+      <div className="bg-gray-200 aspect-[3/2] w-full" />
       <div className="p-5 space-y-3">
         <div className="h-3 bg-gray-200 rounded w-2/5" />
         <div className="h-5 bg-gray-200 rounded w-full" />
@@ -71,7 +71,7 @@ function BlogCard({ blog }: { blog: Blog }) {
       href={`/blog/${blog.slug}`}
       className="group rounded-2xl overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-md bg-white block"
     >
-      <div className="relative aspect-video overflow-hidden bg-transparent flex-shrink-0">
+      <div className="relative aspect-[3/2] overflow-hidden bg-transparent flex-shrink-0">
         {thumbnailSrc ? (
           <Image
             src={thumbnailSrc}
@@ -145,7 +145,7 @@ function FeaturedBlogCard({ blog }: { blog: Blog }) {
       href={`/blog/${blog.slug}`}
       className="group relative rounded-[2rem] overflow-hidden flex flex-col lg:flex-row bg-white transition-all duration-500 hover:shadow-2xl mb-12 block"
     >
-      <div className="relative w-full lg:w-3/5 aspect-video lg:aspect-auto min-h-[300px] overflow-hidden">
+      <div className="relative w-full lg:w-3/5 aspect-[3/2] lg:aspect-auto min-h-[300px] overflow-hidden">
         {thumbnailSrc ? (
           <Image
             src={thumbnailSrc}
