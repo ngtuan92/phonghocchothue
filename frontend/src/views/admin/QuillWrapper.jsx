@@ -805,7 +805,7 @@ const normalizeWhitespaceOnlyBlocksForQuill = (html) => {
 
     block.classList.add("ql-whitespace-preserve");
     block.style.whiteSpace = "break-spaces";
-    block.style.overflowWrap = "anywhere";
+    block.style.overflowWrap = "break-word";
 
     if (hasOnlyBreaks) {
       block.textContent = " ";
@@ -843,7 +843,7 @@ const preserveSignificantInlineWhitespaceForQuill = (html) => {
   root.querySelectorAll("p, div, h1, h2, h3, h4, h5, h6, li").forEach((block) => {
     if (!/\u00a0| {2,}/.test(block.textContent || "")) return;
     block.style.whiteSpace = "break-spaces";
-    block.style.overflowWrap = "anywhere";
+    block.style.overflowWrap = "break-word";
   });
 
   return root.innerHTML;
@@ -6463,8 +6463,8 @@ const QuillWrapper = forwardRef(({
           max-width: 100% !important;
           min-width: 0 !important;
           box-sizing: border-box !important;
-          overflow-wrap: anywhere !important;
-          word-break: break-word !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .quill-wrapper-container:not(.is-blog-editor) .ql-editor p,
         .quill-wrapper-container:not(.is-blog-editor) .ql-editor h1,
@@ -6476,16 +6476,16 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container:not(.is-blog-editor) .ql-editor li,
         .quill-wrapper-container:not(.is-blog-editor) .ql-editor span {
           max-width: 100% !important;
-          overflow-wrap: anywhere !important;
-          word-break: break-word !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor {
           max-width: 100% !important;
           min-width: 0 !important;
           box-sizing: border-box !important;
           overflow-x: hidden !important;
-          overflow-wrap: anywhere !important;
-          word-break: break-word !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor p,
         .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor h1,
@@ -6497,8 +6497,8 @@ const QuillWrapper = forwardRef(({
         .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor li,
         .product-dialog-quill .quill-wrapper-container.is-blog-editor .ql-editor span {
           max-width: 100% !important;
-          overflow-wrap: anywhere !important;
-          word-break: break-word !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
         .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor *,
@@ -6620,7 +6620,15 @@ const QuillWrapper = forwardRef(({
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"],
         .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"] {
           white-space: break-spaces !important;
-          overflow-wrap: anywhere !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor *,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor * {
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]),
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]) {
