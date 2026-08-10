@@ -1553,20 +1553,22 @@ export default function CMS() {
               )}
             </div>
 
-            <div className="max-w-[200px]">
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bo góc (px)</label>
-              <DraftTextField
-                type="text"
-                placeholder="Ví dụ: 8, 12, 20"
-                value={config.borderRadius || ""}
-                onCommit={(val) => {
-                  setConfigs((prev) =>
-                    prev.map((c) => (c.key === config.key ? { ...c, borderRadius: val } : c))
-                  );
-                }}
-                className="w-full px-3 py-2 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
-              />
-            </div>
+            {!["room-slider-prev-image", "room-slider-next-image"].includes(config.key) && (
+              <div className="max-w-[200px]">
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bo góc (px)</label>
+                <DraftTextField
+                  type="text"
+                  placeholder="Ví dụ: 8, 12, 20"
+                  value={config.borderRadius || ""}
+                  onCommit={(val) => {
+                    setConfigs((prev) =>
+                      prev.map((c) => (c.key === config.key ? { ...c, borderRadius: val } : c))
+                    );
+                  }}
+                  className="w-full px-3 py-2 text-sm text-navy-700 bg-white border border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+                />
+              </div>
+            )}
           </div>
           {config.content && (() => {
             const previewStyle = getImagePreviewStyle(config.key);
