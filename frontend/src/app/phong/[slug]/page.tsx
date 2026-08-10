@@ -676,7 +676,7 @@ export default function DetailPage() {
             </div>
           </Modal>
           {/* Header section */}
-          <div className="flex flex-col lg:flex-row gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16 items-start sm:-mt-[30px]" id="#">
+          <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16 items-start sm:-mt-[30px]" id="#">
             <div className="flex-1 relative">
               <CarouselWithThumb
                 items={productData.product.images}
@@ -686,7 +686,7 @@ export default function DetailPage() {
               />
             </div>
             <div className="flex-1 rounded-lg text-left lg:pl-4">
-              <div className="title-product-detail mb-4">
+              <div className="title-product-detail mb-2 sm:mb-4">
                 {productData.product.name_rich ? (
                   <RichTextRenderer
                     html={processedName}
@@ -705,7 +705,7 @@ export default function DetailPage() {
                   </p>
                 )}
               </div>
-              <div className="room-summary-desc pl-3 sm:pl-4 text-xs sm:text-base mt-1 pt-0 pb-1">
+              <div className="room-summary-desc pl-3 sm:pl-4 text-xs sm:text-base mt-0 sm:mt-1 pt-0 pb-1">
                 {/* Fallback for contains if it has old data */}
                 {!!(productData.product.contains && String(productData.product.contains).trim() && String(productData.product.contains).trim() !== "0") && (
                   <div className="mb-1 sm:mb-1.5">
@@ -751,7 +751,7 @@ export default function DetailPage() {
                   </div>
                 )}
               </div>
-              <div className="room-price-summary text-xs sm:text-base mt-2 mb-4">
+              <div className="room-price-summary text-xs sm:text-base mt-1 sm:mt-2 mb-4">
                 {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                   <RichTextRenderer
                     html={productData.product.price}
