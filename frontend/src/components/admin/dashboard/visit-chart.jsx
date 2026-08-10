@@ -15,6 +15,131 @@ const defaultVisitData = [
   { id: 5, ip_address: "192.168.1.5", user_agent: "Edge", visit_time: "2024-01-03" },
 ]
 
+const REPORT_TIME_ZONE = "Asia/Ho_Chi_Minh"
+const datePartsFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: REPORT_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
+
+const getDateParts = (value) => {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+
+  const parts = Object.fromEntries(
+    datePartsFormatter
+      .formatToParts(date)
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value: partValue }) => [type, Number(partValue)]),
+  )
+
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+  }
+}
+
+const padNumber = (value) => String(value).padStart(2, "0")
+const getDayKey = ({ year, month, day }) =>
+  `${year}-${padNumber(month)}-${padNumber(day)}`
+
+const getCurrentWeekDates = () => {
+  const currentParts = getDateParts(new Date())
+  if (!currentParts) return []
+
+  const currentDate = new Date(
+    Date.UTC(currentParts.year, currentParts.month - 1, currentParts.day),
+  )
+  const dayOfWeek = currentDate.getUTCDay()
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  const startOfWeek = new Date(currentDate)
+  startOfWeek.setUTCDate(currentDate.getUTCDate() - mondayOffset)
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(startOfWeek)
+    date.setUTCDate(startOfWeek.getUTCDate() + index)
+
+    const parts = {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate(),
+    }
+
+    return {
+      key: getDayKey(parts),
+      label: `${index === 6 ? "CN" : `T${index + 2}`} ${padNumber(parts.day)}-${padNumber(parts.month)}`,
+    }
+  })
+}
+
+const processVisitData = (data, period) => {
+  if (!Array.isArray(data) || data.length === 0) {
+    return { categories: [], data: [] }
+  }
+
+  const normalizedDates = data
+    .map((visit) => getDateParts(visit.visit_time))
+    .filter(Boolean)
+
+  if (normalizedDates.length === 0) {
+    return { categories: [], data: [] }
+  }
+
+  if (period === "currentWeek") {
+    const dailyCounts = normalizedDates.reduce((counts, parts) => {
+      const key = getDayKey(parts)
+      counts.set(key, (counts.get(key) || 0) + 1)
+      return counts
+    }, new Map())
+    const weekDates = getCurrentWeekDates()
+
+    return {
+      categories: weekDates.map(({ label }) => label),
+      data: weekDates.map(({ key }) => dailyCounts.get(key) || 0),
+    }
+  }
+
+  const buckets = new Map()
+
+  normalizedDates.forEach((parts) => {
+    let key
+    let label
+    let sortValue
+
+    if (period === "year") {
+      key = String(parts.year)
+      label = key
+      sortValue = parts.year
+    } else if (period === "month") {
+      key = `${parts.year}-${padNumber(parts.month)}`
+      label = `${padNumber(parts.month)}-${parts.year}`
+      sortValue = Date.UTC(parts.year, parts.month - 1, 1)
+    } else {
+      key = getDayKey(parts)
+      label = `${padNumber(parts.day)}-${padNumber(parts.month)}`
+      sortValue = Date.UTC(parts.year, parts.month - 1, parts.day)
+    }
+
+    const bucket = buckets.get(key)
+    if (bucket) {
+      bucket.count += 1
+    } else {
+      buckets.set(key, { label, sortValue, count: 1 })
+    }
+  })
+
+  const sortedBuckets = Array.from(buckets.values()).sort(
+    (a, b) => a.sortValue - b.sortValue,
+  )
+
+  return {
+    categories: sortedBuckets.map(({ label }) => label),
+    data: sortedBuckets.map(({ count }) => count),
+  }
+}
+
 const VisitChart = ({
   rawData = defaultVisitData,
   title = "Thống kê lượt truy cập",
@@ -23,140 +148,10 @@ const VisitChart = ({
 }) => {
   const [timePeriod, setTimePeriod] = useState("currentWeek")
 
-  const getCurrentWeekDates = () => {
-    const now = new Date()
-    const dayOfWeek = now.getDay()
-    const startOfWeek = new Date(now)
-    startOfWeek.setDate(now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)) // Monday as start
-
-    const weekDates = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek)
-      date.setDate(startOfWeek.getDate() + i)
-      weekDates.push(date.toISOString().split("T")[0])
-    }
-    return weekDates
-  }
-
-  // Hàm xử lý dữ liệu thô thành format cho chart
-  const processVisitData = (data, period) => {
-    // Validate và normalize data
-    if (!Array.isArray(data) || data.length === 0) {
-      console.warn("VisitChart: Invalid or empty data", data);
-      return {
-        categories: [],
-        data: [],
-      };
-    }
-
-    // Normalize visit_time format
-    const normalizedData = data.map((visit) => {
-      if (!visit.visit_time) {
-        console.warn("Visit missing visit_time:", visit);
-        return null;
-      }
-      
-      let dateStr = visit.visit_time;
-      // Nếu là string, normalize format
-      if (typeof dateStr === "string") {
-        // Lấy phần date nếu có time
-        dateStr = dateStr.split("T")[0].split(" ")[0];
-      }
-      
-      // Validate date
-      const date = new Date(dateStr);
-      if (Number.isNaN(date.getTime())) {
-        console.warn("Invalid date format:", visit.visit_time);
-        return null;
-      }
-      
-      return {
-        ...visit,
-        visit_time: dateStr,
-      };
-    }).filter(Boolean); // Loại bỏ null values
-
-    if (normalizedData.length === 0) {
-      console.warn("VisitChart: No valid data after normalization");
-      return {
-        categories: [],
-        data: [],
-      };
-    }
-
-    if (period === "currentWeek") {
-      const currentWeekDates = getCurrentWeekDates()
-      const weekData = currentWeekDates.map((date) => {
-        const count = normalizedData.filter((visit) => {
-          const visitDate = visit.visit_time.split("T")[0].split(" ")[0];
-          return visitDate === date;
-        }).length
-        const dayName = new Date(date).toLocaleDateString("vi-VN", { weekday: "short" })
-        return { date: dayName, count }
-      })
-
-      return {
-        categories: weekData.map((item) => item.date),
-        data: weekData.map((item) => item.count),
-      }
-    }
-
-    const visitCounts = {}
-
-    normalizedData.forEach((visit) => {
-      const date = new Date(visit.visit_time)
-      if (Number.isNaN(date.getTime())) {
-        return; // Skip invalid dates
-      }
-      let key
-
-      switch (period) {
-        case "day":
-          key = date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
-          break
-        case "month":
-          key = date.toLocaleDateString("vi-VN", { month: "2-digit", year: "numeric" })
-          break
-        case "year":
-          key = date.getFullYear().toString()
-          break
-        default:
-          key = date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
-      }
-
-      visitCounts[key] = (visitCounts[key] || 0) + 1
-    })
-
-    // Sắp xếp theo thời gian
-    const sortedEntries = Object.entries(visitCounts).sort((a, b) => {
-      if (period === "year") {
-        return Number.parseInt(a[0]) - Number.parseInt(b[0])
-      }
-      // Cho day và month, chuyển đổi về Date để so sánh
-      const dateA =
-        period === "day"
-          ? new Date(`2024-${a[0].split("/").reverse().join("-")}`)
-          : new Date(`${a[0].split("/").reverse().join("-")}-01`)
-      const dateB =
-        period === "day"
-          ? new Date(`2024-${b[0].split("/").reverse().join("-")}`)
-          : new Date(`${b[0].split("/").reverse().join("-")}-01`)
-      return dateA - dateB
-    })
-
-    return {
-      categories: sortedEntries.map(([key]) => key),
-      data: sortedEntries.map(([, count]) => count),
-    }
-  }
-
   // Xử lý dữ liệu dựa trên time period được chọn
   const chartData = useMemo(() => {
-    console.log("VisitChart processing data:", rawData);
-    const processed = processVisitData(rawData, timePeriod);
-    console.log("VisitChart processed data:", processed);
-    return processed;
-  }, [rawData, timePeriod, processVisitData])
+    return processVisitData(rawData, timePeriod)
+  }, [rawData, timePeriod])
 
   const totalVisits = useMemo(() => {
     if (!chartData.data || chartData.data.length === 0) {

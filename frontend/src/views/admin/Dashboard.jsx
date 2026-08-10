@@ -51,35 +51,8 @@ const Dashboard = () => {
       // API có thể trả về { data: [...] } hoặc trực tiếp [...]
       let visitData = response.data || response;
       
-      // Nếu visitData là array, normalize format date
-      if (Array.isArray(visitData) && visitData.length > 0) {
-        // Normalize visit_time format để đảm bảo tương thích
-        visitData = visitData.map((visit) => {
-          if (visit.visit_time) {
-            // Chuyển đổi date sang format YYYY-MM-DD nếu cần
-            let dateStr = visit.visit_time;
-            if (typeof dateStr === "string") {
-              // Nếu có time, chỉ lấy phần date
-              dateStr = dateStr.split("T")[0];
-              // Nếu format khác, thử parse
-              const date = new Date(visit.visit_time);
-              if (!Number.isNaN(date.getTime())) {
-                dateStr = date.toISOString().split("T")[0];
-              }
-            }
-            return {
-              ...visit,
-              visit_time: dateStr,
-            };
-          }
-          return visit;
-        });
-        setDataChart(visitData);
-      } else if (Array.isArray(visitData)) {
-        setDataChart([]);
-      } else {
-        setDataChart([]);
-      }
+      // Giữ nguyên timestamp để component biểu đồ tự xử lý múi giờ và sắp xếp.
+      setDataChart(Array.isArray(visitData) ? visitData : []);
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") {
         handleInvalidToken(router);
