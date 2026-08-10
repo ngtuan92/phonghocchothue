@@ -524,10 +524,10 @@ export default function ProductForm(props) {
 
   const handleSave = async () => {
     if (validateInputs()) {
-      const currentRoomContent = roomContentDraftRef.current || roomContent;
-      const currentRoomNameRich = roomNameRichDraftRef.current || roomNameRich;
-      const currentRoomPrice = roomPriceDraftRef.current || roomPrice;
-      const currentRoomEquipment = roomEquipmentDraftRef.current || roomEquipment;
+      const currentRoomContent = roomContentDraftRef.current ?? roomContent;
+      const currentRoomNameRich = roomNameRichDraftRef.current ?? roomNameRich;
+      const currentRoomPrice = roomPriceDraftRef.current ?? roomPrice;
+      const currentRoomEquipment = roomEquipmentDraftRef.current ?? roomEquipment;
       const nameRich = decorateRichTextWithControls(currentRoomNameRich, {
         fontSize: roomNameFontSize,
         fontSizeMobile: roomNameFontSizeMobile,
@@ -536,22 +536,22 @@ export default function ProductForm(props) {
         translateY: roomNameTranslateY,
         translateYMobile: roomNameTranslateYMobile,
       });
-      const price = decorateRichTextWithControls(currentRoomPrice, {
+      const price = getPlainText(currentRoomPrice) ? decorateRichTextWithControls(currentRoomPrice, {
         fontSize: roomPriceFontSize,
         fontSizeMobile: roomPriceFontSizeMobile,
         lineHeight: roomPriceLineHeight,
         lineHeightMobile: roomPriceLineHeightMobile,
         translateY: roomPriceTranslateY,
         translateYMobile: roomPriceTranslateYMobile,
-      });
-      const equipment = decorateRichTextWithControls(currentRoomEquipment, {
+      }) : "";
+      const equipment = getPlainText(currentRoomEquipment) ? decorateRichTextWithControls(currentRoomEquipment, {
         fontSize: roomEquipmentFontSize,
         fontSizeMobile: roomEquipmentFontSizeMobile,
         lineHeight: roomEquipmentLineHeight,
         lineHeightMobile: roomEquipmentLineHeightMobile,
         translateY: roomEquipmentTranslateY,
         translateYMobile: roomEquipmentTranslateYMobile,
-      });
+      }) : "";
       const data = {
         name: roomName,
         name_rich: nameRich,

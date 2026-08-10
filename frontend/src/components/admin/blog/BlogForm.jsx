@@ -489,14 +489,14 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
         translateY: currentFormData.titleTranslateY,
         translateYMobile: currentFormData.titleTranslateYMobile,
       }),
-      excerpt: decorateRichTextWithControls(currentFormData.excerpt, {
+      excerpt: getPlainText(currentFormData.excerpt) ? decorateRichTextWithControls(currentFormData.excerpt, {
         fontSize: currentFormData.excerptFontSize,
         fontSizeMobile: currentFormData.excerptFontSizeMobile,
         lineHeight: currentFormData.excerptLineHeight,
         lineHeightMobile: currentFormData.excerptLineHeightMobile,
         translateY: currentFormData.excerptTranslateY,
         translateYMobile: currentFormData.excerptTranslateYMobile,
-      }),
+      }) : "",
       content: decorateRichTextWithControls(currentFormData.content, {
         fontSize: currentFormData.fontSize,
         fontSizeMobile: currentFormData.fontSizeMobile,

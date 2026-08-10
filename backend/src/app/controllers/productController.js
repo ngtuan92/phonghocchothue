@@ -264,6 +264,7 @@ class ProductController {
           message: 'Sản phẩm không tồn tại!'
         });
       }
+      const previousSlug = product.slug;
 
       let imagePatch = product.image;
       if (image) {
@@ -368,7 +369,7 @@ class ProductController {
       // XÓA CACHE
       await clearProductListCache();
       await redis.del(`product:detail:${id}`);
-      if (product.slug) await redis.del(`product:detail:${product.slug}`);
+      if (previousSlug) await redis.del(`product:detail:${previousSlug}`);
       if (productSlug) await redis.del(`product:detail:${productSlug}`);
 
       return res.json({
@@ -520,6 +521,11 @@ class ProductController {
     try {
       const { id } = req.params;
 
+      const product = await productModel.findByPk(id, { attributes: ["slug"] });
+      if (!product) {
+        return res.status(404).json({ success: false, message: "Sản phẩm không tồn tại!" });
+      }
+
       await productImageModel.destroy({
         where: { product_id: id },
       });
@@ -530,6 +536,7 @@ class ProductController {
 
       await clearProductListCache();
       await redis.del(`product:detail:${id}`);
+      if (product.slug) await redis.del(`product:detail:${product.slug}`);
 
       return res.json({
         success: true,

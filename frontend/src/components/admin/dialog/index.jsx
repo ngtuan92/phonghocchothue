@@ -524,30 +524,30 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
   };
 
   const handleSave = () => {
-    const currentRoomNameRich = roomNameRichDraftRef.current || roomNameRich;
+    const currentRoomNameRich = roomNameRichDraftRef.current ?? roomNameRich;
     const currentRoomName = getPlainText(currentRoomNameRich) || roomName;
     const currentRoomSlug = roomSlug || createSlug(currentRoomName);
-    const currentRoomContent = roomContentDraftRef.current || roomContent;
-    const currentRoomPrice = roomPriceDraftRef.current || roomPrice;
-    const currentRoomEquipment = roomEquipmentDraftRef.current || roomEquipment;
+    const currentRoomContent = roomContentDraftRef.current ?? roomContent;
+    const currentRoomPrice = roomPriceDraftRef.current ?? roomPrice;
+    const currentRoomEquipment = roomEquipmentDraftRef.current ?? roomEquipment;
 
     if (validateInputs(currentRoomName, currentRoomSlug)) {
-      const price = decorateRichTextWithControls(currentRoomPrice, {
+      const price = getPlainText(currentRoomPrice) ? decorateRichTextWithControls(currentRoomPrice, {
         fontSize: roomPriceFontSize,
         fontSizeMobile: roomPriceFontSizeMobile,
         lineHeight: roomPriceLineHeight,
         lineHeightMobile: roomPriceLineHeightMobile,
         translateY: roomPriceTranslateY,
         translateYMobile: roomPriceTranslateYMobile,
-      });
-      const equipment = decorateRichTextWithControls(currentRoomEquipment, {
+      }) : "";
+      const equipment = getPlainText(currentRoomEquipment) ? decorateRichTextWithControls(currentRoomEquipment, {
         fontSize: roomEquipmentFontSize,
         fontSizeMobile: roomEquipmentFontSizeMobile,
         lineHeight: roomEquipmentLineHeight,
         lineHeightMobile: roomEquipmentLineHeightMobile,
         translateY: roomEquipmentTranslateY,
         translateYMobile: roomEquipmentTranslateYMobile,
-      });
+      }) : "";
       const contains = "";
       const data = {
         name: currentRoomName,

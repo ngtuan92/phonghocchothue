@@ -147,7 +147,7 @@ class BlogController {
                 category,
                 authorName,
                 authorAvatar: sanitizePath(authorAvatar),
-                status: status || 1,
+                status: status ?? 1,
                 excerpt,
                 publishedAt: new Date(),
                 lineHeight,
@@ -185,6 +185,7 @@ class BlogController {
             if (!blog) {
                 return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết' });
             }
+            const previousSlug = blog.slug;
 
             const updateData = { 
                 title, 
@@ -221,7 +222,7 @@ class BlogController {
             await blog.update(updateData);
             
             await redis.incr('blogs:version');
-            await redis.del(`blog:detail:${blog.slug}`);
+            await redis.del(`blog:detail:${previousSlug}`);
             if (updateData.slug) await redis.del(`blog:detail:${updateData.slug}`);
 
             res.json({ success: true, data: blog });

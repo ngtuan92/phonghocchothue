@@ -73,6 +73,19 @@ const extractPrice = (value: any): number => {
   return 0;
 };
 
+const hasMeaningfulPrice = (value: any): boolean => {
+  if (typeof value === "number") return Number.isFinite(value) && value !== 0;
+  if (typeof value !== "string") return false;
+  return stripHtmlAndCss(value).trim() !== "";
+};
+
+const formatPlainPrice = (value: any): string => {
+  if (typeof value === "number") return formatNumber(value);
+  const text = String(value || "").trim();
+  const numericValue = Number(text);
+  return Number.isFinite(numericValue) ? formatNumber(numericValue) : text;
+};
+
 export default function DetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -751,25 +764,27 @@ export default function DetailPage() {
                   </div>
                 )}
               </div>
-              <div className="room-price-summary text-xs sm:text-base mt-1 sm:mt-2 mb-4">
-                {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
-                  <RichTextRenderer
-                    html={productData.product.price}
-                    className="inline-rich-text"
-                    as="span"
-                    fontSize={product.fontSize}
-                    fontSizeMobile={product.fontSizeMobile}
-                    lineHeight={product.lineHeight}
-                    lineHeightMobile={product.lineHeightMobile}
-                    translateY={product.translateY}
-                    translateYMobile={product.translateYMobile}
-                    preserveNbsp
-                    blockLineHeight
-                  />
-                ) : (
-                  `${formatNumber(toNumber(productData.product.price) || 0)}` || "Liên hệ"
-                )}
-              </div>
+              {hasMeaningfulPrice(productData.product.price) && (
+                <div className="room-price-summary text-xs sm:text-base mt-1 sm:mt-2 mb-4">
+                  {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
+                    <RichTextRenderer
+                      html={productData.product.price}
+                      className="inline-rich-text"
+                      as="span"
+                      fontSize={product.fontSize}
+                      fontSizeMobile={product.fontSizeMobile}
+                      lineHeight={product.lineHeight}
+                      lineHeightMobile={product.lineHeightMobile}
+                      translateY={product.translateY}
+                      translateYMobile={product.translateYMobile}
+                      preserveNbsp
+                      blockLineHeight
+                    />
+                  ) : (
+                    formatPlainPrice(productData.product.price)
+                  )}
+                </div>
+              )}
               <Button
                 className="!w-auto !h-[40px] !bg-[var(--btn-color)] !px-[15px] sm:!px-[20px] !text-white !rounded-tl-xl !text-xs sm:!text-lg !rounded-br-xl !py-2 hover:!bg-[#e57f7f]"
                 style={{ '--btn-color': btnColor } as React.CSSProperties}
