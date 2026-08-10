@@ -696,6 +696,10 @@ export default function DetailPage() {
                 avatar={productData.product.image}
                 colorBg={colorBg}
                 thumbsPerView={5}
+                classNames={{
+                  wrapper:
+                    "lg:mx-auto lg:max-w-[calc(100dvh-300px)] 1700px:max-w-[calc(100dvh-320px)]",
+                }}
               />
             </div>
             <div className="flex-1 rounded-lg text-left lg:pl-4">
