@@ -747,7 +747,7 @@
   float: left !important;
   margin-right: 20px !important;
   margin-bottom: 16px !important;
-  margin-top: 12px !important;
+  margin-top: 0 !important;
   margin-left: 0 !important;
   display: inline !important;
 }
@@ -757,7 +757,7 @@
   float: right !important;
   margin-left: 20px !important;
   margin-bottom: 16px !important;
-  margin-top: 12px !important;
+  margin-top: 0 !important;
   margin-right: 0 !important;
   display: inline !important;
 }
@@ -776,8 +776,8 @@
 .rich-text-renderer .image-wrap-left {
   float: left !important;
   margin-right: 20px !important;
-  margin-bottom: 16px !important;
-  margin-top: 12px !important;
+  margin-bottom: 10px !important;
+  margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
 }
@@ -785,8 +785,8 @@
 .rich-text-renderer .image-wrap-right {
   float: right !important;
   margin-left: 20px !important;
-  margin-bottom: 16px !important;
-  margin-top: 12px !important;
+  margin-bottom: 10px !important;
+  margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 
 const getDOMPurify = () => {
@@ -235,7 +235,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   stripAllFontStyles = false,
   blockLineHeight = false,
 }) => {
-  const rendererRef = useRef<HTMLElement | null>(null);
   const cleanHtml = useMemo(() => {
     if (!html) return "";
 
@@ -655,71 +654,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
   }, []);
 
-  useEffect(() => {
-    const root = rendererRef.current;
-    if (!root || typeof window === "undefined") return;
-
-    let animationFrame = 0;
-    const clearClasses = ["rich-text-clear-left", "rich-text-clear-right"];
-
-    const alignBlocksAroundFloats = () => {
-      root.querySelectorAll<HTMLElement>(`.${clearClasses.join(", .")}`).forEach((element) => {
-        element.classList.remove(...clearClasses);
-      });
-
-      if (window.matchMedia("(max-width: 767px)").matches) return;
-
-      root.querySelectorAll<HTMLElement>(".image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right").forEach((floatElement) => {
-        const side = floatElement.classList.contains("image-wrap-right") ? "right" : "left";
-        const floatRect = floatElement.getBoundingClientRect();
-        const floatStyles = window.getComputedStyle(floatElement);
-        const floatBottom = floatRect.bottom + (Number.parseFloat(floatStyles.marginBottom) || 0);
-        let sibling = floatElement.nextElementSibling as HTMLElement | null;
-
-        while (sibling) {
-          if (sibling.getBoundingClientRect().top >= floatBottom) break;
-
-          const isList = sibling.matches("ol, ul");
-          const candidates = isList
-            ? Array.from(sibling.children).filter((child): child is HTMLElement => child instanceof HTMLElement)
-            : [sibling];
-          const crossingBlock = candidates.find((candidate) => {
-            const rect = candidate.getBoundingClientRect();
-            const lineHeight = Number.parseFloat(window.getComputedStyle(candidate).lineHeight) || 0;
-            const safetyGap = isList ? lineHeight : 0;
-            return rect.top < floatBottom && rect.bottom + safetyGap > floatBottom;
-          });
-
-          if (crossingBlock) {
-            crossingBlock.classList.add(`rich-text-clear-${side}`);
-            break;
-          }
-
-          sibling = sibling.nextElementSibling as HTMLElement | null;
-        }
-      });
-    };
-
-    const scheduleAlignment = () => {
-      window.cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(alignBlocksAroundFloats);
-    };
-
-    scheduleAlignment();
-    window.addEventListener("resize", scheduleAlignment);
-    const resizeObserver = new ResizeObserver(scheduleAlignment);
-    resizeObserver.observe(root);
-    root.querySelectorAll("img").forEach((image) => image.addEventListener("load", scheduleAlignment));
-    document.fonts?.ready.then(scheduleAlignment);
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener("resize", scheduleAlignment);
-      resizeObserver.disconnect();
-      root.querySelectorAll("img").forEach((image) => image.removeEventListener("load", scheduleAlignment));
-    };
-  }, [cleanHtml]);
-
   const configClassName = configKey ? CONFIG_KEY_CLASS_NAMES[configKey] || "" : "";
   const rendererClassName = `rich-text-renderer ${configClassName} ${className}`.replace(/\s+/g, " ").trim();
 
@@ -727,7 +661,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
   return (
     <Component
-      ref={rendererRef}
       className={rendererClassName}
       style={customStyles}
       dangerouslySetInnerHTML={{ __html: cleanHtml }}
@@ -783,12 +716,6 @@ const RICH_TEXT_RENDERER_STYLES = `
           color: currentColor;
           font-size: 1em;
           line-height: inherit;
-        }
-        .rich-text-renderer .rich-text-clear-left {
-          clear: left !important;
-        }
-        .rich-text-renderer .rich-text-clear-right {
-          clear: right !important;
         }
         .rich-text-renderer .ql-ui,
         .rich-text-renderer li::before {
@@ -991,7 +918,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           float: left !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 12px !important;
+          margin-top: 0 !important;
           margin-left: 0 !important;
           display: inline !important;
         }
@@ -1000,7 +927,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           float: right !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
-          margin-top: 12px !important;
+          margin-top: 0 !important;
           margin-right: 0 !important;
           display: inline !important;
         }
@@ -1017,16 +944,16 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer .image-wrap-left {
           float: left !important;
           margin-right: 20px !important;
-          margin-bottom: 16px !important;
-          margin-top: 12px !important;
+          margin-bottom: 10px !important;
+          margin-top: 0 !important;
           display: inline-block !important;
           position: relative !important;
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
           margin-left: 20px !important;
-          margin-bottom: 16px !important;
-          margin-top: 12px !important;
+          margin-bottom: 10px !important;
+          margin-top: 0 !important;
           display: inline-block !important;
           position: relative !important;
         }
