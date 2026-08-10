@@ -537,7 +537,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
               onChange={(val) => commitRichField("title", val)}
               onDraftChange={(val) => updateRichField("title", val)}
               onBlur={(val) => commitRichField("title", val)}
-              className="min-h-[80px]"
+              className="blog-title-editor min-h-[80px]"
               minHeight="80px"
               maxHeight="150px"
               placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
@@ -672,7 +672,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 onChange={(val) => commitRichField("excerpt", val)}
                 onDraftChange={(val) => updateRichField("excerpt", val)}
                 onBlur={(val) => commitRichField("excerpt", val)}
-                className="min-h-[120px]"
+                className="blog-excerpt-editor min-h-[120px]"
                 minHeight="120px"
                 maxHeight="200px"
                 placeholder="Mô tả ngắn gọn nội dung bài viết..."

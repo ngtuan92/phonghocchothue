@@ -841,7 +841,11 @@ const preserveSignificantInlineWhitespaceForQuill = (html) => {
   });
 
   root.querySelectorAll("p, div, h1, h2, h3, h4, h5, h6, li").forEach((block) => {
-    if (!/\u00a0| {2,}/.test(block.textContent || "")) return;
+    const hasSignificantWhitespace = /\u00a0| {2,}/.test(block.textContent || "");
+    if (block.style.overflowWrap === "anywhere") {
+      block.style.overflowWrap = "break-word";
+    }
+    if (!hasSignificantWhitespace) return;
     block.style.whiteSpace = "break-spaces";
     block.style.overflowWrap = "break-word";
   });
@@ -961,8 +965,13 @@ const QuillWrapper = forwardRef(({
     className.includes('blog-desc-editor') ||
     className.includes('room-desc-editor') ||
     className.includes('room-summary-editor');
+  const shouldNormalizeAdminContentWhitespace =
+    className.includes('blog-title-editor') ||
+    className.includes('blog-excerpt-editor') ||
+    className.includes('room-name-editor');
   const preserveInlineWhitespace =
-    className.includes('room-summary-editor') ||
+    preserveWhitespaceOnlyBlocks ||
+    shouldNormalizeAdminContentWhitespace ||
     shouldPreserveHeroInlineWhitespace;
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;

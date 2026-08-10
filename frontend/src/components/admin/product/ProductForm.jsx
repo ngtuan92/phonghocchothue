@@ -665,6 +665,7 @@ export default function ProductForm(props) {
                   }}
                   placeholder="Nhập tên phòng..."
                   isBlogEditor={true}
+                  className="room-name-editor"
                   lineHeight={roomNameLineHeight}
                   lineHeightMobile={roomNameLineHeightMobile}
                   fontSize={roomNameFontSize}
