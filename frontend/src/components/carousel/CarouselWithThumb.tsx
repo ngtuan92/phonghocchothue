@@ -74,9 +74,10 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
 
   const onSelect = useCallback(() => {
     if (!emblaMainApi || !emblaThumbsApi) return;
-    setSelectedIndex(emblaMainApi.selectedScrollSnap());
-    emblaThumbsApi.scrollTo(emblaMainApi.selectedScrollSnap());
-  }, [emblaMainApi, emblaThumbsApi]);
+    const mainIndex = emblaMainApi.selectedScrollSnap();
+    setSelectedIndex(mainIndex);
+    emblaThumbsApi.scrollTo(Math.max(0, mainIndex - (avatar ? 1 : 0)));
+  }, [avatar, emblaMainApi, emblaThumbsApi]);
 
   useEffect(() => {
     if (!emblaMainApi) return;
@@ -176,39 +177,43 @@ export default function CarouselWithThumb(props: CarouselWithThumbProps) {
               marginLeft: `-${thumbsGap}px`,
             }}
           >
-            {map(imagesData, (item, index) => (
-              <div
-                key={index}
-                style={{
-                  paddingLeft: `${thumbsGap}px`,
-                  width: `calc(100% / ${thumbsPerView})`,
-                }}
-                aria-selected={index === selectedIndex}
-                className="flex-shrink-0 flex-grow-0"
-              >
-                <button
-                  onClick={() => onThumbClick(index)}
-                  type="button"
-                  className="relative aspect-square w-full overflow-hidden rounded-md"
-                  style={{ backgroundColor: colorBg }}
+            {map(imagesData, (item, index) => {
+              if (item?.isAvatar) return null;
+
+              return (
+                <div
+                  key={index}
+                  style={{
+                    paddingLeft: `${thumbsGap}px`,
+                    width: `calc(100% / ${thumbsPerView})`,
+                  }}
+                  aria-selected={index === selectedIndex}
+                  className="flex-shrink-0 flex-grow-0"
                 >
-                  <span
-                    aria-selected={index === selectedIndex}
-                    className="absolute left-0 top-0 z-50 block size-full rounded-md border-2 border-primary opacity-0 transition-all duration-300 aria-selected:opacity-100"
-                  />
-                  <Image
-                    src={`${URL_API}${item?.image_detail?.replaceAll("\\", "/") || ""}`}
-                    alt={`Thumbnail ${index + 1}`}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 640px) 25vw, 15vw"
-                    quality={75}
-                    loading="lazy"
+                  <button
+                    onClick={() => onThumbClick(index)}
+                    type="button"
+                    className="relative aspect-square w-full overflow-hidden rounded-md"
                     style={{ backgroundColor: colorBg }}
-                  />
-                </button>
-              </div>
-            ))}
+                  >
+                    <span
+                      aria-selected={index === selectedIndex}
+                      className="absolute left-0 top-0 z-50 block size-full rounded-md border-2 border-primary opacity-0 transition-all duration-300 aria-selected:opacity-100"
+                    />
+                    <Image
+                      src={`${URL_API}${item?.image_detail?.replaceAll("\\", "/") || ""}`}
+                      alt={`Thumbnail ${index + 1}`}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 640px) 25vw, 15vw"
+                      quality={75}
+                      loading="lazy"
+                      style={{ backgroundColor: colorBg }}
+                    />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
