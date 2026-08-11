@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react"
+import { useState, useMemo, useCallback, useRef } from "react"
 import dynamic from "next/dynamic"
 import PropTypes from "prop-types"
 
@@ -208,36 +208,32 @@ const VisitChart = ({
     return processVisitData(rawData, timePeriod)
   }, [rawData, timePeriod])
 
-  useEffect(() => {
+  const applyDefaultDayWindow = useCallback((chartContext) => {
     if (
       timePeriod !== "day" ||
       !shouldApplyDefaultDayWindowRef.current ||
       chartData.categories.length <= DEFAULT_DAY_WINDOW
     ) {
-      return undefined
+      return
     }
 
-    let cancelled = false
-    const timer = window.setTimeout(async () => {
-      try {
-        const { default: ApexCharts } = await import("apexcharts")
-        if (cancelled) return
+    const lastPoint = chartData.categories.length
+    const firstPoint = Math.max(1, lastPoint - DEFAULT_DAY_WINDOW + 1)
+    const currentMin = chartContext?.w?.globals?.minX
+    const currentMax = chartContext?.w?.globals?.maxX
 
-        const lastPoint = chartData.categories.length
-        const firstPoint = Math.max(1, lastPoint - DEFAULT_DAY_WINDOW + 1)
-        ignoreNextZoomEventRef.current = true
-        await ApexCharts.exec(VISIT_CHART_ID, "zoomX", firstPoint, lastPoint)
+    if (currentMin === firstPoint && currentMax === lastPoint) return
+
+    ignoreNextZoomEventRef.current = true
+    window.requestAnimationFrame(() => {
+      try {
+        chartContext?.zoomX?.(firstPoint, lastPoint)
       } catch (error) {
         ignoreNextZoomEventRef.current = false
         console.error("Unable to apply the default visit chart window", error)
       }
-    }, 100)
-
-    return () => {
-      cancelled = true
-      window.clearTimeout(timer)
-    }
-  }, [chartData, timePeriod])
+    })
+  }, [chartData.categories.length, timePeriod])
 
   const totalVisits = useMemo(() => {
     if (!chartData.data || chartData.data.length === 0) {
@@ -253,6 +249,8 @@ const VisitChart = ({
         id: VISIT_CHART_ID,
         type: "line",
         events: {
+          mounted: applyDefaultDayWindow,
+          updated: applyDefaultDayWindow,
           zoomed: handleChartZoom,
           scrolled: handleChartZoom,
           beforeResetZoom: handleChartReset,
@@ -361,7 +359,7 @@ const VisitChart = ({
         },
       },
     }),
-    [chartData, title, timePeriod, color, handleChartReset, handleChartZoom],
+    [applyDefaultDayWindow, chartData, title, timePeriod, color, handleChartReset, handleChartZoom],
   )
 
   const series = useMemo(
@@ -417,7 +415,13 @@ const VisitChart = ({
       </div>
 
       {/* Chart */}
-      <Chart options={chartOptions} series={series} type="line" height={height} />
+      <Chart
+        key={timePeriod}
+        options={chartOptions}
+        series={series}
+        type="line"
+        height={height}
+      />
     </div>
   )
 }
