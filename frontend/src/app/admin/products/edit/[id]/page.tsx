@@ -26,7 +26,15 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchData(`${URL_API}api/product/edit/${id}`);
+        const response = await fetchData(
+          `${URL_API}api/product/edit/${id}?_=${Date.now()}`,
+          "GET",
+          undefined,
+          {
+            "Cache-Control": "no-cache, no-store",
+            Pragma: "no-cache",
+          },
+        );
         setProductData((response as any).data || null);
       } catch (error) {
         showToastError("Không tải được thông tin phòng");

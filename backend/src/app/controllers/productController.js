@@ -15,6 +15,9 @@ function formatProductRichName(nameRich) {
 const productListOrder = [["position", "ASC"], ["id", "DESC"]];
 
 async function clearProductListCache() {
+  // Versioning is the source of truth. Deleting wildcard keys is only cleanup;
+  // it is not reliable across Redis deployments/replicas.
+  await redis.incr("products:cache-version");
   await redis.del("products:all");
   await redis.del("products:light:all");
 
@@ -75,12 +78,14 @@ const ensureProductRichTextColumns = async () => {
 class ProductController {
   async index(req, res) {
     try {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
       await ensureProductRichTextColumns();
       const { limit, light } = req.query;
       const isLightList = light === "true";
+      const cacheVersion = await redis.get("products:cache-version") || "1";
       const cacheKey = isLightList
-        ? `products:light:${limit || "all"}`
-        : limit ? `products:limit:${limit}` : "products:all";
+        ? `products:v${cacheVersion}:light:${limit || "all"}`
+        : limit ? `products:v${cacheVersion}:limit:${limit}` : `products:v${cacheVersion}:all`;
 
       const productsJson = await getOrSetCache(cacheKey, async () => {
         const productData = await productModel.findAll({
@@ -118,6 +123,9 @@ class ProductController {
   }
 
   async edit(req, res) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     await ensureProductRichTextColumns();
     productModel
       .findOne({
@@ -180,9 +188,11 @@ class ProductController {
 
   async getById(req, res) {
     try {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
       await ensureProductRichTextColumns();
       const { id } = req.params;
-      const cacheKey = `product:detail:${id}`;
+      const detailVersion = await redis.get("product:detail-cache-version") || "1";
+      const cacheKey = `product:detail:v${detailVersion}:${id}`;
 
       const resultJson = await getOrSetCache(cacheKey, async () => {
         const isNumeric = /^\d+$/.test(id);
@@ -368,6 +378,7 @@ class ProductController {
 
       // XÓA CACHE
       await clearProductListCache();
+      await redis.incr("product:detail-cache-version");
       await redis.del(`product:detail:${id}`);
       if (previousSlug) await redis.del(`product:detail:${previousSlug}`);
       if (productSlug) await redis.del(`product:detail:${productSlug}`);
@@ -464,6 +475,7 @@ class ProductController {
       }
 
       await clearProductListCache();
+      await redis.incr("product:detail-cache-version");
 
       return res.json({
         success: true,
@@ -535,6 +547,7 @@ class ProductController {
       });
 
       await clearProductListCache();
+      await redis.incr("product:detail-cache-version");
       await redis.del(`product:detail:${id}`);
       if (product.slug) await redis.del(`product:detail:${product.slug}`);
 
