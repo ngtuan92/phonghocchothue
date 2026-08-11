@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback, useRef } from "react"
 import dynamic from "next/dynamic"
 import PropTypes from "prop-types"
 
@@ -145,8 +145,28 @@ const VisitChart = ({
   title = "Thống kê lượt truy cập",
   color = "#3B82F6",
   height = 400,
+  onViewportChange,
 }) => {
   const [timePeriod, setTimePeriod] = useState("currentWeek")
+  const ignoreNextZoomEventRef = useRef(false)
+
+  const handleTimePeriodChange = useCallback((event) => {
+    onViewportChange?.(false)
+    setTimePeriod(event.target.value)
+  }, [onViewportChange])
+
+  const handleChartZoom = useCallback(() => {
+    if (ignoreNextZoomEventRef.current) {
+      ignoreNextZoomEventRef.current = false
+      return
+    }
+    onViewportChange?.(true)
+  }, [onViewportChange])
+
+  const handleChartReset = useCallback(() => {
+    ignoreNextZoomEventRef.current = true
+    onViewportChange?.(false)
+  }, [onViewportChange])
 
   // Xử lý dữ liệu dựa trên time period được chọn
   const chartData = useMemo(() => {
@@ -165,6 +185,10 @@ const VisitChart = ({
     () => ({
       chart: {
         type: "line",
+        events: {
+          zoomed: handleChartZoom,
+          beforeResetZoom: handleChartReset,
+        },
         toolbar: {
           show: true,
           tools: {
@@ -261,7 +285,7 @@ const VisitChart = ({
         },
       },
     }),
-    [chartData, title, timePeriod, color],
+    [chartData, title, timePeriod, color, handleChartReset, handleChartZoom],
   )
 
   const series = useMemo(
@@ -289,7 +313,7 @@ const VisitChart = ({
           <select
             id="timePeriod"
             value={timePeriod}
-            onChange={(e) => setTimePeriod(e.target.value)}
+            onChange={handleTimePeriodChange}
             className="block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="currentWeek">Tuần hiện tại</option>
@@ -334,6 +358,7 @@ VisitChart.propTypes = {
   title: PropTypes.string,
   color: PropTypes.string,
   height: PropTypes.number,
+  onViewportChange: PropTypes.func,
 }
 
 export default VisitChart

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { MdBarChart, MdDashboard, MdShoppingCart } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { handleInvalidToken } from "../../utils/helpers";
@@ -22,7 +22,12 @@ const Dashboard = () => {
 
   const [data, setData] = useState({});
   const [dataChart, setDataChart] = useState([]);
+  const isChartViewportLockedRef = useRef(false);
   const router = useRouter();
+
+  const handleChartViewportChange = useCallback((isLocked) => {
+    isChartViewportLockedRef.current = isLocked;
+  }, []);
 
   const fetchRoomAPI = useCallback(async () => {
     try {
@@ -52,7 +57,19 @@ const Dashboard = () => {
       let visitData = response.data || response;
       
       // Giữ nguyên timestamp để component biểu đồ tự xử lý múi giờ và sắp xếp.
-      setDataChart(Array.isArray(visitData) ? visitData : []);
+      if (isChartViewportLockedRef.current) return;
+
+      const nextVisitData = Array.isArray(visitData) ? visitData : [];
+      setDataChart((currentVisitData) => {
+        const isUnchanged =
+          currentVisitData.length === nextVisitData.length &&
+          currentVisitData.every((visit, index) => (
+            visit?.id === nextVisitData[index]?.id &&
+            visit?.visit_time === nextVisitData[index]?.visit_time
+          ));
+
+        return isUnchanged ? currentVisitData : nextVisitData;
+      });
     } catch (error) {
       if (error?.response?.data?.message === "Invalid token") {
         handleInvalidToken(router);
@@ -96,7 +113,11 @@ const Dashboard = () => {
 
       <div className="my-5 mt-4">
         {dataChart && dataChart.length > 0 ? (
-          <VisitChart rawData={dataChart} title="Thống kê truy cập" />
+          <VisitChart
+            rawData={dataChart}
+            title="Thống kê truy cập"
+            onViewportChange={handleChartViewportChange}
+          />
         ) : (
           <div className="w-full bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <p className="text-gray-500 text-center">
