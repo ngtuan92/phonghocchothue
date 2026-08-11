@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useMemo, useCallback, useRef } from "react"
+import { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import PropTypes from "prop-types"
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false })
+const VISIT_CHART_ID = "dashboard-visit-chart"
+const DEFAULT_DAY_WINDOW = 10
 
 // Sample data mặc định
 const defaultVisitData = [
@@ -130,6 +132,34 @@ const processVisitData = (data, period) => {
     }
   })
 
+  if (period === "day") {
+    const currentParts = getDateParts(new Date())
+    if (currentParts) {
+      const currentDate = new Date(
+        Date.UTC(currentParts.year, currentParts.month - 1, currentParts.day),
+      )
+
+      for (let offset = DEFAULT_DAY_WINDOW - 1; offset >= 0; offset -= 1) {
+        const date = new Date(currentDate)
+        date.setUTCDate(currentDate.getUTCDate() - offset)
+        const parts = {
+          year: date.getUTCFullYear(),
+          month: date.getUTCMonth() + 1,
+          day: date.getUTCDate(),
+        }
+        const key = getDayKey(parts)
+
+        if (!buckets.has(key)) {
+          buckets.set(key, {
+            label: `${padNumber(parts.day)}-${padNumber(parts.month)}`,
+            sortValue: date.getTime(),
+            count: 0,
+          })
+        }
+      }
+    }
+  }
+
   const sortedBuckets = Array.from(buckets.values()).sort(
     (a, b) => a.sortValue - b.sortValue,
   )
@@ -149,10 +179,13 @@ const VisitChart = ({
 }) => {
   const [timePeriod, setTimePeriod] = useState("currentWeek")
   const ignoreNextZoomEventRef = useRef(false)
+  const shouldApplyDefaultDayWindowRef = useRef(false)
 
   const handleTimePeriodChange = useCallback((event) => {
+    const nextPeriod = event.target.value
     onViewportChange?.(false)
-    setTimePeriod(event.target.value)
+    shouldApplyDefaultDayWindowRef.current = nextPeriod === "day"
+    setTimePeriod(nextPeriod)
   }, [onViewportChange])
 
   const handleChartZoom = useCallback(() => {
@@ -160,11 +193,13 @@ const VisitChart = ({
       ignoreNextZoomEventRef.current = false
       return
     }
+    shouldApplyDefaultDayWindowRef.current = false
     onViewportChange?.(true)
   }, [onViewportChange])
 
   const handleChartReset = useCallback(() => {
     ignoreNextZoomEventRef.current = true
+    shouldApplyDefaultDayWindowRef.current = false
     onViewportChange?.(false)
   }, [onViewportChange])
 
@@ -172,6 +207,37 @@ const VisitChart = ({
   const chartData = useMemo(() => {
     return processVisitData(rawData, timePeriod)
   }, [rawData, timePeriod])
+
+  useEffect(() => {
+    if (
+      timePeriod !== "day" ||
+      !shouldApplyDefaultDayWindowRef.current ||
+      chartData.categories.length <= DEFAULT_DAY_WINDOW
+    ) {
+      return undefined
+    }
+
+    let cancelled = false
+    const timer = window.setTimeout(async () => {
+      try {
+        const { default: ApexCharts } = await import("apexcharts")
+        if (cancelled) return
+
+        const lastPoint = chartData.categories.length
+        const firstPoint = Math.max(1, lastPoint - DEFAULT_DAY_WINDOW + 1)
+        ignoreNextZoomEventRef.current = true
+        await ApexCharts.exec(VISIT_CHART_ID, "zoomX", firstPoint, lastPoint)
+      } catch (error) {
+        ignoreNextZoomEventRef.current = false
+        console.error("Unable to apply the default visit chart window", error)
+      }
+    }, 100)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [chartData, timePeriod])
 
   const totalVisits = useMemo(() => {
     if (!chartData.data || chartData.data.length === 0) {
@@ -184,22 +250,31 @@ const VisitChart = ({
   const chartOptions = useMemo(
     () => ({
       chart: {
+        id: VISIT_CHART_ID,
         type: "line",
         events: {
           zoomed: handleChartZoom,
+          scrolled: handleChartZoom,
           beforeResetZoom: handleChartReset,
         },
         toolbar: {
           show: true,
+          autoSelected: timePeriod === "day" ? "pan" : "zoom",
           tools: {
             download: false,
             selection: false,
             zoom: true,
             zoomin: true,
             zoomout: true,
-            pan: false,
+            pan: timePeriod === "day",
             reset: true,
           },
+        },
+        zoom: {
+          enabled: true,
+          type: "x",
+          autoScaleYaxis: true,
+          allowMouseWheelZoom: timePeriod === "day",
         },
         background: "transparent",
       },
@@ -224,6 +299,7 @@ const VisitChart = ({
       },
       xaxis: {
         categories: chartData.categories,
+        tickPlacement: timePeriod === "day" ? "on" : "between",
         title: {
           text:
             timePeriod === "day"
