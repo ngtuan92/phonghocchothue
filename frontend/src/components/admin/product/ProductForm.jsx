@@ -613,7 +613,7 @@ export default function ProductForm(props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Tên phòng */}
             <div className="space-y-2 md:col-span-2">
-              <label htmlFor="room-name-rich" className="block text-sm font-bold text-navy-700">
+              <label htmlFor="room-name-rich" className="block text-base md:text-lg font-bold text-navy-700">
                 Tên phòng (Nghệ thuật - H1, H2, Kiểu chữ...) <span className="text-red-500">*</span>
               </label>
               <div id="room-name-rich" className="product-dialog-quill product-dialog-quill--name border border-gray-200 rounded-xl overflow-visible bg-white">
@@ -691,7 +691,7 @@ export default function ProductForm(props) {
 
             {/* Slug */}
             <div className="space-y-2">
-              <label htmlFor="room-slug" className="block text-sm font-bold text-navy-700">
+              <label htmlFor="room-slug" className="block text-base font-bold text-navy-700">
                 Slug <span className="text-red-500">*</span>
               </label>
               <input
@@ -712,7 +712,7 @@ export default function ProductForm(props) {
 
             {/* Cấu hình hiển thị */}
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-navy-700">
+              <label className="block text-base font-bold text-navy-700">
                 Trạng thái phòng
               </label>
               <div className="flex gap-4">
@@ -756,7 +756,7 @@ export default function ProductForm(props) {
 
             {/* Giá thuê */}
             <div className="space-y-2">
-              <label htmlFor="room-price" className="block text-sm font-bold text-navy-700">
+              <label htmlFor="room-price" className="block text-base font-bold text-navy-700">
                 💵 Giá thuê (VNĐ)
               </label>
               <div id="room-price" className="product-dialog-quill product-dialog-quill--price border border-gray-200 rounded-xl overflow-visible bg-white">
@@ -800,7 +800,7 @@ export default function ProductForm(props) {
 
             {/* Thiết bị tóm tắt */}
             <div className="space-y-2">
-              <label htmlFor="room-equipment" className="block text-sm font-bold text-navy-700">
+              <label htmlFor="room-equipment" className="block text-base font-bold text-navy-700">
                 📝 Thiết bị & Tiện ích tóm tắt
               </label>
               <div id="room-equipment" className="product-dialog-quill product-dialog-quill--equipment border border-gray-200 rounded-xl overflow-visible bg-white">
