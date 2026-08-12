@@ -729,6 +729,21 @@ const stripEditorCaptionArtifacts = (html) => {
     .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "");
 };
 
+const unwrapRichTextControlsForEdit = (html) => {
+  if (!html || typeof html !== "string" || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  const controlsRoot = root?.children.length === 1 &&
+    root.firstElementChild?.matches("[data-rich-text-controls]")
+      ? root.firstElementChild
+      : null;
+  if (!root || !controlsRoot) return html;
+
+  controlsRoot.replaceWith(...Array.from(controlsRoot.childNodes));
+  return root.innerHTML;
+};
+
 const isEmptyQuillParagraph = (node) => {
   if (!node || node.tagName !== 'P') return false;
   if (node.querySelector('img, video, iframe, svg, table, ul, ol')) return false;
@@ -5002,7 +5017,9 @@ const QuillWrapper = forwardRef(({
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
     const whitespaceOptions = { preserveWhitespaceOnly: preserveWhitespaceOnlyBlocks };
-    let val = removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value), whitespaceOptions).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    let val = unwrapRichTextControlsForEdit(
+      removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value), whitespaceOptions)
+    ).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
     if (preserveWhitespaceOnlyBlocks) {
       val = normalizeWhitespaceOnlyBlocksForQuill(val);
     }
