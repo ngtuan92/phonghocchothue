@@ -1046,6 +1046,7 @@ export default function DetailPage() {
                 translateY={product.translateY}
                 translateYMobile={product.translateYMobile}
                 naturalTextWrapping
+                preserveLeadingIndent
               />
             </div>
           </>
