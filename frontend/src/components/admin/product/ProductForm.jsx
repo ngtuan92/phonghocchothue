@@ -879,7 +879,7 @@ export default function ProductForm(props) {
                 💵 Giá thuê (VNĐ)
               </label>
               <div id="room-price" className="product-dialog-quill product-dialog-quill--price border border-gray-200 rounded-xl overflow-visible bg-white">
-                {isTextContentInitialized ? <LazyQuillWrapper
+                {isTextContentInitialized ? <QuillWrapper
                   key={`quill-price-${id || 'new'}`}
                   theme="snow"
                   value={roomPrice}
@@ -924,7 +924,7 @@ export default function ProductForm(props) {
                 📝 Thiết bị & Tiện ích tóm tắt
               </label>
               <div id="room-equipment" className="product-dialog-quill product-dialog-quill--equipment border border-gray-200 rounded-xl overflow-visible bg-white">
-                {isTextContentInitialized ? <LazyQuillWrapper
+                {isTextContentInitialized ? <QuillWrapper
                   key={`quill-equipment-${id || 'new'}`}
                   theme="snow"
                   value={roomEquipment}
