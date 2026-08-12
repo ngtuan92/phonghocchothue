@@ -29,6 +29,7 @@ const DEFAULT_ROOM_FONT_SIZE = "16";
 const DEFAULT_ROOM_FONT_SIZE_MOBILE = "12";
 const DEFAULT_ROOM_NAME_FONT_SIZE = "35";
 const DEFAULT_ROOM_NAME_FONT_SIZE_MOBILE = "20";
+const PRODUCT_TEXT_DRAFT_VERSION = 2;
 
 const getProductTextDraftKey = (productId) => `product-text-draft:${productId || "new"}`;
 
@@ -37,8 +38,21 @@ const loadProductTextDraft = (key) => {
 
   try {
     const value = window.sessionStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
+    if (!value) return null;
+
+    const draft = JSON.parse(value);
+    if (
+      draft?.version !== PRODUCT_TEXT_DRAFT_VERSION ||
+      !draft.base ||
+      !draft.fields
+    ) {
+      window.sessionStorage.removeItem(key);
+      return null;
+    }
+
+    return draft;
   } catch {
+    window.sessionStorage.removeItem(key);
     return null;
   }
 };
@@ -336,6 +350,7 @@ export default function ProductForm(props) {
   const [roomDescription, setRoomDescription] = useState("");
   const [roomEquipment, setRoomEquipment] = useState("");
   const [roomPrice, setRoomPrice] = useState("");
+  const [isTextContentInitialized, setIsTextContentInitialized] = useState(!id);
   const [isChecked, setIsChecked] = useState(false);
   const [isStatus, setIsStatus] = useState(true);
   const [singleImage, setSingleImage] = useState(null);
@@ -374,15 +389,37 @@ export default function ProductForm(props) {
   const roomContentDraftRef = useRef("");
   const roomPriceDraftRef = useRef("");
   const roomEquipmentDraftRef = useRef("");
+  const serverTextSnapshotRef = useRef({ price: "", equipment: "" });
+  const productTextDraftRef = useRef(null);
   const galleryDraftWriteRef = useRef(Promise.resolve());
   const galleryDraftKey = getProductGalleryDraftKey(id);
   const textDraftKey = getProductTextDraftKey(id);
 
   const persistTextDraft = useCallback((field, value) => {
-    saveProductTextDraft(textDraftKey, {
-      price: field === "price" ? value : roomPriceDraftRef.current,
-      equipment: field === "equipment" ? value : roomEquipmentDraftRef.current,
-    });
+    const base = serverTextSnapshotRef.current;
+    const fields = {
+      ...(productTextDraftRef.current?.fields || {}),
+    };
+
+    if (value === base[field]) {
+      delete fields[field];
+    } else {
+      fields[field] = value;
+    }
+
+    if (Object.keys(fields).length === 0) {
+      productTextDraftRef.current = null;
+      clearProductTextDraft(textDraftKey);
+      return;
+    }
+
+    const draft = {
+      version: PRODUCT_TEXT_DRAFT_VERSION,
+      base: { ...base },
+      fields,
+    };
+    productTextDraftRef.current = draft;
+    saveProductTextDraft(textDraftKey, draft);
   }, [textDraftKey]);
 
   const persistGalleryDraft = useCallback((images) => {
@@ -432,13 +469,45 @@ export default function ProductForm(props) {
           }
         }
       }
-      const textDraft = loadProductTextDraft(textDraftKey);
-      const initialEquipment = textDraft && Object.prototype.hasOwnProperty.call(textDraft, "equipment")
-        ? textDraft.equipment
-        : mergedEquipment;
-      const initialPrice = textDraft && Object.prototype.hasOwnProperty.call(textDraft, "price")
-        ? textDraft.price
-        : (dataEdit.price || "");
+      const serverTextSnapshot = {
+        price: dataEdit.price || "",
+        equipment: mergedEquipment,
+      };
+      serverTextSnapshotRef.current = serverTextSnapshot;
+
+      const storedTextDraft = loadProductTextDraft(textDraftKey);
+      const validDraftFields = {};
+      if (storedTextDraft) {
+        for (const field of ["price", "equipment"]) {
+          if (
+            Object.prototype.hasOwnProperty.call(storedTextDraft.fields, field) &&
+            storedTextDraft.base[field] === serverTextSnapshot[field]
+          ) {
+            validDraftFields[field] = storedTextDraft.fields[field];
+          }
+        }
+      }
+
+      const textDraft = Object.keys(validDraftFields).length > 0
+        ? {
+          version: PRODUCT_TEXT_DRAFT_VERSION,
+          base: serverTextSnapshot,
+          fields: validDraftFields,
+        }
+        : null;
+      productTextDraftRef.current = textDraft;
+      if (textDraft) {
+        saveProductTextDraft(textDraftKey, textDraft);
+      } else {
+        clearProductTextDraft(textDraftKey);
+      }
+
+      const initialEquipment = Object.prototype.hasOwnProperty.call(validDraftFields, "equipment")
+        ? validDraftFields.equipment
+        : serverTextSnapshot.equipment;
+      const initialPrice = Object.prototype.hasOwnProperty.call(validDraftFields, "price")
+        ? validDraftFields.price
+        : serverTextSnapshot.price;
       setRoomEquipment(initialEquipment);
       setRoomPrice(initialPrice);
       roomEquipmentDraftRef.current = initialEquipment;
@@ -492,6 +561,7 @@ export default function ProductForm(props) {
       if (dataEdit.seoImage) {
         setSeoImage(dataEdit.seoImage.startsWith('http') ? dataEdit.seoImage : `${URL_API}${dataEdit.seoImage.replaceAll("\\", "/")}`);
       }
+      setIsTextContentInitialized(true);
     }
   }, [dataEdit, textDraftKey]);
 
@@ -623,6 +693,11 @@ export default function ProductForm(props) {
       };
       const saved = await onSave(data);
       if (saved !== false) {
+        serverTextSnapshotRef.current = {
+          price: currentRoomPrice,
+          equipment: currentRoomEquipment,
+        };
+        productTextDraftRef.current = null;
         clearProductTextDraft(textDraftKey);
         try {
           await galleryDraftWriteRef.current.catch(() => undefined);
@@ -804,7 +879,7 @@ export default function ProductForm(props) {
                 💵 Giá thuê (VNĐ)
               </label>
               <div id="room-price" className="product-dialog-quill product-dialog-quill--price border border-gray-200 rounded-xl overflow-visible bg-white">
-                <LazyQuillWrapper
+                {isTextContentInitialized ? <LazyQuillWrapper
                   key={`quill-price-${id || 'new'}`}
                   theme="snow"
                   value={roomPrice}
@@ -839,7 +914,7 @@ export default function ProductForm(props) {
                   hasResponsiveFontSize={true}
                   inlineSelectionControls={true}
                   commitOnBlurOnly={true}
-                />
+                /> : <div className="h-[120px] animate-pulse bg-gray-50" />}
               </div>
             </div>
 
@@ -849,7 +924,7 @@ export default function ProductForm(props) {
                 📝 Thiết bị & Tiện ích tóm tắt
               </label>
               <div id="room-equipment" className="product-dialog-quill product-dialog-quill--equipment border border-gray-200 rounded-xl overflow-visible bg-white">
-                <LazyQuillWrapper
+                {isTextContentInitialized ? <LazyQuillWrapper
                   key={`quill-equipment-${id || 'new'}`}
                   theme="snow"
                   value={roomEquipment}
@@ -884,7 +959,7 @@ export default function ProductForm(props) {
                   hasResponsiveFontSize={true}
                   inlineSelectionControls={true}
                   commitOnBlurOnly={true}
-                />
+                /> : <div className="h-[120px] animate-pulse bg-gray-50" />}
               </div>
             </div>
 
