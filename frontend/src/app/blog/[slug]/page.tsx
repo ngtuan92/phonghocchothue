@@ -292,8 +292,8 @@ export default function BlogDetail() {
                   lineHeightMobile={titleHasOwnLayout ? undefined : blog.lineHeightMobile}
                   translateY={titleHasOwnLayout ? undefined : blog.translateY}
                   translateYMobile={titleHasOwnLayout ? undefined : blog.translateYMobile}
-                  preserveNbsp
-                  normalizeNbsp
+                  preserveLeadingIndent
+                  resetLeadingIndentOnMobile
                 />
               </h1>
 
@@ -310,8 +310,8 @@ export default function BlogDetail() {
                       lineHeightMobile={blog.excerptLineHeightMobile}
                       translateY={blog.excerptTranslateY}
                       translateYMobile={blog.excerptTranslateYMobile}
-                      preserveNbsp
-                      normalizeNbsp
+                      preserveLeadingIndent
+                      resetLeadingIndentOnMobile
                     />
                   </div>
                 </div>
@@ -329,6 +329,7 @@ export default function BlogDetail() {
                 translateY={blog.translateY}
                 translateYMobile={blog.translateYMobile}
                 naturalTextWrapping
+                preserveLeadingIndent
               />
             </article>
 

@@ -102,7 +102,53 @@ const normalizeWhitespaceSpacers = (html: string) => {
   return root?.innerHTML || html;
 };
 
-const normalizeNaturalTextWrapping = (html: string) => {
+const preserveLeadingWhitespace = (html: string) => {
+  if (!html || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  const blocks = root.querySelectorAll<HTMLElement>("p, h1, h2, h3, h4, h5, h6, li, blockquote");
+  blocks.forEach((block) => {
+    if (block.closest(".ql-whitespace-spacer")) return;
+
+    const walker = doc.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    let textNode = walker.nextNode();
+    let atLineStart = true;
+
+    while (textNode) {
+      const currentNode = textNode;
+      textNode = walker.nextNode();
+      const normalizedText = String(currentNode.textContent || "").replace(/\u00a0/g, " ");
+
+      if (!atLineStart) {
+        currentNode.textContent = normalizedText;
+        continue;
+      }
+
+      const leadingWhitespace = normalizedText.match(/^[\t ]+/)?.[0] || "";
+      const remainingText = normalizedText.slice(leadingWhitespace.length);
+      if (leadingWhitespace) {
+        const marker = doc.createElement("span");
+        marker.className = "ql-leading-whitespace";
+        marker.setAttribute("aria-hidden", "true");
+        marker.textContent = leadingWhitespace;
+        currentNode.parentNode?.insertBefore(marker, currentNode);
+      }
+      currentNode.textContent = remainingText;
+
+      if (remainingText.length > 0) {
+        atLineStart = false;
+      }
+    }
+  });
+
+  root.querySelectorAll(".ql-leading-whitespace .ql-leading-whitespace").forEach((marker) => marker.remove());
+  return root.innerHTML;
+};
+
+const normalizeNaturalTextWrapping = (html: string, keepLeadingWhitespace = false) => {
   if (!html || typeof DOMParser === "undefined") return html;
 
   const htmlWithSpacers = normalizeWhitespaceSpacers(html);
@@ -128,7 +174,7 @@ const normalizeNaturalTextWrapping = (html: string) => {
     if (!element.getAttribute("style")) element.removeAttribute("style");
   });
 
-  return root.innerHTML;
+  return keepLeadingWhitespace ? preserveLeadingWhitespace(root.innerHTML) : root.innerHTML;
 };
 
 const normalizeCustomLineHeightUnits = (html: string) => {
@@ -214,6 +260,8 @@ interface RichTextRendererProps {
   translateYMobile?: string;
   preserveNbsp?: boolean;
   normalizeNbsp?: boolean;
+  preserveLeadingIndent?: boolean;
+  resetLeadingIndentOnMobile?: boolean;
   naturalTextWrapping?: boolean;
   stripAllFontStyles?: boolean;
   blockLineHeight?: boolean;
@@ -233,6 +281,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   translateYMobile,
   preserveNbsp = false,
   normalizeNbsp = false,
+  preserveLeadingIndent = false,
+  resetLeadingIndentOnMobile = false,
   naturalTextWrapping = false,
   stripAllFontStyles = false,
   blockLineHeight = false,
@@ -249,7 +299,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       : html;
 
     let processedHtml = naturalTextWrapping
-      ? normalizeNaturalTextWrapping(sanitized)
+      ? normalizeNaturalTextWrapping(sanitized, preserveLeadingIndent)
+      : preserveLeadingIndent
+        ? preserveLeadingWhitespace(sanitized)
       : preserveNbsp && !normalizeNbsp
         ? sanitized
         : sanitized.replace(/(?:&nbsp;|\u00a0)/gi, " ");
@@ -551,7 +603,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     return processedHtml;
-  }, [blockLineHeight, html, naturalTextWrapping, normalizeNbsp, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [blockLineHeight, html, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
@@ -657,7 +709,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   }, []);
 
   const configClassName = configKey ? CONFIG_KEY_CLASS_NAMES[configKey] || "" : "";
-  const rendererClassName = `rich-text-renderer ${configClassName} ${className}`.replace(/\s+/g, " ").trim();
+  const responsiveIndentClassName = resetLeadingIndentOnMobile ? "rich-text-mobile-reset-indent" : "";
+  const rendererClassName = `rich-text-renderer ${configClassName} ${responsiveIndentClassName} ${className}`.replace(/\s+/g, " ").trim();
 
   if (!html) return fallback ? <Component className={rendererClassName} style={customStyles}>{fallback}</Component> : null;
 
@@ -671,6 +724,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 };
 
 const RICH_TEXT_RENDERER_STYLES = `
+        .rich-text-renderer .ql-leading-whitespace {
+          display: inline !important;
+          white-space: pre !important;
+          tab-size: 4;
+        }
+        @media (max-width: 767px) {
+          .rich-text-renderer.rich-text-mobile-reset-indent .ql-leading-whitespace {
+            display: none !important;
+          }
+          .rich-text-renderer.rich-text-mobile-reset-indent [class*="ql-indent-"] {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+        }
         .rich-text-renderer img {
           display: block;
           margin-left: auto;
