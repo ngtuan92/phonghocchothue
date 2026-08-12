@@ -722,7 +722,7 @@ export default function DetailPage() {
                   </p>
                 )}
               </div>
-              <div className="room-summary-desc text-xs sm:text-base mt-0 sm:mt-1 pt-0 pb-1">
+              <div className="room-summary-desc pl-3 sm:pl-4 text-xs sm:text-base mt-0 sm:mt-1 pt-0 pb-1">
                 {/* Fallback for contains if it has old data */}
                 {!!(productData.product.contains && String(productData.product.contains).trim() && String(productData.product.contains).trim() !== "0") && (
                   <div className="mb-1 sm:mb-1.5">
@@ -769,7 +769,7 @@ export default function DetailPage() {
                 )}
               </div>
               {hasMeaningfulPrice(productData.product.price) && (
-                <div className="room-price-summary text-xs sm:text-base mt-1 sm:mt-2 mb-4">
+                <div className="room-price-summary pl-3 sm:pl-4 text-xs sm:text-base mt-1 sm:mt-2 mb-4">
                   {typeof productData.product.price === "string" && productData.product.price.includes("<") ? (
                     <RichTextRenderer
                       html={productData.product.price}
