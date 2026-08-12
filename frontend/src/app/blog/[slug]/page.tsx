@@ -293,6 +293,7 @@ export default function BlogDetail() {
                   translateY={titleHasOwnLayout ? undefined : blog.translateY}
                   translateYMobile={titleHasOwnLayout ? undefined : blog.translateYMobile}
                   preserveNbsp
+                  normalizeNbsp
                 />
               </h1>
 
@@ -310,6 +311,7 @@ export default function BlogDetail() {
                       translateY={blog.excerptTranslateY}
                       translateYMobile={blog.excerptTranslateYMobile}
                       preserveNbsp
+                      normalizeNbsp
                     />
                   </div>
                 </div>

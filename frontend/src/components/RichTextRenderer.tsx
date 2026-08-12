@@ -213,6 +213,7 @@ interface RichTextRendererProps {
   translateY?: string;
   translateYMobile?: string;
   preserveNbsp?: boolean;
+  normalizeNbsp?: boolean;
   naturalTextWrapping?: boolean;
   stripAllFontStyles?: boolean;
   blockLineHeight?: boolean;
@@ -231,6 +232,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   translateY,
   translateYMobile,
   preserveNbsp = false,
+  normalizeNbsp = false,
   naturalTextWrapping = false,
   stripAllFontStyles = false,
   blockLineHeight = false,
@@ -248,7 +250,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     let processedHtml = naturalTextWrapping
       ? normalizeNaturalTextWrapping(sanitized)
-      : preserveNbsp
+      : preserveNbsp && !normalizeNbsp
         ? sanitized
         : sanitized.replace(/(?:&nbsp;|\u00a0)/gi, " ");
 
@@ -549,7 +551,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     return processedHtml;
-  }, [blockLineHeight, html, naturalTextWrapping, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [blockLineHeight, html, naturalTextWrapping, normalizeNbsp, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 

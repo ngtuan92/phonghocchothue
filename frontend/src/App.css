@@ -1997,6 +1997,26 @@ footer .rich-text-renderer * {
   }
 }
 
+/* Quill stores indentation as ql-indent-* classes. The public renderer does
+   not load Quill's editor stylesheet, so mirror the relevant rules here. */
+.rich-text-renderer .ql-indent-1 { padding-left: 3em; }
+.rich-text-renderer .ql-indent-2 { padding-left: 6em; }
+.rich-text-renderer .ql-indent-3 { padding-left: 9em; }
+.rich-text-renderer .ql-indent-4 { padding-left: 12em; }
+.rich-text-renderer .ql-indent-5 { padding-left: 15em; }
+.rich-text-renderer .ql-indent-6 { padding-left: 18em; }
+.rich-text-renderer .ql-indent-7 { padding-left: 21em; }
+.rich-text-renderer .ql-indent-8 { padding-left: 24em; }
+
+.rich-text-renderer [dir="rtl"].ql-indent-1 { padding-left: 0; padding-right: 3em; }
+.rich-text-renderer [dir="rtl"].ql-indent-2 { padding-left: 0; padding-right: 6em; }
+.rich-text-renderer [dir="rtl"].ql-indent-3 { padding-left: 0; padding-right: 9em; }
+.rich-text-renderer [dir="rtl"].ql-indent-4 { padding-left: 0; padding-right: 12em; }
+.rich-text-renderer [dir="rtl"].ql-indent-5 { padding-left: 0; padding-right: 15em; }
+.rich-text-renderer [dir="rtl"].ql-indent-6 { padding-left: 0; padding-right: 18em; }
+.rich-text-renderer [dir="rtl"].ql-indent-7 { padding-left: 0; padding-right: 21em; }
+.rich-text-renderer [dir="rtl"].ql-indent-8 { padding-left: 0; padding-right: 24em; }
+
 /* Custom styling for rich text inside notification bubble */
 .notification-rich-text,
 .notification-rich-text p {
