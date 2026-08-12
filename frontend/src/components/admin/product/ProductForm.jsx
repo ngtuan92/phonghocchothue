@@ -30,6 +30,34 @@ const DEFAULT_ROOM_FONT_SIZE_MOBILE = "12";
 const DEFAULT_ROOM_NAME_FONT_SIZE = "35";
 const DEFAULT_ROOM_NAME_FONT_SIZE_MOBILE = "20";
 
+const getProductTextDraftKey = (productId) => `product-text-draft:${productId || "new"}`;
+
+const loadProductTextDraft = (key) => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const value = window.sessionStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveProductTextDraft = (key, draft) => {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(draft));
+  } catch (error) {
+    console.error("Unable to save product text draft", error);
+  }
+};
+
+const clearProductTextDraft = (key) => {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(key);
+};
+
 const pendingQuillMounts = [];
 let quillMountInProgress = false;
 
@@ -348,6 +376,14 @@ export default function ProductForm(props) {
   const roomEquipmentDraftRef = useRef("");
   const galleryDraftWriteRef = useRef(Promise.resolve());
   const galleryDraftKey = getProductGalleryDraftKey(id);
+  const textDraftKey = getProductTextDraftKey(id);
+
+  const persistTextDraft = useCallback((field, value) => {
+    saveProductTextDraft(textDraftKey, {
+      price: field === "price" ? value : roomPriceDraftRef.current,
+      equipment: field === "equipment" ? value : roomEquipmentDraftRef.current,
+    });
+  }, [textDraftKey]);
 
   const persistGalleryDraft = useCallback((images) => {
     const draftFiles = images.filter((image) => image instanceof File);
@@ -396,10 +432,17 @@ export default function ProductForm(props) {
           }
         }
       }
-      setRoomEquipment(mergedEquipment);
-      setRoomPrice(dataEdit.price || "");
-      roomEquipmentDraftRef.current = mergedEquipment;
-      roomPriceDraftRef.current = dataEdit.price || "";
+      const textDraft = loadProductTextDraft(textDraftKey);
+      const initialEquipment = textDraft && Object.prototype.hasOwnProperty.call(textDraft, "equipment")
+        ? textDraft.equipment
+        : mergedEquipment;
+      const initialPrice = textDraft && Object.prototype.hasOwnProperty.call(textDraft, "price")
+        ? textDraft.price
+        : (dataEdit.price || "");
+      setRoomEquipment(initialEquipment);
+      setRoomPrice(initialPrice);
+      roomEquipmentDraftRef.current = initialEquipment;
+      roomPriceDraftRef.current = initialPrice;
       setIsChecked(dataEdit.isSpecial || false);
       setIsStatus(dataEdit.status == 1);
       setSeoTitle(dataEdit.seoTitle || "");
@@ -409,8 +452,8 @@ export default function ProductForm(props) {
       setRoomLineHeightMobile(dataEdit.lineHeightMobile || "");
       setRoomFontSize(dataEdit.fontSize || DEFAULT_ROOM_FONT_SIZE);
       setRoomFontSizeMobile(dataEdit.fontSizeMobile || DEFAULT_ROOM_FONT_SIZE_MOBILE);
-      const priceControls = extractResponsiveControls(dataEdit.price || "");
-      const equipmentControls = extractResponsiveControls(mergedEquipment || "");
+      const priceControls = extractResponsiveControls(initialPrice);
+      const equipmentControls = extractResponsiveControls(initialEquipment);
       const nameControls = extractResponsiveControls(dataEdit.name_rich || "");
       setRoomPriceFontSize(priceControls.fontSize || dataEdit.fontSize || DEFAULT_ROOM_FONT_SIZE);
       setRoomPriceFontSizeMobile(priceControls.fontSizeMobile || dataEdit.fontSizeMobile || DEFAULT_ROOM_FONT_SIZE_MOBILE);
@@ -450,7 +493,7 @@ export default function ProductForm(props) {
         setSeoImage(dataEdit.seoImage.startsWith('http') ? dataEdit.seoImage : `${URL_API}${dataEdit.seoImage.replaceAll("\\", "/")}`);
       }
     }
-  }, [dataEdit]);
+  }, [dataEdit, textDraftKey]);
 
   useEffect(() => {
     let active = true;
@@ -580,6 +623,7 @@ export default function ProductForm(props) {
       };
       const saved = await onSave(data);
       if (saved !== false) {
+        clearProductTextDraft(textDraftKey);
         try {
           await galleryDraftWriteRef.current.catch(() => undefined);
           await clearProductGalleryDraft(galleryDraftKey);
@@ -770,6 +814,7 @@ export default function ProductForm(props) {
                   }}
                   onDraftChange={(val) => {
                     roomPriceDraftRef.current = val;
+                    persistTextDraft("price", val);
                   }}
                   onBlur={(val) => {
                     roomPriceDraftRef.current = val;
@@ -814,6 +859,7 @@ export default function ProductForm(props) {
                   }}
                   onDraftChange={(val) => {
                     roomEquipmentDraftRef.current = val;
+                    persistTextDraft("equipment", val);
                   }}
                   onBlur={(val) => {
                     roomEquipmentDraftRef.current = val;
