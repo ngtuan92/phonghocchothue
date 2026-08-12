@@ -722,7 +722,7 @@ export default function DetailPage() {
                   </p>
                 )}
               </div>
-              <div className="room-summary-desc pl-3 sm:pl-4 text-xs sm:text-base mt-0 sm:mt-1 pt-0 pb-1">
+              <div className="room-summary-desc text-xs sm:text-base mt-0 sm:mt-1 pt-0 pb-1">
                 {/* Fallback for contains if it has old data */}
                 {!!(productData.product.contains && String(productData.product.contains).trim() && String(productData.product.contains).trim() !== "0") && (
                   <div className="mb-1 sm:mb-1.5">
