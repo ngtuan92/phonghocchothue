@@ -5120,7 +5120,7 @@ const QuillWrapper = forwardRef(({
   }
 
   const hasSelectedImage = !!selectedImageRef.current;
-  if (currentEditor && (isFocused || hasSelectedImage || isUserEditingRef.current || props.value === lastRelativeContentRef.current)) {
+  if (currentEditor && (isFocused || hasSelectedImage || isUserEditingRef.current)) {
     try {
       editorValue = localEditorHtmlRef.current || currentEditor.root.innerHTML;
     } catch {
