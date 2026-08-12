@@ -15,6 +15,7 @@ import CategorySidebar from "@/components/CategorySidebar";
 import { FaHome, FaThLarge, FaTimes } from "react-icons/fa";
 import classNames from "classnames";
 import RichTextRenderer from "@/components/RichTextRenderer";
+import { getBlogCategoryLabel } from "@/utils/blogCategory";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -39,7 +40,7 @@ export default function BlogPage() {
         if (res.success && res.data.length > 0) {
           const dynamicTabs = res.data.map((cat: string) => ({
             key: cat,
-            label: cat === "kien-thuc" ? "Kiến thức" : cat === "kinh-nghiem" ? "Kinh nghiệm" : decodeURIComponent(cat),
+            label: getBlogCategoryLabel(cat),
           }));
 
           setCategories([{ key: "all", label: "Tất cả" }, ...dynamicTabs]);
@@ -64,7 +65,7 @@ export default function BlogPage() {
 
   const displayCategory = activeCategory === "all"
     ? "Blog"
-    : (categories.find(c => c.key === activeCategory)?.label || decodeURIComponent(activeCategory));
+    : (categories.find(c => c.key === activeCategory)?.label || getBlogCategoryLabel(activeCategory));
 
   const cleanCategoryName = stripHtmlAndCss(displayCategory);
   

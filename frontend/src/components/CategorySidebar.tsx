@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import classNames from "classnames";
 import { FaChevronRight } from "react-icons/fa";
+import { getBlogCategoryLabel } from "@/utils/blogCategory";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -26,7 +27,7 @@ export default function CategorySidebar({
 
   const getCategoryLabel = (cat: string) => {
     if (!cat) return "";
-    return decodeURIComponent(cat);
+    return getBlogCategoryLabel(cat);
   };
 
   useEffect(() => {

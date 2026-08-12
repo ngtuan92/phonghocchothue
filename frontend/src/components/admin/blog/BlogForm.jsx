@@ -4,6 +4,7 @@ import { Typography, Button } from "@material-tailwind/react";
 import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, MdPerson } from "react-icons/md";
 import Cropper from "react-easy-crop";
 import { showToastError } from "@/helpers/toast";
+import { getBlogCategoryLabel } from "@/utils/blogCategory";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -417,7 +418,8 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
   };
 
   const handleCategoryCommit = useCallback((value) => {
-    setFormData(prev => ({ ...prev, category: value }));
+    const label = value.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+    setFormData(prev => ({ ...prev, category: label }));
   }, []);
 
   const handleAuthorNameCommit = useCallback((value) => {

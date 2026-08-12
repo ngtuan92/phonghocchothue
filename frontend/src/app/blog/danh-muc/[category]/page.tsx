@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import CategorySidebar from "@/components/CategorySidebar";
 import { FaHome, FaChevronRight, FaBookOpen, FaTags, FaThLarge, FaTimes } from "react-icons/fa";
+import { getBlogCategoryLabel } from "@/utils/blogCategory";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -34,7 +35,7 @@ export default function BlogCategoryPage() {
 
   const getCategoryLabel = (cat: string) => {
     if (!cat) return "Danh mục";
-    return decodeURIComponent(cat);
+    return getBlogCategoryLabel(cat);
   };
 
   useEffect(() => {

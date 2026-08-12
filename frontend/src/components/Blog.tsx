@@ -8,6 +8,7 @@ import { useBlogs, type Blog, type BlogCategory } from "@/hooks/api/useBlog";
 import { FaCalendarAlt, FaUserEdit, FaBookOpen, FaSeedling, FaArrowRight } from "react-icons/fa";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
 import RichTextRenderer from "./RichTextRenderer";
+import { getBlogCategoryLabel } from "@/utils/blogCategory";
 
 const URL_API = process.env.NEXT_PUBLIC_URL_API || "http://localhost:3000/";
 
@@ -28,7 +29,7 @@ const getCategoryConfig = (category: string) => {
   };
 
   return configs[category] || {
-    label: category.charAt(0).toUpperCase() + category.slice(1),
+    label: getBlogCategoryLabel(category),
     icon: <FaSeedling size={10} />,
     bg: "bg-[#799f85]",
   };
@@ -271,7 +272,7 @@ export default function Blog({
 
   const getCategoryLabel = (cat: string) => {
     if (!cat) return "";
-    return decodeURIComponent(cat);
+    return getBlogCategoryLabel(cat);
   };
 
   useEffect(() => {
