@@ -5,6 +5,12 @@ import { MdSave, MdClose, MdCloudUpload, MdArticle, MdCategory, MdVisibility, Md
 import Cropper from "react-easy-crop";
 import { showToastError } from "@/helpers/toast";
 import { getBlogCategoryLabel } from "@/utils/blogCategory";
+import {
+  clearBlogThumbnailDraft,
+  getBlogThumbnailDraftKey,
+  loadBlogThumbnailDraft,
+  saveBlogThumbnailDraft,
+} from "@/utils/blogThumbnailDraft";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -376,9 +382,12 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     translateYMobile: data?.translateYMobile || contentControls.translateYMobile || "",
   });
   const quillDraftsRef = useRef({});
+  const thumbnailDraftKey = getBlogThumbnailDraftKey(data?.id);
 
   const [previewImage, setPreviewImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const previewImageUrlRef = useRef(null);
+  const imageTouchedRef = useRef(false);
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
 
@@ -389,6 +398,22 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const [showCropper, setShowCropper] = useState(false);
 
+  const previewThumbnailFile = useCallback((file) => {
+    if (previewImageUrlRef.current) {
+      URL.revokeObjectURL(previewImageUrlRef.current);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    previewImageUrlRef.current = previewUrl;
+    setImageFile(file);
+    setPreviewImage(previewUrl);
+  }, []);
+
+  useEffect(() => () => {
+    if (previewImageUrlRef.current) {
+      URL.revokeObjectURL(previewImageUrlRef.current);
+    }
+  }, []);
+
   useEffect(() => {
     if (formData.thumbnail && !formData.thumbnail.startsWith("blob:")) {
       setPreviewImage(formData.thumbnail.startsWith("http") ? formData.thumbnail : `${URL_API}${formData.thumbnail.replace(/\\/g, "/").replace(/^\/+/, "")}`);
@@ -397,6 +422,21 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
       setPreviewAvatar(formData.authorAvatar.startsWith("http") ? formData.authorAvatar : `${URL_API}${formData.authorAvatar.replace(/\\/g, "/").replace(/^\/+/, "")}`);
     }
   }, [formData.thumbnail, formData.authorAvatar]);
+
+  useEffect(() => {
+    let active = true;
+
+    loadBlogThumbnailDraft(thumbnailDraftKey)
+      .then((draftFile) => {
+        if (!active || !draftFile || imageTouchedRef.current) return;
+        previewThumbnailFile(draftFile);
+      })
+      .catch((error) => console.error("Unable to restore blog thumbnail draft", error));
+
+    return () => {
+      active = false;
+    };
+  }, [previewThumbnailFile, thumbnailDraftKey]);
 
   const [categories, setCategories] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -429,8 +469,10 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      setPreviewImage(URL.createObjectURL(file));
+      imageTouchedRef.current = true;
+      previewThumbnailFile(file);
+      saveBlogThumbnailDraft(thumbnailDraftKey, file)
+        .catch((error) => console.error("Unable to save blog thumbnail draft", error));
     }
   };
 
@@ -474,7 +516,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const currentFormData = { ...formData, ...quillDraftsRef.current };
     if (!currentFormData.title || !getPlainText(currentFormData.title).trim()) {
@@ -514,7 +556,20 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     if (avatarFile) {
       submitData.avatarFile = avatarFile;
     }
-    onSave(submitData);
+    const saveResult = await onSave(submitData);
+    if (saveResult === false) return;
+
+    await clearBlogThumbnailDraft(thumbnailDraftKey)
+      .catch((error) => console.error("Unable to clear blog thumbnail draft", error));
+    imageTouchedRef.current = false;
+    setImageFile(null);
+    if (saveResult?.thumbnail) {
+      if (previewImageUrlRef.current) {
+        URL.revokeObjectURL(previewImageUrlRef.current);
+        previewImageUrlRef.current = null;
+      }
+      setFormData((prev) => ({ ...prev, thumbnail: saveResult.thumbnail }));
+    }
   };
 
   return (

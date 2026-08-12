@@ -58,9 +58,11 @@ export default function EditBlogPage() {
 
       await updateBlogMutation.mutateAsync({ id: blog.id, ...finalData });
       showToastSuccess("Cập nhật bài viết thành công");
+      return finalData;
     } catch (error: any) {
       const message = error?.response?.data?.message;
       showToastError(message ? `Cập nhật thất bại: ${message}` : "Cập nhật bài viết thất bại");
+      return false;
     } finally {
       setIsSubmitting(false);
     }

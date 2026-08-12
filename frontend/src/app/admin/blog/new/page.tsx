@@ -54,9 +54,11 @@ export default function NewBlogPage() {
       await createBlogMutation.mutateAsync(finalData);
       showToastSuccess("Thêm bài viết thành công");
       router.push("/admin/blog");
+      return finalData;
     } catch (error: any) {
       const message = error?.response?.data?.message;
       showToastError(message ? `Thêm bài viết thất bại: ${message}` : "Thêm bài viết thất bại");
+      return false;
     } finally {
       setIsSubmitting(false);
     }

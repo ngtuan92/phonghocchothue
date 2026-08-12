@@ -190,7 +190,6 @@ class BlogController {
             const updateData = { 
                 title, 
                 content, 
-                thumbnail: sanitizePath(thumbnail), 
                 category, 
                 authorName, 
                 authorAvatar: sanitizePath(authorAvatar),
@@ -211,6 +210,11 @@ class BlogController {
                 translateY,
                 translateYMobile
             };
+
+            const sanitizedThumbnail = sanitizePath(thumbnail);
+            if (typeof sanitizedThumbnail === 'string' && sanitizedThumbnail.trim()) {
+                updateData.thumbnail = sanitizedThumbnail;
+            }
             
             const cleanTitleSlug = title ? createSlug(title) : '';
             if (title && (title !== blog.title || (cleanTitleSlug && cleanTitleSlug !== blog.slug))) {
