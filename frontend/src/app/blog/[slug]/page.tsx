@@ -312,6 +312,7 @@ export default function BlogDetail() {
                       translateYMobile={blog.excerptTranslateYMobile}
                       preserveLeadingIndent
                       resetLeadingIndentOnMobile
+                      mobileTrailingDecoration={'\u201D'}
                     />
                   </div>
                 </div>

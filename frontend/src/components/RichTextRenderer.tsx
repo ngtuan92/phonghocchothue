@@ -246,6 +246,50 @@ const hoistLineHeightToControlsBlock = (html: string) => {
   return root.innerHTML;
 };
 
+const appendMobileTrailingDecoration = (html: string, decoration: string, wordCount = 2) => {
+  if (!html || !decoration || typeof DOMParser === "undefined") return html;
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return html;
+
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let lastTextNode: Text | null = null;
+  let currentNode = walker.nextNode() as Text | null;
+
+  while (currentNode) {
+    if ((currentNode.textContent || "").trim()) lastTextNode = currentNode;
+    currentNode = walker.nextNode() as Text | null;
+  }
+
+  if (!lastTextNode?.parentNode) return html;
+
+  const text = lastTextNode.textContent || "";
+  const safeWordCount = Math.max(1, Math.min(3, Math.trunc(wordCount)));
+  const tailPattern = new RegExp(`(\\S+(?:\\s+\\S+){0,${safeWordCount - 1}})(\\s*)$`, "u");
+  const match = text.match(tailPattern);
+  if (!match || match.index === undefined) return html;
+
+  const group = doc.createElement("span");
+  group.className = "rich-text-mobile-trailing-group";
+  group.appendChild(doc.createTextNode(match[1]));
+
+  const decorationElement = doc.createElement("span");
+  decorationElement.className = "rich-text-mobile-trailing-decoration";
+  decorationElement.setAttribute("aria-hidden", "true");
+  decorationElement.textContent = decoration;
+  group.appendChild(decorationElement);
+
+  const parent = lastTextNode.parentNode;
+  lastTextNode.textContent = text.slice(0, match.index);
+  parent.insertBefore(group, lastTextNode.nextSibling);
+  if (match[2]) {
+    parent.insertBefore(doc.createTextNode(match[2]), group.nextSibling);
+  }
+
+  return root.innerHTML;
+};
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -265,6 +309,7 @@ interface RichTextRendererProps {
   naturalTextWrapping?: boolean;
   stripAllFontStyles?: boolean;
   blockLineHeight?: boolean;
+  mobileTrailingDecoration?: string;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
@@ -286,6 +331,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   naturalTextWrapping = false,
   stripAllFontStyles = false,
   blockLineHeight = false,
+  mobileTrailingDecoration,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -601,9 +647,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (blockLineHeight) {
       processedHtml = hoistLineHeightToControlsBlock(processedHtml);
     }
+    if (mobileTrailingDecoration) {
+      processedHtml = appendMobileTrailingDecoration(processedHtml, mobileTrailingDecoration);
+    }
 
     return processedHtml;
-  }, [blockLineHeight, html, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [blockLineHeight, html, mobileTrailingDecoration, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
