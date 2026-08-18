@@ -6543,16 +6543,12 @@ const QuillWrapper = forwardRef(({
           word-break: normal !important;
         }
         .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
-        .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor *,
-        .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
-        .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor * {
+        .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor {
           line-height: var(--custom-line-height, 1.6) !important;
         }
         @media (max-width: 767px) {
           .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
-          .product-dialog-quill--price .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor *,
-          .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
-          .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor * {
+          .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height, 1.6)) !important;
           }
         }

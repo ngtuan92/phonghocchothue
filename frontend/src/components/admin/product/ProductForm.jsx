@@ -16,6 +16,7 @@ import {
   loadProductGalleryDraft,
   saveProductGalleryDraft,
 } from "@/utils/productGalleryDraft";
+import { stripTopLevelResponsiveControls } from "@/utils/richTextControls";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -185,14 +186,6 @@ const decorateRichTextWithControls = (html, controls = {}) => {
     ["--translate-y", toCssUnit(controls.translateY, true)],
     ["--translate-y-mobile", toCssUnit(controls.translateYMobile, true)],
   ];
-
-  controlsRoot.querySelectorAll("[style]").forEach((node) => {
-    if (!(node instanceof HTMLElement)) return;
-    node.style.removeProperty("line-height");
-    node.style.removeProperty("--custom-line-height");
-    node.style.removeProperty("--custom-line-height-mobile");
-    if (!node.getAttribute("style")) node.removeAttribute("style");
-  });
 
   lineHeightEntries.forEach(([name, value]) => {
     if (value) {
@@ -670,7 +663,7 @@ export default function ProductForm(props) {
         name_rich: nameRich,
         image: singleImage,
         imageDetail: multipleImages,
-        content: currentRoomContent,
+        content: stripTopLevelResponsiveControls(currentRoomContent),
         description: roomDescription,
         equipment,
         price,

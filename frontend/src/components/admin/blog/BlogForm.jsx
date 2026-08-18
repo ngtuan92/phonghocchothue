@@ -11,6 +11,7 @@ import {
   loadBlogThumbnailDraft,
   saveBlogThumbnailDraft,
 } from "@/utils/blogThumbnailDraft";
+import { stripTopLevelResponsiveControls } from "@/utils/richTextControls";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -541,14 +542,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
         translateY: currentFormData.excerptTranslateY,
         translateYMobile: currentFormData.excerptTranslateYMobile,
       }) : "",
-      content: decorateRichTextWithControls(currentFormData.content, {
-        fontSize: currentFormData.fontSize,
-        fontSizeMobile: currentFormData.fontSizeMobile,
-        lineHeight: currentFormData.lineHeight,
-        lineHeightMobile: currentFormData.lineHeightMobile,
-        translateY: currentFormData.translateY,
-        translateYMobile: currentFormData.translateYMobile,
-      }),
+      content: stripTopLevelResponsiveControls(currentFormData.content),
     };
     if (imageFile) {
       submitData.thumbnailFile = imageFile;
