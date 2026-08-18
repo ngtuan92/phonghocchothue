@@ -270,9 +270,25 @@ const appendMobileTrailingDecoration = (html: string, decoration: string, wordCo
   const match = text.match(tailPattern);
   if (!match || match.index === undefined) return html;
 
+  const blockParent = lastTextNode.parentElement?.closest("p, div, li, blockquote, h1, h2, h3, h4, h5, h6");
+  if (!blockParent || !root.contains(blockParent)) return html;
+
   const group = doc.createElement("span");
   group.className = "rich-text-mobile-trailing-group";
-  group.appendChild(doc.createTextNode(match[1]));
+
+  const tailText = doc.createElement("span");
+  tailText.className = "rich-text-mobile-trailing-text";
+
+  let styledTail: Node = doc.createTextNode(match[1]);
+  let inlineParent = lastTextNode.parentElement;
+  while (inlineParent && inlineParent !== blockParent) {
+    const clone = inlineParent.cloneNode(false) as HTMLElement;
+    clone.appendChild(styledTail);
+    styledTail = clone;
+    inlineParent = inlineParent.parentElement;
+  }
+  tailText.appendChild(styledTail);
+  group.appendChild(tailText);
 
   const decorationElement = doc.createElement("span");
   decorationElement.className = "rich-text-mobile-trailing-decoration";
@@ -280,11 +296,10 @@ const appendMobileTrailingDecoration = (html: string, decoration: string, wordCo
   decorationElement.textContent = decoration;
   group.appendChild(decorationElement);
 
-  const parent = lastTextNode.parentNode;
   lastTextNode.textContent = text.slice(0, match.index);
-  parent.insertBefore(group, lastTextNode.nextSibling);
+  blockParent.appendChild(group);
   if (match[2]) {
-    parent.insertBefore(doc.createTextNode(match[2]), group.nextSibling);
+    blockParent.appendChild(doc.createTextNode(match[2]));
   }
 
   return root.innerHTML;

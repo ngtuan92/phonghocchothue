@@ -1012,13 +1012,16 @@
 
   .blog-excerpt-rich-text .rich-text-mobile-trailing-group {
     align-items: baseline;
-    display: inline-flex !important;
-    float: right;
-    margin-left: 0.5em;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     overflow-wrap: normal !important;
-    white-space: nowrap !important;
-    width: auto;
+    width: 100%;
     word-break: keep-all !important;
+  }
+
+  .blog-excerpt-rich-text .rich-text-mobile-trailing-text {
+    grid-column: 2;
+    white-space: nowrap !important;
   }
 
   .blog-excerpt-rich-text .rich-text-mobile-trailing-decoration {
@@ -1028,6 +1031,8 @@
     font-size: 4.05em !important;
     font-style: normal;
     font-weight: 400;
+    grid-column: 3;
+    justify-self: end;
     line-height: 0;
     margin-left: 0.04em;
     pointer-events: none;
