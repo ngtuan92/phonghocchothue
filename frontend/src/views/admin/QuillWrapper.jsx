@@ -916,12 +916,13 @@ const normalizeImageWrappersForEdit = (html) => {
   return root.innerHTML;
 };
 
-const removeEmptyStyledSpanElements = (root) => {
+const removeEmptyStyledSpanElements = (root, { preserveWhitespaceOnly = false } = {}) => {
   if (!root?.querySelectorAll) return;
   root.querySelectorAll("span[style]").forEach((span) => {
-    const text = (span.textContent || "").replace(/\u00a0/g, "").trim();
+    const rawText = String(span.textContent || "").replace(/\u00a0/g, " ");
+    const containsIntentionalWhitespace = rawText.length > 0 && rawText.trim() === "";
     const hasMedia = span.querySelector("img, video, iframe, svg");
-    if (!text && !hasMedia) {
+    if (!rawText.trim() && !hasMedia && !(preserveWhitespaceOnly && containsIntentionalWhitespace)) {
       span.remove();
     }
   });
@@ -1531,7 +1532,9 @@ const QuillWrapper = forwardRef(({
     idleContentCleanupRef.current = scheduleIdleWork(() => {
       idleContentCleanupRef.current = 0;
       try {
-        removeEmptyStyledSpanElements(quill.root);
+        removeEmptyStyledSpanElements(quill.root, {
+          preserveWhitespaceOnly: preserveInlineWhitespace,
+        });
         if (!needsListSync) {
           syncListItemFontSizeFromChildren(quill.root);
         }
@@ -1546,7 +1549,7 @@ const QuillWrapper = forwardRef(({
       setSelectionControlDrafts((prev) => ({ ...prev, [key]: normalized }));
     }
     return true;
-  }, [canUseInlineSelectionControls, getCurrentControlSelection, getQuillEditor, normalizeUnsignedControlValue, preserveEditorScrollDuring, setSelectionWithoutScroll]);
+  }, [canUseInlineSelectionControls, getCurrentControlSelection, getQuillEditor, normalizeUnsignedControlValue, preserveEditorScrollDuring, preserveInlineWhitespace, setSelectionWithoutScroll]);
 
   const syncSelectionControlsFromFormat = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
