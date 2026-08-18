@@ -191,61 +191,6 @@ const normalizeCustomLineHeightUnits = (html: string) => {
   });
 };
 
-const hoistLineHeightToControlsBlock = (html: string) => {
-  if (!html || typeof DOMParser === "undefined") return html;
-
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const root = doc.body.firstElementChild;
-  if (!root) return html;
-
-  let controlsRoot =
-    root.children.length === 1 &&
-    root.firstElementChild instanceof HTMLElement &&
-    root.firstElementChild.matches("[data-rich-text-controls]")
-      ? root.firstElementChild
-      : null;
-  const styledElements = Array.from(root.querySelectorAll<HTMLElement>("[style]"));
-  let desktopLineHeight = "";
-  let mobileLineHeight = "";
-
-  styledElements.forEach((element) => {
-    if (!desktopLineHeight) {
-      desktopLineHeight =
-        element.style.getPropertyValue("--custom-line-height").trim() ||
-        element.style.getPropertyValue("line-height").trim();
-    }
-    if (!mobileLineHeight) {
-      mobileLineHeight = element.style.getPropertyValue("--custom-line-height-mobile").trim();
-    }
-  });
-
-  if (!desktopLineHeight && !mobileLineHeight) return html;
-
-  if (!controlsRoot) {
-    controlsRoot = doc.createElement("div");
-    controlsRoot.setAttribute("data-rich-text-controls", "true");
-    while (root.firstChild) controlsRoot.appendChild(root.firstChild);
-    root.appendChild(controlsRoot);
-  }
-
-  controlsRoot.querySelectorAll<HTMLElement>("[style]").forEach((element) => {
-    element.style.removeProperty("line-height");
-    element.style.removeProperty("--custom-line-height");
-    element.style.removeProperty("--custom-line-height-mobile");
-    if (!element.getAttribute("style")) element.removeAttribute("style");
-  });
-
-  if (desktopLineHeight) {
-    controlsRoot.style.setProperty("line-height", desktopLineHeight);
-    controlsRoot.style.setProperty("--custom-line-height", desktopLineHeight);
-  }
-  if (mobileLineHeight) {
-    controlsRoot.style.setProperty("--custom-line-height-mobile", mobileLineHeight);
-  }
-
-  return root.innerHTML;
-};
-
 const appendMobileTrailingDecoration = (html: string, decoration: string, wordCount = 2) => {
   if (!html || !decoration || typeof DOMParser === "undefined") return html;
 
@@ -323,7 +268,6 @@ interface RichTextRendererProps {
   resetLeadingIndentOnMobile?: boolean;
   naturalTextWrapping?: boolean;
   stripAllFontStyles?: boolean;
-  blockLineHeight?: boolean;
   mobileTrailingDecoration?: string;
   mobileTrailingDecorationWordCount?: number;
 }
@@ -346,7 +290,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   resetLeadingIndentOnMobile = false,
   naturalTextWrapping = false,
   stripAllFontStyles = false,
-  blockLineHeight = false,
   mobileTrailingDecoration,
   mobileTrailingDecorationWordCount = 2,
 }) => {
@@ -661,9 +604,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
     processedHtml = normalizeCustomLineHeightUnits(processedHtml);
-    if (blockLineHeight) {
-      processedHtml = hoistLineHeightToControlsBlock(processedHtml);
-    }
     if (mobileTrailingDecoration) {
       processedHtml = appendMobileTrailingDecoration(
         processedHtml,
@@ -673,7 +613,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     return processedHtml;
-  }, [blockLineHeight, html, mobileTrailingDecoration, mobileTrailingDecorationWordCount, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [html, mobileTrailingDecoration, mobileTrailingDecorationWordCount, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 

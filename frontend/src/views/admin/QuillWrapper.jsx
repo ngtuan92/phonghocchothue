@@ -136,7 +136,6 @@ const createControlCallbacks = (callbacks) => Object.fromEntries(
 );
 
 const isResponsiveControlKey = (key) => RESPONSIVE_CONTROL_KEYS.includes(key);
-const isGlobalLineHeightControlKey = (key) => key === 'lineHeight' || key === 'lineHeightMobile';
 
 const isValidControlInput = (value, signed = false) => {
   const text = String(value || '').trim();
@@ -412,7 +411,7 @@ if (typeof window !== "undefined" && Quill) {
     const overflowWrapAttributor = new StyleAttributor("overflowWrap", "overflow-wrap", {
       scope: Parchment.Scope.BLOCK
     });
-    const verticalAlignAttributor = new StyleAttributor("translateY", "vertical-align", {
+    const translateYAttributor = new CssVariableAttributor("translateY", "--translate-y", {
       scope: Parchment.Scope.INLINE
     });
     const translateYMobileAttributor = new CssVariableAttributor("translateYMobile", "--translate-y-mobile", {
@@ -438,7 +437,7 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(lineHeightMobileAttributor, true);
     Quill.register(whiteSpaceAttributor, true);
     Quill.register(overflowWrapAttributor, true);
-    Quill.register(verticalAlignAttributor, true);
+    Quill.register(translateYAttributor, true);
     Quill.register(translateYMobileAttributor, true);
     Quill.register(fontSizeDesktopAttributor, true);
     Quill.register(fontSizeMobileAttributor, true);
@@ -1495,8 +1494,7 @@ const QuillWrapper = forwardRef(({
     const { updateDraft = true } = options;
     if (
       !canUseInlineSelectionControls ||
-      !isResponsiveControlKey(key) ||
-      isGlobalLineHeightControlKey(key)
+      !isResponsiveControlKey(key)
     ) return false;
 
     const quill = getQuillEditor();
@@ -1565,8 +1563,12 @@ const QuillWrapper = forwardRef(({
     const mobileSize = format.fontSizeMobile
       ? String(format.fontSizeMobile).replace('px', '')
       : String(fontSizeMobile || "").replace('px', '');
-    const lh = String(lineHeight || "").replace('px', '');
-    const lhMobile = String(lineHeightMobile || "").replace('px', '');
+    const lh = format.lineHeight
+      ? String(format.lineHeight).replace('px', '')
+      : String(lineHeight || "").replace('px', '');
+    const lhMobile = format.lineHeightMobile
+      ? String(format.lineHeightMobile).replace('px', '')
+      : String(lineHeightMobile || "").replace('px', '');
     const translateYVal = format.translateY
       ? String(format.translateY).replace('px', '')
       : String(translateY || "").replace('px', '');
@@ -1662,7 +1664,6 @@ const QuillWrapper = forwardRef(({
       popupInputValuesRef.current[key] = nextValue;
       const selection = getCurrentControlSelection();
       const isInline =
-        !isGlobalLineHeightControlKey(key) &&
         canUseInlineSelectionControls &&
         selection &&
         selection.length > 0;
@@ -1696,7 +1697,6 @@ const QuillWrapper = forwardRef(({
 
       const selection = getCurrentControlSelection();
       const isInline =
-        !isGlobalLineHeightControlKey(key) &&
         canUseInlineSelectionControls &&
         selection &&
         selection.length > 0;
@@ -1706,12 +1706,6 @@ const QuillWrapper = forwardRef(({
           ...selectionControlDraftsRef.current,
           [key]: nextValue,
         };
-        controlDraftsRef.current = {
-          ...controlDraftsRef.current,
-          [key]: nextValue,
-        };
-        onControlDraftChange?.(key, nextValue);
-        setControlDrafts((prev) => ({ ...prev, [key]: nextValue }));
         if (shouldApplyPreview) {
           applyInlineControlToSelection(key, nextValue);
           preserveEditorScrollDuring(() => {
@@ -1794,7 +1788,6 @@ const QuillWrapper = forwardRef(({
       popupInputValuesRef.current[key] = nextValue;
       const selection = getCurrentControlSelection();
       const isInline =
-        !isGlobalLineHeightControlKey(key) &&
         canUseInlineSelectionControls &&
         selection &&
         selection.length > 0;

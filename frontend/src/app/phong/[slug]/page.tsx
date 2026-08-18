@@ -738,7 +738,6 @@ export default function DetailPage() {
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
                         preserveNbsp
-                        blockLineHeight
                       />
                     ) : (
                       formatNumber(toNumber(productData.product.contains) || 0)
@@ -760,7 +759,6 @@ export default function DetailPage() {
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
                         preserveNbsp
-                        blockLineHeight
                       />
                     ) : (
                       productData.product.equipment
@@ -782,7 +780,6 @@ export default function DetailPage() {
                       translateY={product.translateY}
                       translateYMobile={product.translateYMobile}
                       preserveNbsp
-                      blockLineHeight
                     />
                   ) : (
                     formatPlainPrice(productData.product.price)
@@ -910,7 +907,7 @@ export default function DetailPage() {
                 }
                 .ckeditor-content li {
                   margin: 0.5rem 0 !important;
-                  line-height: 1.6 !important;
+                  line-height: inherit !important;
                   display: list-item !important;
                   list-style-position: outside !important;
                   padding-left: 0 !important;
@@ -927,7 +924,7 @@ export default function DetailPage() {
                 }
                 .ckeditor-content p {
                   margin: 1rem 0 !important;
-                  line-height: 1.6 !important;
+                  line-height: inherit !important;
                 }
                 .ckeditor-content h1 {
                   margin: 1rem 0 1rem 0 !important;
@@ -999,7 +996,7 @@ export default function DetailPage() {
 
                   .ckeditor-content p,
                   .ckeditor-content li {
-                    line-height: 1.6 !important;
+                    line-height: inherit !important;
                   }
 
                   .ckeditor-content h1 {
