@@ -1010,13 +1010,15 @@
     top: 0;
   }
 
-  .blog-excerpt-rich-text > :last-child {
-    position: relative;
-  }
-
   .blog-excerpt-rich-text .rich-text-mobile-trailing-group {
+    box-sizing: border-box;
+    display: block !important;
+    margin-left: auto;
     overflow-wrap: normal !important;
+    padding-right: 10%;
+    text-align: right !important;
     white-space: nowrap !important;
+    width: 100%;
     word-break: keep-all !important;
   }
 
@@ -1030,10 +1032,8 @@
     line-height: 0;
     margin-left: 0.04em;
     pointer-events: none;
-    position: absolute;
-    right: 10%;
-    bottom: -0.8em;
-    top: auto;
+    position: relative;
+    top: 0.66em;
   }
 }
 

@@ -265,7 +265,7 @@ const appendMobileTrailingDecoration = (html: string, decoration: string, wordCo
   if (!lastTextNode?.parentNode) return html;
 
   const text = lastTextNode.textContent || "";
-  const safeWordCount = Math.max(1, Math.min(3, Math.trunc(wordCount)));
+  const safeWordCount = Math.max(1, Math.min(6, Math.trunc(wordCount)));
   const tailPattern = new RegExp(`(\\S+(?:\\s+\\S+){0,${safeWordCount - 1}})(\\s*)$`, "u");
   const match = text.match(tailPattern);
   if (!match || match.index === undefined) return html;
@@ -310,6 +310,7 @@ interface RichTextRendererProps {
   stripAllFontStyles?: boolean;
   blockLineHeight?: boolean;
   mobileTrailingDecoration?: string;
+  mobileTrailingDecorationWordCount?: number;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
@@ -332,6 +333,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   stripAllFontStyles = false,
   blockLineHeight = false,
   mobileTrailingDecoration,
+  mobileTrailingDecorationWordCount = 2,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -648,11 +650,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       processedHtml = hoistLineHeightToControlsBlock(processedHtml);
     }
     if (mobileTrailingDecoration) {
-      processedHtml = appendMobileTrailingDecoration(processedHtml, mobileTrailingDecoration);
+      processedHtml = appendMobileTrailingDecoration(
+        processedHtml,
+        mobileTrailingDecoration,
+        mobileTrailingDecorationWordCount
+      );
     }
 
     return processedHtml;
-  }, [blockLineHeight, html, mobileTrailingDecoration, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [blockLineHeight, html, mobileTrailingDecoration, mobileTrailingDecorationWordCount, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 

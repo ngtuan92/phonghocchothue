@@ -313,6 +313,7 @@ export default function BlogDetail() {
                       preserveLeadingIndent
                       resetLeadingIndentOnMobile
                       mobileTrailingDecoration={'\u201D'}
+                      mobileTrailingDecorationWordCount={4}
                     />
                   </div>
                 </div>
