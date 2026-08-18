@@ -204,7 +204,7 @@ export default function BlogDetail() {
       <div className="absolute inset-0 flex items-center justify-center px-[34px] py-[30px] sm:p-[70px] 1400px:p-[70px] 1700px:p-[85px]">
         <div
           id="blog-detail-scroll-container"
-          className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto hide-scrollbar bg-white shadow-2xl scroll-smooth"
+          className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto overflow-x-hidden hide-scrollbar bg-white shadow-2xl scroll-smooth"
           style={pageStyle}
         >
           <Header />
