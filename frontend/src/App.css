@@ -982,7 +982,7 @@
     display: block !important;
     margin-inline: auto;
     max-width: none;
-    padding-inline: 0;
+    padding: 2rem 0 2.25rem;
     position: relative;
     width: 100%;
   }
@@ -990,22 +990,27 @@
   .blog-excerpt-rich-text > :first-child::before,
   .blog-excerpt-rich-text > :last-child::after {
     color: #b8c7b0;
-    display: inline;
+    display: block;
     font-family: serif;
-    font-size: 1.35em !important;
+    font-size: 4.05em !important;
     font-style: normal;
     font-weight: 400;
-    line-height: 0;
-    position: static;
-    vertical-align: -0.08em;
+    line-height: 0.72;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
   }
 
   .blog-excerpt-rich-text > :first-child::before {
-    content: "\201C\00a0";
+    content: "\201C";
+    left: 10%;
+    top: 0;
   }
 
   .blog-excerpt-rich-text > :last-child::after {
-    content: "\2060\201D";
+    bottom: 0;
+    content: "\201D";
+    right: 10%;
   }
 }
 
