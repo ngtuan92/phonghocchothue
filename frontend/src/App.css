@@ -986,7 +986,7 @@
     display: block !important;
     margin-inline: auto;
     max-width: none;
-    padding: 2rem 0 2.25rem;
+    padding: 2rem 0 3rem;
     position: relative;
     width: 100%;
   }
@@ -1027,7 +1027,7 @@
     margin-left: 0.04em;
     pointer-events: none;
     position: relative;
-    top: 0.22em;
+    top: 0.66em;
   }
 }
 
