@@ -1010,6 +1010,10 @@
     top: 0;
   }
 
+  .blog-excerpt-rich-text > :last-child {
+    position: relative;
+  }
+
   .blog-excerpt-rich-text .rich-text-mobile-trailing-group {
     overflow-wrap: normal !important;
     white-space: nowrap !important;
@@ -1026,8 +1030,10 @@
     line-height: 0;
     margin-left: 0.04em;
     pointer-events: none;
-    position: relative;
-    top: 0.66em;
+    position: absolute;
+    right: 10%;
+    bottom: -0.8em;
+    top: auto;
   }
 }
 
