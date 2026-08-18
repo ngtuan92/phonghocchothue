@@ -916,9 +916,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer [style*="--color-mobile"] {
             color: var(--color-mobile) !important;
           }
-          .rich-text-renderer[style*="--fs-mobile"] *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer[style*="--fs-mobile"] *:not(.image-caption):not(.rich-text-mobile-trailing-decoration):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .rich-text-renderer [style*="--fs-mobile"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
-          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
+          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not(.rich-text-mobile-trailing-decoration):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
             font-size: var(--fs-mobile) !important;
           }
         }
@@ -933,7 +933,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--fs-mobile"],
-          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not(.rich-text-mobile-trailing-decoration):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;
           }
           .rich-text-renderer li[style*="--fs-mobile"]::marker {
@@ -958,7 +958,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
         }
         .rich-text-renderer [style*="--custom-line-height"],
-        .rich-text-renderer [style*="--custom-line-height"] * {
+        .rich-text-renderer [style*="--custom-line-height"] *:not(.rich-text-mobile-trailing-decoration) {
           line-height: var(--custom-line-height) !important;
         }
         .rich-text-renderer[style*="--translate-y"],
@@ -978,7 +978,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--custom-line-height-mobile"],
-          .rich-text-renderer [style*="--custom-line-height-mobile"] * {
+          .rich-text-renderer [style*="--custom-line-height-mobile"] *:not(.rich-text-mobile-trailing-decoration) {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .rich-text-renderer[style*="--translate-y-mobile"],
@@ -1220,9 +1220,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: inline !important;
         }
 
-        .rich-text-renderer[style*="--custom-line-height"] *,
+        .rich-text-renderer[style*="--custom-line-height"] *:not(.rich-text-mobile-trailing-decoration),
         .rich-text-renderer[style*="--custom-line-height"] p,
-        .rich-text-renderer[style*="--custom-line-height"] span,
+        .rich-text-renderer[style*="--custom-line-height"] span:not(.rich-text-mobile-trailing-decoration),
         .rich-text-renderer[style*="--custom-line-height"] h1,
         .rich-text-renderer[style*="--custom-line-height"] h2,
         .rich-text-renderer[style*="--custom-line-height"] h3,
@@ -1233,9 +1233,9 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
 
         @media (max-width: 767px) {
-          .rich-text-renderer[style*="--custom-line-height-mobile"] *,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] *:not(.rich-text-mobile-trailing-decoration),
           .rich-text-renderer[style*="--custom-line-height-mobile"] p,
-          .rich-text-renderer[style*="--custom-line-height-mobile"] span,
+          .rich-text-renderer[style*="--custom-line-height-mobile"] span:not(.rich-text-mobile-trailing-decoration),
           .rich-text-renderer[style*="--custom-line-height-mobile"] h1,
           .rich-text-renderer[style*="--custom-line-height-mobile"] h2,
           .rich-text-renderer[style*="--custom-line-height-mobile"] h3,

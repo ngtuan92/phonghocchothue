@@ -1010,8 +1010,10 @@
     top: 0;
   }
 
-  .rich-text-mobile-trailing-group {
-    white-space: nowrap;
+  .blog-excerpt-rich-text .rich-text-mobile-trailing-group {
+    overflow-wrap: normal !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
   }
 
   .blog-excerpt-rich-text .rich-text-mobile-trailing-decoration {
@@ -1976,7 +1978,7 @@ footer .rich-text-renderer * {
   line-height: var(--custom-line-height) !important;
 }
 
-.rich-text-renderer[style*="--custom-line-height"] * {
+.rich-text-renderer[style*="--custom-line-height"] *:not(.rich-text-mobile-trailing-decoration) {
   line-height: inherit !important;
 }
 
