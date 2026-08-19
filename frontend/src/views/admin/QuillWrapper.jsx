@@ -3113,16 +3113,38 @@ const QuillWrapper = forwardRef(({
     const quill = getQuillEditor();
     let handlePaste = null;
 
-    if (isSimpleTextField && quill) {
+    if ((isSimpleTextField || preserveInlineWhitespace) && quill) {
       handlePaste = (e) => {
+        const clipboard = e.clipboardData || window.clipboardData;
+        let text = clipboard.getData('text/plain');
+
+        if (!isSimpleTextField && !text) {
+          const clipboardHtml = clipboard.getData('text/html');
+          if (clipboardHtml && typeof DOMParser !== 'undefined') {
+            const clipboardDoc = new DOMParser().parseFromString(clipboardHtml, 'text/html');
+            const hasOnlyWhitespace = !(clipboardDoc.body.textContent || '').trim();
+            if (hasOnlyWhitespace) {
+              const blockCount = clipboardDoc.body.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6').length;
+              const breakCount = clipboardDoc.body.querySelectorAll('br').length;
+              text = '\n'.repeat(Math.max(blockCount, breakCount, 1));
+            }
+          }
+        }
+
+        const normalizedText = String(text || '').replace(/\r\n?/g, '\n');
+        const isWhitespaceOnlyPaste = normalizedText.length > 0 && !normalizedText.trim();
+        if (!isSimpleTextField && !isWhitespaceOnlyPaste) return;
+
         e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData('text/plain');
         const range = quill.getSelection();
         if (range) {
-          quill.insertText(range.index, text);
-          setSelectionWithoutScroll(quill, range.index + text.length);
+          if (range.length > 0) {
+            quill.deleteText(range.index, range.length, 'user');
+          }
+          quill.insertText(range.index, normalizedText, 'user');
+          setSelectionWithoutScroll(quill, range.index + normalizedText.length);
         } else {
-          quill.setText(text);
+          quill.setText(normalizedText, 'user');
         }
       };
       quill.root.addEventListener('paste', handlePaste);
@@ -3135,7 +3157,7 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     };
-  }, [getQuillEditor, isReady, editorClassName, isSimpleTextField, setSelectionWithoutScroll]);
+  }, [getQuillEditor, isReady, editorClassName, isSimpleTextField, preserveInlineWhitespace, setSelectionWithoutScroll]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;

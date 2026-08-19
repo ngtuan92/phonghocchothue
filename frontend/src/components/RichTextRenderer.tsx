@@ -742,7 +742,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: block !important;
           min-height: 1em !important;
           line-height: inherit !important;
-          margin: 0.75em 0 !important;
+          margin: 0 0 0.5rem 0 !important;
           white-space: pre-wrap !important;
           overflow-wrap: break-word !important;
           word-break: normal !important;
