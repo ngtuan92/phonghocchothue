@@ -26,6 +26,7 @@ const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
 let cachedFonts = null;
 let fetchPromise = null;
+let lastRichTextClipboard = null;
 const COLORS = [
   "no-color",
   "#000000", "#e60000", "#ff9900", "#ffff00", "#008a00", "#0066cc", "#9933ff",
@@ -3232,9 +3233,17 @@ const QuillWrapper = forwardRef(({
         if (!copiedContent) return;
         const copiedDelta = quill.getContents(expandedRange.index, expandedRange.length);
         const serializedDelta = serializeRichTextDelta(copiedDelta);
+        const copiedText = String(copiedContent.text || '').replace(/\r\n?/g, '\n');
+
+        lastRichTextClipboard = {
+          copiedAt: Date.now(),
+          serializedDelta,
+          text: copiedText,
+        };
 
         e.preventDefault();
-        e.clipboardData.setData('text/plain', copiedContent.text);
+        e.stopImmediatePropagation();
+        e.clipboardData.setData('text/plain', copiedText);
         e.clipboardData.setData(
           'text/html',
           embedRichTextDeltaInHtml(copiedContent.html, serializedDelta)
@@ -3259,6 +3268,13 @@ const QuillWrapper = forwardRef(({
         if (!serializedDelta) {
           serializedDelta = extractRichTextDeltaFromHtml(clipboardHtml);
         }
+        const normalizedClipboardText = String(text || '').replace(/\r\n?/g, '\n');
+        const recentInternalCopy = lastRichTextClipboard &&
+          Date.now() - lastRichTextClipboard.copiedAt < 10 * 60 * 1000 &&
+          normalizedClipboardText === lastRichTextClipboard.text;
+        if (!serializedDelta && recentInternalCopy) {
+          serializedDelta = lastRichTextClipboard.serializedDelta;
+        }
 
         if (!isSimpleTextField && serializedDelta) {
           const Delta = Quill.import('delta');
@@ -3266,6 +3282,7 @@ const QuillWrapper = forwardRef(({
           const range = quill.getSelection() || quill.getSelection(true);
           if (copiedDelta && range) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             const change = new Delta()
               .retain(range.index)
               .delete(range.length)
@@ -3300,6 +3317,7 @@ const QuillWrapper = forwardRef(({
           : normalizedText;
 
         e.preventDefault();
+        e.stopImmediatePropagation();
         const range = quill.getSelection() || quill.getSelection(true);
         if (range) {
           if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste) {
