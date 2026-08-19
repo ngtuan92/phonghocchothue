@@ -241,36 +241,46 @@
 
 /* Match both text edges and the center axis between admin and public blog pages.
    The remaining value accounts for the admin layout, page and form paddings. */
+.blog-edit-page {
+  --blog-editor-text-inset: max(10px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px));
+}
+
 .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
-  padding-left: max(10px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px)) !important;
-  padding-right: max(10px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px)) !important;
+  padding-left: var(--blog-editor-text-inset) !important;
+  padding-right: var(--blog-editor-text-inset) !important;
+}
+
+.blog-edit-page .blog-content-area {
+  width: auto !important;
+  margin-left: max(0px, calc(var(--blog-editor-text-inset) - 24px));
+  margin-right: max(0px, calc(var(--blog-editor-text-inset) - 24px));
+}
+
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor {
+  padding: 16px min(24px, var(--blog-editor-text-inset)) !important;
 }
 
 @media (min-width: 640px) and (max-width: 767px) {
-  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
-    padding-left: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px) !important;
-    padding-right: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px) !important;
+  .blog-edit-page {
+    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px);
   }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
-    padding-left: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 64px) !important;
-    padding-right: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 64px) !important;
+  .blog-edit-page {
+    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 64px);
   }
 }
 
 @media (min-width: 1024px) {
-  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
-    padding-left: calc(var(--blog-detail-outer-gutter) - 4px) !important;
-    padding-right: calc(var(--blog-detail-outer-gutter) - 4px) !important;
+  .blog-edit-page {
+    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) - 4px);
   }
 }
 
 @media (min-width: 1440px) {
-  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
-    padding-left: calc(var(--blog-detail-outer-gutter) + 16px) !important;
-    padding-right: calc(var(--blog-detail-outer-gutter) + 16px) !important;
+  .blog-edit-page {
+    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) + 16px);
   }
 }
 
