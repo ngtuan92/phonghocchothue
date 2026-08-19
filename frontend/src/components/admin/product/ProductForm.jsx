@@ -16,7 +16,10 @@ import {
   loadProductGalleryDraft,
   saveProductGalleryDraft,
 } from "@/utils/productGalleryDraft";
-import { stripTopLevelResponsiveControls } from "@/utils/richTextControls";
+import {
+  normalizeResponsiveLineHeightStyles,
+  stripTopLevelResponsiveControls,
+} from "@/utils/richTextControls";
 
 const QuillWrapper = dynamic(
   () => import("@/views/admin/QuillWrapper"),
@@ -194,12 +197,7 @@ const decorateRichTextWithControls = (html, controls = {}) => {
       controlsRoot.style.removeProperty(name);
     }
   });
-  const desktopLineHeight = toCssUnit(controls.lineHeight);
-  if (desktopLineHeight) {
-    controlsRoot.style.setProperty("line-height", desktopLineHeight);
-  } else {
-    controlsRoot.style.removeProperty("line-height");
-  }
+  controlsRoot.style.removeProperty("line-height");
 
   let targets = Array.from(controlsRoot.children).filter((node) => node instanceof HTMLElement);
   if (targets.length === 0) targets = [controlsRoot];
@@ -663,7 +661,9 @@ export default function ProductForm(props) {
         name_rich: nameRich,
         image: singleImage,
         imageDetail: multipleImages,
-        content: stripTopLevelResponsiveControls(currentRoomContent),
+        content: stripTopLevelResponsiveControls(
+          normalizeResponsiveLineHeightStyles(currentRoomContent)
+        ),
         description: roomDescription,
         equipment,
         price,
