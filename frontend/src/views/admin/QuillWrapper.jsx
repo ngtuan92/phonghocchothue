@@ -3339,7 +3339,14 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     };
-  }, [getQuillEditor, isReady, editorClassName, isSimpleTextField, setSelectionWithoutScroll]);
+  }, [
+    editorClassName,
+    editorInstanceVersion,
+    getQuillEditor,
+    isReady,
+    isSimpleTextField,
+    setSelectionWithoutScroll,
+  ]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
