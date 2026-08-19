@@ -149,6 +149,35 @@ const isValidControlInput = (value, signed = false) => {
   return pattern.test(text);
 };
 
+const hasSignificantHorizontalWhitespace = (value) => (
+  /(^|\n)[ \t]+|[ \t]{2,}|[ \t]+(?=\n|$)/.test(String(value || ''))
+);
+
+const preserveSignificantHorizontalWhitespace = (value) => String(value || '')
+  .replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0')
+  .replace(/(^|\n)( +)/g, (_match, prefix, spaces) => `${prefix}${'\u00a0'.repeat(spaces.length)}`)
+  .replace(/ {2,}/g, (spaces) => '\u00a0'.repeat(spaces.length))
+  .replace(/ +(?=\n|$)/g, (spaces) => '\u00a0'.repeat(spaces.length));
+
+const preserveClipboardHtmlWhitespace = (html) => {
+  if (!html || typeof DOMParser === 'undefined') return html;
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    const text = String(node.textContent || '');
+    const hasBlockChildren = node.parentElement?.querySelector?.(
+      ':scope > p, :scope > div, :scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6, :scope > ul, :scope > ol'
+    );
+    if (text.trim() || !hasBlockChildren) {
+      node.textContent = preserveSignificantHorizontalWhitespace(text);
+    }
+    node = walker.nextNode();
+  }
+  return doc.body.innerHTML;
+};
+
 const toLineHeightCssValue = (value) => {
   const text = String(value || '').trim();
   if (!text || text.startsWith("-")) return undefined;
@@ -3117,9 +3146,9 @@ const QuillWrapper = forwardRef(({
       handlePaste = (e) => {
         const clipboard = e.clipboardData || window.clipboardData;
         let text = clipboard.getData('text/plain');
+        const clipboardHtml = clipboard.getData('text/html');
 
         if (!isSimpleTextField && !text) {
-          const clipboardHtml = clipboard.getData('text/html');
           if (clipboardHtml && typeof DOMParser !== 'undefined') {
             const clipboardDoc = new DOMParser().parseFromString(clipboardHtml, 'text/html');
             const hasOnlyWhitespace = !(clipboardDoc.body.textContent || '').trim();
@@ -3133,20 +3162,37 @@ const QuillWrapper = forwardRef(({
 
         const normalizedText = String(text || '').replace(/\r\n?/g, '\n');
         const isWhitespaceOnlyPaste = normalizedText.length > 0 && !normalizedText.trim();
-        if (!isSimpleTextField && !isWhitespaceOnlyPaste) return;
+        const hasSignificantSpacing = hasSignificantHorizontalWhitespace(normalizedText);
+        if (!isSimpleTextField && !isWhitespaceOnlyPaste && !hasSignificantSpacing) return;
 
-        const insertedText = !isSimpleTextField && isWhitespaceOnlyPaste
-          ? normalizedText
-            .replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0')
-            .replace(/ /g, '\u00a0')
+        const insertedText = !isSimpleTextField && (isWhitespaceOnlyPaste || hasSignificantSpacing)
+          ? preserveSignificantHorizontalWhitespace(normalizedText)
           : normalizedText;
 
         e.preventDefault();
-        const range = quill.getSelection();
+        const range = quill.getSelection() || quill.getSelection(true);
         if (range) {
-          if (range.length > 0) {
-            quill.deleteText(range.index, range.length, 'user');
+          if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste) {
+            const Delta = Quill.import('delta');
+            const converted = quill.clipboard.convert({
+              html: preserveClipboardHtmlWhitespace(clipboardHtml),
+              text: insertedText,
+            });
+            const preservedDelta = new Delta((converted?.ops || []).map((op) => (
+              typeof op.insert === 'string'
+                ? { ...op, insert: preserveSignificantHorizontalWhitespace(op.insert) }
+                : op
+            )));
+            const change = new Delta()
+              .retain(range.index)
+              .delete(range.length)
+              .concat(preservedDelta);
+            quill.updateContents(change, 'user');
+            setSelectionWithoutScroll(quill, range.index + preservedDelta.length());
+            return;
           }
+
+          if (range.length > 0) quill.deleteText(range.index, range.length, 'user');
           quill.insertText(range.index, insertedText, 'user');
           setSelectionWithoutScroll(quill, range.index + insertedText.length);
         } else {
