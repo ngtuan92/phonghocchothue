@@ -2,7 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
-import { normalizeResponsiveLineHeightStyles } from "@/utils/richTextControls";
+import {
+  normalizeExcessiveLeadingWhitespaceAlignment,
+  normalizeResponsiveLineHeightStyles,
+} from "@/utils/richTextControls";
 
 const getDOMPurify = () => {
   if (typeof window !== "undefined") {
@@ -242,13 +245,16 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       })
       : html;
 
+    const normalizedAlignmentHtml = preserveLeadingIndent
+      ? normalizeExcessiveLeadingWhitespaceAlignment(sanitized)
+      : sanitized;
     let processedHtml = naturalTextWrapping
-      ? normalizeNaturalTextWrapping(sanitized, preserveLeadingIndent)
+      ? normalizeNaturalTextWrapping(normalizedAlignmentHtml, preserveLeadingIndent)
       : preserveLeadingIndent
-        ? preserveLeadingWhitespace(sanitized)
+        ? preserveLeadingWhitespace(normalizedAlignmentHtml)
       : preserveNbsp && !normalizeNbsp
-        ? sanitized
-        : sanitized.replace(/(?:&nbsp;|\u00a0)/gi, " ");
+        ? normalizedAlignmentHtml
+        : normalizedAlignmentHtml.replace(/(?:&nbsp;|\u00a0)/gi, " ");
 
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");

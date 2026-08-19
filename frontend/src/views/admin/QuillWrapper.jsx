@@ -6,7 +6,10 @@ import "react-quill-new/dist/quill.snow.css";
 import Modal from "@/components/admin/Modal";
 import { Button } from "@material-tailwind/react";
 import { ColorPicker } from "@mantine/core";
-import { normalizeResponsiveLineHeightStyles } from "@/utils/richTextControls";
+import {
+  normalizeExcessiveLeadingWhitespaceAlignment,
+  normalizeResponsiveLineHeightStyles,
+} from "@/utils/richTextControls";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
@@ -1022,6 +1025,8 @@ const QuillWrapper = forwardRef(({
     preserveWhitespaceOnlyBlocks ||
     shouldNormalizeAdminContentWhitespace ||
     shouldPreserveHeroInlineWhitespace;
+  const shouldNormalizeExcessiveIndent =
+    preserveWhitespaceOnlyBlocks || shouldNormalizeAdminContentWhitespace;
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;
@@ -3562,6 +3567,9 @@ const QuillWrapper = forwardRef(({
       stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || "", whitespaceOptions)),
       whitespaceOptions
     )).replace(regex, 'src="/$1"');
+    if (shouldNormalizeExcessiveIndent) {
+      relativeContent = normalizeExcessiveLeadingWhitespaceAlignment(relativeContent);
+    }
     if (preserveWhitespaceOnlyBlocks) {
       relativeContent = normalizeWhitespaceOnlyBlocksForQuill(relativeContent);
     }
@@ -3621,7 +3629,7 @@ const QuillWrapper = forwardRef(({
     return preserveInlineWhitespace
       ? preserveSignificantInlineWhitespaceForQuill(relativeContent)
       : relativeContent;
-  }, [canUseInlineSelectionControls, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks]);
+  }, [canUseInlineSelectionControls, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks, shouldNormalizeExcessiveIndent]);
 
   const emitCurrentContentForSave = useCallback((forceCommit = false) => {
     const quill = getQuillEditor();
@@ -5097,6 +5105,9 @@ const QuillWrapper = forwardRef(({
     let val = normalizeResponsiveLineHeightStyles(unwrapRichTextControlsForEdit(
       removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value), whitespaceOptions)
     )).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    if (shouldNormalizeExcessiveIndent) {
+      val = normalizeExcessiveLeadingWhitespaceAlignment(val);
+    }
     if (preserveWhitespaceOnlyBlocks) {
       val = normalizeWhitespaceOnlyBlocksForQuill(val);
     }
@@ -5153,7 +5164,7 @@ const QuillWrapper = forwardRef(({
     return preserveInlineWhitespace
       ? preserveSignificantInlineWhitespaceForQuill(val)
       : val;
-  }, [props.value, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks]);
+  }, [props.value, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks, shouldNormalizeExcessiveIndent]);
 
   const handleBlur = useCallback(() => {
     let blurContent = lastRelativeContentRef.current;
