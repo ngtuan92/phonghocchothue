@@ -326,7 +326,7 @@ export default function Home() {
 
       {showNotification && notificationText && (
         <div
-          className="fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] p-3 sm:p-6 sm:px-3 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 w-[210px] sm:w-[230px] md:w-[230px] lg:w-[230px] xl:w-[230px] max-sm:w-[170px]"
+          className="fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] py-3 px-2 sm:py-6 sm:px-2 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 w-[140px] sm:w-[153px] md:w-[153px] lg:w-[153px] xl:w-[153px] max-sm:w-[113px]"
         >
           {background.imgBird && (
             <Image
@@ -334,17 +334,17 @@ export default function Home() {
               alt="Biểu tượng chú chim thông báo"
               width={96}
               height={96}
-              className="w-[58px] absolute -top-[48px] sm:w-20 md:w-20 lg:w-20 xl:w-24 lg:-top-18 md:-top-15 sm:-top-12"
-              sizes="(max-width: 640px) 58px, (max-width: 1024px) 80px, 96px"
+              className="w-[39px] absolute -top-[32px] sm:w-[53px] md:w-[53px] lg:w-[53px] xl:w-[64px] sm:-top-[32px] md:-top-[40px] lg:-top-[48px] xl:-top-[56px]"
+              sizes="(max-width: 640px) 39px, (max-width: 1024px) 53px, 64px"
               quality={85}
               loading="lazy"
             />
           )}
 
-          <div className="bg-[#799f85] absolute -top-2 -right-2 rounded-xl p-1 flex justify-center items-center cursor-pointer">
+          <div className="bg-[#799f85] absolute -top-2 -right-2 rounded-lg p-[3px] flex justify-center items-center cursor-pointer">
             <FontAwesomeIcon
               icon={faTimes}
-              className="text-white w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5"
+              className="text-white w-[11px] h-[11px] sm:w-[11px] sm:h-[11px] md:w-[13px] md:h-[13px]"
               onClick={() => setShowNotification(false)}
             />
           </div>

@@ -2116,8 +2116,8 @@ footer .rich-text-renderer * {
 
 .notification-link-button {
   font-size: var(--notification-button-font-size, 0.75rem);
-  min-height: calc(1em * 1.7);
-  padding: 0.34em 0.9em 0.38em;
+  min-height: calc(1em * 1.13);
+  padding: 0.23em 0.6em 0.25em;
   line-height: 1.35;
   overflow: visible;
 }
