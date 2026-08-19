@@ -3151,7 +3151,7 @@ const QuillWrapper = forwardRef(({
     const quill = getQuillEditor();
     let handlePaste = null;
 
-    if ((isSimpleTextField || preserveInlineWhitespace) && quill) {
+    if (quill) {
       handlePaste = (e) => {
         const clipboard = e.clipboardData || window.clipboardData;
         let text = clipboard.getData('text/plain');
@@ -3224,7 +3224,7 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     };
-  }, [getQuillEditor, isReady, editorClassName, isSimpleTextField, preserveInlineWhitespace, setSelectionWithoutScroll]);
+  }, [getQuillEditor, isReady, editorClassName, isSimpleTextField, setSelectionWithoutScroll]);
 
   useEffect(() => {
     if (!isReady || !containerRef.current) return;
