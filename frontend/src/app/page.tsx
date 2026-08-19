@@ -326,7 +326,7 @@ export default function Home() {
 
       {showNotification && notificationText && (
         <div
-          className="fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] py-3 px-2 sm:py-6 sm:px-2 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 w-[140px] sm:w-[153px] md:w-[153px] lg:w-[153px] xl:w-[153px] max-sm:w-[113px]"
+          className="fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] py-2 px-2 sm:py-4 sm:px-2 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 w-[140px] sm:w-[153px] md:w-[153px] lg:w-[153px] xl:w-[153px] max-sm:w-[113px]"
         >
           {background.imgBird && (
             <Image
@@ -334,7 +334,7 @@ export default function Home() {
               alt="Biểu tượng chú chim thông báo"
               width={96}
               height={96}
-              className="w-[39px] absolute -top-[32px] sm:w-[53px] md:w-[53px] lg:w-[53px] xl:w-[64px] sm:-top-[32px] md:-top-[40px] lg:-top-[48px] xl:-top-[56px]"
+              className="w-[39px] absolute -top-[28px] sm:w-[53px] md:w-[53px] lg:w-[53px] xl:w-[64px] sm:-top-[28px] md:-top-[36px] lg:-top-[44px] xl:-top-[52px]"
               sizes="(max-width: 640px) 39px, (max-width: 1024px) 53px, 64px"
               quality={85}
               loading="lazy"
