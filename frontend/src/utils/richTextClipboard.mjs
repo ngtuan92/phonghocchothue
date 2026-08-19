@@ -1,4 +1,5 @@
 export const RICH_TEXT_DELTA_MIME = "application/x-phonghoc-rich-text-delta";
+const RICH_TEXT_DELTA_ATTRIBUTE = "data-phonghoc-rich-text-delta";
 
 const HORIZONTAL_WHITESPACE_PATTERN = /[\t\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/;
 const HORIZONTAL_WHITESPACE_ONLY_PATTERN = /^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+$/;
@@ -66,6 +67,24 @@ export const expandCopyRangeToLeadingWhitespace = (quill, range) => {
 export const serializeRichTextDelta = (delta) => {
   if (!Array.isArray(delta?.ops)) return "";
   return JSON.stringify({ version: 1, ops: delta.ops });
+};
+
+export const embedRichTextDeltaInHtml = (html, serializedDelta) => {
+  if (!serializedDelta) return String(html || "");
+  const encodedDelta = encodeURIComponent(serializedDelta);
+  return `<div ${RICH_TEXT_DELTA_ATTRIBUTE}="${encodedDelta}">${String(html || "")}</div>`;
+};
+
+export const extractRichTextDeltaFromHtml = (html) => {
+  const source = String(html || "");
+  const match = source.match(/data-phonghoc-rich-text-delta=["']([^"']+)["']/i);
+  if (!match?.[1]) return "";
+
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return "";
+  }
 };
 
 export const parseRichTextDelta = (serialized, Delta) => {

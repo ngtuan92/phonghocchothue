@@ -12,7 +12,9 @@ import {
 } from "@/utils/richTextControls";
 import {
   RICH_TEXT_DELTA_MIME,
+  embedRichTextDeltaInHtml,
   expandCopyRangeToLeadingWhitespace,
+  extractRichTextDeltaFromHtml,
   hasSignificantHorizontalWhitespace,
   parseRichTextDelta,
   preserveSignificantHorizontalWhitespace,
@@ -3229,12 +3231,16 @@ const QuillWrapper = forwardRef(({
         const copiedContent = quill.getModule('clipboard')?.onCopy?.(expandedRange);
         if (!copiedContent) return;
         const copiedDelta = quill.getContents(expandedRange.index, expandedRange.length);
+        const serializedDelta = serializeRichTextDelta(copiedDelta);
 
         e.preventDefault();
         e.clipboardData.setData('text/plain', copiedContent.text);
-        e.clipboardData.setData('text/html', copiedContent.html);
+        e.clipboardData.setData(
+          'text/html',
+          embedRichTextDeltaInHtml(copiedContent.html, serializedDelta)
+        );
         try {
-          e.clipboardData.setData(RICH_TEXT_DELTA_MIME, serializeRichTextDelta(copiedDelta));
+          e.clipboardData.setData(RICH_TEXT_DELTA_MIME, serializedDelta);
         } catch {
           // Some browsers reject custom clipboard MIME types; HTML/plain text remain available.
         }
@@ -3249,6 +3255,9 @@ const QuillWrapper = forwardRef(({
           serializedDelta = clipboard.getData(RICH_TEXT_DELTA_MIME);
         } catch {
           // Fall back to the browser's HTML/plain text clipboard payload.
+        }
+        if (!serializedDelta) {
+          serializedDelta = extractRichTextDeltaFromHtml(clipboardHtml);
         }
 
         if (!isSimpleTextField && serializedDelta) {

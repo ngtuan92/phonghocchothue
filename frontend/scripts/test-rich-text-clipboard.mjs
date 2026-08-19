@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  embedRichTextDeltaInHtml,
   expandCopyRangeToLeadingWhitespace,
+  extractRichTextDeltaFromHtml,
   parseRichTextDelta,
   preserveSignificantHorizontalWhitespace,
   selectClipboardSpacingSource,
@@ -22,6 +24,17 @@ test("Delta round trip preserves whitespace, lines, and formatting", () => {
   ]);
   const restored = parseRichTextDelta(serializeRichTextDelta(source), TestDelta);
   assert.deepEqual(restored?.ops, source.ops);
+});
+
+test("HTML clipboard fallback carries the exact Delta when custom MIME is stripped", () => {
+  const source = new TestDelta([
+    { insert: "\t\t\u00a0\u00a0Điều gì tạo", attributes: { font: "thuong-chan" } },
+  ]);
+  const serialized = serializeRichTextDelta(source);
+  const clipboardHtml = embedRichTextDeltaInHtml("<p>Điều gì tạo</p>", serialized);
+
+  assert.equal(extractRichTextDeltaFromHtml(clipboardHtml), serialized);
+  assert.deepEqual(parseRichTextDelta(extractRichTextDeltaFromHtml(clipboardHtml), TestDelta)?.ops, source.ops);
 });
 
 test("malformed Delta clipboard payload is ignored", () => {
