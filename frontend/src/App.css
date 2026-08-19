@@ -973,7 +973,7 @@
 
 /* The inline title owns its responsive line-height. Remove the h1 strut so
    the parent font size cannot make those line boxes taller than the CMS value. */
-.blog-detail-title:has(> .inline-rich-text[style*="--custom-line-height"]) {
+.blog-detail-title:has(> .inline-rich-text [style*="--custom-line-height"]) {
   line-height: 0 !important;
 }
 
