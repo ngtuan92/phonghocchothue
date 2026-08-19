@@ -192,65 +192,6 @@ const normalizeCustomLineHeightUnits = (html: string) => {
   });
 };
 
-const appendMobileTrailingDecoration = (html: string, decoration: string, wordCount = 2) => {
-  if (!html || !decoration || typeof DOMParser === "undefined") return html;
-
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const root = doc.body.firstElementChild;
-  if (!root) return html;
-
-  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  let lastTextNode: Text | null = null;
-  let currentNode = walker.nextNode() as Text | null;
-
-  while (currentNode) {
-    if ((currentNode.textContent || "").trim()) lastTextNode = currentNode;
-    currentNode = walker.nextNode() as Text | null;
-  }
-
-  if (!lastTextNode?.parentNode) return html;
-
-  const text = lastTextNode.textContent || "";
-  const safeWordCount = Math.max(1, Math.min(6, Math.trunc(wordCount)));
-  const tailPattern = new RegExp(`(\\S+(?:\\s+\\S+){0,${safeWordCount - 1}})(\\s*)$`, "u");
-  const match = text.match(tailPattern);
-  if (!match || match.index === undefined) return html;
-
-  const blockParent = lastTextNode.parentElement?.closest("p, div, li, blockquote, h1, h2, h3, h4, h5, h6");
-  if (!blockParent || !root.contains(blockParent)) return html;
-
-  const group = doc.createElement("span");
-  group.className = "rich-text-mobile-trailing-group";
-
-  const tailText = doc.createElement("span");
-  tailText.className = "rich-text-mobile-trailing-text";
-
-  let styledTail: Node = doc.createTextNode(match[1]);
-  let inlineParent = lastTextNode.parentElement;
-  while (inlineParent && inlineParent !== blockParent) {
-    const clone = inlineParent.cloneNode(false) as HTMLElement;
-    clone.appendChild(styledTail);
-    styledTail = clone;
-    inlineParent = inlineParent.parentElement;
-  }
-  tailText.appendChild(styledTail);
-  group.appendChild(tailText);
-
-  const decorationElement = doc.createElement("span");
-  decorationElement.className = "rich-text-mobile-trailing-decoration";
-  decorationElement.setAttribute("aria-hidden", "true");
-  decorationElement.textContent = decoration;
-  group.appendChild(decorationElement);
-
-  lastTextNode.textContent = text.slice(0, match.index);
-  blockParent.appendChild(group);
-  if (match[2]) {
-    blockParent.appendChild(doc.createTextNode(match[2]));
-  }
-
-  return root.innerHTML;
-};
-
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -269,8 +210,6 @@ interface RichTextRendererProps {
   resetLeadingIndentOnMobile?: boolean;
   naturalTextWrapping?: boolean;
   stripAllFontStyles?: boolean;
-  mobileTrailingDecoration?: string;
-  mobileTrailingDecorationWordCount?: number;
 }
 
 const RichTextRenderer: React.FC<RichTextRendererProps> = ({
@@ -291,8 +230,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   resetLeadingIndentOnMobile = false,
   naturalTextWrapping = false,
   stripAllFontStyles = false,
-  mobileTrailingDecoration,
-  mobileTrailingDecorationWordCount = 2,
 }) => {
   const cleanHtml = useMemo(() => {
     if (!html) return "";
@@ -606,16 +543,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
     processedHtml = normalizeResponsiveLineHeightStyles(processedHtml);
     processedHtml = normalizeCustomLineHeightUnits(processedHtml);
-    if (mobileTrailingDecoration) {
-      processedHtml = appendMobileTrailingDecoration(
-        processedHtml,
-        mobileTrailingDecoration,
-        mobileTrailingDecorationWordCount
-      );
-    }
-
     return processedHtml;
-  }, [html, mobileTrailingDecoration, mobileTrailingDecorationWordCount, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
+  }, [html, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
 
   const isAboutKey = configKey ? ABOUT_KEYS.includes(configKey) : false;
 
@@ -885,9 +814,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer [style*="--color-mobile"] {
             color: var(--color-mobile) !important;
           }
-          .rich-text-renderer[style*="--fs-mobile"] *:not(.image-caption):not(.rich-text-mobile-trailing-decoration):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
+          .rich-text-renderer[style*="--fs-mobile"] *:not(.image-caption):not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
           .rich-text-renderer [style*="--fs-mobile"]:not([style*="--fs"]):not([style*="font-size"]):not(:has([style*="--fs"])),
-          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not(.rich-text-mobile-trailing-decoration):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
+          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]):not(:has([style*="--fs"])) {
             font-size: var(--fs-mobile) !important;
           }
         }
@@ -902,7 +831,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--fs-mobile"],
-          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not(.rich-text-mobile-trailing-decoration):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
             font-size: var(--fs-mobile) !important;
           }
           .rich-text-renderer li[style*="--fs-mobile"]::marker {
@@ -1187,12 +1116,12 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: inline !important;
         }
 
-        .rich-text-renderer[style*="--custom-line-height:"] > *:not(.rich-text-mobile-trailing-decoration) {
+        .rich-text-renderer[style*="--custom-line-height:"] > * {
           line-height: var(--custom-line-height) !important;
         }
 
         @media (max-width: 767px) {
-          .rich-text-renderer[style*="--custom-line-height-mobile:"] > *:not(.rich-text-mobile-trailing-decoration) {
+          .rich-text-renderer[style*="--custom-line-height-mobile:"] > * {
             line-height: var(--custom-line-height-mobile) !important;
           }
         }

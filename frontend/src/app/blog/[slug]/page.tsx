@@ -312,8 +312,6 @@ export default function BlogDetail() {
                       translateYMobile={blog.excerptTranslateYMobile}
                       preserveLeadingIndent
                       resetLeadingIndentOnMobile
-                      mobileTrailingDecoration={'\u201D'}
-                      mobileTrailingDecorationWordCount={4}
                     />
                   </div>
                 </div>
