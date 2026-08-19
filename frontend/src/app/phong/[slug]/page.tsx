@@ -847,13 +847,13 @@ export default function DetailPage() {
                   margin-bottom: 0 !important;
                   line-height: inherit !important;
                 }
-                .room-summary-desc .rich-text-renderer [style*="--custom-line-height"],
-                .room-summary-desc .rich-text-renderer [style*="--custom-line-height"] * {
+                .room-summary-desc .rich-text-renderer [style*="--custom-line-height:"],
+                .room-summary-desc .rich-text-renderer [style*="--custom-line-height:"] * {
                   line-height: var(--custom-line-height) !important;
                 }
                 @media (max-width: 767px) {
-                  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile"],
-                  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile"] * {
+                  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile:"],
+                  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile:"] * {
                     line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
                   }
                 }

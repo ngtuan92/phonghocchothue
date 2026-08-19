@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import useConfigContentByKey from "@/hooks/useConfigContentByKey";
+import { normalizeResponsiveLineHeightStyles } from "@/utils/richTextControls";
 
 const getDOMPurify = () => {
   if (typeof window !== "undefined") {
@@ -603,6 +604,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     }
 
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
+    processedHtml = normalizeResponsiveLineHeightStyles(processedHtml);
     processedHtml = normalizeCustomLineHeightUnits(processedHtml);
     if (mobileTrailingDecoration) {
       processedHtml = appendMobileTrailingDecoration(
@@ -924,7 +926,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             font-size: var(--fs-mobile) !important;
           }
         }
-        .rich-text-renderer [style*="--custom-line-height"] {
+        .rich-text-renderer [style*="--custom-line-height:"] {
           line-height: var(--custom-line-height) !important;
         }
         .rich-text-renderer[style*="--translate-y"],
@@ -943,7 +945,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           transform: none !important;
         }
         @media (max-width: 767px) {
-          .rich-text-renderer [style*="--custom-line-height-mobile"] {
+          .rich-text-renderer [style*="--custom-line-height-mobile:"] {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .rich-text-renderer[style*="--translate-y-mobile"],
@@ -1185,12 +1187,12 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: inline !important;
         }
 
-        .rich-text-renderer[style*="--custom-line-height"] > *:not(.rich-text-mobile-trailing-decoration) {
+        .rich-text-renderer[style*="--custom-line-height:"] > *:not(.rich-text-mobile-trailing-decoration) {
           line-height: var(--custom-line-height) !important;
         }
 
         @media (max-width: 767px) {
-          .rich-text-renderer[style*="--custom-line-height-mobile"] > *:not(.rich-text-mobile-trailing-decoration) {
+          .rich-text-renderer[style*="--custom-line-height-mobile:"] > *:not(.rich-text-mobile-trailing-decoration) {
             line-height: var(--custom-line-height-mobile) !important;
           }
         }

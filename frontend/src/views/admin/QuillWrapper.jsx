@@ -6,6 +6,7 @@ import "react-quill-new/dist/quill.snow.css";
 import Modal from "@/components/admin/Modal";
 import { Button } from "@material-tailwind/react";
 import { ColorPicker } from "@mantine/core";
+import { normalizeResponsiveLineHeightStyles } from "@/utils/richTextControls";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
@@ -399,7 +400,7 @@ if (typeof window !== "undefined" && Quill) {
     const widthAttributor = new StyleAttributor("width", "width", {
       scope: Parchment.Scope.INLINE
     });
-    const lineHeightAttributor = new StyleAttributor("lineHeight", "line-height", {
+    const lineHeightAttributor = new CssVariableAttributor("lineHeight", "--custom-line-height", {
       scope: Parchment.Scope.INLINE
     });
     const lineHeightMobileAttributor = new CssVariableAttributor("lineHeightMobile", "--custom-line-height-mobile", {
@@ -3477,10 +3478,10 @@ const QuillWrapper = forwardRef(({
     const escapedUrlApi = URL_API.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(`src=["']${escapedUrlApi}(assets/[^"']+)["']`, 'gi');
     const whitespaceOptions = { preserveWhitespaceOnly: preserveWhitespaceOnlyBlocks };
-    let relativeContent = removeEmptyQuillParagraphs(
+    let relativeContent = normalizeResponsiveLineHeightStyles(removeEmptyQuillParagraphs(
       stripEditorCaptionArtifacts(removeEmptyStyledSpans(content || "", whitespaceOptions)),
       whitespaceOptions
-    ).replace(regex, 'src="/$1"');
+    )).replace(regex, 'src="/$1"');
     if (preserveWhitespaceOnlyBlocks) {
       relativeContent = normalizeWhitespaceOnlyBlocksForQuill(relativeContent);
     }
@@ -5013,9 +5014,9 @@ const QuillWrapper = forwardRef(({
   const absoluteValue = useMemo(() => {
     if (!props.value || typeof props.value !== 'string') return props.value;
     const whitespaceOptions = { preserveWhitespaceOnly: preserveWhitespaceOnlyBlocks };
-    let val = unwrapRichTextControlsForEdit(
+    let val = normalizeResponsiveLineHeightStyles(unwrapRichTextControlsForEdit(
       removeEmptyQuillParagraphs(stripEditorCaptionArtifacts(props.value), whitespaceOptions)
-    ).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
+    )).replace(/src=["']\/(assets\/[^"']+)["']/gi, `src="${URL_API}$1"`);
     if (preserveWhitespaceOnlyBlocks) {
       val = normalizeWhitespaceOnlyBlocksForQuill(val);
     }
@@ -5973,21 +5974,21 @@ const QuillWrapper = forwardRef(({
           min-height: calc(var(--quill-editor-min-height, 120px) + 28px) !important;
         }
 
-        .quill-wrapper-container[style*="--custom-line-height"] .ql-editor {
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor {
           line-height: var(--custom-line-height) !important;
         }
         @media (min-width: 768px) {
-          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
-          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-desktop"] .ql-editor.hero-phone-text * {
+          .quill-wrapper-container[style*="--custom-line-height:"][style*="--fs-desktop"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container[style*="--custom-line-height:"][style*="--fs-desktop"] .ql-editor.hero-phone-text * {
             line-height: max(var(--custom-line-height), 1.15em) !important;
           }
         }
         @media (max-width: 767px) {
-          .quill-wrapper-container[style*="--custom-line-height"] .ql-editor {
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
-          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text,
-          .quill-wrapper-container[style*="--custom-line-height"][style*="--fs-mobile"] .ql-editor.hero-phone-text * {
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"][style*="--fs-mobile"] .ql-editor.hero-phone-text,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"][style*="--fs-mobile"] .ql-editor.hero-phone-text * {
             line-height: max(var(--custom-line-height-mobile, var(--custom-line-height)), 1.15em) !important;
           }
         }
@@ -6109,8 +6110,8 @@ const QuillWrapper = forwardRef(({
             font-size: var(--fs-mobile) !important;
           }
         }
-        .quill-wrapper-container .ql-editor [style*="--custom-line-height"],
-        .quill-wrapper-container .ql-editor [style*="--custom-line-height"] * {
+        .quill-wrapper-container .ql-editor [style*="--custom-line-height:"],
+        .quill-wrapper-container .ql-editor [style*="--custom-line-height:"] * {
           line-height: var(--custom-line-height) !important;
         }
         .quill-wrapper-container .ql-editor [style*="--translate-y"] {
@@ -6123,8 +6124,8 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container .ql-editor [style*="--color-mobile"] {
             color: var(--color-mobile) !important;
           }
-          .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile"],
-          .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile"] * {
+          .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile:"],
+          .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile:"] * {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .quill-wrapper-container .ql-editor [style*="--translate-y-mobile"] {

@@ -973,7 +973,8 @@
 
 /* The inline title owns its responsive line-height. Remove the h1 strut so
    the parent font size cannot make those line boxes taller than the CMS value. */
-.blog-detail-title:has(> .inline-rich-text [style*="--custom-line-height"]) {
+.blog-detail-title:has(> .inline-rich-text [style*="--custom-line-height:"]),
+.blog-detail-title:has(> .inline-rich-text [style*="--custom-line-height-mobile:"]) {
   line-height: 0 !important;
 }
 
@@ -1102,8 +1103,8 @@
   z-index: 1;
 }
 
-.blog-hero-title .rich-text-renderer[style*="--custom-line-height"],
-.blog-hero-title .rich-text-renderer[style*="--custom-line-height"] * {
+.blog-hero-title .rich-text-renderer[style*="--custom-line-height:"],
+.blog-hero-title .rich-text-renderer[style*="--custom-line-height:"] * {
   line-height: var(--custom-line-height) !important;
 }
 
@@ -1112,8 +1113,8 @@
     margin-top: 4px !important;
   }
 
-  .blog-hero-title .rich-text-renderer[style*="--custom-line-height-mobile"],
-  .blog-hero-title .rich-text-renderer[style*="--custom-line-height-mobile"] * {
+  .blog-hero-title .rich-text-renderer[style*="--custom-line-height-mobile:"],
+  .blog-hero-title .rich-text-renderer[style*="--custom-line-height-mobile:"] * {
     line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
   }
 }
@@ -1216,18 +1217,18 @@
   line-height: inherit !important;
 }
 
-.room-summary-desc .rich-text-renderer [style*="--custom-line-height"],
-.room-summary-desc .rich-text-renderer [style*="--custom-line-height"] *,
-.room-price-summary .rich-text-renderer [style*="--custom-line-height"],
-.room-price-summary .rich-text-renderer [style*="--custom-line-height"] * {
+.room-summary-desc .rich-text-renderer [style*="--custom-line-height:"],
+.room-summary-desc .rich-text-renderer [style*="--custom-line-height:"] *,
+.room-price-summary .rich-text-renderer [style*="--custom-line-height:"],
+.room-price-summary .rich-text-renderer [style*="--custom-line-height:"] * {
   line-height: var(--custom-line-height) !important;
 }
 
 @media (max-width: 767px) {
-  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile"],
-  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile"] *,
-  .room-price-summary .rich-text-renderer [style*="--custom-line-height-mobile"],
-  .room-price-summary .rich-text-renderer [style*="--custom-line-height-mobile"] * {
+  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile:"],
+  .room-summary-desc .rich-text-renderer [style*="--custom-line-height-mobile:"] *,
+  .room-price-summary .rich-text-renderer [style*="--custom-line-height-mobile:"],
+  .room-price-summary .rich-text-renderer [style*="--custom-line-height-mobile:"] * {
     line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
   }
 }
@@ -1990,16 +1991,16 @@ footer .rich-text-renderer * {
 }
 
 /* Custom line-height scaling in RichTextRenderer */
-.rich-text-renderer[style*="--custom-line-height"] {
+.rich-text-renderer[style*="--custom-line-height:"] {
   line-height: var(--custom-line-height) !important;
 }
 
-.rich-text-renderer[style*="--custom-line-height"] *:not(.rich-text-mobile-trailing-decoration) {
+.rich-text-renderer[style*="--custom-line-height:"] *:not(.rich-text-mobile-trailing-decoration) {
   line-height: inherit !important;
 }
 
 @media (max-width: 767px) {
-  .rich-text-renderer[style*="--custom-line-height"] {
+  .rich-text-renderer[style*="--custom-line-height-mobile:"] {
     line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
   }
 }
@@ -2090,10 +2091,10 @@ footer .rich-text-renderer * {
   line-height: inherit !important;
 }
 
-.notification-rich-text[style*="--custom-line-height"],
-.notification-rich-text[style*="--custom-line-height"] *,
-.notification-button-rich-text[style*="--custom-line-height"],
-.notification-button-rich-text[style*="--custom-line-height"] * {
+.notification-rich-text[style*="--custom-line-height:"],
+.notification-rich-text[style*="--custom-line-height:"] *,
+.notification-button-rich-text[style*="--custom-line-height:"],
+.notification-button-rich-text[style*="--custom-line-height:"] * {
   line-height: var(--custom-line-height) !important;
 }
 
@@ -2110,10 +2111,10 @@ footer .rich-text-renderer * {
     font-size: var(--fs-mobile) !important;
   }
 
-  .notification-rich-text[style*="--custom-line-height"],
-  .notification-rich-text[style*="--custom-line-height"] *,
-  .notification-button-rich-text[style*="--custom-line-height"],
-  .notification-button-rich-text[style*="--custom-line-height"] * {
+  .notification-rich-text[style*="--custom-line-height-mobile:"],
+  .notification-rich-text[style*="--custom-line-height-mobile:"] *,
+  .notification-button-rich-text[style*="--custom-line-height-mobile:"],
+  .notification-button-rich-text[style*="--custom-line-height-mobile:"] * {
     line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
   }
 }
@@ -2130,8 +2131,8 @@ footer .rich-text-renderer * {
 
 .notification-link-button .notification-button-rich-text,
 .notification-link-button .notification-button-rich-text *,
-.notification-link-button .notification-button-rich-text[style*="--custom-line-height"],
-.notification-link-button .notification-button-rich-text[style*="--custom-line-height"] * {
+.notification-link-button .notification-button-rich-text[style*="--custom-line-height:"],
+.notification-link-button .notification-button-rich-text[style*="--custom-line-height:"] * {
   line-height: 1.35 !important;
   overflow: visible !important;
 }
@@ -2295,20 +2296,20 @@ footer .rich-text-renderer * {
   /* Prevents text from being translated up and cut off by the toolbar */
 }
 
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > h1:not([style*="--fs"]):not([style*="font-size"]),
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > h2:not([style*="--fs"]):not([style*="font-size"]),
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > h3:not([style*="--fs"]):not([style*="font-size"]),
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > h4:not([style*="--fs"]):not([style*="font-size"]),
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > h5:not([style*="--fs"]):not([style*="font-size"]),
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > h6:not([style*="--fs"]):not([style*="font-size"]),
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > p:not([style*="--fs"]):not([style*="font-size"]) {
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h1:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h2:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h3:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h4:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h5:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h6:not([style*="--fs"]):not([style*="font-size"]),
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > p:not([style*="--fs"]):not([style*="font-size"]) {
   line-height: inherit !important;
   margin-top: 0 !important;
   margin-bottom: 2px !important;
   overflow: visible !important;
 }
 
-.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height"][style*="--fs"] > :last-child {
+.blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > :last-child {
   margin-bottom: 0 !important;
 }
 
