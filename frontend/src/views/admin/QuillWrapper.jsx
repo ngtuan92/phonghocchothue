@@ -149,12 +149,16 @@ const isValidControlInput = (value, signed = false) => {
   return pattern.test(text);
 };
 
-const hasSignificantHorizontalWhitespace = (value) => (
-  /(^|\n)[ \t]+|[ \t]{2,}|[ \t]+(?=\n|$)/.test(String(value || ''))
-);
+const HORIZONTAL_WHITESPACE_PATTERN = /[\t\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/;
+
+const hasSignificantHorizontalWhitespace = (value) => {
+  const text = String(value || '');
+  return HORIZONTAL_WHITESPACE_PATTERN.test(text) || /(^|\n) +| {2,}| +(?=\n|$)/.test(text);
+};
 
 const preserveSignificantHorizontalWhitespace = (value) => String(value || '')
   .replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0')
+  .replace(/[\u1680\u2000-\u200a\u202f\u205f\u3000]/g, '\u00a0')
   .replace(/(^|\n)( +)/g, (_match, prefix, spaces) => `${prefix}${'\u00a0'.repeat(spaces.length)}`)
   .replace(/ {2,}/g, (spaces) => '\u00a0'.repeat(spaces.length))
   .replace(/ +(?=\n|$)/g, (spaces) => '\u00a0'.repeat(spaces.length));
@@ -3199,13 +3203,15 @@ const QuillWrapper = forwardRef(({
           quill.setText(insertedText, 'user');
         }
       };
-      quill.root.addEventListener('paste', handlePaste);
+      // Capture before Quill's own paste listener so content is inserted once
+      // with significant spacing intact instead of being normalized first.
+      quill.root.addEventListener('paste', handlePaste, true);
     }
 
     return () => {
       if (handlePaste && quill) {
         try {
-          quill.root.removeEventListener('paste', handlePaste);
+          quill.root.removeEventListener('paste', handlePaste, true);
         } catch { /* ignore */ }
       }
     };
