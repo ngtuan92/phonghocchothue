@@ -334,7 +334,7 @@ export default function Home() {
               alt="Biểu tượng chú chim thông báo"
               width={96}
               height={96}
-              className="w-[39px] absolute -top-[42px] sm:w-[53px] md:w-[53px] lg:w-[53px] xl:w-[64px] sm:-top-[42px] md:-top-[50px] lg:-top-[58px] xl:-top-[66px]"
+              className="w-[39px] absolute -top-[32px] sm:w-[53px] md:w-[53px] lg:w-[53px] xl:w-[64px] sm:-top-[32px] md:-top-[40px] lg:-top-[48px] xl:-top-[56px]"
               sizes="(max-width: 640px) 39px, (max-width: 1024px) 53px, 64px"
               quality={85}
               loading="lazy"
