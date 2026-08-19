@@ -185,6 +185,94 @@ const preserveClipboardHtmlWhitespace = (html) => {
   return doc.body.innerHTML;
 };
 
+const extractClipboardHtmlText = (html) => {
+  if (!html || typeof DOMParser === 'undefined') return '';
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const blockSelector = 'p, div, h1, h2, h3, h4, h5, h6, li, blockquote';
+  const leafBlocks = Array.from(doc.body.querySelectorAll(blockSelector)).filter(
+    (block) => !block.querySelector(blockSelector)
+  );
+
+  if (leafBlocks.length > 0) {
+    return leafBlocks.map((block) => block.textContent || '').join('\n');
+  }
+  return doc.body.textContent || '';
+};
+
+const horizontalIndentScore = (value) => String(value || '')
+  .replace(/\r\n?/g, '\n')
+  .split('\n')
+  .reduce((total, line) => {
+    const indent = line.match(/^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/)?.[0] || '';
+    return total + Array.from(indent).reduce(
+      (lineTotal, character) => lineTotal + (character === '\t' ? 4 : 1),
+      0
+    );
+  }, 0);
+
+const selectClipboardSpacingSource = (plainText, htmlText) => (
+  horizontalIndentScore(htmlText) > horizontalIndentScore(plainText)
+    ? String(htmlText || '').replace(/\r\n?/g, '\n')
+    : String(plainText || '').replace(/\r\n?/g, '\n')
+);
+
+const restoreDeltaLeadingWhitespace = (delta, sourceText, Delta) => {
+  if (!delta?.ops?.length || !sourceText) return delta;
+
+  const lineIndents = String(sourceText).split('\n').map((line) => (
+    line.match(/^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/)?.[0] || ''
+  ));
+  if (!lineIndents.some(Boolean)) return delta;
+
+  const restored = new Delta();
+  let lineIndex = 0;
+  let atLineStart = true;
+  let indentInserted = false;
+
+  const insertIndent = (attributes) => {
+    if (indentInserted) return;
+    const indent = lineIndents[lineIndex] || '';
+    if (indent) {
+      restored.insert(preserveSignificantHorizontalWhitespace(indent), attributes);
+    }
+    indentInserted = true;
+  };
+
+  delta.ops.forEach((op) => {
+    if (typeof op.insert !== 'string') {
+      insertIndent(op.attributes);
+      restored.push(op);
+      atLineStart = false;
+      return;
+    }
+
+    const chunks = op.insert.split('\n');
+    chunks.forEach((chunk, chunkIndex) => {
+      const hasNewlineAfter = chunkIndex < chunks.length - 1;
+      let text = chunk;
+
+      if (atLineStart) {
+        text = text.replace(/^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/, '');
+        if (text || hasNewlineAfter) insertIndent(op.attributes);
+      }
+      if (text) {
+        restored.insert(text, op.attributes);
+        atLineStart = false;
+      }
+
+      if (hasNewlineAfter) {
+        restored.insert('\n', op.attributes);
+        lineIndex += 1;
+        atLineStart = true;
+        indentInserted = false;
+      }
+    });
+  });
+
+  return restored;
+};
+
 const toLineHeightCssValue = (value) => {
   const text = String(value || '').trim();
   if (!text || text.startsWith("-")) return undefined;
@@ -3170,8 +3258,10 @@ const QuillWrapper = forwardRef(({
         }
 
         const normalizedText = String(text || '').replace(/\r\n?/g, '\n');
+        const clipboardHtmlText = extractClipboardHtmlText(clipboardHtml).replace(/\r\n?/g, '\n');
+        const spacingSource = selectClipboardSpacingSource(normalizedText, clipboardHtmlText);
         const isWhitespaceOnlyPaste = normalizedText.length > 0 && !normalizedText.trim();
-        const hasSignificantSpacing = hasSignificantHorizontalWhitespace(normalizedText);
+        const hasSignificantSpacing = hasSignificantHorizontalWhitespace(spacingSource);
         if (!isSimpleTextField && !isWhitespaceOnlyPaste && !hasSignificantSpacing) return;
 
         const insertedText = !isSimpleTextField && (isWhitespaceOnlyPaste || hasSignificantSpacing)
@@ -3181,21 +3271,13 @@ const QuillWrapper = forwardRef(({
         e.preventDefault();
         const range = quill.getSelection() || quill.getSelection(true);
         if (range) {
-          // Quill's HTML converter collapses leading tabs/spaces even when the
-          // clipboard text still contains them. Prefer the normalized plain
-          // text for spacing-sensitive pastes; regular rich-text pastes keep
-          // using the HTML converter below.
-          if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste && !hasSignificantSpacing) {
+          if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste) {
             const Delta = Quill.import('delta');
             const converted = quill.clipboard.convert({
               html: preserveClipboardHtmlWhitespace(clipboardHtml),
-              text: insertedText,
+              text: normalizedText,
             });
-            const preservedDelta = new Delta((converted?.ops || []).map((op) => (
-              typeof op.insert === 'string'
-                ? { ...op, insert: preserveSignificantHorizontalWhitespace(op.insert) }
-                : op
-            )));
+            const preservedDelta = restoreDeltaLeadingWhitespace(converted, spacingSource, Delta);
             const change = new Delta()
               .retain(range.index)
               .delete(range.length)
