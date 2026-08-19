@@ -3181,7 +3181,11 @@ const QuillWrapper = forwardRef(({
         e.preventDefault();
         const range = quill.getSelection() || quill.getSelection(true);
         if (range) {
-          if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste) {
+          // Quill's HTML converter collapses leading tabs/spaces even when the
+          // clipboard text still contains them. Prefer the normalized plain
+          // text for spacing-sensitive pastes; regular rich-text pastes keep
+          // using the HTML converter below.
+          if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste && !hasSignificantSpacing) {
             const Delta = Quill.import('delta');
             const converted = quill.clipboard.convert({
               html: preserveClipboardHtmlWhitespace(clipboardHtml),
