@@ -352,7 +352,7 @@ export default function Home() {
           <RichTextRenderer
             html={notificationText}
             configKey="textNotication"
-            className="notification-rich-text text-[#563c39] mt-0 text-[10px] sm:text-xs raleway !font-[400] leading-[14px]"
+            className="notification-rich-text w-full text-center text-[#563c39] mt-0 text-[10px] sm:text-xs raleway !font-[400] leading-[14px]"
             naturalTextWrapping
           />
 

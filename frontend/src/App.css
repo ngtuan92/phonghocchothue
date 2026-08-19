@@ -2138,6 +2138,11 @@ footer .rich-text-renderer * {
   display: inline !important;
 }
 
+.notification-rich-text p + p::before,
+.notification-rich-text div + div::before {
+  content: " ";
+}
+
 .notification-rich-text[style*="--custom-line-height:"],
 .notification-rich-text[style*="--custom-line-height:"] *,
 .notification-button-rich-text[style*="--custom-line-height:"],
