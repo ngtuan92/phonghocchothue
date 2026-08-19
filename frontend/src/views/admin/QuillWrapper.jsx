@@ -217,6 +217,25 @@ const selectClipboardSpacingSource = (plainText, htmlText) => (
     : String(plainText || '').replace(/\r\n?/g, '\n')
 );
 
+const expandCopyRangeToLeadingWhitespace = (quill, range) => {
+  if (!range || range.length <= 0 || range.index <= 0) return range;
+
+  const textBeforeSelection = quill.getText(0, range.index);
+  const lineStart = textBeforeSelection.lastIndexOf('\n') + 1;
+  if (lineStart >= range.index) return range;
+
+  const omittedPrefix = quill.getText(lineStart, range.index - lineStart);
+  const isOnlyHorizontalWhitespace = /^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+$/.test(
+    omittedPrefix
+  );
+  if (!isOnlyHorizontalWhitespace) return range;
+
+  return {
+    index: lineStart,
+    length: range.length + (range.index - lineStart),
+  };
+};
+
 const restoreDeltaLeadingWhitespace = (delta, sourceText, Delta) => {
   if (!delta?.ops?.length || !sourceText) return delta;
 
@@ -3238,8 +3257,24 @@ const QuillWrapper = forwardRef(({
 
     const quill = getQuillEditor();
     let handlePaste = null;
+    let handleCopy = null;
 
     if (quill) {
+      handleCopy = (e) => {
+        if (e.defaultPrevented || !e.clipboardData) return;
+
+        const range = quill.getSelection();
+        const expandedRange = expandCopyRangeToLeadingWhitespace(quill, range);
+        if (!range || !expandedRange || expandedRange.index === range.index) return;
+
+        const copiedContent = quill.getModule('clipboard')?.onCopy?.(expandedRange);
+        if (!copiedContent) return;
+
+        e.preventDefault();
+        e.clipboardData.setData('text/plain', copiedContent.text);
+        e.clipboardData.setData('text/html', copiedContent.html);
+      };
+
       handlePaste = (e) => {
         const clipboard = e.clipboardData || window.clipboardData;
         let text = clipboard.getData('text/plain');
@@ -3296,13 +3331,15 @@ const QuillWrapper = forwardRef(({
       };
       // Capture before Quill's own paste listener so content is inserted once
       // with significant spacing intact instead of being normalized first.
+      quill.root.addEventListener('copy', handleCopy, true);
       quill.root.addEventListener('paste', handlePaste, true);
     }
 
     return () => {
-      if (handlePaste && quill) {
+      if (quill) {
         try {
-          quill.root.removeEventListener('paste', handlePaste, true);
+          if (handleCopy) quill.root.removeEventListener('copy', handleCopy, true);
+          if (handlePaste) quill.root.removeEventListener('paste', handlePaste, true);
         } catch { /* ignore */ }
       }
     };
