@@ -2099,6 +2099,12 @@ footer .rich-text-renderer * {
 .rich-text-renderer [dir="rtl"].ql-indent-8 { padding-left: 0; padding-right: 24em; }
 
 /* Custom styling for rich text inside notification bubble */
+.notification-bubble {
+  width: fit-content;
+  min-width: 140px;
+  max-width: min(220px, calc(100vw - 40px));
+}
+
 .notification-rich-text,
 .notification-rich-text p {
   font-family: 'Raleway', sans-serif;
@@ -2106,6 +2112,11 @@ footer .rich-text-renderer * {
   line-height: inherit;
   margin: 0;
   padding: 0;
+}
+
+.notification-rich-text {
+  width: max-content;
+  max-width: 100%;
 }
 
 .notification-button-rich-text,
@@ -2151,6 +2162,9 @@ footer .rich-text-renderer * {
 }
 
 @media (max-width: 767px) {
+  .notification-bubble {
+    max-width: min(200px, calc(100vw - 40px));
+  }
 
   .notification-link-button {
     font-size: var(--notification-button-font-size-mobile, var(--notification-button-font-size, 0.75rem));

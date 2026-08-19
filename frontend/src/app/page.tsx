@@ -326,7 +326,7 @@ export default function Home() {
 
       {showNotification && notificationText && (
         <div
-          className="fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] py-2 px-2 sm:py-4 sm:px-2 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 w-[140px] sm:w-[153px] md:w-[153px] lg:w-[153px] xl:w-[153px] max-sm:w-[140px]"
+          className="notification-bubble fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] py-2 px-2 sm:py-4 sm:px-2 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0"
         >
           {background.imgBird && (
             <Image
