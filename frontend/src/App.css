@@ -2133,6 +2133,11 @@ footer .rich-text-renderer * {
   line-height: inherit !important;
 }
 
+.notification-rich-text p,
+.notification-rich-text div {
+  display: inline !important;
+}
+
 .notification-rich-text[style*="--custom-line-height:"],
 .notification-rich-text[style*="--custom-line-height:"] *,
 .notification-button-rich-text[style*="--custom-line-height:"],
