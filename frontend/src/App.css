@@ -3,6 +3,30 @@
 :root {
   /* Fluid Gutter for Mobile/Tablet */
   --site-gutter: clamp(1rem, 5vw, 2.5rem);
+  --blog-detail-outer-gutter: 34px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --blog-detail-outer-gutter: 70px;
+  }
+}
+
+@media (min-width: 1700px) {
+  :root {
+    --blog-detail-outer-gutter: 85px;
+  }
+}
+
+.blog-detail-viewport {
+  padding: 30px var(--blog-detail-outer-gutter);
+}
+
+@media (min-width: 640px) {
+  .blog-detail-viewport {
+    padding-top: var(--blog-detail-outer-gutter);
+    padding-bottom: var(--blog-detail-outer-gutter);
+  }
 }
 
 .main-container {
@@ -213,6 +237,36 @@
   width: 322px;
   height: 258px;
   transform-origin: top center;
+}
+
+/* Match the admin blog editor's right text edge to the public detail page.
+   The remaining value accounts for the admin layout, page and form paddings. */
+.blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
+  padding-right: max(10px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px)) !important;
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
+    padding-right: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px) !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
+    padding-right: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 64px) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
+    padding-right: calc(var(--blog-detail-outer-gutter) - 4px) !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
+    padding-right: calc(var(--blog-detail-outer-gutter) + 16px) !important;
+  }
 }
 
 .describe-mobile-viewport {
