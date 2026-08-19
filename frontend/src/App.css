@@ -2135,12 +2135,12 @@ footer .rich-text-renderer * {
 
 .notification-rich-text p,
 .notification-rich-text div {
-  display: inline !important;
+  display: block !important;
+  text-align: inherit !important;
 }
 
-.notification-rich-text p + p::before,
-.notification-rich-text div + div::before {
-  content: " ";
+.notification-rich-text span {
+  display: inline !important;
 }
 
 .notification-rich-text[style*="--custom-line-height:"],
