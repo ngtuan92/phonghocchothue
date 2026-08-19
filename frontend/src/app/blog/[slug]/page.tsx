@@ -281,7 +281,7 @@ export default function BlogDetail() {
                 <TableOfContents html={blog.content} />
               </div>
 
-              <h1 className="text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mt-0 mb-3 order-3">
+              <h1 className="blog-detail-title text-3xl sm:text-5xl font-bold text-[#563c39] leading-tight sm:leading-[1.2] mt-0 mb-3 order-3">
                 <RichTextRenderer 
                   html={blog.title} 
                   as="span" 
