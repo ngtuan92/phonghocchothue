@@ -10,6 +10,15 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
+import {
+  RICH_TEXT_DELTA_MIME,
+  expandCopyRangeToLeadingWhitespace,
+  hasSignificantHorizontalWhitespace,
+  parseRichTextDelta,
+  preserveSignificantHorizontalWhitespace,
+  selectClipboardSpacingSource,
+  serializeRichTextDelta,
+} from "@/utils/richTextClipboard.mjs";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
@@ -152,20 +161,6 @@ const isValidControlInput = (value, signed = false) => {
   return pattern.test(text);
 };
 
-const HORIZONTAL_WHITESPACE_PATTERN = /[\t\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/;
-
-const hasSignificantHorizontalWhitespace = (value) => {
-  const text = String(value || '');
-  return HORIZONTAL_WHITESPACE_PATTERN.test(text) || /(^|\n) +| {2,}| +(?=\n|$)/.test(text);
-};
-
-const preserveSignificantHorizontalWhitespace = (value) => String(value || '')
-  .replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0')
-  .replace(/[\u1680\u2000-\u200a\u202f\u205f\u3000]/g, '\u00a0')
-  .replace(/(^|\n)( +)/g, (_match, prefix, spaces) => `${prefix}${'\u00a0'.repeat(spaces.length)}`)
-  .replace(/ {2,}/g, (spaces) => '\u00a0'.repeat(spaces.length))
-  .replace(/ +(?=\n|$)/g, (spaces) => '\u00a0'.repeat(spaces.length));
-
 const preserveClipboardHtmlWhitespace = (html) => {
   if (!html || typeof DOMParser === 'undefined') return html;
 
@@ -198,42 +193,6 @@ const extractClipboardHtmlText = (html) => {
     return leafBlocks.map((block) => block.textContent || '').join('\n');
   }
   return doc.body.textContent || '';
-};
-
-const horizontalIndentScore = (value) => String(value || '')
-  .replace(/\r\n?/g, '\n')
-  .split('\n')
-  .reduce((total, line) => {
-    const indent = line.match(/^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/)?.[0] || '';
-    return total + Array.from(indent).reduce(
-      (lineTotal, character) => lineTotal + (character === '\t' ? 4 : 1),
-      0
-    );
-  }, 0);
-
-const selectClipboardSpacingSource = (plainText, htmlText) => (
-  horizontalIndentScore(htmlText) > horizontalIndentScore(plainText)
-    ? String(htmlText || '').replace(/\r\n?/g, '\n')
-    : String(plainText || '').replace(/\r\n?/g, '\n')
-);
-
-const expandCopyRangeToLeadingWhitespace = (quill, range) => {
-  if (!range || range.length <= 0 || range.index <= 0) return range;
-
-  const textBeforeSelection = quill.getText(0, range.index);
-  const lineStart = textBeforeSelection.lastIndexOf('\n') + 1;
-  if (lineStart >= range.index) return range;
-
-  const omittedPrefix = quill.getText(lineStart, range.index - lineStart);
-  const isOnlyHorizontalWhitespace = /^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+$/.test(
-    omittedPrefix
-  );
-  if (!isOnlyHorizontalWhitespace) return range;
-
-  return {
-    index: lineStart,
-    length: range.length + (range.index - lineStart),
-  };
 };
 
 const restoreDeltaLeadingWhitespace = (delta, sourceText, Delta) => {
@@ -3265,20 +3224,48 @@ const QuillWrapper = forwardRef(({
 
         const range = quill.getSelection();
         const expandedRange = expandCopyRangeToLeadingWhitespace(quill, range);
-        if (!range || !expandedRange || expandedRange.index === range.index) return;
+        if (!range || !expandedRange) return;
 
         const copiedContent = quill.getModule('clipboard')?.onCopy?.(expandedRange);
         if (!copiedContent) return;
+        const copiedDelta = quill.getContents(expandedRange.index, expandedRange.length);
 
         e.preventDefault();
         e.clipboardData.setData('text/plain', copiedContent.text);
         e.clipboardData.setData('text/html', copiedContent.html);
+        try {
+          e.clipboardData.setData(RICH_TEXT_DELTA_MIME, serializeRichTextDelta(copiedDelta));
+        } catch {
+          // Some browsers reject custom clipboard MIME types; HTML/plain text remain available.
+        }
       };
 
       handlePaste = (e) => {
         const clipboard = e.clipboardData || window.clipboardData;
         let text = clipboard.getData('text/plain');
         const clipboardHtml = clipboard.getData('text/html');
+        let serializedDelta = '';
+        try {
+          serializedDelta = clipboard.getData(RICH_TEXT_DELTA_MIME);
+        } catch {
+          // Fall back to the browser's HTML/plain text clipboard payload.
+        }
+
+        if (!isSimpleTextField && serializedDelta) {
+          const Delta = Quill.import('delta');
+          const copiedDelta = parseRichTextDelta(serializedDelta, Delta);
+          const range = quill.getSelection() || quill.getSelection(true);
+          if (copiedDelta && range) {
+            e.preventDefault();
+            const change = new Delta()
+              .retain(range.index)
+              .delete(range.length)
+              .concat(copiedDelta);
+            quill.updateContents(change, 'user');
+            setSelectionWithoutScroll(quill, range.index + copiedDelta.length());
+            return;
+          }
+        }
 
         if (!isSimpleTextField && !text) {
           if (clipboardHtml && typeof DOMParser !== 'undefined') {

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "node scripts/generate-sitemap.js && next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:rich-text-clipboard": "node --test scripts/test-rich-text-clipboard.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
