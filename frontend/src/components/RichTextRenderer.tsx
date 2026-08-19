@@ -667,16 +667,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer .ql-leading-whitespace {
           display: inline-block !important;
-          max-width: min(12ch, 25%);
+          max-width: calc(100% - 1ch);
           overflow: hidden;
           white-space: pre !important;
           tab-size: 4;
           vertical-align: bottom;
         }
         @media (max-width: 767px) {
-          .rich-text-renderer:not(.rich-text-mobile-reset-indent) .ql-leading-whitespace {
-            max-width: min(4ch, 20%);
-          }
           .rich-text-renderer.rich-text-mobile-reset-indent .ql-leading-whitespace {
             display: none !important;
           }
@@ -742,7 +739,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: block !important;
           min-height: 1em !important;
           line-height: inherit !important;
-          margin: 0 0 0.5rem 0 !important;
+          margin: 0.75em 0 !important;
           white-space: pre-wrap !important;
           overflow-wrap: break-word !important;
           word-break: normal !important;

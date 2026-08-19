@@ -3135,16 +3135,22 @@ const QuillWrapper = forwardRef(({
         const isWhitespaceOnlyPaste = normalizedText.length > 0 && !normalizedText.trim();
         if (!isSimpleTextField && !isWhitespaceOnlyPaste) return;
 
+        const insertedText = !isSimpleTextField && isWhitespaceOnlyPaste
+          ? normalizedText
+            .replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0')
+            .replace(/ /g, '\u00a0')
+          : normalizedText;
+
         e.preventDefault();
         const range = quill.getSelection();
         if (range) {
           if (range.length > 0) {
             quill.deleteText(range.index, range.length, 'user');
           }
-          quill.insertText(range.index, normalizedText, 'user');
-          setSelectionWithoutScroll(quill, range.index + normalizedText.length);
+          quill.insertText(range.index, insertedText, 'user');
+          setSelectionWithoutScroll(quill, range.index + insertedText.length);
         } else {
-          quill.setText(normalizedText, 'user');
+          quill.setText(insertedText, 'user');
         }
       };
       quill.root.addEventListener('paste', handlePaste);
