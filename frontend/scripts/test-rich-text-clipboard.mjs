@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  clipboardTextMatchesIgnoringLeadingIndent,
   embedRichTextDeltaInHtml,
   expandCopyRangeToLeadingWhitespace,
   extractRichTextDeltaFromHtml,
@@ -73,5 +74,29 @@ test("HTML indentation is used only when clipboard line content matches", () => 
   assert.equal(
     selectClipboardSpacingSource("Một đoạn\nĐầy đủ", "Một đoạn rời\n  Một đoạn\nĐầy đủ"),
     "Một đoạn\nĐầy đủ"
+  );
+});
+
+test("recent internal copy still matches when clipboard text loses indentation", () => {
+  assert.equal(
+    clipboardTextMatchesIgnoringLeadingIndent(
+      "Dieu gi tao nen gia tri",
+      "\t\u00a0\u00a0Dieu gi tao nen gia tri"
+    ),
+    true
+  );
+  assert.equal(
+    clipboardTextMatchesIgnoringLeadingIndent(
+      "Bai Lam:\nDieu gi tao nen gia tri",
+      "Bai Lam:\n    Dieu gi tao nen gia tri"
+    ),
+    true
+  );
+  assert.equal(
+    clipboardTextMatchesIgnoringLeadingIndent(
+      "Dieu gi tao nen gia tri khac",
+      "    Dieu gi tao nen gia tri"
+    ),
+    false
   );
 });

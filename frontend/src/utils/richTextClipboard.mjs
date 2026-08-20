@@ -27,11 +27,20 @@ const horizontalIndentScore = (value) => String(value || "")
     );
   }, 0);
 
-const stripHorizontalIndent = (value) => String(value || "")
+export const stripHorizontalIndent = (value) => String(value || "")
   .replace(/\r\n?/g, "\n")
   .split("\n")
   .map((line) => line.replace(/^[\t \u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/, ""))
   .join("\n");
+
+export const clipboardTextMatchesIgnoringLeadingIndent = (clipboardText, copiedText) => {
+  const normalizedClipboardText = String(clipboardText || "").replace(/\r\n?/g, "\n");
+  const normalizedCopiedText = String(copiedText || "").replace(/\r\n?/g, "\n");
+  if (normalizedClipboardText === normalizedCopiedText) return true;
+  if (!normalizedClipboardText || !normalizedCopiedText) return false;
+
+  return stripHorizontalIndent(normalizedClipboardText) === stripHorizontalIndent(normalizedCopiedText);
+};
 
 export const selectClipboardSpacingSource = (plainText, htmlText) => {
   const normalizedPlainText = String(plainText || "").replace(/\r\n?/g, "\n");
