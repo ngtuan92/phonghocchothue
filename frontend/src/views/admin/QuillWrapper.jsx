@@ -17,6 +17,7 @@ import {
   extractRichTextDeltaFromHtml,
   hasSignificantHorizontalWhitespace,
   parseRichTextDelta,
+  preserveDeltaSignificantWhitespace,
   preserveSignificantHorizontalWhitespace,
   selectClipboardSpacingSource,
   serializeRichTextDelta,
@@ -3231,7 +3232,9 @@ const QuillWrapper = forwardRef(({
 
         const copiedContent = quill.getModule('clipboard')?.onCopy?.(expandedRange);
         if (!copiedContent) return;
-        const copiedDelta = quill.getContents(expandedRange.index, expandedRange.length);
+        const copiedDelta = preserveDeltaSignificantWhitespace(
+          quill.getContents(expandedRange.index, expandedRange.length)
+        );
         const serializedDelta = serializeRichTextDelta(copiedDelta);
         const copiedText = String(copiedContent.text || '').replace(/\r\n?/g, '\n');
 

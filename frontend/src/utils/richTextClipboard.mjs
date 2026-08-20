@@ -16,6 +16,19 @@ export const preserveSignificantHorizontalWhitespace = (value) => String(value |
   .replace(/ {2,}/g, (spaces) => "\u00a0".repeat(spaces.length))
   .replace(/ +(?=\n|$)/g, (spaces) => "\u00a0".repeat(spaces.length));
 
+export const preserveDeltaSignificantWhitespace = (delta) => {
+  if (!Array.isArray(delta?.ops)) return delta;
+
+  return {
+    ...delta,
+    ops: delta.ops.map((op) => (
+      typeof op?.insert === "string"
+        ? { ...op, insert: preserveSignificantHorizontalWhitespace(op.insert) }
+        : op
+    )),
+  };
+};
+
 const horizontalIndentScore = (value) => String(value || "")
   .replace(/\r\n?/g, "\n")
   .split("\n")

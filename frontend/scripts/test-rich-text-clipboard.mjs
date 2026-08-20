@@ -6,6 +6,7 @@ import {
   expandCopyRangeToLeadingWhitespace,
   extractRichTextDeltaFromHtml,
   parseRichTextDelta,
+  preserveDeltaSignificantWhitespace,
   preserveSignificantHorizontalWhitespace,
   selectClipboardSpacingSource,
   serializeRichTextDelta,
@@ -63,6 +64,20 @@ test("tabs and repeated leading spaces remain visible", () => {
     preserveSignificantHorizontalWhitespace("\tDòng 1\n   Dòng 2"),
     "\u00a0\u00a0\u00a0\u00a0Dòng 1\n\u00a0\u00a0\u00a0Dòng 2"
   );
+});
+
+test("Delta copy converts significant regular spaces before serialization", () => {
+  const source = new TestDelta([
+    { insert: "    Điều gì tạo nên", attributes: { font: "thuong-chan" } },
+    { insert: "\n  đoạn sau", attributes: { italic: true } },
+  ]);
+  const preserved = preserveDeltaSignificantWhitespace(source);
+
+  assert.deepEqual(preserved.ops, [
+    { insert: "\u00a0\u00a0\u00a0\u00a0Điều gì tạo nên", attributes: { font: "thuong-chan" } },
+    { insert: "\n\u00a0\u00a0đoạn sau", attributes: { italic: true } },
+  ]);
+  assert.deepEqual(source.ops[0].insert, "    Điều gì tạo nên");
 });
 
 test("HTML indentation is used only when clipboard line content matches", () => {
