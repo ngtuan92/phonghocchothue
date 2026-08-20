@@ -12,7 +12,6 @@ import {
 } from "@/utils/richTextControls";
 import {
   RICH_TEXT_DELTA_MIME,
-  clipboardTextMatchesIgnoringLeadingIndent,
   embedRichTextDeltaInHtml,
   expandCopyRangeToLeadingWhitespace,
   extractRichTextDeltaFromHtml,
@@ -3272,7 +3271,7 @@ const QuillWrapper = forwardRef(({
         const normalizedClipboardText = String(text || '').replace(/\r\n?/g, '\n');
         const recentInternalCopy = lastRichTextClipboard &&
           Date.now() - lastRichTextClipboard.copiedAt < 10 * 60 * 1000 &&
-          clipboardTextMatchesIgnoringLeadingIndent(normalizedClipboardText, lastRichTextClipboard.text);
+          normalizedClipboardText === lastRichTextClipboard.text;
         if (!serializedDelta && recentInternalCopy) {
           serializedDelta = lastRichTextClipboard.serializedDelta;
         }
