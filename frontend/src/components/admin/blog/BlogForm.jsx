@@ -805,9 +805,10 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
           <div className="w-full blog-content-area bg-white rounded-xl">
             <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
               <LazyQuillWrapper
+                key={`quill-content-${data?.id || data?.slug || "new"}`}
                 theme="snow"
                 value={formData.content}
-                onChange={(val) => commitRichField("content", val)}
+                onChange={(val) => updateRichField("content", val)}
                 onDraftChange={(val) => updateRichField("content", val)}
                 onBlur={(val) => commitRichField("content", val)}
                 className="blog-desc-editor"
