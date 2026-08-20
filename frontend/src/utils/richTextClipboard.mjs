@@ -9,8 +9,8 @@ export const hasSignificantHorizontalWhitespace = (value) => {
   return HORIZONTAL_WHITESPACE_PATTERN.test(text) || /(^|\n) +| {2,}| +(?=\n|$)/.test(text);
 };
 
-export const preserveSignificantHorizontalWhitespace = (value) => String(value || "")
-  .replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0")
+export const preserveSignificantHorizontalWhitespace = (value, { preserveTabs = false } = {}) => String(value || "")
+  .replace(/\t/g, preserveTabs ? "\t" : "\u00a0\u00a0\u00a0\u00a0")
   .replace(/[\u1680\u2000-\u200a\u202f\u205f\u3000]/g, "\u00a0")
   .replace(/(^|\n)( +)/g, (_match, prefix, spaces) => `${prefix}${"\u00a0".repeat(spaces.length)}`)
   .replace(/ {2,}/g, (spaces) => "\u00a0".repeat(spaces.length))
@@ -23,7 +23,7 @@ export const preserveDeltaSignificantWhitespace = (delta) => {
     ...delta,
     ops: delta.ops.map((op) => (
       typeof op?.insert === "string"
-        ? { ...op, insert: preserveSignificantHorizontalWhitespace(op.insert) }
+        ? { ...op, insert: preserveSignificantHorizontalWhitespace(op.insert, { preserveTabs: true }) }
         : op
     )),
   };

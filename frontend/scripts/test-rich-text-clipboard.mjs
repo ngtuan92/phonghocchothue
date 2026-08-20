@@ -76,18 +76,18 @@ test("copy uses the saved highlighted range when the live Quill selection is los
   assert.equal(selectCopyRange(null, { index: 4, length: 0 }), null);
 });
 
-test("Delta copy converts significant regular spaces before serialization", () => {
+test("Delta copy preserves tabs and converts significant regular spaces", () => {
   const source = new TestDelta([
-    { insert: "    Điều gì tạo nên", attributes: { font: "thuong-chan" } },
+    { insert: "\t    Điều gì tạo nên", attributes: { font: "thuong-chan" } },
     { insert: "\n  đoạn sau", attributes: { italic: true } },
   ]);
   const preserved = preserveDeltaSignificantWhitespace(source);
 
   assert.deepEqual(preserved.ops, [
-    { insert: "\u00a0\u00a0\u00a0\u00a0Điều gì tạo nên", attributes: { font: "thuong-chan" } },
+    { insert: "\t\u00a0\u00a0\u00a0\u00a0Điều gì tạo nên", attributes: { font: "thuong-chan" } },
     { insert: "\n\u00a0\u00a0đoạn sau", attributes: { italic: true } },
   ]);
-  assert.deepEqual(source.ops[0].insert, "    Điều gì tạo nên");
+  assert.deepEqual(source.ops[0].insert, "\t    Điều gì tạo nên");
 });
 
 test("HTML indentation is used only when clipboard line content matches", () => {
