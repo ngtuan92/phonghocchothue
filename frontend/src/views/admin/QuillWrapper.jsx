@@ -1191,6 +1191,7 @@ const QuillWrapper = forwardRef(({
   const idleContentCleanupRef = useRef(0);
   const listSizeSyncFrameRef = useRef(0);
   const toolbarHandlerRefs = useRef({});
+  const clipboardAttachRetryRef = useRef(0);
 
 
   const onChangeTimeoutRef = useRef(null);
@@ -3215,12 +3216,19 @@ const QuillWrapper = forwardRef(({
 
     // Run sync initially if the editor is already present
     const qlEditor = containerRef.current?.querySelector('.ql-editor');
-    if (!qlEditor) return;
-    if (qlEditor) {
-      syncEditorState(qlEditor);
+    const quill = getQuillEditor();
+    if (!qlEditor || !quill) {
+      if (clipboardAttachRetryRef.current >= 20) return;
+      clipboardAttachRetryRef.current += 1;
+      const retryTimer = window.setTimeout(() => {
+        setEditorInstanceVersion((version) => version + 1);
+      }, 50);
+      return () => window.clearTimeout(retryTimer);
     }
 
-    const quill = getQuillEditor();
+    clipboardAttachRetryRef.current = 0;
+    syncEditorState(qlEditor);
+
     let handlePaste = null;
     let handleCopy = null;
     let handleCopyShortcut = null;
