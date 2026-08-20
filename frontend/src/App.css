@@ -2103,6 +2103,8 @@ footer .rich-text-renderer * {
   width: fit-content;
   min-width: 140px;
   max-width: min(220px, calc(100vw - 40px));
+  gap: 8px;
+  padding: 11px 14px 9px;
 }
 
 .notification-rich-text,
@@ -2117,6 +2119,11 @@ footer .rich-text-renderer * {
 .notification-rich-text {
   width: max-content;
   max-width: 100%;
+}
+
+.notification-bird {
+  top: -50px;
+  width: 64px;
 }
 
 .notification-button-rich-text,
@@ -2164,6 +2171,17 @@ footer .rich-text-renderer * {
 @media (max-width: 767px) {
   .notification-bubble {
     max-width: min(200px, calc(100vw - 40px));
+    gap: 8px;
+    padding: 12px 14px 9px;
+  }
+
+  .notification-bird {
+    top: -27px;
+    width: 39px;
+  }
+
+  .notification-rich-text {
+    margin-top: 1px !important;
   }
 
   .notification-link-button {
@@ -2186,12 +2204,37 @@ footer .rich-text-renderer * {
 }
 
 @media (min-width: 768px) {
+  .notification-bird {
+    top: -34px;
+    width: 53px;
+  }
 
   .notification-rich-text[style*="--fs-desktop"],
   .notification-rich-text[style*="--fs-desktop"] *,
   .notification-button-rich-text[style*="--fs-desktop"],
   .notification-button-rich-text[style*="--fs-desktop"] * {
     font-size: var(--fs-desktop) !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .notification-bird {
+    top: -26px;
+    width: 53px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .notification-bird {
+    top: -42px;
+    width: 53px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .notification-bird {
+    top: -50px;
+    width: 64px;
   }
 }
 

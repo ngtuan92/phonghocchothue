@@ -326,7 +326,7 @@ export default function Home() {
 
       {showNotification && notificationText && (
         <div
-          className="notification-bubble fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] py-2 px-2 sm:py-4 sm:px-2 border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+          className="notification-bubble fixed bottom-5 left-5 bg-white shadow-lg rounded-[8px] border-[1px] border-[#799f85] z-50 flex flex-col items-center text-center transition-all duration-500 ease-in-out opacity-100 translate-y-0"
         >
           {background.imgBird && (
             <Image
@@ -334,7 +334,7 @@ export default function Home() {
               alt="Biểu tượng chú chim thông báo"
               width={96}
               height={96}
-              className="w-[39px] absolute -top-[28px] sm:w-[53px] md:w-[53px] lg:w-[53px] xl:w-[64px] sm:-top-[28px] md:-top-[36px] lg:-top-[44px] xl:-top-[52px]"
+              className="notification-bird absolute"
               sizes="(max-width: 640px) 39px, (max-width: 1024px) 53px, 64px"
               quality={85}
               loading="lazy"
@@ -361,7 +361,7 @@ export default function Home() {
               href={notificationLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="notification-link-button inline-flex items-center justify-center cursor-pointer mt-2 font-bold bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none text-xs transition-all duration-300 ease-in-out"
+              className="notification-link-button inline-flex items-center justify-center cursor-pointer font-bold bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none text-xs transition-all duration-300 ease-in-out"
               style={notificationButtonStyle}
             >
               <RichTextRenderer
