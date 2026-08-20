@@ -1096,7 +1096,8 @@ const QuillWrapper = forwardRef(({
     shouldNormalizeAdminContentWhitespace ||
     shouldPreserveHeroInlineWhitespace;
   const shouldNormalizeExcessiveIndent =
-    preserveWhitespaceOnlyBlocks || shouldNormalizeAdminContentWhitespace;
+    (preserveWhitespaceOnlyBlocks && !className.includes('blog-desc-editor')) ||
+    shouldNormalizeAdminContentWhitespace;
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;
