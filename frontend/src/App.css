@@ -2176,7 +2176,7 @@ footer .rich-text-renderer * {
   }
 
   .notification-bird {
-    top: -27px;
+    top: -29px;
     width: 39px;
   }
 
@@ -2219,7 +2219,7 @@ footer .rich-text-renderer * {
 
 @media (min-width: 640px) and (max-width: 767px) {
   .notification-bird {
-    top: -26px;
+    top: -28px;
     width: 53px;
   }
 }
