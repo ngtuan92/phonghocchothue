@@ -61,6 +61,15 @@ export const selectClipboardSpacingSource = (plainText, htmlText) => {
   return normalizedPlainText;
 };
 
+const normalizeClipboardTextForComparison = (value) => String(value || "")
+  .replace(/\r\n?/g, "\n")
+  .replace(/\t/g, "    ")
+  .replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/g, " ");
+
+export const clipboardTextMatches = (left, right) => (
+  normalizeClipboardTextForComparison(left) === normalizeClipboardTextForComparison(right)
+);
+
 export const expandCopyRangeToLeadingWhitespace = (quill, range) => {
   if (!range || range.length <= 0 || range.index <= 0) return range;
 

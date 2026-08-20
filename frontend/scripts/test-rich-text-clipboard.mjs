@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  clipboardTextMatches,
   embedRichTextDeltaInHtml,
   expandCopyRangeToLeadingWhitespace,
   extractRichTextDeltaFromHtml,
@@ -98,4 +99,11 @@ test("HTML indentation is used only when clipboard line content matches", () => 
     selectClipboardSpacingSource("Một đoạn\nĐầy đủ", "Một đoạn rời\n  Một đoạn\nĐầy đủ"),
     "Một đoạn\nĐầy đủ"
   );
+});
+
+test("internal clipboard matching survives browser whitespace normalization", () => {
+  assert.equal(clipboardTextMatches("\u00a0\u00a0\u00a0\u00a0Điều gì", "    Điều gì"), true);
+  assert.equal(clipboardTextMatches("\tĐiều gì", "    Điều gì"), true);
+  assert.equal(clipboardTextMatches("    Điều gì", "   Điều gì"), false);
+  assert.equal(clipboardTextMatches("    Điều gì", "    Nội dung khác"), false);
 });
