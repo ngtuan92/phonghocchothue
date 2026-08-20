@@ -3229,13 +3229,29 @@ const QuillWrapper = forwardRef(({
         const expandedRange = expandCopyRangeToLeadingWhitespace(quill, range);
         if (!range || !expandedRange) return;
 
-        const copiedContent = quill.getModule('clipboard')?.onCopy?.(expandedRange);
-        if (!copiedContent) return;
         const copiedDelta = preserveDeltaSignificantWhitespace(
           quill.getContents(expandedRange.index, expandedRange.length)
         );
         const serializedDelta = serializeRichTextDelta(copiedDelta);
-        const copiedText = String(copiedContent.text || '').replace(/\r\n?/g, '\n');
+        const copiedText = preserveSignificantHorizontalWhitespace(
+          quill.getText(expandedRange.index, expandedRange.length).replace(/\r\n?/g, '\n')
+        );
+        const selection = typeof window !== 'undefined' ? window.getSelection?.() : null;
+        let copiedHtml = '';
+        try {
+          if (selection && selection.rangeCount > 0) {
+            const container = document.createElement('div');
+            for (let index = 0; index < selection.rangeCount; index += 1) {
+              container.appendChild(selection.getRangeAt(index).cloneContents());
+            }
+            copiedHtml = container.innerHTML;
+          }
+        } catch {
+          copiedHtml = '';
+        }
+        if (!copiedHtml) {
+          copiedHtml = copiedText.replace(/\n/g, '<br>');
+        }
 
         lastRichTextClipboard = {
           copiedAt: Date.now(),
@@ -3248,7 +3264,7 @@ const QuillWrapper = forwardRef(({
         e.clipboardData.setData('text/plain', copiedText);
         e.clipboardData.setData(
           'text/html',
-          embedRichTextDeltaInHtml(copiedContent.html, serializedDelta)
+          embedRichTextDeltaInHtml(copiedHtml, serializedDelta)
         );
         try {
           e.clipboardData.setData(RICH_TEXT_DELTA_MIME, serializedDelta);
