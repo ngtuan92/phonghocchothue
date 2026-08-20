@@ -82,6 +82,17 @@ export const serializeRichTextDelta = (delta) => {
   return JSON.stringify({ version: 1, ops: delta.ops });
 };
 
+export const selectCopyRange = (...candidates) => {
+  const selection = candidates.find((candidate) => (
+    candidate &&
+    Number.isFinite(candidate.index) &&
+    Number.isFinite(candidate.length) &&
+    candidate.length > 0
+  ));
+
+  return selection ? { index: selection.index, length: selection.length } : null;
+};
+
 export const embedRichTextDeltaInHtml = (html, serializedDelta) => {
   if (!serializedDelta) return String(html || "");
   const encodedDelta = encodeURIComponent(serializedDelta);

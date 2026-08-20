@@ -19,6 +19,7 @@ import {
   parseRichTextDelta,
   preserveDeltaSignificantWhitespace,
   preserveSignificantHorizontalWhitespace,
+  selectCopyRange,
   selectClipboardSpacingSource,
   serializeRichTextDelta,
 } from "@/utils/richTextClipboard.mjs";
@@ -1164,6 +1165,7 @@ const QuillWrapper = forwardRef(({
   }, []);
   const savedSelectionRef = useRef(null);
   const lastHighlightSelectionRef = useRef(null);
+  const pendingCopySelectionRef = useRef(null);
   const controlSelectionRef = useRef(null);
   const typingSelectionRef = useRef(null);
   const lastRelativeContentRef = useRef("");
@@ -3220,12 +3222,35 @@ const QuillWrapper = forwardRef(({
     const quill = getQuillEditor();
     let handlePaste = null;
     let handleCopy = null;
+    let handleCopyShortcut = null;
 
     if (quill) {
-      handleCopy = (e) => {
-        if (e.defaultPrevented || !e.clipboardData) return;
+      const getCopySelection = () => {
+        let liveSelection = null;
+        try {
+          liveSelection = quill.getSelection?.() || null;
+        } catch {
+          liveSelection = null;
+        }
 
-        const range = quill.getSelection();
+        return selectCopyRange(
+          liveSelection,
+          pendingCopySelectionRef.current,
+          lastHighlightSelectionRef.current,
+          savedSelectionRef.current,
+          quill.selection?.savedRange,
+        );
+      };
+
+      handleCopyShortcut = (e) => {
+        if (!(e.ctrlKey || e.metaKey) || String(e.key || '').toLowerCase() !== 'c') return;
+        pendingCopySelectionRef.current = getCopySelection();
+      };
+
+      handleCopy = (e) => {
+        if (!e.clipboardData) return;
+
+        const range = getCopySelection();
         const expandedRange = expandCopyRangeToLeadingWhitespace(quill, range);
         if (!range || !expandedRange) return;
 
@@ -3271,6 +3296,7 @@ const QuillWrapper = forwardRef(({
         } catch {
           // Some browsers reject custom clipboard MIME types; HTML/plain text remain available.
         }
+        pendingCopySelectionRef.current = null;
       };
 
       handlePaste = (e) => {
@@ -3370,6 +3396,7 @@ const QuillWrapper = forwardRef(({
       };
       // Capture before Quill's own paste listener so content is inserted once
       // with significant spacing intact instead of being normalized first.
+      quill.root.addEventListener('keydown', handleCopyShortcut, true);
       quill.root.addEventListener('copy', handleCopy, true);
       quill.root.addEventListener('paste', handlePaste, true);
     }
@@ -3377,6 +3404,7 @@ const QuillWrapper = forwardRef(({
     return () => {
       if (quill) {
         try {
+          if (handleCopyShortcut) quill.root.removeEventListener('keydown', handleCopyShortcut, true);
           if (handleCopy) quill.root.removeEventListener('copy', handleCopy, true);
           if (handlePaste) quill.root.removeEventListener('paste', handlePaste, true);
         } catch { /* ignore */ }

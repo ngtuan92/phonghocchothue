@@ -8,6 +8,7 @@ import {
   parseRichTextDelta,
   preserveDeltaSignificantWhitespace,
   preserveSignificantHorizontalWhitespace,
+  selectCopyRange,
   selectClipboardSpacingSource,
   serializeRichTextDelta,
 } from "../src/utils/richTextClipboard.mjs";
@@ -64,6 +65,14 @@ test("tabs and repeated leading spaces remain visible", () => {
     preserveSignificantHorizontalWhitespace("\tDòng 1\n   Dòng 2"),
     "\u00a0\u00a0\u00a0\u00a0Dòng 1\n\u00a0\u00a0\u00a0Dòng 2"
   );
+});
+
+test("copy uses the saved highlighted range when the live Quill selection is lost", () => {
+  assert.deepEqual(
+    selectCopyRange(null, null, { index: 12, length: 9 }, { index: 1, length: 2 }),
+    { index: 12, length: 9 }
+  );
+  assert.equal(selectCopyRange(null, { index: 4, length: 0 }), null);
 });
 
 test("Delta copy converts significant regular spaces before serialization", () => {
