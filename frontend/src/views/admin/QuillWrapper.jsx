@@ -1095,9 +1095,7 @@ const QuillWrapper = forwardRef(({
     preserveWhitespaceOnlyBlocks ||
     shouldNormalizeAdminContentWhitespace ||
     shouldPreserveHeroInlineWhitespace;
-  const shouldNormalizeExcessiveIndent =
-    (preserveWhitespaceOnlyBlocks && !className.includes('blog-desc-editor')) ||
-    shouldNormalizeAdminContentWhitespace;
+  const shouldNormalizeExcessiveIndent = false;
   const canUseInlineSelectionControls = !!inlineSelectionControls;
   const canUseMobileSelectionToolbar = false;
   const hasOnChangeFontSize = !!onChangeFontSize;
@@ -3324,6 +3322,13 @@ const QuillWrapper = forwardRef(({
         e.stopImmediatePropagation();
         const range = quill.getSelection() || quill.getSelection(true);
         if (range) {
+          if (!isSimpleTextField && hasSignificantSpacing) {
+            if (range.length > 0) quill.deleteText(range.index, range.length, 'user');
+            quill.insertText(range.index, insertedText, 'user');
+            setSelectionWithoutScroll(quill, range.index + insertedText.length);
+            return;
+          }
+
           if (!isSimpleTextField && clipboardHtml && !isWhitespaceOnlyPaste) {
             const Delta = Quill.import('delta');
             const converted = quill.clipboard.convert({
