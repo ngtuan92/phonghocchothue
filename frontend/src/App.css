@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Alex+Brush&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@200;300;400;700&family=Nunito:wght@300;400;700&family=Oswald:wght@300;400;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Raleway:wght@200;400;700&family=Roboto:wght@300;400;700&family=Satisfy&family=Syncopate:wght@400;700&family=Tangerine:wght@400;700&display=swap');
 
 :root {
   /* Fluid Gutter for Mobile/Tablet */
@@ -649,7 +649,7 @@
   width: 100% !important;
   text-align: center !important;
   line-height: 1.35 !important;
-  white-space: nowrap !important;
+  white-space: pre-wrap !important;
 }
 
 .title-quote-text {
@@ -1460,12 +1460,12 @@
 .title-sub-text p,
 .title-sub-text h1 {
   line-height: inherit !important;
-  white-space: nowrap !important;
+  white-space: pre-wrap !important;
 }
 
 .title-sub-text * {
   line-height: inherit !important;
-  white-space: nowrap !important;
+  white-space: pre-wrap !important;
 }
 
 .title-sub-text span {
@@ -1474,11 +1474,11 @@
 
 .rich-text-renderer.title-sub-text,
 .rich-text-renderer.title-sub-text * {
-  max-width: none !important;
-  overflow-wrap: normal !important;
-  word-wrap: normal !important;
-  word-break: keep-all !important;
-  white-space: nowrap !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: normal !important;
+  white-space: pre-wrap !important;
 }
 
 .rich-text-renderer.title-sub-text {
@@ -1730,7 +1730,7 @@
 
   .title-sub-text,
   .title-sub-text * {
-    white-space: nowrap !important;
+    white-space: pre-wrap !important;
   }
 
   .describe-description-wrapper *:not(.ql-align-right):not(.ql-align-center):not(.ql-align-justify):not([style*="text-align"]),
