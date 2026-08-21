@@ -1447,7 +1447,7 @@
 
 .title-sub-text p {
   margin: 0;
-  display: inline-block;
+  display: block;
 }
 
 .title-sub-text br {
