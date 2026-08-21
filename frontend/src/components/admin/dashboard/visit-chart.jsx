@@ -158,6 +158,44 @@ const processVisitData = (data, period) => {
         }
       }
     }
+  } else if (period === "month") {
+    const currentParts = getDateParts(new Date())
+    if (currentParts) {
+      for (let offset = 11; offset >= 0; offset -= 1) {
+        const date = new Date(
+          Date.UTC(currentParts.year, currentParts.month - 1 - offset, 1),
+        )
+        const parts = {
+          year: date.getUTCFullYear(),
+          month: date.getUTCMonth() + 1,
+        }
+        const key = `${parts.year}-${padNumber(parts.month)}`
+
+        if (!buckets.has(key)) {
+          buckets.set(key, {
+            label: `${padNumber(parts.month)}-${parts.year}`,
+            sortValue: date.getTime(),
+            count: 0,
+          })
+        }
+      }
+    }
+  } else if (period === "year") {
+    const currentParts = getDateParts(new Date())
+    if (currentParts) {
+      for (let offset = 4; offset >= 0; offset -= 1) {
+        const year = currentParts.year - offset
+        const key = String(year)
+
+        if (!buckets.has(key)) {
+          buckets.set(key, {
+            label: key,
+            sortValue: year,
+            count: 0,
+          })
+        }
+      }
+    }
   }
 
   const sortedBuckets = Array.from(buckets.values()).sort(
@@ -184,7 +222,7 @@ const VisitChart = ({
   const handleTimePeriodChange = useCallback((event) => {
     const nextPeriod = event.target.value
     onViewportChange?.(false)
-    shouldApplyDefaultDayWindowRef.current = nextPeriod === "day"
+    shouldApplyDefaultDayWindowRef.current = true
     setTimePeriod(nextPeriod)
   }, [onViewportChange])
 
@@ -209,16 +247,21 @@ const VisitChart = ({
   }, [rawData, timePeriod])
 
   const applyDefaultDayWindow = useCallback((chartContext) => {
+    let windowSize = 0
+    if (timePeriod === "day") windowSize = DEFAULT_DAY_WINDOW
+    else if (timePeriod === "month") windowSize = 12
+    else if (timePeriod === "year") windowSize = 5
+
     if (
-      timePeriod !== "day" ||
       !shouldApplyDefaultDayWindowRef.current ||
-      chartData.categories.length <= DEFAULT_DAY_WINDOW
+      windowSize === 0 ||
+      chartData.categories.length <= windowSize
     ) {
       return
     }
 
     const lastPoint = chartData.categories.length
-    const firstPoint = Math.max(1, lastPoint - DEFAULT_DAY_WINDOW + 1)
+    const firstPoint = Math.max(1, lastPoint - windowSize + 1)
     const currentMin = chartContext?.w?.globals?.minX
     const currentMax = chartContext?.w?.globals?.maxX
 
@@ -257,14 +300,14 @@ const VisitChart = ({
         },
         toolbar: {
           show: true,
-          autoSelected: timePeriod === "day" ? "pan" : "zoom",
+          autoSelected: "pan",
           tools: {
             download: false,
             selection: false,
             zoom: true,
             zoomin: true,
             zoomout: true,
-            pan: timePeriod === "day",
+            pan: true,
             reset: true,
           },
         },
@@ -272,7 +315,7 @@ const VisitChart = ({
           enabled: true,
           type: "x",
           autoScaleYaxis: true,
-          allowMouseWheelZoom: timePeriod === "day",
+          allowMouseWheelZoom: true,
         },
         background: "transparent",
       },
