@@ -1,14 +1,11 @@
 "use client"
 
-import { useState, useMemo, useCallback, useRef, useEffect } from "react"
+import { useState, useMemo, useCallback } from "react"
 import dynamic from "next/dynamic"
 import PropTypes from "prop-types"
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false })
 const VISIT_CHART_ID = "dashboard-visit-chart"
-const DEFAULT_DAY_WINDOW = 10
-const DEFAULT_MONTH_WINDOW = 12
-const DEFAULT_YEAR_WINDOW = 5
 
 // Sample data mặc định
 const defaultVisitData = [
@@ -107,9 +104,7 @@ const processVisitData = (data, period) => {
 
   const buckets = new Map()
 
-  let minDate = new Date(Date.UTC(normalizedDates[0].year, normalizedDates[0].month - 1, normalizedDates[0].day))
-  let maxDate = new Date(Date.UTC(normalizedDates[0].year, normalizedDates[0].month - 1, normalizedDates[0].day))
-
+  // Thu thập dữ liệu thực tế
   normalizedDates.forEach((parts) => {
     let key
     let label
@@ -135,60 +130,63 @@ const processVisitData = (data, period) => {
     } else {
       buckets.set(key, { label, sortValue, count: 1 })
     }
-
-    const d = new Date(Date.UTC(parts.year, parts.month - 1, parts.day))
-    if (d < minDate) minDate = d
-    if (d > maxDate) maxDate = d
   })
 
-  // Tự động điền các mốc thời gian thiếu CHỈ trong khoảng từ ngày có dữ liệu đầu tiên đến ngày cuối cùng
-  if (period === "day") {
-    let iter = new Date(minDate)
-    while (iter <= maxDate) {
-      const parts = {
-        year: iter.getUTCFullYear(),
-        month: iter.getUTCMonth() + 1,
-        day: iter.getUTCDate(),
+  // Điền các mốc thời gian còn thiếu CHỈ trong khoảng giữa mốc nhỏ nhất và lớn nhất của dữ liệu thực tế
+  const allSortValues = Array.from(buckets.values()).map((b) => b.sortValue)
+  if (allSortValues.length > 0) {
+    const minSortValue = Math.min(...allSortValues)
+    const maxSortValue = Math.max(...allSortValues)
+
+    if (period === "day") {
+      let iterDate = new Date(minSortValue)
+      const endDate = new Date(maxSortValue)
+      while (iterDate <= endDate) {
+        const parts = {
+          year: iterDate.getUTCFullYear(),
+          month: iterDate.getUTCMonth() + 1,
+          day: iterDate.getUTCDate(),
+        }
+        const key = getDayKey(parts)
+        if (!buckets.has(key)) {
+          buckets.set(key, {
+            label: `${padNumber(parts.day)}-${padNumber(parts.month)}`,
+            sortValue: iterDate.getTime(),
+            count: 0,
+          })
+        }
+        iterDate.setUTCDate(iterDate.getUTCDate() + 1)
       }
-      const key = getDayKey(parts)
-      if (!buckets.has(key)) {
-        buckets.set(key, {
-          label: `${padNumber(parts.day)}-${padNumber(parts.month)}`,
-          sortValue: iter.getTime(),
-          count: 0,
-        })
+    } else if (period === "month") {
+      let iterDate = new Date(minSortValue)
+      const endDate = new Date(maxSortValue)
+      while (iterDate <= endDate) {
+        const parts = {
+          year: iterDate.getUTCFullYear(),
+          month: iterDate.getUTCMonth() + 1,
+        }
+        const key = `${parts.year}-${padNumber(parts.month)}`
+        if (!buckets.has(key)) {
+          buckets.set(key, {
+            label: `${padNumber(parts.month)}-${parts.year}`,
+            sortValue: iterDate.getTime(),
+            count: 0,
+          })
+        }
+        iterDate.setUTCMonth(iterDate.getUTCMonth() + 1)
       }
-      iter.setUTCDate(iter.getUTCDate() + 1)
-    }
-  } else if (period === "month") {
-    let iter = new Date(Date.UTC(minDate.getUTCFullYear(), minDate.getUTCMonth(), 1))
-    const endMonth = new Date(Date.UTC(maxDate.getUTCFullYear(), maxDate.getUTCMonth(), 1))
-    while (iter <= endMonth) {
-      const parts = {
-        year: iter.getUTCFullYear(),
-        month: iter.getUTCMonth() + 1,
-      }
-      const key = `${parts.year}-${padNumber(parts.month)}`
-      if (!buckets.has(key)) {
-        buckets.set(key, {
-          label: `${padNumber(parts.month)}-${parts.year}`,
-          sortValue: iter.getTime(),
-          count: 0,
-        })
-      }
-      iter.setUTCMonth(iter.getUTCMonth() + 1)
-    }
-  } else if (period === "year") {
-    const startY = minDate.getUTCFullYear()
-    const endY = maxDate.getUTCFullYear()
-    for (let y = startY; y <= endY; y += 1) {
-      const key = String(y)
-      if (!buckets.has(key)) {
-        buckets.set(key, {
-          label: key,
-          sortValue: y,
-          count: 0,
-        })
+    } else if (period === "year") {
+      const startYear = minSortValue
+      const endYear = maxSortValue
+      for (let y = startYear; y <= endYear; y += 1) {
+        const key = String(y)
+        if (!buckets.has(key)) {
+          buckets.set(key, {
+            label: key,
+            sortValue: y,
+            count: 0,
+          })
+        }
       }
     }
   }
@@ -211,30 +209,11 @@ const VisitChart = ({
   onViewportChange,
 }) => {
   const [timePeriod, setTimePeriod] = useState("currentWeek")
-  const ignoreNextZoomEventRef = useRef(false)
-  const shouldApplyDefaultDayWindowRef = useRef(false)
-  const chartWrapperRef = useRef(null)
 
   const handleTimePeriodChange = useCallback((event) => {
     const nextPeriod = event.target.value
     onViewportChange?.(false)
-    shouldApplyDefaultDayWindowRef.current = true
     setTimePeriod(nextPeriod)
-  }, [onViewportChange])
-
-  const handleChartZoom = useCallback(() => {
-    if (ignoreNextZoomEventRef.current) {
-      ignoreNextZoomEventRef.current = false
-      return
-    }
-    shouldApplyDefaultDayWindowRef.current = false
-    onViewportChange?.(true)
-  }, [onViewportChange])
-
-  const handleChartReset = useCallback(() => {
-    ignoreNextZoomEventRef.current = true
-    shouldApplyDefaultDayWindowRef.current = false
-    onViewportChange?.(false)
   }, [onViewportChange])
 
   // Xử lý dữ liệu dựa trên time period được chọn
@@ -242,121 +221,25 @@ const VisitChart = ({
     return processVisitData(rawData, timePeriod)
   }, [rawData, timePeriod])
 
-  // Xử lý sự kiện lăn con chuột (Mouse Wheel) để Zoom In (Phóng to) và Zoom Out (Thu nhỏ)
-  useEffect(() => {
-    const wrapper = chartWrapperRef.current
-    if (!wrapper) return
-
-    const handleWheel = (e) => {
-      e.preventDefault()
-
-      const chart = typeof window !== "undefined" && window.ApexCharts ? window.ApexCharts.getChartByID(VISIT_CHART_ID) : null
-      if (!chart || !chart.w || !chart.w.globals) return
-
-      const totalPoints = chartData.categories.length
-      if (totalPoints <= 1) return
-
-      const globals = chart.w.globals
-      let minX = globals.minX
-      let maxX = globals.maxX
-
-      if (minX === undefined || minX === null || isNaN(minX)) minX = 1
-      if (maxX === undefined || maxX === null || isNaN(maxX)) maxX = totalPoints
-
-      const currentRange = maxX - minX
-      const isZoomIn = e.deltaY < 0
-
-      let newRange
-      if (isZoomIn) {
-        newRange = Math.max(1, Math.round(currentRange * 0.75))
-      } else {
-        newRange = Math.min(totalPoints - 1, Math.round(currentRange * 1.35))
-      }
-
-      if (newRange === currentRange && isZoomIn) return
-
-      const center = (minX + maxX) / 2
-      let newMin = Math.round(center - newRange / 2)
-      let newMax = Math.round(center + newRange / 2)
-
-      if (newMin < 1) {
-        newMin = 1
-        newMax = Math.min(totalPoints, newMin + newRange)
-      }
-      if (newMax > totalPoints) {
-        newMax = totalPoints
-        newMin = Math.max(1, newMax - newRange)
-      }
-
-      ignoreNextZoomEventRef.current = true
-      chart.zoomX(newMin, newMax)
-      onViewportChange?.(true)
-    }
-
-    wrapper.addEventListener("wheel", handleWheel, { passive: false })
-    return () => {
-      wrapper.removeEventListener("wheel", handleWheel)
-    }
-  }, [chartData.categories.length, onViewportChange])
-
-  const applyDefaultDayWindow = useCallback((chartContext) => {
-    let windowSize = 0
-    if (timePeriod === "day") windowSize = DEFAULT_DAY_WINDOW
-    else if (timePeriod === "month") windowSize = DEFAULT_MONTH_WINDOW
-    else if (timePeriod === "year") windowSize = DEFAULT_YEAR_WINDOW
-
-    if (
-      !shouldApplyDefaultDayWindowRef.current ||
-      windowSize === 0 ||
-      chartData.categories.length <= windowSize
-    ) {
-      return
-    }
-
-    const lastPoint = chartData.categories.length
-    const firstPoint = Math.max(1, lastPoint - windowSize + 1)
-    const currentMin = chartContext?.w?.globals?.minX
-    const currentMax = chartContext?.w?.globals?.maxX
-
-    if (currentMin === firstPoint && currentMax === lastPoint) return
-
-    ignoreNextZoomEventRef.current = true
-    window.requestAnimationFrame(() => {
-      try {
-        chartContext?.zoomX?.(firstPoint, lastPoint)
-      } catch (error) {
-        ignoreNextZoomEventRef.current = false
-        console.error("Unable to apply default visit chart window", error)
-      }
-    })
-  }, [chartData.categories.length, timePeriod])
-
   const totalVisits = useMemo(() => {
     if (!chartData.data || chartData.data.length === 0) {
-      return 0;
+      return 0
     }
     return chartData.data.reduce((sum, count) => sum + count, 0)
   }, [chartData.data])
 
-  // Cấu hình chart
+  // Cấu hình chart ApexCharts
   const chartOptions = useMemo(
     () => ({
       chart: {
         id: VISIT_CHART_ID,
         type: "line",
-        events: {
-          mounted: applyDefaultDayWindow,
-          updated: applyDefaultDayWindow,
-          zoomed: handleChartZoom,
-          scrolled: handleChartZoom,
-          beforeResetZoom: handleChartReset,
-        },
         toolbar: {
           show: true,
           autoSelected: "zoom",
           tools: {
             download: false,
-            selection: true,
+            selection: false,
             zoom: true,
             zoomin: true,
             zoomout: true,
@@ -392,8 +275,9 @@ const VisitChart = ({
         },
       },
       xaxis: {
+        type: "category",
         categories: chartData.categories,
-        tickPlacement: timePeriod === "day" ? "on" : "between",
+        tickPlacement: "on",
         title: {
           text:
             timePeriod === "day"
@@ -455,7 +339,7 @@ const VisitChart = ({
         },
       },
     }),
-    [applyDefaultDayWindow, chartData, title, timePeriod, color, handleChartReset, handleChartZoom],
+    [chartData.categories, title, timePeriod, color],
   )
 
   const series = useMemo(
@@ -474,6 +358,7 @@ const VisitChart = ({
         <h1 className="text-3xl font-bold">Thống Kê</h1>
         <p className="text-muted-foreground">Theo dõi lượt truy cập website của bạn</p>
       </div>
+
       {/* Select dropdown cho time period */}
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -510,16 +395,14 @@ const VisitChart = ({
         </div>
       </div>
 
-      {/* Chart Wrapper với Ref để lắng nghe wheel scroll */}
-      <div ref={chartWrapperRef} className="w-full relative">
-        <Chart
-          key={timePeriod}
-          options={chartOptions}
-          series={series}
-          type="line"
-          height={height}
-        />
-      </div>
+      {/* Chart */}
+      <Chart
+        key={timePeriod}
+        options={chartOptions}
+        series={series}
+        type="line"
+        height={height}
+      />
     </div>
   )
 }
