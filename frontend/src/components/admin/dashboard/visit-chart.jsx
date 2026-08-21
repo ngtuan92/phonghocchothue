@@ -7,6 +7,8 @@ import PropTypes from "prop-types"
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false })
 const VISIT_CHART_ID = "dashboard-visit-chart"
 const DEFAULT_DAY_WINDOW = 10
+const DEFAULT_MONTH_WINDOW = 12
+const DEFAULT_YEAR_WINDOW = 5
 
 // Sample data mặc định
 const defaultVisitData = [
@@ -132,68 +134,77 @@ const processVisitData = (data, period) => {
     }
   })
 
+  const currentParts = getDateParts(new Date()) || { year: 2026, month: 8, day: 21 }
+
+  let minYear = currentParts.year
+  let minMonthDate = new Date(Date.UTC(currentParts.year, currentParts.month - 1 - 35, 1))
+  let minDayDate = new Date(Date.UTC(currentParts.year, currentParts.month - 1, currentParts.day - 89))
+
+  normalizedDates.forEach((parts) => {
+    if (parts.year < minYear) {
+      minYear = parts.year
+    }
+    const mDate = new Date(Date.UTC(parts.year, parts.month - 1, 1))
+    if (mDate < minMonthDate) {
+      minMonthDate = mDate
+    }
+    const dDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day))
+    if (dDate < minDayDate) {
+      minDayDate = dDate
+    }
+  })
+
   if (period === "day") {
-    const currentParts = getDateParts(new Date())
-    if (currentParts) {
-      const currentDate = new Date(
-        Date.UTC(currentParts.year, currentParts.month - 1, currentParts.day),
-      )
-
-      for (let offset = DEFAULT_DAY_WINDOW - 1; offset >= 0; offset -= 1) {
-        const date = new Date(currentDate)
-        date.setUTCDate(currentDate.getUTCDate() - offset)
-        const parts = {
-          year: date.getUTCFullYear(),
-          month: date.getUTCMonth() + 1,
-          day: date.getUTCDate(),
-        }
-        const key = getDayKey(parts)
-
-        if (!buckets.has(key)) {
-          buckets.set(key, {
-            label: `${padNumber(parts.day)}-${padNumber(parts.month)}`,
-            sortValue: date.getTime(),
-            count: 0,
-          })
-        }
+    const currentDate = new Date(
+      Date.UTC(currentParts.year, currentParts.month - 1, currentParts.day),
+    )
+    let iterDate = new Date(minDayDate)
+    while (iterDate <= currentDate) {
+      const parts = {
+        year: iterDate.getUTCFullYear(),
+        month: iterDate.getUTCMonth() + 1,
+        day: iterDate.getUTCDate(),
       }
+      const key = getDayKey(parts)
+      if (!buckets.has(key)) {
+        buckets.set(key, {
+          label: `${padNumber(parts.day)}-${padNumber(parts.month)}`,
+          sortValue: iterDate.getTime(),
+          count: 0,
+        })
+      }
+      iterDate.setUTCDate(iterDate.getUTCDate() + 1)
     }
   } else if (period === "month") {
-    const currentParts = getDateParts(new Date())
-    if (currentParts) {
-      for (let offset = 11; offset >= 0; offset -= 1) {
-        const date = new Date(
-          Date.UTC(currentParts.year, currentParts.month - 1 - offset, 1),
-        )
-        const parts = {
-          year: date.getUTCFullYear(),
-          month: date.getUTCMonth() + 1,
-        }
-        const key = `${parts.year}-${padNumber(parts.month)}`
-
-        if (!buckets.has(key)) {
-          buckets.set(key, {
-            label: `${padNumber(parts.month)}-${parts.year}`,
-            sortValue: date.getTime(),
-            count: 0,
-          })
-        }
+    const currentMonthDate = new Date(
+      Date.UTC(currentParts.year, currentParts.month - 1, 1),
+    )
+    let iterDate = new Date(minMonthDate)
+    while (iterDate <= currentMonthDate) {
+      const parts = {
+        year: iterDate.getUTCFullYear(),
+        month: iterDate.getUTCMonth() + 1,
       }
+      const key = `${parts.year}-${padNumber(parts.month)}`
+      if (!buckets.has(key)) {
+        buckets.set(key, {
+          label: `${padNumber(parts.month)}-${parts.year}`,
+          sortValue: iterDate.getTime(),
+          count: 0,
+        })
+      }
+      iterDate.setUTCMonth(iterDate.getUTCMonth() + 1)
     }
   } else if (period === "year") {
-    const currentParts = getDateParts(new Date())
-    if (currentParts) {
-      for (let offset = 4; offset >= 0; offset -= 1) {
-        const year = currentParts.year - offset
-        const key = String(year)
-
-        if (!buckets.has(key)) {
-          buckets.set(key, {
-            label: key,
-            sortValue: year,
-            count: 0,
-          })
-        }
+    const startYear = Math.min(minYear, currentParts.year - 9)
+    for (let y = startYear; y <= currentParts.year; y += 1) {
+      const key = String(y)
+      if (!buckets.has(key)) {
+        buckets.set(key, {
+          label: key,
+          sortValue: y,
+          count: 0,
+        })
       }
     }
   }
@@ -249,8 +260,8 @@ const VisitChart = ({
   const applyDefaultDayWindow = useCallback((chartContext) => {
     let windowSize = 0
     if (timePeriod === "day") windowSize = DEFAULT_DAY_WINDOW
-    else if (timePeriod === "month") windowSize = 12
-    else if (timePeriod === "year") windowSize = 5
+    else if (timePeriod === "month") windowSize = DEFAULT_MONTH_WINDOW
+    else if (timePeriod === "year") windowSize = DEFAULT_YEAR_WINDOW
 
     if (
       !shouldApplyDefaultDayWindowRef.current ||
@@ -300,10 +311,10 @@ const VisitChart = ({
         },
         toolbar: {
           show: true,
-          autoSelected: "pan",
+          autoSelected: "zoom",
           tools: {
             download: false,
-            selection: false,
+            selection: true,
             zoom: true,
             zoomin: true,
             zoomout: true,
