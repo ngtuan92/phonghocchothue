@@ -2727,7 +2727,6 @@ const QuillWrapper = forwardRef(({
 
     const handleKeydownCapture = (e) => {
       if (e.key === 'Enter' || e.keyCode === 13) {
-        console.log('[DEBUG Keydown Enter] ENTER PRESSED in capture phase');
         try {
           const sel = quill.getSelection() || savedSelectionRef.current;
           if (sel) {
@@ -2806,7 +2805,6 @@ const QuillWrapper = forwardRef(({
         key: 13,
         _isCustomEnter: true,
         handler: function (range, context) {
-          console.log('[DEBUG Enter] HANDLER CALLED! range=', JSON.stringify(range), 'context.format=', JSON.stringify(context.format));
           // Allow native handling for lists, code blocks, tables
           if (context.format.list || context.format['code-block'] || context.format.table) {
             return true;
@@ -2823,7 +2821,6 @@ const QuillWrapper = forwardRef(({
             if (range.index > 0) {
               for (let i = range.index - 1; i >= Math.max(0, range.index - 100); i--) {
                 const f = this.quill.getFormat(i, 1);
-                console.log('[DEBUG Enter] scan i=' + i + ' fmt=', JSON.stringify(f));
                 if (f?.font && f.font !== 'macdinh') {
                   inlineFormats.font = f.font;
                   break;
@@ -2831,7 +2828,6 @@ const QuillWrapper = forwardRef(({
               }
               prevFmt = this.quill.getFormat(range.index - 1, 1);
             }
-            console.log('[DEBUG Enter] context.format=', JSON.stringify(context.format), 'inlineFormats after scan=', JSON.stringify(inlineFormats));
             if (!inlineFormats.font && context.format.font && context.format.font !== 'macdinh') {
               inlineFormats.font = context.format.font;
             }
@@ -2864,7 +2860,6 @@ const QuillWrapper = forwardRef(({
             else if (context.format.lineHeight) inlineFormats.lineHeight = context.format.lineHeight;
           } catch (e) { /* ignore */ }
 
-          console.log('[DEBUG Enter] FINAL inlineFormats=', JSON.stringify(inlineFormats));
 
           const lineFormats = {};
           if (context.format.align) lineFormats.align = context.format.align;
@@ -2877,7 +2872,6 @@ const QuillWrapper = forwardRef(({
           if (inlineFormats.font) {
             lastActiveFormatsRef.current = { ...inlineFormats };
           }
-          console.log('[DEBUG Enter] lastActiveFormatsRef set to:', JSON.stringify(lastActiveFormatsRef.current));
 
           // Apply inline formats to the cursor
           Object.keys(inlineFormats).forEach((name) => {
@@ -2913,7 +2907,6 @@ const QuillWrapper = forwardRef(({
         } else if (typeof op.insert === 'string' && op.insert.length > 0 && op.insert !== '\n') {
           const insertLen = op.insert.length;
           const attrs = op.attributes || {};
-          console.log('[DEBUG TextChange] insert op at pos=' + pos + ' text="' + op.insert + '" attrs=', JSON.stringify(attrs));
           let targetFont = activeFormats?.font;
           if (!targetFont && pos > 0) {
             for (let i = pos - 1; i >= Math.max(0, pos - 100); i--) {
@@ -2955,7 +2948,6 @@ const QuillWrapper = forwardRef(({
           pos += insertLen;
         }
       });
-      console.log('[DEBUG TextChange] formattedAny=', formattedAny);
 
       if (formattedAny && activeFormats.font) {
         try {
