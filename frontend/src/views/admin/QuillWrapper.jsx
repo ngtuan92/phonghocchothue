@@ -2663,19 +2663,6 @@ const QuillWrapper = forwardRef(({
     }
 
     const handleContentChange = (delta) => {
-      if (pendingNewParagraphFontRef.current) {
-        const targetFont = pendingNewParagraphFontRef.current;
-        try {
-          const range = quill.getSelection();
-          if (range && range.index > 0) {
-            const charFmt = quill.getFormat(range.index - 1, 1);
-            if (!charFmt?.font || charFmt.font === 'macdinh') {
-              quill.formatText(range.index - 1, 1, 'font', targetFont, 'user');
-              quill.format('font', targetFont, 'user');
-            }
-          }
-        } catch { /* ignore */ }
-      }
       const ops = Array.isArray(delta?.ops) ? delta.ops : [];
       const hasImageDelta = ops.some((op) => op.insert?.image || op.attributes?.caption || op.attributes?.wrap || op.attributes?.borderRadius);
       const hasListDelta = ops.some((op) => op.attributes?.list);
@@ -2751,89 +2738,53 @@ const QuillWrapper = forwardRef(({
       subtree: true,
     });
 
-    const handleEnterKeyPreserveFormats = (e) => {
-      if (e.key === 'Enter') {
-        try {
-          const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
-          if (!range) return;
-
-          let currentFormat = {};
-          try {
-            currentFormat = { ...(quill.getFormat(range) || {}) };
-          } catch { /* ignore */ }
-
-          // If current format has no font, search backwards for the nearest formatted text in the block
-          if (!currentFormat.font && range.index > 0) {
-            for (let i = range.index - 1; i >= Math.max(0, range.index - 150); i--) {
+    if (quill.keyboard) {
+      const enterBinding = {
+        key: 13,
+        handler: function (range, context) {
+          if (!context.format.font && range.index > 0) {
+            for (let i = range.index - 1; i >= Math.max(0, range.index - 100); i--) {
               try {
-                const prevFmt = quill.getFormat(i, 1);
-                if (prevFmt) {
-                  if (!currentFormat.font && prevFmt.font && prevFmt.font !== 'macdinh') currentFormat.font = prevFmt.font;
-                  if (!currentFormat.size && prevFmt.size) currentFormat.size = prevFmt.size;
-                  if (!currentFormat.color && prevFmt.color) currentFormat.color = prevFmt.color;
-                  if (!currentFormat.lineHeight && prevFmt.lineHeight) currentFormat.lineHeight = prevFmt.lineHeight;
+                const prevFmt = this.quill.getFormat(i, 1);
+                if (prevFmt?.font && prevFmt.font !== 'macdinh') {
+                  context.format.font = prevFmt.font;
+                  break;
                 }
-                if (currentFormat.font) break;
               } catch { /* ignore */ }
             }
           }
-
-          if (!currentFormat.font) {
+          if (!context.format.size && range.index > 0) {
             try {
-              const [leaf] = quill.getLeaf(Math.max(0, range.index > 0 ? range.index - 1 : range.index));
-              const domNode = leaf?.domNode;
-              if (domNode) {
-                const fontNode = domNode.nodeType === Node.TEXT_NODE ? domNode.parentElement : domNode;
-                const styleFont = fontNode?.style?.fontFamily || (typeof window !== 'undefined' ? window.getComputedStyle(fontNode)?.fontFamily : '');
-                if (styleFont) {
-                  const cleanFamily = styleFont.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
-                  const cleanSlug = cleanFamily.replace(/\s+/g, '-');
-                  const fontList = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
-                  const matched = fontList.find((item) => {
-                    const candidates = [
-                      item.slug,
-                      item.name,
-                      item.family,
-                      slugify(item.name || ''),
-                      slugify(item.family || '')
-                    ].filter(Boolean).map(c => String(c).toLowerCase());
-                    return candidates.includes(cleanFamily) || candidates.includes(cleanSlug);
-                  });
-                  if (matched && matched.slug !== 'macdinh') {
-                    currentFormat.font = matched.slug;
-                  }
-                }
-              }
+              const prevFmt = this.quill.getFormat(range.index - 1, 1);
+              if (prevFmt?.size) context.format.size = prevFmt.size;
             } catch { /* ignore */ }
           }
-
-          const targetFont = currentFormat.font;
-          const targetSize = currentFormat.size;
-          const targetColor = currentFormat.color;
-          const targetLineHeight = currentFormat.lineHeight;
-
-          if (targetFont && targetFont !== 'macdinh') {
-            pendingNewParagraphFontRef.current = targetFont;
-            const applyPreservedFormat = () => {
-              try {
-                const newRange = quill.getSelection();
-                if (newRange) {
-                  quill.format('font', targetFont, 'user');
-                  if (targetSize) quill.format('size', targetSize, 'user');
-                  if (targetColor) quill.format('color', targetColor, 'user');
-                  if (targetLineHeight) quill.format('lineHeight', targetLineHeight, 'user');
-                  updateSizePickerLabel(newRange);
-                }
-              } catch { /* ignore */ }
-            };
-            window.setTimeout(applyPreservedFormat, 0);
-            window.setTimeout(applyPreservedFormat, 50);
+          if (!context.format.color && range.index > 0) {
+            try {
+              const prevFmt = this.quill.getFormat(range.index - 1, 1);
+              if (prevFmt?.color) context.format.color = prevFmt.color;
+            } catch { /* ignore */ }
           }
-        } catch { /* ignore */ }
-      }
-    };
+          if (!context.format.lineHeight && range.index > 0) {
+            try {
+              const prevFmt = this.quill.getFormat(range.index - 1, 1);
+              if (prevFmt?.lineHeight) context.format.lineHeight = prevFmt.lineHeight;
+            } catch { /* ignore */ }
+          }
+          window.setTimeout(() => {
+            try {
+              updateSizePickerLabel();
+            } catch { /* ignore */ }
+          }, 10);
+          return true;
+        }
+      };
 
-    quill.root.addEventListener('keydown', handleEnterKeyPreserveFormats, true);
+      if (!quill.keyboard.bindings[13]) {
+        quill.keyboard.bindings[13] = [];
+      }
+      quill.keyboard.bindings[13].unshift(enterBinding);
+    }
 
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
@@ -2859,7 +2810,7 @@ const QuillWrapper = forwardRef(({
       window.removeEventListener('scroll', handleScroll, true);
       window.removeEventListener('resize', handleResize);
       quill.root.removeEventListener('scroll', handleScroll, true);
-      quill.root.removeEventListener('keydown', handleEnterKeyPreserveFormats, true);
+
       if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
       if (listSizeSyncFrameRef.current) {
         window.cancelAnimationFrame(listSizeSyncFrameRef.current);
