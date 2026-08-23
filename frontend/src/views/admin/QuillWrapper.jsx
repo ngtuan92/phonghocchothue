@@ -2460,6 +2460,11 @@ const QuillWrapper = forwardRef(({
     const container = containerRef.current;
     if (!container) return;
 
+    if (font && font !== 'macdinh') {
+      const activeFontSlug = Array.isArray(font) ? font[0] : font;
+      lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: activeFontSlug };
+    }
+
     const fontPickers = container.querySelectorAll('.ql-font.ql-picker');
     fontPickers.forEach(picker => {
       const label = picker.querySelector('.ql-picker-label');
@@ -2881,6 +2886,12 @@ const QuillWrapper = forwardRef(({
         try {
           quill.format('font', activeFormats.font, 'silent');
         } catch { /* ignore */ }
+        const html = quill.root.innerHTML;
+        localEditorHtmlRef.current = html;
+        if (commitOnBlurOnly) {
+          lastRelativeContentRef.current = html;
+          onDraftChangeRef.current?.(html);
+        }
       }
     };
 
@@ -7454,21 +7465,33 @@ const QuillWrapper = forwardRef(({
             font-style: normal;
             font-display: swap;
           }
+          @font-face {
+            font-family: '${escapeCssString(font.slug)}';
+            src: url('${escapeCssString(font.fileUrl)}') format('${getFontFormat(font.fileType)}');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+          }
         `).join('\n')}
         ${dynamicFonts.map(font => `
+          .quill-wrapper-container .ql-editor .ql-font-${font.slug},
+          .quill-wrapper-container .ql-editor .ql-font-${font.slug} *,
           .quill-wrapper-container .ql-editor [style*="font-family: ${font.slug}"],
           .quill-wrapper-container .ql-editor [style*="font-family:${font.slug}"],
           .quill-wrapper-container .ql-editor [style*="font-family: '${font.slug}'"],
           .quill-wrapper-container .ql-editor [style*="font-family:'${font.slug}'"],
           .quill-wrapper-container .ql-editor [style*='font-family: "${font.slug}"'],
-          .quill-wrapper-container .ql-editor [style*='font-family:"${font.slug}"'] {
-            font-family: '${escapeCssString(font.family)}', sans-serif !important;
+          .quill-wrapper-container .ql-editor [style*='font-family:"${font.slug}"'],
+          .quill-wrapper-container .ql-editor [style*="${font.slug}"],
+          .quill-wrapper-container .ql-editor [style*="${escapeCssString(font.family)}"],
+          .quill-wrapper-container .ql-editor [style*="${escapeCssString(font.name)}"] {
+            font-family: '${escapeCssString(font.family)}', '${escapeCssString(font.slug)}', sans-serif !important;
           }
 
           .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before,
           .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before { 
             content: '${escapeCssString(font.name)}' !important; 
-            font-family: '${escapeCssString(font.family)}', sans-serif !important;
+            font-family: '${escapeCssString(font.family)}', '${escapeCssString(font.slug)}', sans-serif !important;
           }
         `).join('\n')}
         .custom-size-dropdown-apply-btn svg {
