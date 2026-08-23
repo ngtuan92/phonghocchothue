@@ -2723,6 +2723,81 @@ const QuillWrapper = forwardRef(({
       subtree: true,
     });
 
+    const handleEnterKeyPreserveFormats = (e) => {
+      if (e.key === 'Enter') {
+        try {
+          const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+          if (!range) return;
+
+          let currentFormat = {};
+          try {
+            currentFormat = { ...(quill.getFormat(range) || {}) };
+          } catch { /* ignore */ }
+
+          if (!currentFormat.font && range.index > 0) {
+            try {
+              const prevFormat = quill.getFormat(range.index - 1, 1);
+              if (prevFormat?.font) currentFormat.font = prevFormat.font;
+              if (!currentFormat.size && prevFormat?.size) currentFormat.size = prevFormat.size;
+              if (!currentFormat.color && prevFormat?.color) currentFormat.color = prevFormat.color;
+              if (!currentFormat.lineHeight && prevFormat?.lineHeight) currentFormat.lineHeight = prevFormat.lineHeight;
+            } catch { /* ignore */ }
+          }
+
+          if (!currentFormat.font) {
+            try {
+              const [leaf] = quill.getLeaf(Math.max(0, range.index > 0 ? range.index - 1 : range.index));
+              const domNode = leaf?.domNode;
+              if (domNode) {
+                const fontNode = domNode.nodeType === Node.TEXT_NODE ? domNode.parentElement : domNode;
+                const styleFont = fontNode?.style?.fontFamily || (typeof window !== 'undefined' ? window.getComputedStyle(fontNode)?.fontFamily : '');
+                if (styleFont) {
+                  const cleanFamily = styleFont.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+                  const cleanSlug = cleanFamily.replace(/\s+/g, '-');
+                  const fontList = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
+                  const matched = fontList.find((item) => {
+                    const candidates = [
+                      item.slug,
+                      item.name,
+                      item.family,
+                      slugify(item.name || ''),
+                      slugify(item.family || '')
+                    ].filter(Boolean).map(c => String(c).toLowerCase());
+                    return candidates.includes(cleanFamily) || candidates.includes(cleanSlug);
+                  });
+                  if (matched && matched.slug !== 'macdinh') {
+                    currentFormat.font = matched.slug;
+                  }
+                }
+              }
+            } catch { /* ignore */ }
+          }
+
+          const targetFont = currentFormat.font;
+          const targetSize = currentFormat.size;
+          const targetColor = currentFormat.color;
+          const targetLineHeight = currentFormat.lineHeight;
+
+          if (targetFont && targetFont !== 'macdinh') {
+            window.setTimeout(() => {
+              try {
+                const newRange = quill.getSelection();
+                if (newRange) {
+                  quill.format('font', targetFont, 'user');
+                  if (targetSize) quill.format('size', targetSize, 'user');
+                  if (targetColor) quill.format('color', targetColor, 'user');
+                  if (targetLineHeight) quill.format('lineHeight', targetLineHeight, 'user');
+                  updateSizePickerLabel(newRange);
+                }
+              } catch { /* ignore */ }
+            }, 0);
+          }
+        } catch { /* ignore */ }
+      }
+    };
+
+    quill.root.addEventListener('keydown', handleEnterKeyPreserveFormats, true);
+
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
 
@@ -2747,6 +2822,7 @@ const QuillWrapper = forwardRef(({
       window.removeEventListener('scroll', handleScroll, true);
       window.removeEventListener('resize', handleResize);
       quill.root.removeEventListener('scroll', handleScroll, true);
+      quill.root.removeEventListener('keydown', handleEnterKeyPreserveFormats, true);
       if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
       if (listSizeSyncFrameRef.current) {
         window.cancelAnimationFrame(listSizeSyncFrameRef.current);
