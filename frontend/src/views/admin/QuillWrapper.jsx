@@ -2725,6 +2725,59 @@ const QuillWrapper = forwardRef(({
     window.addEventListener('resize', handleResize);
     quill.root.addEventListener('scroll', handleScroll, true);
 
+    const handleKeydownCapture = (e) => {
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        try {
+          const sel = quill.getSelection() || savedSelectionRef.current;
+          if (sel) {
+            let inheritedFont = null;
+            let inheritedSize = null;
+            let inheritedColor = null;
+            let inheritedLineHeight = null;
+
+            for (let i = sel.index - 1; i >= Math.max(0, sel.index - 200); i--) {
+              const fmt = quill.getFormat(i, 1);
+              if (fmt?.font && fmt.font !== 'macdinh') {
+                inheritedFont = fmt.font;
+                inheritedSize = fmt.size;
+                inheritedColor = fmt.color;
+                inheritedLineHeight = fmt.lineHeight;
+                break;
+              }
+            }
+
+            if (!inheritedFont) {
+              const domSelection = typeof window !== 'undefined' ? window.getSelection() : null;
+              if (domSelection && domSelection.anchorNode) {
+                const el = domSelection.anchorNode.nodeType === 1 ? domSelection.anchorNode : domSelection.anchorNode.parentElement;
+                const fontEl = el?.closest?.('[class*="ql-font-"], [style*="font-family"]');
+                if (fontEl) {
+                  const cls = Array.from(fontEl.classList || []).find(c => c.startsWith('ql-font-'));
+                  if (cls) {
+                    inheritedFont = cls.replace('ql-font-', '');
+                  } else if (fontEl.style?.fontFamily) {
+                    const cleanFam = fontEl.style.fontFamily.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+                    inheritedFont = cleanFam.replace(/\s+/g, '-');
+                  }
+                }
+              }
+            }
+
+            if (inheritedFont) {
+              lastActiveFormatsRef.current = {
+                font: inheritedFont,
+                size: inheritedSize,
+                color: inheritedColor,
+                lineHeight: inheritedLineHeight
+              };
+            }
+          }
+        } catch (err) { /* ignore */ }
+      }
+    };
+
+    quill.root.addEventListener('keydown', handleKeydownCapture, true);
+
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(quill.root);
 
@@ -2752,6 +2805,7 @@ const QuillWrapper = forwardRef(({
         key: 13,
         _isCustomEnter: true,
         handler: function (range, context) {
+          console.log('[DEBUG Enter] HANDLER CALLED! range=', JSON.stringify(range), 'context.format=', JSON.stringify(context.format));
           // Allow native handling for lists, code blocks, tables
           if (context.format.list || context.format['code-block'] || context.format.table) {
             return true;
@@ -2848,9 +2902,7 @@ const QuillWrapper = forwardRef(({
 
     const handleAutoInheritFormatsOnTextChange = (delta, oldDelta, source) => {
       if (source !== 'user' || !delta || !Array.isArray(delta.ops)) return;
-      const activeFormats = lastActiveFormatsRef.current;
-      console.log('[DEBUG TextChange] source=user delta=', JSON.stringify(delta.ops.slice(0,3)), 'activeFormats=', JSON.stringify(activeFormats));
-      if (!activeFormats || !activeFormats.font) return;
+      let activeFormats = lastActiveFormatsRef.current;
 
       let pos = 0;
       let formattedAny = false;
@@ -2861,14 +2913,25 @@ const QuillWrapper = forwardRef(({
           const insertLen = op.insert.length;
           const attrs = op.attributes || {};
           console.log('[DEBUG TextChange] insert op at pos=' + pos + ' text="' + op.insert + '" attrs=', JSON.stringify(attrs));
-          if (!attrs.font || attrs.font === 'macdinh') {
-            console.log('[DEBUG TextChange] applying font=' + activeFormats.font + ' at pos=' + pos + ' len=' + insertLen);
+          let targetFont = activeFormats?.font;
+          if (!targetFont && pos > 0) {
+            for (let i = pos - 1; i >= Math.max(0, pos - 100); i--) {
+              const fmt = quill.getFormat(i, 1);
+              if (fmt?.font && fmt.font !== 'macdinh') {
+                targetFont = fmt.font;
+                if (!activeFormats) activeFormats = {};
+                activeFormats.font = targetFont;
+                lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: targetFont };
+                break;
+              }
+            }
+          }
+
+          if (targetFont && (!attrs.font || attrs.font === 'macdinh')) {
             try {
-              quill.formatText(pos, insertLen, 'font', activeFormats.font, 'silent');
+              quill.formatText(pos, insertLen, 'font', targetFont, 'silent');
               formattedAny = true;
             } catch { /* ignore */ }
-          } else {
-            console.log('[DEBUG TextChange] SKIP - attrs.font already set to:', attrs.font);
           }
           if (activeFormats.size && !attrs.size) {
             try {
