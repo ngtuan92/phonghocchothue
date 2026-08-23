@@ -1193,6 +1193,7 @@ const QuillWrapper = forwardRef(({
   const toolbarHandlerRefs = useRef({});
   const clipboardAttachRetryRef = useRef(0);
   const pendingNewParagraphFontRef = useRef(null);
+  const lastActiveFormatsRef = useRef({});
 
 
   const onChangeTimeoutRef = useRef(null);
@@ -2809,6 +2810,10 @@ const QuillWrapper = forwardRef(({
           this.quill.insertText(range.index, '\n', lineFormats, 'user');
           this.quill.setSelection(range.index + 1, 0, 'silent');
 
+          if (inlineFormats.font) {
+            lastActiveFormatsRef.current = { ...inlineFormats };
+          }
+
           // Apply inline formats to the cursor
           Object.keys(inlineFormats).forEach((name) => {
             if (inlineFormats[name]) {
@@ -2831,6 +2836,55 @@ const QuillWrapper = forwardRef(({
       quill.keyboard.bindings[13].unshift(customEnterBinding);
     }
 
+    const handleAutoInheritFormatsOnTextChange = (delta, oldDelta, source) => {
+      if (source !== 'user' || !delta || !Array.isArray(delta.ops)) return;
+      const activeFormats = lastActiveFormatsRef.current;
+      if (!activeFormats || !activeFormats.font) return;
+
+      let pos = 0;
+      let formattedAny = false;
+      delta.ops.forEach((op) => {
+        if (op.retain) {
+          pos += op.retain;
+        } else if (typeof op.insert === 'string' && op.insert.length > 0 && op.insert !== '\n') {
+          const insertLen = op.insert.length;
+          const attrs = op.attributes || {};
+          if (!attrs.font || attrs.font === 'macdinh') {
+            try {
+              quill.formatText(pos, insertLen, 'font', activeFormats.font, 'silent');
+              formattedAny = true;
+            } catch { /* ignore */ }
+          }
+          if (activeFormats.size && !attrs.size) {
+            try {
+              quill.formatText(pos, insertLen, 'size', activeFormats.size, 'silent');
+              formattedAny = true;
+            } catch { /* ignore */ }
+          }
+          if (activeFormats.color && !attrs.color) {
+            try {
+              quill.formatText(pos, insertLen, 'color', activeFormats.color, 'silent');
+              formattedAny = true;
+            } catch { /* ignore */ }
+          }
+          if (activeFormats.lineHeight && !attrs.lineHeight) {
+            try {
+              quill.formatText(pos, insertLen, 'lineHeight', activeFormats.lineHeight, 'silent');
+              formattedAny = true;
+            } catch { /* ignore */ }
+          }
+          pos += insertLen;
+        }
+      });
+
+      if (formattedAny && activeFormats.font) {
+        try {
+          quill.format('font', activeFormats.font, 'silent');
+        } catch { /* ignore */ }
+      }
+    };
+
+    quill.on('text-change', handleAutoInheritFormatsOnTextChange);
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
 
@@ -4315,6 +4369,11 @@ const QuillWrapper = forwardRef(({
           }
 
           quill.format('font', nextValue, 'user');
+          if (nextValue) {
+            lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: nextValue };
+          } else {
+            lastActiveFormatsRef.current = {};
+          }
           const html = quill.root.innerHTML;
           localEditorHtmlRef.current = html;
           if (commitOnBlurOnly) {
@@ -7373,6 +7432,19 @@ const QuillWrapper = forwardRef(({
         .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="macdinh"]::before { 
           content: 'Inter' !important;
           font-family: 'Inter', sans-serif !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value]:not([data-value=""]):not([data-value="macdinh"])::before {
+          color: #0284c7 !important;
+          font-weight: 700 !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value]:not([data-value=""]):not([data-value="macdinh"]) svg {
+          stroke: #0284c7 !important;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value=""]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="macdinh"]::before {
+          color: #4b5563 !important;
+          font-weight: 500 !important;
         }
         ${dynamicFonts.filter(font => font.fileUrl).map(font => `
           @font-face {
