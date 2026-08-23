@@ -2727,6 +2727,7 @@ const QuillWrapper = forwardRef(({
 
     const handleKeydownCapture = (e) => {
       if (e.key === 'Enter' || e.keyCode === 13) {
+        console.log('[DEBUG Keydown Enter] ENTER PRESSED in capture phase');
         try {
           const sel = quill.getSelection() || savedSelectionRef.current;
           if (sel) {
@@ -3317,10 +3318,24 @@ const QuillWrapper = forwardRef(({
                   // Wrap value function to normalize browser font-family name to our slug representation
                   const originalValue = FontStyle.value;
                   FontStyle.value = function (domNode) {
-                    const rawVal = originalValue.call(this, domNode);
+                    let rawVal = originalValue ? originalValue.call(this, domNode) : '';
+                    if (!rawVal && domNode && domNode.classList) {
+                      const fontClass = Array.from(domNode.classList).find(c => c.startsWith('ql-font-'));
+                      if (fontClass) {
+                        rawVal = fontClass.replace('ql-font-', '');
+                      }
+                    }
+                    if (!rawVal && domNode && domNode.getAttribute) {
+                      const styleAttr = domNode.getAttribute('style') || '';
+                      const match = styleAttr.match(/font-family\s*:\s*([^;]+)/i);
+                      if (match) rawVal = match[1];
+                    }
+                    if (!rawVal && domNode && domNode.style && domNode.style.fontFamily) {
+                      rawVal = domNode.style.fontFamily;
+                    }
                     if (!rawVal) return rawVal;
 
-                    const cleanVal = rawVal.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+                    const cleanVal = String(rawVal).replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
                     const cleanSlug = cleanVal.replace(/\s+/g, '-');
 
                     if (cleanVal === 'inter' || cleanVal === 'macdinh') {
@@ -3331,10 +3346,12 @@ const QuillWrapper = forwardRef(({
                     const matched = listToSearch.find(f =>
                       f.slug.toLowerCase() === cleanVal ||
                       f.slug.toLowerCase() === cleanSlug ||
-                      slugify(f.name) === cleanVal ||
-                      slugify(f.name) === cleanSlug ||
-                      slugify(f.family) === cleanVal ||
-                      slugify(f.family) === cleanSlug
+                      (f.name && slugify(f.name) === cleanVal) ||
+                      (f.name && slugify(f.name) === cleanSlug) ||
+                      (f.family && slugify(f.family) === cleanVal) ||
+                      (f.family && slugify(f.family) === cleanSlug) ||
+                      (f.name && f.name.toLowerCase() === cleanVal) ||
+                      (f.family && f.family.toLowerCase() === cleanVal)
                     );
 
                     if (matched) {
@@ -3351,7 +3368,24 @@ const QuillWrapper = forwardRef(({
                     return rawVal;
                   };
 
-                  Quill.register(FontStyle, true);
+                  const originalAdd = FontStyle.add;
+                  FontStyle.add = function (domNode, value) {
+                    if (originalAdd) originalAdd.call(this, domNode, value);
+                    if (domNode && domNode.classList) {
+                      Array.from(domNode.classList).forEach(c => {
+                        if (c.startsWith('ql-font-')) domNode.classList.remove(c);
+                      });
+                      if (value && value !== 'macdinh') {
+                        domNode.classList.add(`ql-font-${value}`);
+                      }
+                    }
+                    return true;
+                  };
+
+                  Quill.register({
+                    'formats/font': FontStyle,
+                    'attributors/style/font': FontStyle
+                  }, true);
                 }
               }
               cachedFonts = sorted;
