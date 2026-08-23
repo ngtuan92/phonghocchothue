@@ -1192,6 +1192,7 @@ const QuillWrapper = forwardRef(({
   const listSizeSyncFrameRef = useRef(0);
   const toolbarHandlerRefs = useRef({});
   const clipboardAttachRetryRef = useRef(0);
+  const pendingNewParagraphFontRef = useRef(null);
 
 
   const onChangeTimeoutRef = useRef(null);
@@ -2420,6 +2421,20 @@ const QuillWrapper = forwardRef(({
 
     const size = format.size;
     let font = format.font;
+    if (!font && pendingNewParagraphFontRef.current) {
+      font = pendingNewParagraphFontRef.current;
+    }
+    if (!font && selection && typeof selection.index === 'number' && selection.index > 0) {
+      for (let i = selection.index - 1; i >= Math.max(0, selection.index - 100); i--) {
+        try {
+          const fmt = quill.getFormat(i, 1);
+          if (fmt && fmt.font && fmt.font !== 'macdinh') {
+            font = fmt.font;
+            break;
+          }
+        } catch { /* ignore */ }
+      }
+    }
     if (disableImageWrap) {
       const fontNode = quill.root.querySelector('[style*="font-family"]');
       const fontFamily = fontNode?.style?.fontFamily;
@@ -2648,6 +2663,19 @@ const QuillWrapper = forwardRef(({
     }
 
     const handleContentChange = (delta) => {
+      if (pendingNewParagraphFontRef.current) {
+        const targetFont = pendingNewParagraphFontRef.current;
+        try {
+          const range = quill.getSelection();
+          if (range && range.index > 0) {
+            const charFmt = quill.getFormat(range.index - 1, 1);
+            if (!charFmt?.font || charFmt.font === 'macdinh') {
+              quill.formatText(range.index - 1, 1, 'font', targetFont, 'user');
+              quill.format('font', targetFont, 'user');
+            }
+          }
+        } catch { /* ignore */ }
+      }
       const ops = Array.isArray(delta?.ops) ? delta.ops : [];
       const hasImageDelta = ops.some((op) => op.insert?.image || op.attributes?.caption || op.attributes?.wrap || op.attributes?.borderRadius);
       const hasListDelta = ops.some((op) => op.attributes?.list);
@@ -2734,14 +2762,20 @@ const QuillWrapper = forwardRef(({
             currentFormat = { ...(quill.getFormat(range) || {}) };
           } catch { /* ignore */ }
 
+          // If current format has no font, search backwards for the nearest formatted text in the block
           if (!currentFormat.font && range.index > 0) {
-            try {
-              const prevFormat = quill.getFormat(range.index - 1, 1);
-              if (prevFormat?.font) currentFormat.font = prevFormat.font;
-              if (!currentFormat.size && prevFormat?.size) currentFormat.size = prevFormat.size;
-              if (!currentFormat.color && prevFormat?.color) currentFormat.color = prevFormat.color;
-              if (!currentFormat.lineHeight && prevFormat?.lineHeight) currentFormat.lineHeight = prevFormat.lineHeight;
-            } catch { /* ignore */ }
+            for (let i = range.index - 1; i >= Math.max(0, range.index - 150); i--) {
+              try {
+                const prevFmt = quill.getFormat(i, 1);
+                if (prevFmt) {
+                  if (!currentFormat.font && prevFmt.font && prevFmt.font !== 'macdinh') currentFormat.font = prevFmt.font;
+                  if (!currentFormat.size && prevFmt.size) currentFormat.size = prevFmt.size;
+                  if (!currentFormat.color && prevFmt.color) currentFormat.color = prevFmt.color;
+                  if (!currentFormat.lineHeight && prevFmt.lineHeight) currentFormat.lineHeight = prevFmt.lineHeight;
+                }
+                if (currentFormat.font) break;
+              } catch { /* ignore */ }
+            }
           }
 
           if (!currentFormat.font) {
@@ -2779,7 +2813,8 @@ const QuillWrapper = forwardRef(({
           const targetLineHeight = currentFormat.lineHeight;
 
           if (targetFont && targetFont !== 'macdinh') {
-            window.setTimeout(() => {
+            pendingNewParagraphFontRef.current = targetFont;
+            const applyPreservedFormat = () => {
               try {
                 const newRange = quill.getSelection();
                 if (newRange) {
@@ -2790,7 +2825,9 @@ const QuillWrapper = forwardRef(({
                   updateSizePickerLabel(newRange);
                 }
               } catch { /* ignore */ }
-            }, 0);
+            };
+            window.setTimeout(applyPreservedFormat, 0);
+            window.setTimeout(applyPreservedFormat, 50);
           }
         } catch { /* ignore */ }
       }
@@ -4025,10 +4062,10 @@ const QuillWrapper = forwardRef(({
     } else if (isMobileAdminViewport() && !isControlPopupOpen) {
       setMobileSelectionToolbar((prev) => prev.visible ? { ...prev, visible: false } : prev);
     }
-    if (commitOnBlurOnly && !isControlPopupOpen) return;
     if (!isEditingControlPopup) {
       updateSizePickerLabel(range);
     }
+    if (commitOnBlurOnly && !isControlPopupOpen) return;
   }, [canUseMobileSelectionToolbar, commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateMobileSelectionToolbarPosition, updateSizePickerLabel]);
 
   useEffect(() => {
