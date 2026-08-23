@@ -2772,6 +2772,25 @@ const QuillWrapper = forwardRef(({
             if (!inlineFormats.font && context.format.font && context.format.font !== 'macdinh') {
               inlineFormats.font = context.format.font;
             }
+            // DOM fallback for disableImageWrap mode (font applied to whole block via formatText)
+            if (!inlineFormats.font) {
+              try {
+                const fontNode = this.quill.root.querySelector('[style*="font-family"]');
+                const fontFamily = fontNode?.style?.fontFamily;
+                if (fontFamily) {
+                  const cleanFamily = fontFamily.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+                  const cleanSlug = cleanFamily.replace(/\s+/g, '-');
+                  // Try to match against known Quill font class
+                  const spans = this.quill.root.querySelectorAll('[class*="ql-font-"]');
+                  if (spans.length > 0) {
+                    const cls = Array.from(spans[0].classList).find(c => c.startsWith('ql-font-'));
+                    if (cls) inlineFormats.font = cls.replace('ql-font-', '');
+                  } else {
+                    inlineFormats.font = cleanSlug;
+                  }
+                }
+              } catch (e2) { /* ignore */ }
+            }
             if (prevFmt?.size) inlineFormats.size = prevFmt.size;
             else if (context.format.size) inlineFormats.size = context.format.size;
 
