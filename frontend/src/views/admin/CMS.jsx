@@ -999,8 +999,10 @@ export default function CMS() {
   };
 
   const isRichConfig = (config) => {
-    const keyLower = String(config.key || "").toLowerCase();
-    return config.type === "richtext" || keyLower.includes("decription") || keyLower.includes("description") || keyLower.includes("content");
+    if (!config) return false;
+    const isSpecialType = ["image", "music", "color"].includes(config.type) || config.key === "faq_list";
+    if (isSpecialType) return false;
+    return true;
   };
 
   const hasMeaningfulHtml = (value) => {
@@ -1201,8 +1203,8 @@ export default function CMS() {
 
 
   const renderEditor = (config, onContentChange) => {
-    const keyLower = config.key.toLowerCase();
-    const isRichText = config.type === "richtext" || keyLower.includes("decription") || keyLower.includes("description") || keyLower.includes("content");
+    const keyLower = String(config.key || "").toLowerCase();
+    const isRichText = isRichConfig(config);
 
     if (config.key === "faq_list") {
       let faqData = [];
