@@ -2407,9 +2407,10 @@ const QuillWrapper = forwardRef(({
     if (!quill || !containerRef.current) return;
 
     let format = {};
+    let selection = null;
     try {
       const hasRangeOverride = rangeOverride && typeof rangeOverride.index === 'number';
-      let selection = hasRangeOverride ? rangeOverride : (quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current);
+      selection = hasRangeOverride ? rangeOverride : (quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current);
       if (!selection && quill.getLength() > 0) {
         selection = { index: 0, length: 0 };
       }
