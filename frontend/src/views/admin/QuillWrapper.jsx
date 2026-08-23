@@ -334,6 +334,93 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
       delay: 700,
       maxStack: 100,
       userOnly: true
+    },
+    keyboard: {
+      bindings: {
+        customEnter: {
+          key: 13,
+          shiftKey: false,
+          handler: function (range, context) {
+            if (context.format.list || context.format['code-block'] || context.format.table) {
+              return true;
+            }
+
+            if (range.length > 0) {
+              this.quill.deleteText(range.index, range.length, 'user');
+            }
+
+            const inlineFormats = {};
+            try {
+              let prevFmt = null;
+              if (range.index > 0) {
+                for (let i = range.index - 1; i >= Math.max(0, range.index - 100); i--) {
+                  const f = this.quill.getFormat(i, 1);
+                  if (f?.font && f.font !== 'macdinh') {
+                    inlineFormats.font = f.font;
+                    break;
+                  }
+                }
+                prevFmt = this.quill.getFormat(range.index - 1, 1);
+              }
+              if (!inlineFormats.font && context.format.font && context.format.font !== 'macdinh') {
+                inlineFormats.font = context.format.font;
+              }
+              if (prevFmt?.size) inlineFormats.size = prevFmt.size;
+              else if (context.format.size) inlineFormats.size = context.format.size;
+
+              if (prevFmt?.color) inlineFormats.color = prevFmt.color;
+              else if (context.format.color) inlineFormats.color = context.format.color;
+
+              if (prevFmt?.lineHeight) inlineFormats.lineHeight = prevFmt.lineHeight;
+              else if (context.format.lineHeight) inlineFormats.lineHeight = context.format.lineHeight;
+            } catch (e) { /* ignore */ }
+
+            const lineFormats = {};
+            if (context.format.align) lineFormats.align = context.format.align;
+            if (context.format.direction) lineFormats.direction = context.format.direction;
+
+            this.quill.insertText(range.index, '\n', lineFormats, 'user');
+            this.quill.setSelection(range.index + 1, 0, 'silent');
+
+            Object.keys(inlineFormats).forEach((name) => {
+              if (inlineFormats[name]) {
+                try {
+                  this.quill.format(name, inlineFormats[name], 'user');
+                } catch (e) { /* ignore */ }
+              }
+            });
+
+            window.setTimeout(() => {
+              try {
+                const container = this.quill.container?.closest('.quill-wrapper-container') || this.quill.container?.parentElement;
+                if (container) {
+                  const fontVal = inlineFormats.font || '';
+                  const fontPickers = container.querySelectorAll('.ql-font.ql-picker');
+                  fontPickers.forEach((picker) => {
+                    const label = picker.querySelector('.ql-picker-label');
+                    const select = picker.querySelector('select.ql-font');
+                    if (label) {
+                      if (fontVal) {
+                        label.setAttribute('data-value', fontVal);
+                        select?.querySelectorAll('option').forEach((opt) => {
+                          opt.selected = opt.value === fontVal;
+                        });
+                      } else {
+                        label.removeAttribute('data-value');
+                        select?.querySelectorAll('option').forEach((opt) => {
+                          opt.selected = opt.value === 'macdinh' || opt.value === '';
+                        });
+                      }
+                    }
+                  });
+                }
+              } catch (e) { /* ignore */ }
+            }, 0);
+
+            return false;
+          }
+        }
+      }
     }
   };
 };
@@ -2738,53 +2825,7 @@ const QuillWrapper = forwardRef(({
       subtree: true,
     });
 
-    if (quill.keyboard) {
-      const enterBinding = {
-        key: 13,
-        handler: function (range, context) {
-          if (!context.format.font && range.index > 0) {
-            for (let i = range.index - 1; i >= Math.max(0, range.index - 100); i--) {
-              try {
-                const prevFmt = this.quill.getFormat(i, 1);
-                if (prevFmt?.font && prevFmt.font !== 'macdinh') {
-                  context.format.font = prevFmt.font;
-                  break;
-                }
-              } catch { /* ignore */ }
-            }
-          }
-          if (!context.format.size && range.index > 0) {
-            try {
-              const prevFmt = this.quill.getFormat(range.index - 1, 1);
-              if (prevFmt?.size) context.format.size = prevFmt.size;
-            } catch { /* ignore */ }
-          }
-          if (!context.format.color && range.index > 0) {
-            try {
-              const prevFmt = this.quill.getFormat(range.index - 1, 1);
-              if (prevFmt?.color) context.format.color = prevFmt.color;
-            } catch { /* ignore */ }
-          }
-          if (!context.format.lineHeight && range.index > 0) {
-            try {
-              const prevFmt = this.quill.getFormat(range.index - 1, 1);
-              if (prevFmt?.lineHeight) context.format.lineHeight = prevFmt.lineHeight;
-            } catch { /* ignore */ }
-          }
-          window.setTimeout(() => {
-            try {
-              updateSizePickerLabel();
-            } catch { /* ignore */ }
-          }, 10);
-          return true;
-        }
-      };
 
-      if (!quill.keyboard.bindings[13]) {
-        quill.keyboard.bindings[13] = [];
-      }
-      quill.keyboard.bindings[13].unshift(enterBinding);
-    }
 
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
