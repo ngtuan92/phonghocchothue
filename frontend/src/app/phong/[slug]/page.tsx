@@ -737,7 +737,6 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
-                        preserveNbsp
                       />
                     ) : (
                       formatNumber(toNumber(productData.product.contains) || 0)
@@ -758,7 +757,6 @@ export default function DetailPage() {
                         lineHeightMobile={product.lineHeightMobile}
                         translateY={product.translateY}
                         translateYMobile={product.translateYMobile}
-                        preserveNbsp
                       />
                     ) : (
                       productData.product.equipment
@@ -779,7 +777,6 @@ export default function DetailPage() {
                       lineHeightMobile={product.lineHeightMobile}
                       translateY={product.translateY}
                       translateYMobile={product.translateYMobile}
-                      preserveNbsp
                     />
                   ) : (
                     formatPlainPrice(productData.product.price)
