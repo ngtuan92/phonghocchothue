@@ -386,7 +386,7 @@ const Describe = () => {
                             />
                         </div>
 
-                        <div className="describe-mobile-meta w-[calc(100%+2.0rem)] mt-0 relative z-10">
+                        <div className="describe-mobile-meta w-[calc(100%+4.5rem)] max-w-[420px] mt-0 relative z-10">
                             <div className="describe-mobile-meta-item">
                                 <div className="text-[10px] font-bold text-[#563c39] whitespace-nowrap flex items-center w-full">
                                     <RichTextRenderer
