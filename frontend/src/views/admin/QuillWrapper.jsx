@@ -5044,7 +5044,7 @@ const QuillWrapper = forwardRef(({
             return;
           }
 
-          const range = quill.getSelection() || savedSelectionRef.current;
+          const range = quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
           const alignValue = (!value || value === 'left') ? false : value;
           if (range) {
             try {
@@ -5055,7 +5055,7 @@ const QuillWrapper = forwardRef(({
           quill.format('align', alignValue, 'user');
 
           try {
-            const sel = range || quill.getSelection();
+            const sel = range || quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
             if (sel) {
               const [line] = quill.getLine(sel.index);
               if (line?.domNode) {
