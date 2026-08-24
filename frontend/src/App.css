@@ -239,6 +239,22 @@
   transform-origin: top center;
 }
 
+@media (max-width: 639px) {
+  .describe-anchor-mobile .title-main-text,
+  .describe-anchor-mobile .title-main-text * {
+    max-width: none !important;
+    overflow: visible !important;
+  }
+  .describe-anchor-mobile .title-main-text p,
+  .describe-anchor-mobile .title-main-text h1,
+  .describe-anchor-mobile .title-main-text h2,
+  .describe-anchor-mobile .title-main-text div {
+    width: max-content !important;
+    max-width: 420px !important;
+    white-space: nowrap !important;
+  }
+}
+
 /* Match both text edges and the center axis between admin and public blog pages.
    The remaining value accounts for the admin layout, page and form paddings. */
 .blog-edit-page {

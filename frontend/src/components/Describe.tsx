@@ -368,11 +368,11 @@ const Describe = () => {
                                 />
                             </div>
 
-                            <div className="relative z-10 w-full flex justify-center -translate-y-1">
+                            <div className="relative z-10 w-[calc(100%+5rem)] max-w-[420px] flex justify-center -translate-y-1 overflow-visible">
                                 <RichTextRenderer
                                     html={cleanHeadingHtml(replaceTagName(describeHeading, "div"))}
                                     configKey="describe-heading"
-                                    className="title-main-text text-center mx-auto w-max transform translate-x-[1px]"
+                                    className="title-main-text text-center mx-auto w-max max-w-none transform translate-x-[1px]"
                                 />
                             </div>
                         </div>
