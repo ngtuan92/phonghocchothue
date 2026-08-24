@@ -137,7 +137,7 @@ const decorateRichTextWithControls = (html, controls = {}) => {
   return root.innerHTML;
 };
 
-function LazyQuillWrapper({ minHeight = "120px", ...props }) {
+const LazyQuillWrapper = React.memo(function LazyQuillWrapper({ minHeight = "120px", ...props }) {
   const [shouldRender, setShouldRender] = useState(false);
   const containerRef = React.useRef(null);
   const cancelQueuedMountRef = React.useRef(null);
@@ -213,7 +213,9 @@ function LazyQuillWrapper({ minHeight = "120px", ...props }) {
       )}
     </div>
   );
-}
+});
+
+LazyQuillWrapper.displayName = "LazyQuillWrapper";
 
 const DraftTextField = React.memo(function DraftTextField({
   value = "",

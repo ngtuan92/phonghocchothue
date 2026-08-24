@@ -2339,11 +2339,28 @@ const QuillWrapper = forwardRef(({
     removeEmptyQuillParagraphElements(editor);
   }, []);
 
-  const syncUnwrappedParagraphs = useCallback(() => {
+  const syncUnwrappedParagraphs = useCallback((targetP = null) => {
     const editor = containerRef.current?.querySelector('.ql-editor');
     if (!editor) return;
 
-    const paragraphs = editor.querySelectorAll('p');
+    let paragraphs;
+    if (targetP && targetP.tagName === 'P') {
+      paragraphs = [targetP];
+    } else {
+      const sel = typeof window !== 'undefined' ? window.getSelection() : null;
+      let activeP = null;
+      if (sel && sel.anchorNode) {
+        activeP = sel.anchorNode.nodeType === 3
+          ? sel.anchorNode.parentElement?.closest('p')
+          : sel.anchorNode.closest?.('p');
+      }
+      if (activeP && editor.contains(activeP)) {
+        paragraphs = [activeP];
+      } else {
+        paragraphs = editor.querySelectorAll('p');
+      }
+    }
+
     paragraphs.forEach((p) => {
       const text = p.textContent || '';
       if (!text.trim()) return;
