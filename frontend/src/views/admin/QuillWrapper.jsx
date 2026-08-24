@@ -2403,6 +2403,48 @@ const QuillWrapper = forwardRef(({
     }
   }, [getVisibleImageRect, resolveImageElement]);
 
+  const resolveFontFromDomNode = useCallback((node) => {
+    if (!node) return null;
+    const target = node.nodeType === 1 ? node : node.parentElement;
+    if (!target) return null;
+
+    const el = target.closest?.('[class*="ql-font-"], [style*="font-family"]') ||
+               target.querySelector?.('[class*="ql-font-"], [style*="font-family"]');
+    if (!el) return null;
+
+    if (el.classList) {
+      const cls = Array.from(el.classList).find(c => c.startsWith('ql-font-'));
+      if (cls) return cls.replace('ql-font-', '');
+    }
+
+    const fontFamily = el.style?.fontFamily || el.getAttribute?.('style');
+    if (fontFamily) {
+      const match = typeof fontFamily === 'string' && fontFamily.includes(':')
+        ? fontFamily.match(/font-family\s*:\s*([^;]+)/i)?.[1]
+        : fontFamily;
+      if (match) {
+        const cleanVal = match.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+        const cleanSlug = cleanVal.replace(/\s+/g, '-');
+        if (cleanVal === 'inter' || cleanVal === 'macdinh') return 'macdinh';
+
+        const fontList = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
+        const matched = fontList.find(f =>
+          f.slug.toLowerCase() === cleanVal ||
+          f.slug.toLowerCase() === cleanSlug ||
+          (f.name && slugify(f.name) === cleanVal) ||
+          (f.name && slugify(f.name) === cleanSlug) ||
+          (f.family && slugify(f.family) === cleanVal) ||
+          (f.family && slugify(f.family) === cleanSlug) ||
+          (f.name && f.name.toLowerCase() === cleanVal) ||
+          (f.family && f.family.toLowerCase() === cleanVal)
+        );
+        if (matched) return matched.slug;
+        return cleanSlug;
+      }
+    }
+    return null;
+  }, [dynamicFonts]);
+
   const updateSizePickerLabel = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
     if (!quill || !containerRef.current) return;
@@ -2426,6 +2468,20 @@ const QuillWrapper = forwardRef(({
     if (!font && pendingNewParagraphFontRef.current) {
       font = pendingNewParagraphFontRef.current;
     }
+    if (!font && selection && typeof selection.index === 'number') {
+      try {
+        const [currentLine] = quill.getLine(selection.index);
+        if (currentLine) {
+          font = resolveFontFromDomNode(currentLine.domNode);
+          if (!font && currentLine.prev) {
+            font = resolveFontFromDomNode(currentLine.prev.domNode);
+          }
+          if (!font && currentLine.next) {
+            font = resolveFontFromDomNode(currentLine.next.domNode);
+          }
+        }
+      } catch { /* ignore */ }
+    }
     if (!font && selection && typeof selection.index === 'number' && selection.index > 0) {
       for (let i = selection.index - 1; i >= Math.max(0, selection.index - 100); i--) {
         try {
@@ -2437,25 +2493,12 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     }
-    if (disableImageWrap) {
+    if (!font && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
+      font = lastActiveFormatsRef.current.font;
+    }
+    if (disableImageWrap && !font) {
       const fontNode = quill.root.querySelector('[style*="font-family"]');
-      const fontFamily = fontNode?.style?.fontFamily;
-      if (fontFamily) {
-        const cleanFamily = fontFamily.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
-        const cleanSlug = cleanFamily.replace(/\s+/g, '-');
-        const fontList = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
-        const matchedFont = fontList.find((item) => {
-          const candidates = [
-            item.slug,
-            item.name,
-            item.family,
-            slugify(item.name || ''),
-            slugify(item.family || '')
-          ].filter(Boolean).map((candidate) => String(candidate).toLowerCase());
-          return candidates.includes(cleanFamily) || candidates.includes(cleanSlug);
-        });
-        font = matchedFont ? matchedFont.slug : DEFAULT_FONT_VALUE;
-      }
+      font = resolveFontFromDomNode(fontNode) || DEFAULT_FONT_VALUE;
     }
     const container = containerRef.current;
     if (!container) return;
@@ -2818,7 +2861,18 @@ const QuillWrapper = forwardRef(({
           const inlineFormats = {};
           try {
             let prevFmt = null;
-            if (range.index > 0) {
+            if (range && typeof range.index === 'number') {
+              try {
+                const [currentLine] = this.quill.getLine(range.index);
+                if (currentLine) {
+                  inlineFormats.font = resolveFontFromDomNode(currentLine.domNode);
+                  if (!inlineFormats.font && currentLine.prev) {
+                    inlineFormats.font = resolveFontFromDomNode(currentLine.prev.domNode);
+                  }
+                }
+              } catch { /* ignore */ }
+            }
+            if (!inlineFormats.font && range.index > 0) {
               for (let i = range.index - 1; i >= Math.max(0, range.index - 100); i--) {
                 const f = this.quill.getFormat(i, 1);
                 if (f?.font && f.font !== 'macdinh') {
@@ -2831,23 +2885,13 @@ const QuillWrapper = forwardRef(({
             if (!inlineFormats.font && context.format.font && context.format.font !== 'macdinh') {
               inlineFormats.font = context.format.font;
             }
-            // DOM fallback for disableImageWrap mode (font applied to whole block via formatText)
+            if (!inlineFormats.font && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
+              inlineFormats.font = lastActiveFormatsRef.current.font;
+            }
             if (!inlineFormats.font) {
               try {
-                const fontNode = this.quill.root.querySelector('[style*="font-family"]');
-                const fontFamily = fontNode?.style?.fontFamily;
-                if (fontFamily) {
-                  const cleanFamily = fontFamily.replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
-                  const cleanSlug = cleanFamily.replace(/\s+/g, '-');
-                  // Try to match against known Quill font class
-                  const spans = this.quill.root.querySelectorAll('[class*="ql-font-"]');
-                  if (spans.length > 0) {
-                    const cls = Array.from(spans[0].classList).find(c => c.startsWith('ql-font-'));
-                    if (cls) inlineFormats.font = cls.replace('ql-font-', '');
-                  } else {
-                    inlineFormats.font = cleanSlug;
-                  }
-                }
+                const fontNode = this.quill.root.querySelector('[style*="font-family"], [class*="ql-font-"]');
+                inlineFormats.font = resolveFontFromDomNode(fontNode);
               } catch (e2) { /* ignore */ }
             }
             if (prevFmt?.size) inlineFormats.size = prevFmt.size;
