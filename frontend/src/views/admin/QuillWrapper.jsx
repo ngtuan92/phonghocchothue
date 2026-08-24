@@ -2823,6 +2823,48 @@ const QuillWrapper = forwardRef(({
         }
       }
     });
+
+    try {
+      const alignPicker = container.querySelector('.ql-picker.ql-align');
+      if (alignPicker) {
+        let currentAlign = 'left';
+        const effectiveSelection = selection || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+        if (effectiveSelection && typeof effectiveSelection.index === 'number') {
+          const [currentLine] = quill.getLine(effectiveSelection.index);
+          if (currentLine?.domNode) {
+            const dom = currentLine.domNode;
+            const styleAlign = dom.style?.textAlign || dom.style?.getPropertyValue('text-align');
+            if (styleAlign === 'right' || dom.classList.contains('ql-align-right')) currentAlign = 'right';
+            else if (styleAlign === 'center' || dom.classList.contains('ql-align-center')) currentAlign = 'center';
+            else if (styleAlign === 'justify' || dom.classList.contains('ql-align-justify')) currentAlign = 'justify';
+          }
+          if (currentAlign === 'left') {
+            const fmt = quill.getFormat(effectiveSelection);
+            if (fmt?.align) currentAlign = fmt.align;
+          }
+        }
+        const targetDataValue = currentAlign === 'left' ? '' : currentAlign;
+        const items = alignPicker.querySelectorAll('.ql-picker-item');
+        let activeItem = null;
+        items.forEach((item) => {
+          const val = item.getAttribute('data-value') || '';
+          if (val === targetDataValue) {
+            item.classList.add('ql-selected');
+            activeItem = item;
+          } else {
+            item.classList.remove('ql-selected');
+          }
+        });
+        const label = alignPicker.querySelector('.ql-picker-label');
+        if (label && activeItem) {
+          const activeSvg = activeItem.querySelector('svg');
+          const labelSvg = label.querySelector('svg');
+          if (activeSvg && labelSvg) {
+            labelSvg.innerHTML = activeSvg.innerHTML;
+          }
+        }
+      }
+    } catch { /* ignore */ }
   }, [disableImageWrap, dynamicFonts, getQuillEditor]);
 
   useEffect(() => {
@@ -2856,6 +2898,7 @@ const QuillWrapper = forwardRef(({
               lastHighlightSelectionRef.current = sel;
             }
           }
+          updateSizePickerLabel(sel);
         }
         if (hasOpenControlPopup() && !isCustomControlTarget(e.target)) {
           if (isPickerTarget) {
@@ -5073,6 +5116,7 @@ const QuillWrapper = forwardRef(({
             try {
               localEditorHtmlRef.current = quill.root.innerHTML;
               toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              updateSizePickerLabel();
             } catch { /* ignore */ }
           }, 0);
         },
