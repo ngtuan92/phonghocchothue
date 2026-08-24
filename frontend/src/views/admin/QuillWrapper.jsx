@@ -2967,6 +2967,44 @@ const QuillWrapper = forwardRef(({
       subtree: true,
     });
 
+    const handleSelectionChange = (range) => {
+      if (!range || range.length !== 0) return;
+      try {
+        const [currentLine] = quill.getLine(range.index);
+        if (currentLine && currentLine.length() <= 1) {
+          let targetFont = null;
+          let targetSize = null;
+          let targetColor = null;
+
+          if (currentLine.prev) {
+            targetFont = resolveFontFromDomNode(currentLine.prev.domNode);
+            const styles = resolveInlineStylesFromDomNode(currentLine.prev.domNode);
+            if (styles) {
+              if (!targetFont && styles.font) targetFont = styles.font;
+              targetSize = styles.size;
+              targetColor = styles.color;
+            }
+          }
+          if (!targetFont && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
+            targetFont = lastActiveFormatsRef.current.font;
+          }
+
+          if (targetFont && targetFont !== 'macdinh') {
+            quill.format('font', targetFont, 'user');
+            if (targetSize) quill.format('size', targetSize, 'user');
+            if (targetColor) quill.format('color', targetColor, 'user');
+            lastActiveFormatsRef.current = {
+              font: targetFont,
+              size: targetSize || lastActiveFormatsRef.current?.size,
+              color: targetColor || lastActiveFormatsRef.current?.color,
+            };
+          }
+        }
+      } catch (err) { /* ignore */ }
+    };
+
+    quill.on('selection-change', handleSelectionChange);
+
     if (quill.keyboard && Array.isArray(quill.keyboard.bindings[13])) {
       quill.keyboard.bindings[13] = quill.keyboard.bindings[13].filter(b => !b._isCustomEnter);
 
@@ -3037,7 +3075,7 @@ const QuillWrapper = forwardRef(({
 
           // Insert exactly ONE newline
           this.quill.insertText(range.index, '\n', lineFormats, 'user');
-          this.quill.setSelection(range.index + 1, 0, 'silent');
+          this.quill.setSelection(range.index + 1, 0, 'user');
 
           if (inlineFormats.font) {
             lastActiveFormatsRef.current = { ...inlineFormats };
@@ -3191,6 +3229,7 @@ const QuillWrapper = forwardRef(({
       container.querySelectorAll('.editor-inline-image-caption').forEach((el) => el.remove());
       document.querySelectorAll('.editor-inline-image-caption-preview').forEach((el) => el.remove());
       quill.root.removeEventListener('input', handleRootInput, true);
+      quill.off('selection-change', handleSelectionChange);
       quill.off('text-change', handleAutoInheritFormatsOnTextChange);
       quill.off('text-change', syncUnwrappedParagraphs);
       quill.off('text-change', updateSizePickerLabel);
