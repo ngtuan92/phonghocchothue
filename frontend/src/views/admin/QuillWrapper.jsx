@@ -7905,13 +7905,22 @@ const QuillWrapper = forwardRef(({
           padding-right: 20px !important;
           text-overflow: ellipsis !important;
           white-space: nowrap !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          height: 100% !important;
+          line-height: 24px !important;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label::before {
-          display: block !important;
+          display: inline-block !important;
           max-width: 100% !important;
           overflow: hidden !important;
           text-overflow: ellipsis !important;
           white-space: nowrap !important;
+          line-height: 1.2 !important;
+          vertical-align: middle !important;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+          font-size: 13px !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before {
           content: 'Inter' !important;
@@ -7966,7 +7975,11 @@ const QuillWrapper = forwardRef(({
             font-family: '${escapeCssString(font.family)}', '${escapeCssString(font.slug)}', sans-serif !important;
           }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before { 
+            content: '${escapeCssString(font.name)}' !important; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            font-size: 13px !important;
+          }
           .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before { 
             content: '${escapeCssString(font.name)}' !important; 
             font-family: '${escapeCssString(font.family)}', '${escapeCssString(font.slug)}', sans-serif !important;
