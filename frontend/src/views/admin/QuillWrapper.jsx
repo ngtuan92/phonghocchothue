@@ -3176,14 +3176,17 @@ const QuillWrapper = forwardRef(({
           const insertLen = op.insert.length;
           const attrs = op.attributes || {};
           let targetFont = activeFormats?.font;
+          console.log('[FONT-DEBUG] text-change insert:', JSON.stringify(op.insert), 'pos:', pos, 'activeFormats:', JSON.stringify(activeFormats), 'attrs.font:', attrs.font);
           if (!targetFont) {
             try {
               const [currentLine] = quill.getLine(pos);
               if (currentLine) {
                 targetFont = resolveFontFromDomNode(currentLine.domNode);
+                console.log('[FONT-DEBUG] currentLine font:', targetFont, 'domNode:', currentLine.domNode?.innerHTML?.slice(0, 100));
                 let line = currentLine.prev;
                 while (line && !targetFont) {
                   targetFont = resolveFontFromDomNode(line.domNode);
+                  console.log('[FONT-DEBUG] prev line font:', targetFont, 'domNode:', line.domNode?.innerHTML?.slice(0, 100));
                   line = line.prev;
                 }
               }
@@ -3193,6 +3196,7 @@ const QuillWrapper = forwardRef(({
                 const fmt = quill.getFormat(i, 1);
                 if (fmt?.font && fmt.font !== 'macdinh') {
                   targetFont = fmt.font;
+                  console.log('[FONT-DEBUG] found font via getFormat at pos', i, ':', targetFont);
                   break;
                 }
               }
@@ -3201,6 +3205,7 @@ const QuillWrapper = forwardRef(({
               try {
                 const fontNode = quill.root.querySelector('[style*="font-family"], [class*="ql-font-"]');
                 if (fontNode) targetFont = resolveFontFromDomNode(fontNode);
+                console.log('[FONT-DEBUG] fontNode querySelector result:', targetFont, fontNode?.style?.fontFamily);
               } catch { /* ignore */ }
             }
             if (targetFont && targetFont !== 'macdinh') {
@@ -3210,11 +3215,13 @@ const QuillWrapper = forwardRef(({
             }
           }
 
+          console.log('[FONT-DEBUG] final targetFont:', targetFont, 'will format:', !!(targetFont && (!attrs.font || attrs.font === 'macdinh')));
           if (targetFont && (!attrs.font || attrs.font === 'macdinh')) {
             try {
               quill.formatText(pos, insertLen, 'font', targetFont, 'user');
               formattedAny = true;
-            } catch { /* ignore */ }
+              console.log('[FONT-DEBUG] formatText called, checking DOM result:', quill.getLine(pos)?.[0]?.domNode?.innerHTML?.slice(0, 150));
+            } catch (err) { console.log('[FONT-DEBUG] formatText ERROR:', err); }
           }
           if (activeFormats.size && !attrs.size) {
             try {
