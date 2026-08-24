@@ -51,6 +51,21 @@ const cleanWatermarkHtml = (html: string | undefined) => {
     return cleaned.trim();
 };
 
+const cleanMobileMetaHtml = (html: string | undefined) => {
+    if (!html) return "";
+    let cleaned = html.replace(/\u00a0/g, " ");
+    cleaned = cleaned
+        .replace(/(?:&nbsp;|\s)+<\/strong>/gi, "</strong>")
+        .replace(/<strong([^>]*)>(?:&nbsp;|\s)+/gi, "<strong$1>")
+        .replace(/(?:&nbsp;|\s)+<\/span>/gi, "</span>")
+        .replace(/<span([^>]*)>(?:&nbsp;|\s)+/gi, "<span$1>")
+        .replace(/(?:&nbsp;|\s)+<\/p>/gi, "</p>")
+        .replace(/<p([^>]*)>(?:&nbsp;|\s)+/gi, "<p$1>")
+        .replace(/(?:&nbsp;|\s)+<\/div>/gi, "</div>")
+        .replace(/<div([^>]*)>(?:&nbsp;|\s)+/gi, "<div$1>");
+    return cleaned.trim();
+};
+
 const cleanHeadingHtml = (html: string | undefined) => {
     if (!html) return "";
     let cleaned = html.replace(/\u00a0/g, " ");
@@ -390,21 +405,21 @@ const Describe = () => {
                             <div className="describe-mobile-meta-item">
                                 <div className="text-[10px] font-bold text-[#563c39] whitespace-nowrap flex items-center w-full">
                                     <RichTextRenderer
-                                        html={describePhone}
+                                        html={cleanMobileMetaHtml(describePhone)}
                                         configKey="describe-phone"
                                         className="block [&_*]:m-0 [&_*]:p-0 !tracking-normal [&_*]:!tracking-normal hero-phone-text"
                                         as="div"
-                                        preserveNbsp={true}
+                                        preserveNbsp={false}
                                     />
                                 </div>
                             </div>
                             <div className="hero-slogan-container describe-mobile-meta-item">
                                 <RichTextRenderer
-                                    html={describeQuoteText}
+                                    html={cleanMobileMetaHtml(describeQuoteText)}
                                     configKey="describe-quote-text"
                                     className="block [&_*]:m-0 [&_*]:p-0 text-[10px] !tracking-normal [&_*]:!tracking-normal hero-slogan-text"
                                     as="div"
-                                    preserveNbsp={true}
+                                    preserveNbsp={false}
                                 />
                             </div>
                         </div>
