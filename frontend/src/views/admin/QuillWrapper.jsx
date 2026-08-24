@@ -3106,7 +3106,7 @@ const QuillWrapper = forwardRef(({
 
           if (targetFont && (!attrs.font || attrs.font === 'macdinh')) {
             try {
-              quill.formatText(pos, insertLen, 'font', targetFont, 'silent');
+              quill.formatText(pos, insertLen, 'font', targetFont, 'user');
               formattedAny = true;
             } catch { /* ignore */ }
           }
@@ -3555,13 +3555,26 @@ const QuillWrapper = forwardRef(({
 
                   const originalAdd = FontStyle.add;
                   FontStyle.add = function (domNode, value) {
-                    if (originalAdd) originalAdd.call(this, domNode, value);
-                    if (domNode && domNode.classList) {
-                      Array.from(domNode.classList).forEach(c => {
-                        if (c.startsWith('ql-font-')) domNode.classList.remove(c);
-                      });
-                      if (value && value !== 'macdinh') {
-                        domNode.classList.add(`ql-font-${value}`);
+                    if (originalAdd) {
+                      try {
+                        originalAdd.call(this, domNode, value);
+                      } catch { /* ignore */ }
+                    }
+                    if (domNode) {
+                      if (domNode.style) {
+                        if (value && value !== 'macdinh') {
+                          domNode.style.setProperty('font-family', value);
+                        } else {
+                          domNode.style.removeProperty('font-family');
+                        }
+                      }
+                      if (domNode.classList) {
+                        Array.from(domNode.classList).forEach(c => {
+                          if (c.startsWith('ql-font-')) domNode.classList.remove(c);
+                        });
+                        if (value && value !== 'macdinh') {
+                          domNode.classList.add(`ql-font-${value}`);
+                        }
                       }
                     }
                     return true;
