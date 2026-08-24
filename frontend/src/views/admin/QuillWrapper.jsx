@@ -2356,6 +2356,7 @@ const QuillWrapper = forwardRef(({
       let prevFsMobile = null;
       let prevColor = null;
 
+      // 1. Scan upwards (previous siblings)
       let prevEl = p.previousElementSibling;
       while (prevEl) {
         const prevSpan = prevEl.querySelector?.('span[style*="font-family"], [class*="ql-font-"]') ||
@@ -2374,8 +2375,53 @@ const QuillWrapper = forwardRef(({
         prevEl = prevEl.previousElementSibling;
       }
 
+      // 2. Scan downwards (next siblings) if not found above
+      if (!prevFontFamily) {
+        let nextEl = p.nextElementSibling;
+        while (nextEl) {
+          const nextSpan = nextEl.querySelector?.('span[style*="font-family"], [class*="ql-font-"]') ||
+                           (nextEl.matches?.('span[style*="font-family"], [class*="ql-font-"]') ? nextEl : null);
+          if (nextSpan) {
+            prevFontFamily = nextSpan.style?.fontFamily || '';
+            if (!prevFontFamily && nextSpan.classList) {
+              const cls = Array.from(nextSpan.classList).find(c => c.startsWith('ql-font-'));
+              if (cls) prevFontFamily = cls.replace('ql-font-', '');
+            }
+            if (!prevFsDesktop) prevFsDesktop = nextSpan.style?.getPropertyValue('--fs-desktop') || '';
+            if (!prevFsMobile) prevFsMobile = nextSpan.style?.getPropertyValue('--fs-mobile') || '';
+            if (!prevColor) prevColor = nextSpan.style?.color || '';
+            break;
+          }
+          nextEl = nextEl.nextElementSibling;
+        }
+      }
+
+      // 3. Scan entire editor document for any formatted span
+      if (!prevFontFamily) {
+        const docSpan = editor.querySelector('span[style*="font-family"], [class*="ql-font-"]');
+        if (docSpan) {
+          prevFontFamily = docSpan.style?.fontFamily || '';
+          if (!prevFontFamily && docSpan.classList) {
+            const cls = Array.from(docSpan.classList).find(c => c.startsWith('ql-font-'));
+            if (cls) prevFontFamily = cls.replace('ql-font-', '');
+          }
+          if (!prevFsDesktop) prevFsDesktop = docSpan.style?.getPropertyValue('--fs-desktop') || '';
+          if (!prevFsMobile) prevFsMobile = docSpan.style?.getPropertyValue('--fs-mobile') || '';
+          if (!prevColor) prevColor = docSpan.style?.color || '';
+        }
+      }
+
+      // 4. Fallback to lastActiveFormatsRef
       if (!prevFontFamily && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
         prevFontFamily = lastActiveFormatsRef.current.font;
+      }
+
+      // 5. Fallback to active toolbar picker
+      if (!prevFontFamily) {
+        const pickerVal = containerRef.current?.querySelector('.ql-font .ql-picker-label')?.getAttribute('data-value');
+        if (pickerVal && pickerVal !== 'macdinh' && pickerVal !== 'inter') {
+          prevFontFamily = pickerVal;
+        }
       }
 
       if (prevFontFamily) {
@@ -4459,7 +4505,8 @@ const QuillWrapper = forwardRef(({
       const quillRoot = editor?.root || getQuillEditor()?.root;
 
       if (commitOnBlurOnly) {
-        const draftContent = content || quillRoot?.innerHTML || "";
+        syncUnwrappedParagraphs();
+        const draftContent = quillRoot?.innerHTML || content || "";
         isUserEditingRef.current = true;
         localEditorHtmlRef.current = draftContent;
         const selectionAfterChange = (() => {
@@ -4506,6 +4553,7 @@ const QuillWrapper = forwardRef(({
       if (quillRoot) {
         syncListItemFontSizeFromChildren(quillRoot);
       }
+      syncUnwrappedParagraphs();
       const syncedContent = quillRoot?.innerHTML || content;
       isUserEditingRef.current = true;
       localEditorHtmlRef.current = syncedContent;
