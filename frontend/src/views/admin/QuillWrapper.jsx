@@ -3259,7 +3259,9 @@ const QuillWrapper = forwardRef(({
       }
     };
 
-    console.log('[FONT-DEBUG-INIT] Registering text-change listeners on quill:', !!quill);
+    const debugInstanceId = Math.random().toString(36).slice(2, 6);
+    console.log('[FONT-DEBUG-INIT] Registering text-change listeners on quill:', !!quill, 'instanceId:', debugInstanceId);
+    quill.on('text-change', (d, o, s) => { console.log('[FONT-DEBUG-BARE]', debugInstanceId, 'source:', s, 'ops:', JSON.stringify(d?.ops?.slice(0,2))); });
     quill.on('text-change', handleAutoInheritFormatsOnTextChange);
     quill.on('text-change', syncUnwrappedParagraphs);
     quill.on('text-change', updateSizePickerLabel);
