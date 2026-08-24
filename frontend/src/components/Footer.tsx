@@ -13,6 +13,8 @@ import { stripHtmlAndCss } from "../utils/seoHelpers";
 const Footer = () => {
   const bgFt = useConfigContentByKey("color-bg-footer");
   const nameBrand = useConfigContentByKey("nameBrand");
+  const footerContactTitle =
+    useConfigContentByKey("footer-contact-title") || "<p>LIÊN HỆ</p>";
   const address = useConfigContentByKey("address");
   const phone = useConfigContentByKey("phone");
   const email = useConfigContentByKey("email");
@@ -28,9 +30,9 @@ const Footer = () => {
           <RichTextRenderer html={nameBrand} configKey="nameBrand" />
         </div>
         <div className="w-full px-0.5 md:px-0 md:w-auto">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 underline">
-            LIÊN HỆ
-          </h2>
+          <div className="text-xl sm:text-2xl font-bold mb-4 underline footer-contact-title">
+            <RichTextRenderer html={footerContactTitle} configKey="footer-contact-title" />
+          </div>
           {address && (
             <div className="flex items-center my-3">
               <FontAwesomeIcon

@@ -284,6 +284,7 @@ const SECTION_KEY_MAP = {
 
 
 const KEY_LABEL_MAP = {
+  "footer-contact-title": "Tiêu đề Liên hệ ở footer",
   "describe-heading": "Tiêu đề nghệ thuật chính (H1)",
   "describe-bg-text": "Chữ nền nghệ thuật (Ví dụ: HOAHOCTRO)",
   "seo-h1-main": "Phòng Học Cho Thuê / Tiêu đề SEO (H1)",
@@ -1186,7 +1187,7 @@ export default function CMS() {
     }
 
     if (activeSection === "general") {
-      const generalPreferredOrder = ["textNotication", "textBtnNotication", "linkNotication", "color-btn-purple", "color-btn-purple-hover"];
+      const generalPreferredOrder = ["textNotication", "textBtnNotication", "linkNotication", "footer-contact-title", "color-btn-purple", "color-btn-purple-hover"];
       return filtered.sort((a, b) => {
         const idxA = generalPreferredOrder.indexOf(a.key);
         const idxB = generalPreferredOrder.indexOf(b.key);
