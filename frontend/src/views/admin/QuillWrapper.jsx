@@ -3210,7 +3210,6 @@ const QuillWrapper = forwardRef(({
     }
 
     const handleAutoInheritFormatsOnTextChange = (delta, oldDelta, source) => {
-      console.log('[FONT-DEBUG-RAW] text-change fired, source:', source, 'ops:', JSON.stringify(delta?.ops?.slice(0,3)));
       if (source !== 'user' || !delta || !Array.isArray(delta.ops)) return;
       let activeFormats = lastActiveFormatsRef.current;
 
@@ -3223,17 +3222,14 @@ const QuillWrapper = forwardRef(({
           const insertLen = op.insert.length;
           const attrs = op.attributes || {};
           let targetFont = activeFormats?.font;
-          console.log('[FONT-DEBUG] text-change insert:', JSON.stringify(op.insert), 'pos:', pos, 'activeFormats:', JSON.stringify(activeFormats), 'attrs.font:', attrs.font);
           if (!targetFont) {
             try {
               const [currentLine] = quill.getLine(pos);
               if (currentLine) {
                 targetFont = resolveFontFromDomNode(currentLine.domNode);
-                console.log('[FONT-DEBUG] currentLine font:', targetFont, 'domNode:', currentLine.domNode?.innerHTML?.slice(0, 100));
                 let line = currentLine.prev;
                 while (line && !targetFont) {
                   targetFont = resolveFontFromDomNode(line.domNode);
-                  console.log('[FONT-DEBUG] prev line font:', targetFont, 'domNode:', line.domNode?.innerHTML?.slice(0, 100));
                   line = line.prev;
                 }
               }
@@ -3243,7 +3239,6 @@ const QuillWrapper = forwardRef(({
                 const fmt = quill.getFormat(i, 1);
                 if (fmt?.font && fmt.font !== 'macdinh') {
                   targetFont = fmt.font;
-                  console.log('[FONT-DEBUG] found font via getFormat at pos', i, ':', targetFont);
                   break;
                 }
               }
@@ -3252,7 +3247,6 @@ const QuillWrapper = forwardRef(({
               try {
                 const fontNode = quill.root.querySelector('[style*="font-family"], [class*="ql-font-"]');
                 if (fontNode) targetFont = resolveFontFromDomNode(fontNode);
-                console.log('[FONT-DEBUG] fontNode querySelector result:', targetFont, fontNode?.style?.fontFamily);
               } catch { /* ignore */ }
             }
             if (targetFont && targetFont !== 'macdinh') {
@@ -3262,13 +3256,11 @@ const QuillWrapper = forwardRef(({
             }
           }
 
-          console.log('[FONT-DEBUG] final targetFont:', targetFont, 'will format:', !!(targetFont && (!attrs.font || attrs.font === 'macdinh')));
           if (targetFont && (!attrs.font || attrs.font === 'macdinh')) {
             try {
               quill.formatText(pos, insertLen, 'font', targetFont, 'user');
               formattedAny = true;
-              console.log('[FONT-DEBUG] formatText called, checking DOM result:', quill.getLine(pos)?.[0]?.domNode?.innerHTML?.slice(0, 150));
-            } catch (err) { console.log('[FONT-DEBUG] formatText ERROR:', err); }
+            } catch { /* ignore */ }
           }
           if (activeFormats.size && !attrs.size) {
             try {
@@ -3305,9 +3297,6 @@ const QuillWrapper = forwardRef(({
       }
     };
 
-    const debugInstanceId = Math.random().toString(36).slice(2, 6);
-    console.log('[FONT-DEBUG-INIT] Registering text-change listeners on quill:', !!quill, 'instanceId:', debugInstanceId);
-    quill.on('text-change', (d, o, s) => { console.log('[FONT-DEBUG-BARE]', debugInstanceId, 'source:', s, 'ops:', JSON.stringify(d?.ops?.slice(0,2))); });
     quill.on('text-change', handleAutoInheritFormatsOnTextChange);
     quill.on('text-change', syncUnwrappedParagraphs);
     quill.on('text-change', updateSizePickerLabel);
