@@ -5045,12 +5045,30 @@ const QuillWrapper = forwardRef(({
           }
 
           const range = quill.getSelection() || savedSelectionRef.current;
+          const alignValue = (!value || value === 'left') ? false : value;
           if (range) {
             try {
               setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+              quill.formatLine(range.index, Math.max(range.length, 1), 'align', alignValue, 'user');
             } catch { /* ignore */ }
           }
-          quill.format('align', value, 'user');
+          quill.format('align', alignValue, 'user');
+
+          try {
+            const sel = range || quill.getSelection();
+            if (sel) {
+              const [line] = quill.getLine(sel.index);
+              if (line?.domNode) {
+                if (alignValue) {
+                  line.domNode.style.textAlign = alignValue;
+                } else {
+                  line.domNode.style.removeProperty('text-align');
+                  line.domNode.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+                }
+              }
+            }
+          } catch { /* ignore */ }
+
           window.setTimeout(() => {
             try {
               localEditorHtmlRef.current = quill.root.innerHTML;
