@@ -3164,6 +3164,7 @@ const QuillWrapper = forwardRef(({
     }
 
     const handleAutoInheritFormatsOnTextChange = (delta, oldDelta, source) => {
+      console.log('[FONT-DEBUG-RAW] text-change fired, source:', source, 'ops:', JSON.stringify(delta?.ops?.slice(0,3)));
       if (source !== 'user' || !delta || !Array.isArray(delta.ops)) return;
       let activeFormats = lastActiveFormatsRef.current;
 
@@ -3258,6 +3259,7 @@ const QuillWrapper = forwardRef(({
       }
     };
 
+    console.log('[FONT-DEBUG-INIT] Registering text-change listeners on quill:', !!quill);
     quill.on('text-change', handleAutoInheritFormatsOnTextChange);
     quill.on('text-change', syncUnwrappedParagraphs);
     quill.on('text-change', updateSizePickerLabel);
