@@ -196,6 +196,14 @@ const normalizeCustomLineHeightUnits = (html: string) => {
   });
 };
 
+const preserveSignificantInlineWhitespace = (html: string) => {
+  if (!html) return html;
+  return html.replace(/(>|^)([^<]+)(<|$)/g, (_match: string, prefix: string, text: string, suffix: string) => {
+    const converted = text.replace(/(^ +| {2,}| +$)/g, (spaces: string) => "\u00a0".repeat(spaces.length));
+    return prefix + converted + suffix;
+  });
+};
+
 interface RichTextRendererProps {
   html: string | null | undefined;
   configKey?: string;
@@ -550,6 +558,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
     processedHtml = normalizeResponsiveLineHeightStyles(processedHtml);
     processedHtml = normalizeCustomLineHeightUnits(processedHtml);
+    processedHtml = preserveSignificantInlineWhitespace(processedHtml);
     processedHtml = normalizeVietnameseHtml(processedHtml);
     return processedHtml;
   }, [html, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
