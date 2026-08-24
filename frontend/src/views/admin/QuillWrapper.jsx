@@ -2445,6 +2445,20 @@ const QuillWrapper = forwardRef(({
     return null;
   }, [dynamicFonts]);
 
+  const resolveInlineStylesFromDomNode = useCallback((node) => {
+    if (!node) return {};
+    const target = node.nodeType === 1 ? node : node.parentElement;
+    if (!target) return {};
+    const span = target.querySelector?.('span[style]') || target.closest?.('span[style]');
+    const result = {};
+    if (span) {
+      if (span.style?.color) result.color = span.style.color;
+      if (span.style?.fontSize) result.size = span.style.fontSize;
+      if (span.style?.lineHeight) result.lineHeight = span.style.lineHeight;
+    }
+    return result;
+  }, []);
+
   const updateSizePickerLabel = useCallback((rangeOverride = null) => {
     const quill = getQuillEditor();
     if (!quill || !containerRef.current) return;
@@ -2953,15 +2967,28 @@ const QuillWrapper = forwardRef(({
           const attrs = op.attributes || {};
           let targetFont = activeFormats?.font;
           if (!targetFont && pos > 0) {
-            for (let i = pos - 1; i >= Math.max(0, pos - 100); i--) {
-              const fmt = quill.getFormat(i, 1);
-              if (fmt?.font && fmt.font !== 'macdinh') {
-                targetFont = fmt.font;
-                if (!activeFormats) activeFormats = {};
-                activeFormats.font = targetFont;
-                lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: targetFont };
-                break;
+            try {
+              const [currentLine] = quill.getLine(pos);
+              if (currentLine) {
+                targetFont = resolveFontFromDomNode(currentLine.domNode);
+                if (!targetFont && currentLine.prev) {
+                  targetFont = resolveFontFromDomNode(currentLine.prev.domNode);
+                }
               }
+            } catch { /* ignore */ }
+            if (!targetFont) {
+              for (let i = pos - 1; i >= Math.max(0, pos - 100); i--) {
+                const fmt = quill.getFormat(i, 1);
+                if (fmt?.font && fmt.font !== 'macdinh') {
+                  targetFont = fmt.font;
+                  break;
+                }
+              }
+            }
+            if (targetFont) {
+              if (!activeFormats) activeFormats = {};
+              activeFormats.font = targetFont;
+              lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: targetFont };
             }
           }
 
