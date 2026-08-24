@@ -30,7 +30,7 @@ const Footer = () => {
           <RichTextRenderer html={nameBrand} configKey="nameBrand" />
         </div>
         <div className="w-full px-0.5 md:px-0 md:w-auto">
-          <div className="text-xl sm:text-2xl font-bold mb-4 underline footer-contact-title">
+          <div className="text-xl sm:text-2xl font-bold mb-4 footer-contact-title">
             <RichTextRenderer html={footerContactTitle} configKey="footer-contact-title" />
           </div>
           {address && (
