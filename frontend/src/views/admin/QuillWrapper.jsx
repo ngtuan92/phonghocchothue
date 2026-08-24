@@ -2279,6 +2279,118 @@ const QuillWrapper = forwardRef(({
     removeEmptyQuillParagraphElements(editor);
   }, []);
 
+  const syncUnwrappedParagraphs = useCallback(() => {
+    const editor = containerRef.current?.querySelector('.ql-editor');
+    if (!editor) return;
+
+    const paragraphs = editor.querySelectorAll('p');
+    paragraphs.forEach((p) => {
+      const text = p.textContent || '';
+      if (!text.trim()) return;
+
+      const existingSpan = p.querySelector('span[style*="font-family"], [class*="ql-font-"]');
+      if (existingSpan) return;
+
+      let prevFontFamily = null;
+      let prevFsDesktop = null;
+      let prevFsMobile = null;
+      let prevColor = null;
+
+      let prevEl = p.previousElementSibling;
+      while (prevEl) {
+        const prevSpan = prevEl.querySelector?.('span[style*="font-family"], [class*="ql-font-"]') ||
+                         (prevEl.matches?.('span[style*="font-family"], [class*="ql-font-"]') ? prevEl : null);
+        if (prevSpan) {
+          prevFontFamily = prevSpan.style?.fontFamily || '';
+          if (!prevFontFamily && prevSpan.classList) {
+            const cls = Array.from(prevSpan.classList).find(c => c.startsWith('ql-font-'));
+            if (cls) prevFontFamily = cls.replace('ql-font-', '');
+          }
+          prevFsDesktop = prevSpan.style?.getPropertyValue('--fs-desktop') || '';
+          prevFsMobile = prevSpan.style?.getPropertyValue('--fs-mobile') || '';
+          prevColor = prevSpan.style?.color || '';
+          break;
+        }
+        prevEl = prevEl.previousElementSibling;
+      }
+
+      if (!prevFontFamily && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
+        prevFontFamily = lastActiveFormatsRef.current.font;
+      }
+
+      if (prevFontFamily) {
+        const sel = typeof window !== 'undefined' ? window.getSelection() : null;
+        let savedOffset = 0;
+        let isCursorInside = false;
+        if (sel && sel.rangeCount > 0 && p.contains(sel.anchorNode)) {
+          isCursorInside = true;
+          try {
+            const range = sel.getRangeAt(0);
+            const preRange = range.cloneRange();
+            preRange.selectNodeContents(p);
+            preRange.setEnd(range.endContainer, range.endOffset);
+            savedOffset = preRange.toString().length;
+          } catch { /* ignore */ }
+        }
+
+        const span = document.createElement('span');
+        span.style.fontFamily = prevFontFamily;
+        if (prevFsDesktop) span.style.setProperty('--fs-desktop', prevFsDesktop);
+        if (prevFsMobile) span.style.setProperty('--fs-mobile', prevFsMobile);
+        if (prevColor) span.style.color = prevColor;
+
+        const cleanSlug = prevFontFamily.replace(/['"]/g, '').split(',')[0].trim().toLowerCase().replace(/\s+/g, '-');
+        if (cleanSlug && cleanSlug !== 'macdinh' && cleanSlug !== 'inter') {
+          span.classList.add(`ql-font-${cleanSlug}`);
+        }
+
+        while (p.firstChild) {
+          span.appendChild(p.firstChild);
+        }
+        p.appendChild(span);
+
+        if (isCursorInside && sel) {
+          try {
+            const newRange = document.createRange();
+            let currentOffset = 0;
+            let targetNode = span;
+            let targetOffset = 0;
+
+            const walkTextNodes = (node) => {
+              if (node.nodeType === 3) {
+                const nodeLen = node.textContent.length;
+                if (currentOffset + nodeLen >= savedOffset) {
+                  targetNode = node;
+                  targetOffset = Math.min(savedOffset - currentOffset, nodeLen);
+                  return true;
+                }
+                currentOffset += nodeLen;
+              } else {
+                for (let child of node.childNodes) {
+                  if (walkTextNodes(child)) return true;
+                }
+              }
+              return false;
+            };
+
+            walkTextNodes(span);
+            newRange.setStart(targetNode, targetOffset);
+            newRange.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+          } catch { /* ignore */ }
+        }
+
+        const html = editor.innerHTML;
+        localEditorHtmlRef.current = html;
+        if (commitOnBlurOnly) {
+          lastRelativeContentRef.current = html;
+          onDraftChangeRef.current?.(html);
+        }
+      }
+    });
+  }, [commitOnBlurOnly]);
+
   const syncImageCaptionBlots = useCallback(() => {
     const editor = containerRef.current?.querySelector('.ql-editor');
     if (!editor) return;
@@ -3034,8 +3146,14 @@ const QuillWrapper = forwardRef(({
     };
 
     quill.on('text-change', handleAutoInheritFormatsOnTextChange);
+    quill.on('text-change', syncUnwrappedParagraphs);
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
+
+    const handleRootInput = () => {
+      syncUnwrappedParagraphs();
+    };
+    quill.root.addEventListener('input', handleRootInput, true);
 
     // Initial trigger
     setTimeout(() => {
@@ -3072,6 +3190,9 @@ const QuillWrapper = forwardRef(({
       listSizeObserver.disconnect();
       container.querySelectorAll('.editor-inline-image-caption').forEach((el) => el.remove());
       document.querySelectorAll('.editor-inline-image-caption-preview').forEach((el) => el.remove());
+      quill.root.removeEventListener('input', handleRootInput, true);
+      quill.off('text-change', handleAutoInheritFormatsOnTextChange);
+      quill.off('text-change', syncUnwrappedParagraphs);
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
     };
@@ -3088,6 +3209,7 @@ const QuillWrapper = forwardRef(({
     syncSelectionControlsFromFormat,
     syncCustomFontSizes,
     cleanEmptyEditorParagraphs,
+    syncUnwrappedParagraphs,
   ]);
   useEffect(() => {
     if (!isReady) return;
