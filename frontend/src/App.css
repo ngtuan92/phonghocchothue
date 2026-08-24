@@ -2108,38 +2108,7 @@ footer .rich-text-renderer * {
   }
 }
 
-@media (max-width: 639px) {
-  .describe-mobile-meta {
-    width: 100% !important;
-    max-width: 100% !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 0.5rem;
-    padding: 0 0.25rem;
-  }
-  .describe-mobile-meta > .describe-mobile-meta-item:first-child {
-    flex: 1 1 50%;
-    display: flex !important;
-    justify-content: flex-start !important;
-    text-align: left !important;
-  }
-  .describe-mobile-meta > .describe-mobile-meta-item:last-child {
-    flex: 1 1 50%;
-    display: flex !important;
-    justify-content: flex-end !important;
-    text-align: right !important;
-  }
-  .describe-mobile-meta .hero-phone-text,
-  .describe-mobile-meta .hero-slogan-text,
-  .describe-mobile-meta .hero-phone-text *,
-  .describe-mobile-meta .hero-slogan-text * {
-    display: inline-block !important;
-    width: auto !important;
-    white-space: pre-wrap !important;
-    overflow: visible !important;
-  }
-}
+
 
 /* Quill stores indentation as ql-indent-* classes. The public renderer does
    not load Quill's editor stylesheet, so mirror the relevant rules here. */
