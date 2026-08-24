@@ -30,6 +30,66 @@ const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 let cachedFonts = null;
 let fetchPromise = null;
 let lastRichTextClipboard = null;
+
+if (typeof window !== "undefined" && Quill) {
+  try {
+    const FontStyle = Quill.import("attributors/style/font");
+    if (FontStyle) {
+      FontStyle.whitelist = null;
+      FontStyle.canAdd = () => true;
+
+      FontStyle.value = function (domNode) {
+        let rawVal = '';
+        if (domNode && domNode.style && domNode.style.fontFamily) {
+          rawVal = domNode.style.fontFamily;
+        }
+        if (!rawVal && domNode && domNode.getAttribute) {
+          const styleAttr = domNode.getAttribute('style') || '';
+          const match = styleAttr.match(/font-family\s*:\s*([^;]+)/i);
+          if (match) rawVal = match[1];
+        }
+        if (!rawVal && domNode && domNode.classList) {
+          const fontClass = Array.from(domNode.classList).find(c => c.startsWith('ql-font-'));
+          if (fontClass) rawVal = fontClass.replace('ql-font-', '');
+        }
+        if (!rawVal) return '';
+
+        const cleanVal = String(rawVal).replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+        const cleanSlug = cleanVal.replace(/\s+/g, '-');
+        if (cleanVal === 'inter' || cleanVal === 'macdinh') return 'macdinh';
+        return cleanSlug;
+      };
+
+      FontStyle.add = function (domNode, value) {
+        if (domNode) {
+          if (value && value !== 'macdinh') {
+            domNode.style.setProperty('font-family', value);
+            const cleanSlug = value.replace(/['"]/g, '').split(',')[0].trim().toLowerCase().replace(/\s+/g, '-');
+            if (domNode.classList) {
+              Array.from(domNode.classList).forEach(c => {
+                if (c.startsWith('ql-font-')) domNode.classList.remove(c);
+              });
+              domNode.classList.add(`ql-font-${cleanSlug}`);
+            }
+          } else {
+            domNode.style.removeProperty('font-family');
+            if (domNode.classList) {
+              Array.from(domNode.classList).forEach(c => {
+                if (c.startsWith('ql-font-')) domNode.classList.remove(c);
+              });
+            }
+          }
+        }
+        return true;
+      };
+
+      Quill.register({
+        'formats/font': FontStyle,
+        'attributors/style/font': FontStyle
+      }, true);
+    }
+  } catch (err) { /* ignore */ }
+}
 const COLORS = [
   "no-color",
   "#000000", "#e60000", "#ff9900", "#ffff00", "#008a00", "#0066cc", "#9933ff",
@@ -3116,18 +3176,20 @@ const QuillWrapper = forwardRef(({
           const insertLen = op.insert.length;
           const attrs = op.attributes || {};
           let targetFont = activeFormats?.font;
-          if (!targetFont && pos > 0) {
+          if (!targetFont) {
             try {
               const [currentLine] = quill.getLine(pos);
               if (currentLine) {
                 targetFont = resolveFontFromDomNode(currentLine.domNode);
-                if (!targetFont && currentLine.prev) {
-                  targetFont = resolveFontFromDomNode(currentLine.prev.domNode);
+                let line = currentLine.prev;
+                while (line && !targetFont) {
+                  targetFont = resolveFontFromDomNode(line.domNode);
+                  line = line.prev;
                 }
               }
             } catch { /* ignore */ }
-            if (!targetFont) {
-              for (let i = pos - 1; i >= Math.max(0, pos - 100); i--) {
+            if (!targetFont && pos > 0) {
+              for (let i = pos - 1; i >= 0; i--) {
                 const fmt = quill.getFormat(i, 1);
                 if (fmt?.font && fmt.font !== 'macdinh') {
                   targetFont = fmt.font;
@@ -3135,7 +3197,13 @@ const QuillWrapper = forwardRef(({
                 }
               }
             }
-            if (targetFont) {
+            if (!targetFont) {
+              try {
+                const fontNode = quill.root.querySelector('[style*="font-family"], [class*="ql-font-"]');
+                if (fontNode) targetFont = resolveFontFromDomNode(fontNode);
+              } catch { /* ignore */ }
+            }
+            if (targetFont && targetFont !== 'macdinh') {
               if (!activeFormats) activeFormats = {};
               activeFormats.font = targetFont;
               lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: targetFont };
