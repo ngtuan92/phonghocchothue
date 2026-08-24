@@ -6,6 +6,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
+import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 
 const getDOMPurify = () => {
   if (typeof window !== "undefined") {
@@ -549,6 +550,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
     processedHtml = normalizeResponsiveLineHeightStyles(processedHtml);
     processedHtml = normalizeCustomLineHeightUnits(processedHtml);
+    processedHtml = normalizeVietnameseHtml(processedHtml);
     return processedHtml;
   }, [html, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
 

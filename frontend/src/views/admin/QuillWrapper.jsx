@@ -10,6 +10,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
+import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 import {
   RICH_TEXT_DELTA_MIME,
   clipboardTextMatches,
@@ -4482,9 +4483,10 @@ const QuillWrapper = forwardRef(({
     if (preserveWhitespaceOnlyBlocks) {
       relativeContent = normalizeWhitespaceOnlyBlocksForQuill(relativeContent);
     }
-    return preserveInlineWhitespace
+    const finalContent = preserveInlineWhitespace
       ? preserveSignificantInlineWhitespaceForQuill(relativeContent)
       : relativeContent;
+    return normalizeVietnameseHtml(finalContent);
   }, [canUseInlineSelectionControls, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks, shouldNormalizeExcessiveIndent]);
 
   const emitCurrentContentForSave = useCallback((forceCommit = false) => {
