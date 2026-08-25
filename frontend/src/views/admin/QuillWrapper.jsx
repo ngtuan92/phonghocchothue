@@ -108,6 +108,8 @@ const RESPONSIVE_CONTROL_KEYS = [
   'fontSizeMobile',
   'lineHeight',
   'lineHeightMobile',
+  'translateX',
+  'translateXMobile',
   'translateY',
   'translateYMobile',
 ];
@@ -117,6 +119,8 @@ const RESPONSIVE_CONTROL_CSS_VAR = {
   fontSizeMobile: '--fs-mobile',
   lineHeight: '--custom-line-height',
   lineHeightMobile: '--custom-line-height-mobile',
+  translateX: '--translate-x',
+  translateXMobile: '--translate-x-mobile',
   translateY: '--translate-y',
   translateYMobile: '--translate-y-mobile',
 };
@@ -127,6 +131,8 @@ const RESPONSIVE_CONTROL_CALLBACK_KEYS = {
   lineHeightMobile: 'onChangeLineHeightMobile',
   fontSize: 'onChangeFontSize',
   fontSizeMobile: 'onChangeFontSizeMobile',
+  translateX: 'onChangeTranslateX',
+  translateXMobile: 'onChangeTranslateXMobile',
   translateY: 'onChangeTranslateY',
   translateYMobile: 'onChangeTranslateYMobile',
 };
@@ -142,6 +148,8 @@ const RESPONSIVE_INLINE_FORMATS = {
   fontSizeMobile: 'fontSizeMobile',
   lineHeight: 'lineHeight',
   lineHeightMobile: 'lineHeightMobile',
+  translateX: 'translateX',
+  translateXMobile: 'translateXMobile',
   translateY: 'translateY',
   translateYMobile: 'translateYMobile',
 };
@@ -332,7 +340,7 @@ const toInlineControlFormat = (key, value) => {
   const formatName = RESPONSIVE_INLINE_FORMATS[key] || key;
   if (!value) return { formatName, formatValue: false };
 
-  const allowsNegative = key === 'translateY' || key === 'translateYMobile';
+  const allowsNegative = key === 'translateY' || key === 'translateYMobile' || key === 'translateX' || key === 'translateXMobile';
   const unitValue = key === 'lineHeight' || key === 'lineHeightMobile'
     ? toLineHeightCssValue(value)
     : toCssUnit(value, allowsNegative);
@@ -356,10 +364,15 @@ const cancelIdleWork = (id) => {
   }
 };
 
-const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation, hasResponsiveColor) => {
+const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslation, hasResponsiveColor, showHorizontalTranslation = false) => {
   const mediaGroup = ["link", "image"];
   if (showSpacingAndTranslation) {
     mediaGroup.push("line-height", "translate-y");
+    if (showHorizontalTranslation) {
+      mediaGroup.push("translate-x");
+    }
+  } else if (showHorizontalTranslation) {
+    mediaGroup.push("translate-x");
   }
   const sizeControl = hasResponsiveFontSize ? [["font-size-custom"]] : [];
 
@@ -581,6 +594,12 @@ if (typeof window !== "undefined" && Quill) {
     const overflowWrapAttributor = new StyleAttributor("overflowWrap", "overflow-wrap", {
       scope: Parchment.Scope.BLOCK
     });
+    const translateXAttributor = new CssVariableAttributor("translateX", "--translate-x", {
+      scope: Parchment.Scope.INLINE
+    });
+    const translateXMobileAttributor = new CssVariableAttributor("translateXMobile", "--translate-x-mobile", {
+      scope: Parchment.Scope.INLINE
+    });
     const translateYAttributor = new CssVariableAttributor("translateY", "--translate-y", {
       scope: Parchment.Scope.INLINE
     });
@@ -607,6 +626,8 @@ if (typeof window !== "undefined" && Quill) {
     Quill.register(lineHeightMobileAttributor, true);
     Quill.register(whiteSpaceAttributor, true);
     Quill.register(overflowWrapAttributor, true);
+    Quill.register(translateXAttributor, true);
+    Quill.register(translateXMobileAttributor, true);
     Quill.register(translateYAttributor, true);
     Quill.register(translateYMobileAttributor, true);
     Quill.register(fontSizeDesktopAttributor, true);
@@ -651,6 +672,11 @@ if (typeof window !== "undefined" && Quill) {
     icons['line-height'] = `
       <svg viewBox="0 0 24 24" width="18" height="18">
         <path fill="currentColor" d="M10 5h12v2H10V5zm0 6h12v2H10v-2zm0 6h12v2H10v-2zM4 4.5l-3 3h2v9H1v3h6v-3H5v-9h2l-3-3z"/>
+      </svg>
+    `;
+    icons['translate-x'] = `
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M2 12L6 8v3h12V8l4 4-4 4v-3H6v3l-4-4z" />
       </svg>
     `;
     icons['translate-y'] = `
@@ -1090,8 +1116,12 @@ const QuillWrapper = forwardRef(({
   onChangeFontSizeMobile,
   fontSize,
   onChangeFontSize,
+  translateX,
+  translateXMobile,
   translateY,
   translateYMobile,
+  onChangeTranslateX,
+  onChangeTranslateXMobile,
   onChangeTranslateY,
   onChangeTranslateYMobile,
   disableImageWrap = false,
@@ -1720,6 +1750,12 @@ const QuillWrapper = forwardRef(({
     const lhMobile = format.lineHeightMobile
       ? String(format.lineHeightMobile).replace('px', '')
       : String(lineHeightMobile || "").replace('px', '');
+    const translateXVal = format.translateX
+      ? String(format.translateX).replace('px', '')
+      : String(translateX || "").replace('px', '');
+    const translateXMobileVal = format.translateXMobile
+      ? String(format.translateXMobile).replace('px', '')
+      : String(translateXMobile || "").replace('px', '');
     const translateYVal = format.translateY
       ? String(format.translateY).replace('px', '')
       : String(translateY || "").replace('px', '');
@@ -1732,6 +1768,8 @@ const QuillWrapper = forwardRef(({
       fontSizeMobile: mobileSize,
       lineHeight: lh,
       lineHeightMobile: lhMobile,
+      translateX: translateXVal,
+      translateXMobile: translateXMobileVal,
       translateY: translateYVal,
       translateYMobile: translateYMobileVal,
     };
@@ -1762,6 +1800,16 @@ const QuillWrapper = forwardRef(({
         }
         if (document.activeElement !== spacingInputs[1]) {
           spacingInputs[1].value = lhMobile;
+        }
+      }
+
+      const translateXInputs = container.querySelectorAll('.ql-translate-x-popup input');
+      if (translateXInputs.length >= 2) {
+        if (document.activeElement !== translateXInputs[0]) {
+          translateXInputs[0].value = translateXVal;
+        }
+        if (document.activeElement !== translateXInputs[1]) {
+          translateXMobileVal && (translateXInputs[1].value = translateXMobileVal);
         }
       }
 
@@ -3792,14 +3840,15 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const hasLineHeight = !!onChangeLineHeight;
-  const hasTranslateY = !!onChangeTranslateY;
+  const hasTranslateX = !!onChangeTranslateX || !!translateX || !!translateXMobile || (typeof className === 'string' && (className.includes('hero-phone-text') || className.includes('hero-slogan-text') || className.includes('describe-phone') || className.includes('describe-quote-text')));
+  const hasTranslateY = !!onChangeTranslateY || !!translateY || !!translateYMobile;
 
   useEffect(() => {
     if (dynamicFonts.length > 0 || (cachedFonts && cachedFonts.length >= 0)) {
       const currentFonts = dynamicFonts.length > 0 ? dynamicFonts : (cachedFonts || []);
       const toolbarFontValues = [false, ...currentFonts.map(f => f.slug)];
       const showSpacingAndTranslation = hasLineHeight || hasTranslateY;
-      setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation, hasResponsiveColor));
+      setModules(createModules(toolbarFontValues, hasResponsive, showSpacingAndTranslation, hasResponsiveColor, hasTranslateX));
       setIsReady(true);
     }
   }, [dynamicFonts, hasResponsive, hasLineHeight, hasTranslateY, hasResponsiveColor]);
@@ -4779,6 +4828,11 @@ const QuillWrapper = forwardRef(({
             newGroup.push('image-settings');
           }
           const showSpacingAndTranslation = hasLineHeight || hasTranslateY;
+          if (hasTranslateX) {
+            if (!newGroup.includes('translate-x')) {
+              newGroup.push('translate-x');
+            }
+          }
           if (showSpacingAndTranslation) {
             if (!newGroup.includes('line-height')) {
               newGroup.push('line-height');
@@ -6218,6 +6272,8 @@ const QuillWrapper = forwardRef(({
   const globalLineHeightMobile = getPreviewControlValue('lineHeightMobile', lineHeightMobile);
   const globalFontSize = getPreviewControlValue('fontSize', fontSize);
   const globalFontSizeMobile = getPreviewControlValue('fontSizeMobile', fontSizeMobile);
+  const globalTranslateX = getPreviewControlValue('translateX', translateX);
+  const globalTranslateXMobile = getPreviewControlValue('translateXMobile', translateXMobile);
   const globalTranslateY = getPreviewControlValue('translateY', translateY);
   const globalTranslateYMobile = getPreviewControlValue('translateYMobile', translateYMobile);
   const previewFontSizeDesktop = globalFontSize;
@@ -6433,6 +6489,8 @@ const QuillWrapper = forwardRef(({
         '--fs-desktop': toCssUnit(previewFontSizeDesktop),
         '--fs-mobile': toCssUnit(previewFontSizeMobile),
         '--fs': activeViewportFontSize,
+        '--translate-x': toCssUnit(globalTranslateX, true),
+        '--translate-x-mobile': toCssUnit(globalTranslateXMobile, true),
         '--translate-y': toCssUnit(globalTranslateY, true),
         '--translate-y-mobile': toCssUnit(globalTranslateYMobile, true),
       }}
@@ -6807,6 +6865,83 @@ const QuillWrapper = forwardRef(({
         </div>
       )}
 
+      {showTranslateXPopup && (
+        <div
+          className="ql-translate-x-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          style={{
+            position: 'fixed',
+            top: safeNumber(translateXPopupPosition.top),
+            left: safeNumber(translateXPopupPosition.left, 12),
+            width: `${safeNumber(translateXPopupPosition.width, 200)}px`,
+            maxWidth: 'calc(100vw - 24px)',
+            boxSizing: 'border-box'
+          }}
+          onMouseDown={keepPopupInteractionStable}
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={keepPopupInteractionStable}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Dịch ngang</span>
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              onClick={() => {
+                preserveAdminScrollDuring(() => {
+                  commitControlInput(true);
+                  setShowTranslateXPopup(false);
+                });
+              }}
+            >
+              x
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Máy tính (px)</label>
+              <input
+                type="text"
+                placeholder="VD: -20 hoặc 10"
+                value={getPopupInputValue('translateX', translateX)}
+                onChange={(e) => updateControlDraftValue('translateX', e.target.value, true, e.currentTarget)}
+                onKeyDown={(e) => {
+                  keepPopupInputKeyInInput(e);
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitControlInput(true);
+                  }
+                }}
+                onBlur={handleControlInputBlur}
+                onClick={(e) => e.stopPropagation()}
+                onFocus={() => focusControlInput('translateX')}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
+                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
+              <input
+                type="text"
+                placeholder="VD: -10 hoặc 5"
+                value={getPopupInputValue('translateXMobile', translateXMobile)}
+                onChange={(e) => updateControlDraftValue('translateXMobile', e.target.value, true, e.currentTarget)}
+                onKeyDown={(e) => {
+                  keepPopupInputKeyInInput(e);
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitControlInput(true);
+                  }
+                }}
+                onBlur={handleControlInputBlur}
+                onClick={(e) => e.stopPropagation()}
+                onFocus={() => focusControlInput('translateXMobile')}
+                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
+                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {showTranslatePopup && (
         <div
           className="ql-translate-y-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
@@ -6823,7 +6958,7 @@ const QuillWrapper = forwardRef(({
           onDoubleClick={keepPopupInteractionStable}
         >
           <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Dịch chữ</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Dịch dọc</span>
             <button
               type="button"
               className="text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -6974,15 +7109,17 @@ const QuillWrapper = forwardRef(({
             line-height: max(var(--custom-line-height-mobile, var(--custom-line-height)), 1.15em) !important;
           }
         }
+        .quill-wrapper-container[style*="--translate-x"] .ql-editor,
         .quill-wrapper-container[style*="--translate-y"] .ql-editor {
-          transform: translateY(var(--translate-y)) !important;
+          transform: translate(var(--translate-x, 0px), var(--translate-y, 0px)) !important;
         }
         .quill-wrapper-container[style*="--translate-y"] .ql-editor.title-sub-text {
           transform: translate(-50%, var(--translate-y)) !important;
         }
         @media (max-width: 767px) {
+          .quill-wrapper-container[style*="--translate-x"] .ql-editor,
           .quill-wrapper-container[style*="--translate-y"] .ql-editor {
-            transform: translateY(var(--translate-y-mobile, var(--translate-y))) !important;
+            transform: translate(var(--translate-x-mobile, var(--translate-x, 0px)), var(--translate-y-mobile, var(--translate-y, 0px))) !important;
           }
           .quill-wrapper-container[style*="--translate-y"] .ql-editor.title-sub-text {
             transform: translate(-50%, var(--translate-y-mobile, var(--translate-y))) !important;
@@ -9086,6 +9223,8 @@ const MemoizedQuillWrapper = React.memo(QuillWrapper, (prevProps, nextProps) => 
     prevProps.lineHeightMobile === nextProps.lineHeightMobile &&
     prevProps.fontSize === nextProps.fontSize &&
     prevProps.fontSizeMobile === nextProps.fontSizeMobile &&
+    prevProps.translateX === nextProps.translateX &&
+    prevProps.translateXMobile === nextProps.translateXMobile &&
     prevProps.translateY === nextProps.translateY &&
     prevProps.translateYMobile === nextProps.translateYMobile &&
     prevProps.className === nextProps.className &&

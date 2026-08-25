@@ -122,7 +122,7 @@ class ConfigController {
     }
 
     async store(req, res, next) {
-        const { key, content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, fontSize, translateY, translateYMobile } = req.body;
+        const { key, content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, fontSize, translateX, translateXMobile, translateY, translateYMobile } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -144,6 +144,8 @@ class ConfigController {
                 lineHeightMobile,
                 fontSizeMobile,
                 fontSize,
+                translateX,
+                translateXMobile,
                 translateY,
                 translateYMobile
             });
@@ -165,7 +167,7 @@ class ConfigController {
 
     async update(req, res, next) {
         const { key } = req.params  
-        const { content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, fontSize, translateY, translateYMobile } = req.body;
+        const { content, type, section, musicName, borderRadius, lineHeight, lineHeightMobile, fontSizeMobile, fontSize, translateX, translateXMobile, translateY, translateYMobile } = req.body;
         const { content: image } = req.files || {};
 
         try {
@@ -201,6 +203,8 @@ class ConfigController {
                 lineHeightMobile: lineHeightMobile !== undefined ? lineHeightMobile : config.lineHeightMobile,
                 fontSizeMobile: fontSizeMobile !== undefined ? fontSizeMobile : config.fontSizeMobile,
                 fontSize: fontSize !== undefined ? fontSize : config.fontSize,
+                translateX: translateX !== undefined ? translateX : config.translateX,
+                translateXMobile: translateXMobile !== undefined ? translateXMobile : config.translateXMobile,
                 translateY: translateY !== undefined ? translateY : config.translateY,
                 translateYMobile: translateYMobile !== undefined ? translateYMobile : config.translateYMobile
             });

@@ -459,6 +459,8 @@ const normalizeResponsiveConfigFields = (config) => ({
   lineHeightMobile: normalizeOptionalControlValue(config.lineHeightMobile ?? config.line_height_mobile),
   fontSize: normalizeOptionalControlValue(config.fontSize ?? config.font_size),
   fontSizeMobile: normalizeOptionalControlValue(config.fontSizeMobile ?? config.font_size_mobile),
+  translateX: normalizeOptionalControlValue(config.translateX ?? config.translate_x, { allowZero: true }),
+  translateXMobile: normalizeOptionalControlValue(config.translateXMobile ?? config.translate_x_mobile, { allowZero: true }),
   translateY: normalizeOptionalControlValue(config.translateY ?? config.translate_y, { allowZero: true }),
   translateYMobile: normalizeOptionalControlValue(config.translateYMobile ?? config.translate_y_mobile, { allowZero: true }),
 });
@@ -1085,6 +1087,8 @@ export default function CMS() {
     fd.append("lineHeightMobile", configToSave.lineHeightMobile || "");
     fd.append("fontSize", configToSave.fontSize || "");
     fd.append("fontSizeMobile", configToSave.fontSizeMobile || "");
+    fd.append("translateX", configToSave.translateX || "");
+    fd.append("translateXMobile", configToSave.translateXMobile || "");
     fd.append("translateY", configToSave.translateY || "");
     fd.append("translateYMobile", configToSave.translateYMobile || "");
     if (configToSave.type === "music") {
@@ -1475,6 +1479,8 @@ export default function CMS() {
             lineHeightMobile={config.lineHeightMobile}
             fontSize={config.fontSize}
             fontSizeMobile={config.fontSizeMobile}
+            translateX={config.translateX}
+            translateXMobile={config.translateXMobile}
             translateY={config.translateY}
             translateYMobile={config.translateYMobile}
             onChangeLineHeight={(val) => {
@@ -1499,6 +1505,18 @@ export default function CMS() {
               updateControlDraft("fontSizeMobile", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, fontSizeMobile: val } : c))
+              );
+            }}
+            onChangeTranslateX={(val) => {
+              updateControlDraft("translateX", val);
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, translateX: val } : c))
+              );
+            }}
+            onChangeTranslateXMobile={(val) => {
+              updateControlDraft("translateXMobile", val);
+              setConfigs((prev) =>
+                prev.map((c) => (c.key === config.key ? { ...c, translateXMobile: val } : c))
               );
             }}
             onChangeTranslateY={(val) => {

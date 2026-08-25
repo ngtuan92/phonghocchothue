@@ -214,6 +214,8 @@ interface RichTextRendererProps {
   lineHeightMobile?: string;
   fontSize?: string;
   fontSizeMobile?: string;
+  translateX?: string;
+  translateXMobile?: string;
   translateY?: string;
   translateYMobile?: string;
   preserveNbsp?: boolean;
@@ -234,6 +236,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   lineHeightMobile,
   fontSize,
   fontSizeMobile,
+  translateX,
+  translateXMobile,
   translateY,
   translateYMobile,
   preserveNbsp = false,
@@ -569,6 +573,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const contextLineHeightMobile = useConfigContentByKey(configKey || "", "lineHeightMobile");
   const contextFontSize = useConfigContentByKey(configKey || "", "fontSize");
   const contextFontSizeMobile = useConfigContentByKey(configKey || "", "fontSizeMobile");
+  const contextTranslateX = useConfigContentByKey(configKey || "", "translateX");
+  const contextTranslateXMobile = useConfigContentByKey(configKey || "", "translateXMobile");
   const contextTranslateY = useConfigContentByKey(configKey || "", "translateY");
   const contextTranslateYMobile = useConfigContentByKey(configKey || "", "translateYMobile");
 
@@ -576,6 +582,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const activeLineHeightMobile = lineHeightMobile || contextLineHeightMobile;
   const activeFontSize = fontSize || contextFontSize;
   const activeFontSizeMobile = fontSizeMobile || contextFontSizeMobile;
+  const activeTranslateX = translateX || contextTranslateX;
+  const activeTranslateXMobile = translateXMobile || contextTranslateXMobile;
   const activeTranslateY = translateY || contextTranslateY;
   const activeTranslateYMobile = translateYMobile || contextTranslateYMobile;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
@@ -631,6 +639,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       const normalized = normalizeCssSize(viewportFontSize);
       styles['--fs' as any] = normalized;
     }
+    if (activeTranslateX) {
+      styles['--translate-x' as any] = normalizeCssSize(activeTranslateX);
+    }
+    if (activeTranslateXMobile) {
+      if (!activeTranslateX) {
+        styles['--translate-x' as any] = "0px";
+      }
+      styles['--translate-x-mobile' as any] = normalizeCssSize(activeTranslateXMobile);
+    }
     if (activeTranslateY) {
       styles['--translate-y' as any] = normalizeCssSize(activeTranslateY);
     }
@@ -641,7 +658,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
-  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, naturalTextWrapping, preserveNbsp, stripAllFontStyles]);
+  }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateX, activeTranslateXMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, naturalTextWrapping, preserveNbsp, stripAllFontStyles]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');
@@ -867,42 +884,79 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer [style*="--fs-mobile"] .image-caption,
           .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
             font-size: var(--fs-mobile) !important;
+            font-size: var(--fs-mobile) !important;
+          }
+          .rich-text-renderer li[style*="--fs-mobile"]::marker {
+            font-size: var(--fs-mobile) !important;
+          }
+        }
+        .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
+        .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
+        .rich-text-renderer .image-wrapper .image-caption {
+          font-size: inherit !important;
+        }
+        @media (min-width: 768px) {
+          .rich-text-renderer [style*="--fs-desktop"] .image-caption,
+          .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption {
+            font-size: var(--fs-desktop) !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .rich-text-renderer [style*="--fs-mobile"] .image-caption,
+          .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
+            font-size: var(--fs-mobile) !important;
           }
         }
         .rich-text-renderer [style*="--custom-line-height:"] {
           line-height: var(--custom-line-height) !important;
         }
+        .rich-text-renderer[style*="--translate-x"],
         .rich-text-renderer[style*="--translate-y"],
+        .rich-text-renderer [style*="--translate-x"],
         .rich-text-renderer [style*="--translate-y"] {
-          transform: translateY(var(--translate-y)) !important;
+          transform: translate(var(--translate-x, 0px), var(--translate-y, 0px)) !important;
         }
+        .rich-text-renderer span[style*="--translate-x"],
         .rich-text-renderer span[style*="--translate-y"] {
           display: inline-block !important;
         }
+        .rich-text-renderer.inline-rich-text [style*="--translate-x"],
         .rich-text-renderer.inline-rich-text [style*="--translate-y"] {
           display: inline-block !important;
         }
+        .rich-text-renderer.inline-rich-text[style*="--translate-x"],
         .rich-text-renderer.inline-rich-text[style*="--translate-y"] {
           position: relative !important;
-          top: var(--translate-y) !important;
+          left: var(--translate-x, 0px) !important;
+          top: var(--translate-y, 0px) !important;
           transform: none !important;
         }
         @media (max-width: 767px) {
           .rich-text-renderer [style*="--custom-line-height-mobile:"] {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
+          .rich-text-renderer[style*="--translate-x"],
+          .rich-text-renderer[style*="--translate-y"],
+          .rich-text-renderer[style*="--translate-x-mobile"],
           .rich-text-renderer[style*="--translate-y-mobile"],
+          .rich-text-renderer [style*="--translate-x"],
+          .rich-text-renderer [style*="--translate-y"],
+          .rich-text-renderer [style*="--translate-x-mobile"],
           .rich-text-renderer [style*="--translate-y-mobile"] {
-            transform: translateY(var(--translate-y-mobile, var(--translate-y, 0px))) !important;
+            transform: translate(var(--translate-x-mobile, var(--translate-x, 0px)), var(--translate-y-mobile, var(--translate-y, 0px))) !important;
           }
+          .rich-text-renderer span[style*="--translate-x-mobile"],
           .rich-text-renderer span[style*="--translate-y-mobile"] {
             display: inline-block !important;
           }
+          .rich-text-renderer.inline-rich-text [style*="--translate-x-mobile"],
           .rich-text-renderer.inline-rich-text [style*="--translate-y-mobile"] {
             display: inline-block !important;
           }
+          .rich-text-renderer.inline-rich-text[style*="--translate-x-mobile"],
           .rich-text-renderer.inline-rich-text[style*="--translate-y-mobile"] {
             position: relative !important;
+            left: var(--translate-x-mobile, var(--translate-x, 0px)) !important;
             top: var(--translate-y-mobile, var(--translate-y, 0px)) !important;
             transform: none !important;
           }
@@ -923,14 +977,6 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-right: auto !important;
           margin-top: 20px !important;
           margin-bottom: 16px !important;
-        }
-        .rich-text-renderer .image-wrapper[data-wrap="none"] {
-          float: none !important;
-          display: block !important;
-          width: auto !important;
-          max-width: 100% !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
         }
         .rich-text-renderer .image-wrapper img {
           max-width: 100% !important;

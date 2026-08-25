@@ -13,6 +13,8 @@ const ConfigModel = db.sequelize.define("configs", {
     lineHeightMobile: { type: DataTypes.STRING(50), field: 'line_height_mobile', allowNull: true },
     fontSizeMobile: { type: DataTypes.STRING(50), field: 'font_size_mobile', allowNull: true },
     fontSize: { type: DataTypes.STRING(50), field: 'font_size', allowNull: true },
+    translateX: { type: DataTypes.STRING(50), field: 'translate_x', allowNull: true },
+    translateXMobile: { type: DataTypes.STRING(50), field: 'translate_x_mobile', allowNull: true },
     translateY: { type: DataTypes.STRING(50), field: 'translate_y', allowNull: true },
     translateYMobile: { type: DataTypes.STRING(50), field: 'translate_y_mobile', allowNull: true }
 }, {

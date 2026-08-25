@@ -3,6 +3,8 @@ const RESPONSIVE_CONTROL_PROPERTIES = [
   "--fs-mobile",
   "--custom-line-height",
   "--custom-line-height-mobile",
+  "--translate-x",
+  "--translate-x-mobile",
   "--translate-y",
   "--translate-y-mobile",
 ];
