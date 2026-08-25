@@ -5017,6 +5017,7 @@ const QuillWrapper = forwardRef(({
               controlPopupAnchorRef.current.fontSize = button;
               setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
               setShowSpacingPopup(false);
+              setShowTranslateXPopup(false);
               setShowTranslatePopup(false);
               setShowFontSizePopup(true);
               clearMobileNativeSelectionOverlay(finalSelection);
@@ -5037,8 +5038,30 @@ const QuillWrapper = forwardRef(({
               controlPopupAnchorRef.current.lineHeight = button;
               setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
               setShowFontSizePopup(false);
+              setShowTranslateXPopup(false);
               setShowTranslatePopup(false);
               setShowSpacingPopup(true);
+              clearMobileNativeSelectionOverlay(finalSelection);
+            });
+          }
+        },
+        'translate-x': function () {
+          const button = containerRef.current?.querySelector('.ql-translate-x');
+          if (button && containerRef.current) {
+            preserveEditorScrollDuring(() => {
+              toolbarHandlerRefs.current.commitControlDrafts?.();
+              closeAllToolbarPickers();
+              clearPopupInputValues();
+              const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+              const finalSelection = getCurrentControlSelection(currentSelection);
+              controlSelectionRef.current = finalSelection;
+              toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
+              controlPopupAnchorRef.current.translateX = button;
+              setTranslateXPopupPosition(getClampedControlPopupPosition(button, 200, 'translateX', 220));
+              setShowFontSizePopup(false);
+              setShowSpacingPopup(false);
+              setShowTranslatePopup(false);
+              setShowTranslateXPopup(true);
               clearMobileNativeSelectionOverlay(finalSelection);
             });
           }
@@ -5058,6 +5081,7 @@ const QuillWrapper = forwardRef(({
               setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
               setShowFontSizePopup(false);
               setShowSpacingPopup(false);
+              setShowTranslateXPopup(false);
               setShowTranslatePopup(true);
               clearMobileNativeSelectionOverlay(finalSelection);
             });
