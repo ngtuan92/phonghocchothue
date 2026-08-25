@@ -582,14 +582,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const activeLineHeightMobile = lineHeightMobile || contextLineHeightMobile;
   const activeFontSize = fontSize || contextFontSize;
   const activeFontSizeMobile = fontSizeMobile || contextFontSizeMobile;
-  const activeTranslateX = translateX || contextTranslateX;
-  const activeTranslateXMobile = translateXMobile || contextTranslateXMobile;
-  const activeTranslateY = translateY || contextTranslateY;
-  const activeTranslateYMobile = translateYMobile || contextTranslateYMobile;
+  const activeTranslateX = (translateX !== undefined && translateX !== null && translateX !== "") ? translateX : contextTranslateX;
+  const activeTranslateXMobile = (translateXMobile !== undefined && translateXMobile !== null && translateXMobile !== "") ? translateXMobile : contextTranslateXMobile;
+  const activeTranslateY = (translateY !== undefined && translateY !== null && translateY !== "") ? translateY : contextTranslateY;
+  const activeTranslateYMobile = (translateYMobile !== undefined && translateYMobile !== null && translateYMobile !== "") ? translateYMobile : contextTranslateYMobile;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
-  const normalizeCssSize = (value: string) => {
-    const cleanValue = String(value).trim();
+  const normalizeCssSize = (value: string | number) => {
+    const cleanValue = String(value ?? '').trim();
     return /^-?\d+(\.\d+)?$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
   };
 
@@ -617,45 +617,39 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     if (activeLineHeight) {
       const normalized = normalizeLineHeight(activeLineHeight);
       if (normalized) {
-        styles['--custom-line-height' as any] = normalized;
+        styles['--custom-line-height'] = normalized;
         styles.lineHeight = normalized;
       }
     }
     if (activeLineHeightMobile) {
       const normalized = normalizeLineHeight(activeLineHeightMobile);
-      if (normalized) styles['--custom-line-height-mobile' as any] = normalized;
+      if (normalized) styles['--custom-line-height-mobile'] = normalized;
     }
     if (isMobileViewport && activeLineHeightMobile) {
       const normalized = normalizeLineHeight(activeLineHeightMobile);
       if (normalized) styles.lineHeight = normalized;
     }
     if (activeFontSize) {
-      styles['--fs-desktop' as any] = normalizeCssSize(activeFontSize);
+      styles['--fs-desktop'] = normalizeCssSize(activeFontSize);
     }
     if (activeFontSizeMobile) {
-      styles['--fs-mobile' as any] = normalizeCssSize(activeFontSizeMobile);
+      styles['--fs-mobile'] = normalizeCssSize(activeFontSizeMobile);
     }
     if (viewportFontSize) {
       const normalized = normalizeCssSize(viewportFontSize);
-      styles['--fs' as any] = normalized;
+      styles['--fs'] = normalized;
     }
-    if (activeTranslateX) {
-      styles['--translate-x' as any] = normalizeCssSize(activeTranslateX);
+    if (activeTranslateX !== undefined && activeTranslateX !== null && activeTranslateX !== "") {
+      styles['--translate-x'] = normalizeCssSize(activeTranslateX);
     }
-    if (activeTranslateXMobile) {
-      if (!activeTranslateX) {
-        styles['--translate-x' as any] = "0px";
-      }
-      styles['--translate-x-mobile' as any] = normalizeCssSize(activeTranslateXMobile);
+    if (activeTranslateXMobile !== undefined && activeTranslateXMobile !== null && activeTranslateXMobile !== "") {
+      styles['--translate-x-mobile'] = normalizeCssSize(activeTranslateXMobile);
     }
-    if (activeTranslateY) {
-      styles['--translate-y' as any] = normalizeCssSize(activeTranslateY);
+    if (activeTranslateY !== undefined && activeTranslateY !== null && activeTranslateY !== "") {
+      styles['--translate-y'] = normalizeCssSize(activeTranslateY);
     }
-    if (activeTranslateYMobile) {
-      if (!activeTranslateY) {
-        styles['--translate-y' as any] = "0px";
-      }
-      styles['--translate-y-mobile' as any] = normalizeCssSize(activeTranslateYMobile);
+    if (activeTranslateYMobile !== undefined && activeTranslateYMobile !== null && activeTranslateYMobile !== "") {
+      styles['--translate-y-mobile'] = normalizeCssSize(activeTranslateYMobile);
     }
     return styles;
   }, [Component, activeLineHeight, activeLineHeightMobile, activeFontSize, activeFontSizeMobile, activeTranslateX, activeTranslateXMobile, activeTranslateY, activeTranslateYMobile, isMobileViewport, naturalTextWrapping, preserveNbsp, stripAllFontStyles]);

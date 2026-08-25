@@ -1277,7 +1277,8 @@ const QuillWrapper = forwardRef(({
     if (value === null || value === undefined) return "";
     const text = String(value).trim();
     if (!text) return "";
-    if (key !== 'translateY' && key !== 'translateYMobile' && /^0+(?:\.0+)?(?:px)?$/i.test(text)) {
+    const isTranslateKey = key === 'translateY' || key === 'translateYMobile' || key === 'translateX' || key === 'translateXMobile';
+    if (!isTranslateKey && /^0+(?:\.0+)?(?:px)?$/i.test(text)) {
       return "";
     }
     return text;
@@ -1852,7 +1853,7 @@ const QuillWrapper = forwardRef(({
 
     const cssValue = key === 'lineHeight' || key === 'lineHeightMobile'
       ? toLineHeightCssValue(value)
-      : toCssUnit(value, key.includes('translateY'));
+      : toCssUnit(value, key.includes('translateY') || key.includes('translateX'));
     if (cssValue) {
       root.style.setProperty(cssVar, cssValue);
     }
