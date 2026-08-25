@@ -943,21 +943,27 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer [style*="--translate-y"],
           .rich-text-renderer [style*="--translate-x-mobile"],
           .rich-text-renderer [style*="--translate-y-mobile"] {
-            transform: translate(var(--translate-x-mobile, var(--translate-x, 0px)), var(--translate-y-mobile, var(--translate-y, 0px))) !important;
+            transform: translate(var(--translate-x-mobile, 0px), var(--translate-y-mobile, 0px)) !important;
           }
           .rich-text-renderer span[style*="--translate-x-mobile"],
-          .rich-text-renderer span[style*="--translate-y-mobile"] {
+          .rich-text-renderer span[style*="--translate-y-mobile"],
+          .rich-text-renderer span[style*="--translate-x"],
+          .rich-text-renderer span[style*="--translate-y"] {
             display: inline-block !important;
           }
           .rich-text-renderer.inline-rich-text [style*="--translate-x-mobile"],
-          .rich-text-renderer.inline-rich-text [style*="--translate-y-mobile"] {
+          .rich-text-renderer.inline-rich-text [style*="--translate-y-mobile"],
+          .rich-text-renderer.inline-rich-text [style*="--translate-x"],
+          .rich-text-renderer.inline-rich-text [style*="--translate-y"] {
             display: inline-block !important;
           }
           .rich-text-renderer.inline-rich-text[style*="--translate-x-mobile"],
-          .rich-text-renderer.inline-rich-text[style*="--translate-y-mobile"] {
+          .rich-text-renderer.inline-rich-text[style*="--translate-y-mobile"],
+          .rich-text-renderer.inline-rich-text[style*="--translate-x"],
+          .rich-text-renderer.inline-rich-text[style*="--translate-y"] {
             position: relative !important;
-            left: var(--translate-x-mobile, var(--translate-x, 0px)) !important;
-            top: var(--translate-y-mobile, var(--translate-y, 0px)) !important;
+            left: var(--translate-x-mobile, 0px) !important;
+            top: var(--translate-y-mobile, 0px) !important;
             transform: none !important;
           }
         }
