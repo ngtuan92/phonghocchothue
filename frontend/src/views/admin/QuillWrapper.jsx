@@ -7181,7 +7181,7 @@ const QuillWrapper = forwardRef(({
         }
         .quill-wrapper-container[style*="--translate-x"] .ql-editor,
         .quill-wrapper-container[style*="--translate-y"] .ql-editor {
-          transform: translate(var(--translate-x, 0px), var(--translate-y, 0px)) !important;
+          transform: translate(max(var(--translate-x, 0px), 0px), var(--translate-y, 0px)) !important;
         }
         .quill-wrapper-container[style*="--translate-y"] .ql-editor.title-sub-text {
           transform: translate(-50%, var(--translate-y)) !important;
@@ -7191,7 +7191,7 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--translate-y"] .ql-editor,
           .quill-wrapper-container[style*="--translate-x-mobile"] .ql-editor,
           .quill-wrapper-container[style*="--translate-y-mobile"] .ql-editor {
-            transform: translate(var(--translate-x-mobile, 0px), var(--translate-y-mobile, 0px)) !important;
+            transform: translate(max(var(--translate-x-mobile, 0px), 0px), var(--translate-y-mobile, 0px)) !important;
           }
           .quill-wrapper-container[style*="--translate-y"] .ql-editor.title-sub-text,
           .quill-wrapper-container[style*="--translate-y-mobile"] .ql-editor.title-sub-text {
