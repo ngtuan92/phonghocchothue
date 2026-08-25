@@ -926,40 +926,13 @@ const isEmptyQuillParagraph = (node) => {
 };
 
 const removeEmptyQuillParagraphElements = (root) => {
-  if (!root?.querySelectorAll) return;
-  const children = Array.from(root.children || []);
-  let trailingIndex = children.length - 1;
-
-  while (trailingIndex >= 0 && isEmptyQuillParagraph(children[trailingIndex])) {
-    children[trailingIndex].remove();
-    trailingIndex -= 1;
-  }
-
-  let emptyRun = [];
-  Array.from(root.children || []).forEach((child) => {
-    if (isEmptyQuillParagraph(child)) {
-      emptyRun.push(child);
-      if (emptyRun.length > 1) {
-        child.remove();
-      }
-      return;
-    }
-    emptyRun = [];
-  });
+  // Preserve all empty paragraphs (<p><br></p>) created by user Enter presses.
+  // They are essential for vertical spacing and pushing text below floated/wrapped images.
 };
 
 const removeEmptyQuillParagraphs = (html, { preserveWhitespaceOnly = false } = {}) => {
   if (!html || typeof html !== "string") return html;
-  if (preserveWhitespaceOnly) return html;
-  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return html.replace(/<p\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "");
-  }
-
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const root = doc.body.firstElementChild;
-  if (!root) return html;
-  removeEmptyQuillParagraphElements(root);
-  return root.innerHTML;
+  return html;
 };
 
 const normalizeWhitespaceOnlyBlocksForQuill = (html) => {
