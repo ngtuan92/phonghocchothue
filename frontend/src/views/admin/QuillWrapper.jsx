@@ -825,7 +825,7 @@ const getMobileAdminChromeBottom = () => {
 const isControlPopupInputActive = () => {
   if (typeof document === "undefined") return false;
   const activeElement = document.activeElement;
-  return Boolean(activeElement?.closest?.('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup'));
+  return Boolean(activeElement?.closest?.('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-x-popup, .ql-translate-y-popup'));
 };
 
 const cleanFontSizeStyle = (styleContent) => styleContent
@@ -1192,6 +1192,8 @@ const QuillWrapper = forwardRef(({
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [showFontSizePopup, setShowFontSizePopup] = useState(false);
   const [fontSizePopupPosition, setFontSizePopupPosition] = useState({ top: 0, left: 0 });
+  const [showTranslateXPopup, setShowTranslateXPopup] = useState(false);
+  const [translateXPopupPosition, setTranslateXPopupPosition] = useState({ top: 0, left: 0 });
   const [showTranslatePopup, setShowTranslatePopup] = useState(false);
   const [translatePopupPosition, setTranslatePopupPosition] = useState({ top: 0, left: 0 });
   const [responsiveColorPopup, setResponsiveColorPopup] = useState({
@@ -1249,6 +1251,7 @@ const QuillWrapper = forwardRef(({
   const controlPopupAnchorRef = useRef({});
   const mobileFontSizeButtonRef = useRef(null);
   const mobileLineHeightButtonRef = useRef(null);
+  const mobileTranslateXButtonRef = useRef(null);
   const mobileTranslateButtonRef = useRef(null);
   const toolbarScrollSnapshotRef = useRef(null);
   const emitCurrentContentForSaveRef = useRef(null);
@@ -2133,9 +2136,9 @@ const QuillWrapper = forwardRef(({
   }, [applyPreviewControlToContainer, getQuillEditor]);
 
   useEffect(() => {
-    if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
+    if (!showFontSizePopup && !showSpacingPopup && !showTranslateXPopup && !showTranslatePopup) return;
     applyAllPreviewControlStyles();
-  }, [showFontSizePopup, showSpacingPopup, showTranslatePopup, applyAllPreviewControlStyles]);
+  }, [showFontSizePopup, showSpacingPopup, showTranslateXPopup, showTranslatePopup, applyAllPreviewControlStyles]);
 
   const keepPopupInputKeyInInput = useCallback((event) => {
     event.stopPropagation();
@@ -2147,7 +2150,7 @@ const QuillWrapper = forwardRef(({
     const nextFocus = event?.relatedTarget;
     if (
       nextFocus instanceof HTMLElement &&
-      nextFocus.closest?.('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup')
+      nextFocus.closest?.('.ql-font-size-popup, .ql-line-height-popup, .ql-translate-x-popup, .ql-translate-y-popup')
     ) {
       return;
     }
@@ -2204,10 +2207,12 @@ const QuillWrapper = forwardRef(({
     controlPopupVisibleRef.current = {
       fontSize: false,
       lineHeight: false,
+      translateX: false,
       translateY: false,
     };
     setShowFontSizePopup(false);
     setShowSpacingPopup(false);
+    setShowTranslateXPopup(false);
     setShowTranslatePopup(false);
     clearPopupInputValues();
     containerRef.current?.querySelector('.ql-toolbar')?.classList.remove('ql-control-popup-open');
@@ -2216,12 +2221,12 @@ const QuillWrapper = forwardRef(({
   const isCustomControlTarget = useCallback((target) => {
     if (!(target instanceof Element)) return false;
     return Boolean(target.closest?.(
-      '.ql-font-size-custom, .ql-line-height, .ql-translate-y, .ql-font-size-popup, .ql-line-height-popup, .ql-translate-y-popup, #quill-custom-color-picker, #quill-custom-bg-picker'
+      '.ql-font-size-custom, .ql-line-height, .ql-translate-x, .ql-translate-y, .ql-font-size-popup, .ql-line-height-popup, .ql-translate-x-popup, .ql-translate-y-popup, #quill-custom-color-picker, #quill-custom-bg-picker'
     ));
   }, []);
 
   useEffect(() => {
-    if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
+    if (!showFontSizePopup && !showSpacingPopup && !showTranslateXPopup && !showTranslatePopup) return;
 
     const closeWhenChangingToolbarTool = (event) => {
       if (isCustomControlTarget(event.target)) return;
@@ -4647,7 +4652,7 @@ const QuillWrapper = forwardRef(({
   toolbarHandlerRefs.current.handleOnChange = handleOnChange;
 
   const handleSelectionChange = useCallback((range) => {
-    const isControlPopupOpen = showFontSizePopup || showSpacingPopup || showTranslatePopup;
+    const isControlPopupOpen = showFontSizePopup || showSpacingPopup || showTranslateXPopup || showTranslatePopup;
     const isEditingControlPopup = isControlPopupInputActive();
     if (range) {
       typingSelectionRef.current = range;
@@ -6369,10 +6374,11 @@ const QuillWrapper = forwardRef(({
   }, [mobileSelectionToolbar.visible, updateMobileSelectionToolbarPosition]);
 
   useEffect(() => {
-    controlPopupOpenRef.current = showFontSizePopup || showSpacingPopup || showTranslatePopup;
+    controlPopupOpenRef.current = showFontSizePopup || showSpacingPopup || showTranslateXPopup || showTranslatePopup;
     controlPopupVisibleRef.current = {
       fontSize: showFontSizePopup,
       lineHeight: showSpacingPopup,
+      translateX: showTranslateXPopup,
       translateY: showTranslatePopup,
     };
     const toolbar = containerRef.current?.querySelector('.ql-toolbar');
@@ -6382,15 +6388,15 @@ const QuillWrapper = forwardRef(({
     } else {
       controlSelectionRef.current = null;
     }
-  }, [showFontSizePopup, showSpacingPopup, showTranslatePopup]);
+  }, [showFontSizePopup, showSpacingPopup, showTranslateXPopup, showTranslatePopup]);
 
   useEffect(() => {
-    if (showFontSizePopup || showSpacingPopup || showTranslatePopup) return;
+    if (showFontSizePopup || showSpacingPopup || showTranslateXPopup || showTranslatePopup) return;
     popupInputValuesRef.current = {};
-  }, [showFontSizePopup, showSpacingPopup, showTranslatePopup]);
+  }, [showFontSizePopup, showSpacingPopup, showTranslateXPopup, showTranslatePopup]);
 
   useEffect(() => {
-    if (!showFontSizePopup && !showSpacingPopup && !showTranslatePopup) return;
+    if (!showFontSizePopup && !showSpacingPopup && !showTranslateXPopup && !showTranslatePopup) return;
 
     const updateOpenPopupPosition = () => {
       const root = containerRef.current;
@@ -6417,6 +6423,14 @@ const QuillWrapper = forwardRef(({
         setPopupPosition(
           (fromMobileToolbar ? getMobileSelectionPopupPosition(190, 202) : null)
           || getClampedControlPopupPosition(button, 200, 'lineHeight', 220)
+        );
+      }
+      if (showTranslateXPopup) {
+        const button = getPopupAnchor('translateX', '.ql-translate-x');
+        const fromMobileToolbar = controlPopupAnchorRef.current.translateX === mobileTranslateXButtonRef.current;
+        setTranslateXPopupPosition(
+          (fromMobileToolbar ? getMobileSelectionPopupPosition(190, 202) : null)
+          || getClampedControlPopupPosition(button, 200, 'translateX', 220)
         );
       }
       if (showTranslatePopup) {
@@ -6465,6 +6479,7 @@ const QuillWrapper = forwardRef(({
     const buttonStates = [
       ['.ql-font-size-custom', showFontSizePopup],
       ['.ql-line-height', showSpacingPopup],
+      ['.ql-translate-x', showTranslateXPopup],
       ['.ql-translate-y', showTranslatePopup],
     ];
 
@@ -6472,7 +6487,7 @@ const QuillWrapper = forwardRef(({
       const button = containerRef.current?.querySelector(selector);
       button?.classList.toggle('ql-active', isActive);
     });
-  }, [showFontSizePopup, showSpacingPopup, showTranslatePopup]);
+  }, [showFontSizePopup, showSpacingPopup, showTranslateXPopup, showTranslatePopup]);
 
   if (!isReady) return <div className="h-48 bg-gray-50 animate-pulse rounded-xl" />;
 
