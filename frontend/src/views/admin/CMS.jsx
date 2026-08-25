@@ -1428,6 +1428,7 @@ export default function CMS() {
       const isParagraph = (keyLower.includes("content") || keyLower.includes("description") || keyLower.includes("decription")) && config.key !== "amenities-content";
       const minHeight = isParagraph ? "300px" : "120px";
       const isAboutSection = config.section === "about" || activeSection === "about" || (SECTION_KEY_MAP.about && SECTION_KEY_MAP.about.includes(config.key));
+      const isHeroPhoneOrSlogan = config.key === "describe-phone" || config.key === "describe-quote-text";
       const commitOnBlurOnly = true;
       const updateControlDraft = (field, value) => {
         configControlDraftsRef.current[config.key] = {
@@ -1479,8 +1480,8 @@ export default function CMS() {
             lineHeightMobile={config.lineHeightMobile}
             fontSize={config.fontSize}
             fontSizeMobile={config.fontSizeMobile}
-            translateX={config.translateX}
-            translateXMobile={config.translateXMobile}
+            translateX={isHeroPhoneOrSlogan ? config.translateX : undefined}
+            translateXMobile={isHeroPhoneOrSlogan ? config.translateXMobile : undefined}
             translateY={config.translateY}
             translateYMobile={config.translateYMobile}
             onChangeLineHeight={(val) => {
@@ -1507,18 +1508,18 @@ export default function CMS() {
                 prev.map((c) => (c.key === config.key ? { ...c, fontSizeMobile: val } : c))
               );
             }}
-            onChangeTranslateX={(val) => {
+            onChangeTranslateX={isHeroPhoneOrSlogan ? (val) => {
               updateControlDraft("translateX", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, translateX: val } : c))
               );
-            }}
-            onChangeTranslateXMobile={(val) => {
+            } : undefined}
+            onChangeTranslateXMobile={isHeroPhoneOrSlogan ? (val) => {
               updateControlDraft("translateXMobile", val);
               setConfigs((prev) =>
                 prev.map((c) => (c.key === config.key ? { ...c, translateXMobile: val } : c))
               );
-            }}
+            } : undefined}
             onChangeTranslateY={(val) => {
               updateControlDraft("translateY", val);
               setConfigs((prev) =>

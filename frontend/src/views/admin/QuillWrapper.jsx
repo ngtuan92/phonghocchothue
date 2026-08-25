@@ -3845,7 +3845,23 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const hasLineHeight = !!onChangeLineHeight;
-  const hasTranslateX = !!onChangeTranslateX || !!translateX || !!translateXMobile || (typeof className === 'string' && (className.includes('hero-phone-text') || className.includes('hero-slogan-text') || className.includes('describe-phone') || className.includes('describe-quote-text')));
+  const isHeroPhoneOrSloganField = (
+    (typeof className === 'string' && (
+      className.includes('hero-phone-text') ||
+      className.includes('hero-slogan-text') ||
+      className.includes('describe-phone') ||
+      className.includes('describe-quote-text') ||
+      className.includes('quill-editor-describe-phone') ||
+      className.includes('quill-editor-describe-quote-text')
+    )) ||
+    (typeof editorClassName === 'string' && (
+      editorClassName.includes('hero-phone-text') ||
+      editorClassName.includes('hero-slogan-text') ||
+      editorClassName.includes('describe-phone') ||
+      editorClassName.includes('describe-quote-text')
+    ))
+  );
+  const hasTranslateX = Boolean(isHeroPhoneOrSloganField);
   const hasTranslateY = !!onChangeTranslateY || !!translateY || !!translateYMobile;
 
   useEffect(() => {
@@ -4836,6 +4852,11 @@ const QuillWrapper = forwardRef(({
           if (hasTranslateX) {
             if (!newGroup.includes('translate-x')) {
               newGroup.push('translate-x');
+            }
+          } else {
+            const idx = newGroup.indexOf('translate-x');
+            if (idx !== -1) {
+              newGroup.splice(idx, 1);
             }
           }
           if (showSpacingAndTranslation) {
