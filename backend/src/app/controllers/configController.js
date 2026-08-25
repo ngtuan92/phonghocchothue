@@ -69,6 +69,8 @@ function processConfigs(plainConfigs) {
                     lineHeightMobile: null,
                     fontSizeMobile: null,
                     fontSize: null,
+                    translateX: null,
+                    translateXMobile: null,
                     translateY: null,
                     translateYMobile: null
                 });
@@ -88,7 +90,7 @@ class ConfigController {
             
             if (noCache) {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'fontSize', 'translateY', 'translateYMobile'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'fontSize', 'translateX', 'translateXMobile', 'translateY', 'translateYMobile'],
                 });
                 const plainConfigs = mutipleConvertToObject(configData);
                 return res.status(200).json({
@@ -100,7 +102,7 @@ class ConfigController {
 
             const configJson = await getOrSetCache('configs:v2', async () => {
                 const configData = await configModel.findAll({
-                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'fontSize', 'translateY', 'translateYMobile'],
+                    attributes: ['id', 'key', 'content', 'type', 'section', 'musicName', 'borderRadius', 'lineHeight', 'lineHeightMobile', 'fontSizeMobile', 'fontSize', 'translateX', 'translateXMobile', 'translateY', 'translateYMobile'],
                 });
                 const plainConfigs = mutipleConvertToObject(configData);
                 return {
