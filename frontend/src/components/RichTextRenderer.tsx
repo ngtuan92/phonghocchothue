@@ -686,22 +686,21 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 };
 
 const RICH_TEXT_RENDERER_STYLES = `
-        .rich-text-renderer .ql-leading-whitespace {
-          display: inline-block !important;
-          max-width: calc(100% - 1ch);
-          overflow: hidden;
-          white-space: pre !important;
-          tab-size: 4;
-          vertical-align: bottom;
+        .rich-text-renderer {
+          white-space: break-spaces;
+          overflow-wrap: break-word;
+          word-break: normal;
         }
-        @media (max-width: 767px) {
-          .rich-text-renderer.rich-text-mobile-reset-indent .ql-leading-whitespace {
-            display: none !important;
-          }
-          .rich-text-renderer.rich-text-mobile-reset-indent [class*="ql-indent-"] {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-          }
+        .rich-text-renderer p,
+        .rich-text-renderer div,
+        .rich-text-renderer span {
+          white-space: inherit;
+        }
+        .rich-text-renderer .ql-leading-whitespace {
+          white-space: inherit !important;
+          display: inline !important;
+          font-family: inherit !important;
+          font-size: inherit !important;
         }
         .rich-text-renderer img {
           display: block;
@@ -768,10 +767,6 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer .ql-whitespace-spacer * {
           white-space: inherit !important;
           overflow-wrap: inherit !important;
-        }
-        .rich-text-renderer .ql-leading-whitespace {
-          white-space: pre-wrap !important;
-          display: inline !important;
         }
         .rich-text-renderer .ql-align-center,
         .rich-text-renderer [style*="text-align: center"],

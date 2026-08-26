@@ -311,7 +311,6 @@ export default function BlogDetail() {
                       translateY={blog.excerptTranslateY}
                       translateYMobile={blog.excerptTranslateYMobile}
                       preserveLeadingIndent
-                      resetLeadingIndentOnMobile
                     />
                   </div>
                 </div>
