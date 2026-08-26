@@ -103,7 +103,7 @@ const Contact = () => {
           </label>
           <label className="block mb-2">
             <textarea
-              placeholder="Cần tìm phòng(Thời gian trong tuần, số chỗ ngồi, thời gian bắt đầu vào lớp,...)"
+              placeholder="Cần tìm phòng (Thời gian trong tuần, số chỗ ngồi, thời gian bắt đầu vào lớp,...)"
               aria-label="Nội dung lời nhắn"
               rows={4}
               value={message}
