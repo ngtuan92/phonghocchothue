@@ -630,33 +630,40 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const responsiveIndentClassName = resetLeadingIndentOnMobile ? "rich-text-mobile-reset-indent" : "";
   const rendererClassName = `rich-text-renderer ${configClassName} ${responsiveIndentClassName} ${className}`.replace(/\s+/g, " ").trim();
 
-  if (!html) return fallback ? <Component className={rendererClassName} style={customStyles}>{fallback}</Component> : null;
+  if (!html) return fallback ? <Component className={rendererClassName} style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word", ...customStyles }}>{fallback}</Component> : null;
 
   return (
-    <Component
-      className={rendererClassName}
-      style={customStyles}
-      dangerouslySetInnerHTML={{ __html: cleanHtml }}
-    />
+    <>
+      <style dangerouslySetInnerHTML={{ __html: RICH_TEXT_RENDERER_STYLES }} />
+      <Component
+        className={rendererClassName}
+        style={{
+          whiteSpace: "pre-wrap",
+          overflowWrap: "break-word",
+          ...customStyles,
+        }}
+        dangerouslySetInnerHTML={{ __html: cleanHtml }}
+      />
+    </>
   );
 };
 
 const RICH_TEXT_RENDERER_STYLES = `
-        .rich-text-renderer {
-          white-space: break-spaces;
-          overflow-wrap: break-word;
-          word-break: normal;
-        }
+        .rich-text-renderer,
         .rich-text-renderer p,
         .rich-text-renderer div,
-        .rich-text-renderer span {
-          white-space: inherit;
-        }
-        .rich-text-renderer .ql-leading-whitespace {
-          white-space: inherit !important;
-          display: inline !important;
-          font-family: inherit !important;
-          font-size: inherit !important;
+        .rich-text-renderer span,
+        .rich-text-renderer li,
+        .rich-text-renderer h1,
+        .rich-text-renderer h2,
+        .rich-text-renderer h3,
+        .rich-text-renderer h4,
+        .rich-text-renderer h5,
+        .rich-text-renderer h6 {
+          white-space: pre-wrap !important;
+          overflow-wrap: break-word !important;
+          tab-size: 4 !important;
+          -moz-tab-size: 4 !important;
         }
         .rich-text-renderer img {
           display: block;
