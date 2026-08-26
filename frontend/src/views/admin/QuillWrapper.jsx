@@ -7656,6 +7656,12 @@ const QuillWrapper = forwardRef(({
           margin-left: auto !important;
           margin-right: auto !important;
         }
+        .blog-excerpt-editor.quill-wrapper-container .ql-editor,
+        .quill-wrapper-container.blog-excerpt-editor .ql-editor {
+          padding: 12px 15px !important;
+          box-shadow: none !important;
+          max-width: 100% !important;
+        }
         .quill-wrapper-container.is-blog-editor .ql-editor p {
           margin: 0 0 0.5rem 0 !important;
           font-weight: 400;
