@@ -814,13 +814,15 @@ const isMobileAdminViewport = () => (
   window.matchMedia?.("(max-width: 767px)")?.matches
 );
 
-const getMobileAdminChromeBottom = () => {
-  if (typeof document === "undefined" || !isMobileAdminViewport()) return 0;
-  const navbar = document.querySelector('nav.sticky.top-0');
+const getAdminNavbarBottom = () => {
+  if (typeof document === "undefined") return 0;
+  const navbar = document.querySelector('nav.sticky.top-0, nav[class*="sticky"], nav[class*="fixed"], header[class*="sticky"]');
   const rect = navbar?.getBoundingClientRect?.();
   if (!rect || rect.bottom <= 0) return 0;
   return rect.bottom;
 };
+
+const getMobileAdminChromeBottom = getAdminNavbarBottom;
 
 const isControlPopupInputActive = () => {
   if (typeof document === "undefined") return false;
@@ -1375,14 +1377,14 @@ const QuillWrapper = forwardRef(({
     const preferredLeft = isMobilePopup
       ? safeNumber((rect?.left || 0) + ((rect?.width || 0) / 2) - (width / 2), minLeft)
       : safeNumber(rect?.left, minLeft);
-    const minTop = Math.max(viewportTop + gutter, getMobileAdminChromeBottom() + (isMobilePopup ? 8 : 0));
+    const minTop = Math.max(viewportTop + gutter, getAdminNavbarBottom() + (isMobilePopup ? 8 : 12));
     const viewportBottom = viewportTop + viewportHeight - gutter;
     const belowTop = safeNumber((rect?.bottom || 0) + viewportTop + 5);
     const aboveTop = safeNumber((rect?.top || 0) + viewportTop - height - 5);
     const maxTop = Math.max(minTop, viewportBottom - height);
-    const preferredTop = belowTop + height <= viewportBottom
-      ? belowTop
-      : Math.max(aboveTop, minTop);
+    const preferredTop = (belowTop + height <= viewportBottom || aboveTop < minTop)
+      ? Math.max(minTop, belowTop)
+      : Math.max(minTop, aboveTop);
 
     return {
       top: Math.max(minTop, Math.min(preferredTop, maxTop)),
@@ -6550,13 +6552,14 @@ const QuillWrapper = forwardRef(({
     >
       {renderModals()}
 
-      {canUseMobileSelectionToolbar && mobileSelectionToolbar.visible && (hasResponsive || hasLineHeight || hasTranslateY) && (
+      {isMounted && canUseMobileSelectionToolbar && mobileSelectionToolbar.visible && (hasResponsive || hasLineHeight || hasTranslateY) && createPortal(
         <div
           className="ql-mobile-selection-toolbar"
           style={{
             position: 'fixed',
             top: `${safeNumber(mobileSelectionToolbar.top)}px`,
             left: `${safeNumber(mobileSelectionToolbar.left)}px`,
+            zIndex: 99999,
           }}
           onPointerDown={(e) => {
             e.preventDefault();
@@ -6617,19 +6620,21 @@ const QuillWrapper = forwardRef(({
               </svg>
             </button>
           )}
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showSpacingPopup && (
+      {isMounted && showSpacingPopup && createPortal(
         <div
-          className="ql-line-height-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          className="ql-line-height-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
           style={{
             position: 'fixed',
             top: safeNumber(popupPosition.top),
             left: safeNumber(popupPosition.left, 12),
             width: `${safeNumber(popupPosition.width, 200)}px`,
             maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            zIndex: 99999,
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -6711,7 +6716,8 @@ const QuillWrapper = forwardRef(({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {isMounted && responsiveColorPopup.visible && createPortal(
@@ -6778,16 +6784,17 @@ const QuillWrapper = forwardRef(({
         document.body
       )}
 
-      {showFontSizePopup && hasResponsive && (
+      {isMounted && showFontSizePopup && hasResponsive && createPortal(
         <div
-          className="ql-font-size-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          className="ql-font-size-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
           style={{
             position: 'fixed',
             top: safeNumber(fontSizePopupPosition.top),
             left: safeNumber(fontSizePopupPosition.left, 12),
             width: `${safeNumber(fontSizePopupPosition.width, 210)}px`,
             maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            zIndex: 99999,
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -6915,19 +6922,21 @@ const QuillWrapper = forwardRef(({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showTranslateXPopup && (
+      {isMounted && showTranslateXPopup && createPortal(
         <div
-          className="ql-translate-x-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          className="ql-translate-x-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
           style={{
             position: 'fixed',
             top: safeNumber(translateXPopupPosition.top),
             left: safeNumber(translateXPopupPosition.left, 12),
             width: `${safeNumber(translateXPopupPosition.width, 200)}px`,
             maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            zIndex: 99999,
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -6992,19 +7001,21 @@ const QuillWrapper = forwardRef(({
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showTranslatePopup && (
+      {isMounted && showTranslatePopup && createPortal(
         <div
-          className="ql-translate-y-popup absolute bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[3000]"
+          className="ql-translate-y-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
           style={{
             position: 'fixed',
             top: safeNumber(translatePopupPosition.top),
             left: safeNumber(translatePopupPosition.left, 12),
             width: `${safeNumber(translatePopupPosition.width, 200)}px`,
             maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            zIndex: 99999,
           }}
           onMouseDown={keepPopupInteractionStable}
           onClick={(e) => e.stopPropagation()}
@@ -7084,7 +7095,8 @@ const QuillWrapper = forwardRef(({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <input
