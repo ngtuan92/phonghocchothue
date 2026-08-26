@@ -163,10 +163,6 @@ const normalizeNaturalTextWrapping = (html: string, keepLeadingWhitespace = fals
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let textNode = walker.nextNode();
   while (textNode) {
-    const parent = textNode.parentElement;
-    if (!parent?.closest(".ql-whitespace-spacer")) {
-      textNode.textContent = (textNode.textContent || "").replace(/\u00a0/g, " ");
-    }
     textNode = walker.nextNode();
   }
 
@@ -264,9 +260,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       ? normalizeNaturalTextWrapping(normalizedAlignmentHtml, preserveLeadingIndent)
       : preserveLeadingIndent
         ? preserveLeadingWhitespace(normalizedAlignmentHtml)
-      : preserveNbsp && !normalizeNbsp
-        ? normalizedAlignmentHtml
-        : normalizedAlignmentHtml.replace(/(?:&nbsp;|\u00a0)/gi, " ");
+        : normalizedAlignmentHtml;
 
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
