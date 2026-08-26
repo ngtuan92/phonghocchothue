@@ -744,6 +744,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 onChangeTranslateYMobile={(val) => setFormData(prev => ({ ...prev, excerptTranslateYMobile: val }))}
                 hasResponsiveFontSize={true}
                 commitOnBlurOnly={true}
+                isBlogEditor={true}
               />
             </div>
           </div>

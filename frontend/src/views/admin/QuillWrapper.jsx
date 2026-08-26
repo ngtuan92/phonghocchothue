@@ -1151,11 +1151,11 @@ const QuillWrapper = forwardRef(({
     className.includes('hero-slogan-text');
   const preserveWhitespaceOnlyBlocks =
     className.includes('blog-desc-editor') ||
+    className.includes('blog-excerpt-editor') ||
     className.includes('room-desc-editor') ||
     className.includes('room-summary-editor');
   const shouldNormalizeAdminContentWhitespace =
     className.includes('blog-title-editor') ||
-    className.includes('blog-excerpt-editor') ||
     className.includes('room-name-editor');
   const preserveInlineWhitespace =
     preserveWhitespaceOnlyBlocks ||
