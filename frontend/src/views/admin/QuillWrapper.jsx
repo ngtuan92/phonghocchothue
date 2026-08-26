@@ -843,30 +843,12 @@ const cleanFontSizeStyle = (styleContent) => styleContent
 const cleanStyleForSave = cleanFontSizeStyle;
 const cleanStyleForEdit = cleanFontSizeStyle;
 
-const removeEmptyStyledSpans = (html, { preserveWhitespaceOnly = false } = {}) => {
+const removeEmptyStyledSpans = (html) => {
   if (!html || typeof html !== "string") return html;
-  if (preserveWhitespaceOnly) return html;
-  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return html.replace(/<span\b(?=[^>]*\bstyle=)[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/span>/gi, "");
-  }
-
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const root = doc.body.firstElementChild;
-  if (!root) return html;
-
-  root.querySelectorAll("span[style]").forEach((span) => {
-    const text = (span.textContent || "").replace(/\u00a0/g, "").trim();
-    const hasMedia = span.querySelector("img, video, iframe, svg");
-    if (!text && !hasMedia) {
-      span.remove();
-    }
-  });
-
-  root.querySelectorAll("span:not([style]):not([class])").forEach((span) => {
-    span.replaceWith(...Array.from(span.childNodes));
-  });
-
-  return root.innerHTML;
+  return html
+    .replace(/<span\b[^>]*\bclass=["'][^"']*\bql-cursor\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/\uFEFF/g, "")
+    .replace(/<span\b[^>]*\bclass=["'][^"']*\bql-leading-whitespace\b[^"']*["'][^>]*>(.*?)<\/span>/gi, "$1");
 };
 
 const syncListItemFontSizeFromChildren = (root) => {

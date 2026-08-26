@@ -107,49 +107,12 @@ const normalizeWhitespaceSpacers = (html: string) => {
   return root?.innerHTML || html;
 };
 
-const preserveLeadingWhitespace = (html: string) => {
-  if (!html || typeof DOMParser === "undefined") return html;
-
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
-  const root = doc.body.firstElementChild;
-  if (!root) return html;
-
-  const blocks = root.querySelectorAll<HTMLElement>("p, h1, h2, h3, h4, h5, h6, li, blockquote");
-  blocks.forEach((block) => {
-    if (block.closest(".ql-whitespace-spacer")) return;
-
-    const walker = doc.createTreeWalker(block, NodeFilter.SHOW_TEXT);
-    let textNode = walker.nextNode();
-    let atLineStart = true;
-
-    while (textNode) {
-      const currentNode = textNode;
-      textNode = walker.nextNode();
-      const rawText = String(currentNode.textContent || "");
-
-      if (!atLineStart) {
-        continue;
-      }
-
-      const leadingWhitespace = rawText.match(/^[\t \u00a0]+/)?.[0] || "";
-      const remainingText = rawText.slice(leadingWhitespace.length);
-      if (leadingWhitespace) {
-        const marker = doc.createElement("span");
-        marker.className = "ql-leading-whitespace";
-        marker.setAttribute("aria-hidden", "true");
-        marker.textContent = leadingWhitespace;
-        currentNode.parentNode?.insertBefore(marker, currentNode);
-      }
-      currentNode.textContent = remainingText;
-
-      if (remainingText.length > 0) {
-        atLineStart = false;
-      }
-    }
-  });
-
-  root.querySelectorAll(".ql-leading-whitespace .ql-leading-whitespace").forEach((marker) => marker.remove());
-  return root.innerHTML;
+const unwrapLeadingWhitespaceMarkers = (html: string) => {
+  if (!html) return html;
+  return html
+    .replace(/<span\b[^>]*\bclass=["'][^"']*\bql-leading-whitespace\b[^"']*["'][^>]*>(.*?)<\/span>/gi, '$1')
+    .replace(/<span\b[^>]*\bclass=["'][^"']*\bql-cursor\b[^"']*["'][^>]*>[\s\S]*?<\/span>/gi, '')
+    .replace(/\uFEFF/g, '');
 };
 
 const normalizeNaturalTextWrapping = (html: string, keepLeadingWhitespace = false) => {
@@ -174,7 +137,7 @@ const normalizeNaturalTextWrapping = (html: string, keepLeadingWhitespace = fals
     if (!element.getAttribute("style")) element.removeAttribute("style");
   });
 
-  return keepLeadingWhitespace ? preserveLeadingWhitespace(root.innerHTML) : root.innerHTML;
+  return keepLeadingWhitespace ? unwrapLeadingWhitespaceMarkers(root.innerHTML) : root.innerHTML;
 };
 
 const normalizeCustomLineHeightUnits = (html: string) => {
@@ -253,14 +216,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       })
       : html;
 
-    const normalizedAlignmentHtml = preserveLeadingIndent
-      ? normalizeExcessiveLeadingWhitespaceAlignment(sanitized)
-      : sanitized;
-    let processedHtml = naturalTextWrapping
-      ? normalizeNaturalTextWrapping(normalizedAlignmentHtml, preserveLeadingIndent)
-      : preserveLeadingIndent
-        ? preserveLeadingWhitespace(normalizedAlignmentHtml)
-        : normalizedAlignmentHtml;
+    let processedHtml = unwrapLeadingWhitespaceMarkers(sanitized);
 
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<img[^>]*?>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
     processedHtml = processedHtml.replace(/<(p|h[1-6])([^>]*?)>\s*(<iframe[^>]*?>.*?<\/iframe>)(?:\s*|<br\s*\/?>|&nbsp;)*<\/\1>/gi, "$3");
