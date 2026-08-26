@@ -99,6 +99,12 @@ const normalizeWhitespaceSpacers = (html: string) => {
     const hasOnlyBreaks = !text && /^(?:\s|<br\s*\/?>|&nbsp;)*$/i.test(block.innerHTML || '');
     if (!hasOnlyWhitespaceText && !hasOnlyBreaks) return;
 
+    const prev = block.previousElementSibling;
+    if (prev && prev instanceof HTMLElement && prev.classList.contains('ql-whitespace-spacer')) {
+      block.remove();
+      return;
+    }
+
     block.classList.add('ql-whitespace-spacer');
     block.setAttribute('aria-hidden', 'true');
     block.textContent = hasOnlyWhitespaceText ? text : ' ';
@@ -767,10 +773,15 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: block !important;
           min-height: 1em !important;
           line-height: inherit !important;
-          margin: 0.75em 0 !important;
+          margin: 0.25em 0 !important;
           white-space: pre-wrap !important;
           overflow-wrap: break-word !important;
           word-break: normal !important;
+        }
+        .rich-text-renderer .ql-whitespace-spacer + .ql-whitespace-spacer {
+          display: none !important;
+          margin: 0 !important;
+          min-height: 0 !important;
         }
         .rich-text-renderer .ql-whitespace-spacer * {
           white-space: inherit !important;
