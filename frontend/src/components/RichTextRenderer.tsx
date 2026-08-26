@@ -125,15 +125,14 @@ const preserveLeadingWhitespace = (html: string) => {
     while (textNode) {
       const currentNode = textNode;
       textNode = walker.nextNode();
-      const normalizedText = String(currentNode.textContent || "").replace(/\u00a0/g, " ");
+      const rawText = String(currentNode.textContent || "");
 
       if (!atLineStart) {
-        currentNode.textContent = normalizedText;
         continue;
       }
 
-      const leadingWhitespace = normalizedText.match(/^[\t ]+/)?.[0] || "";
-      const remainingText = normalizedText.slice(leadingWhitespace.length);
+      const leadingWhitespace = rawText.match(/^[\t \u00a0]+/)?.[0] || "";
+      const remainingText = rawText.slice(leadingWhitespace.length);
       if (leadingWhitespace) {
         const marker = doc.createElement("span");
         marker.className = "ql-leading-whitespace";
@@ -775,6 +774,10 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer .ql-whitespace-spacer * {
           white-space: inherit !important;
           overflow-wrap: inherit !important;
+        }
+        .rich-text-renderer .ql-leading-whitespace {
+          white-space: pre-wrap !important;
+          display: inline !important;
         }
         .rich-text-renderer .ql-align-center,
         .rich-text-renderer [style*="text-align: center"],
