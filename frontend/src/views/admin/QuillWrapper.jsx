@@ -2754,15 +2754,12 @@ const QuillWrapper = forwardRef(({
       } catch { /* ignore */ }
     }
     if (!font && selection && typeof selection.index === 'number' && selection.index > 0) {
-      for (let i = selection.index - 1; i >= Math.max(0, selection.index - 100); i--) {
-        try {
-          const fmt = quill.getFormat(i, 1);
-          if (fmt && fmt.font && fmt.font !== 'macdinh') {
-            font = fmt.font;
-            break;
-          }
-        } catch { /* ignore */ }
-      }
+      try {
+        const fmt = quill.getFormat(selection.index - 1, 1);
+        if (fmt && fmt.font && fmt.font !== 'macdinh') {
+          font = fmt.font;
+        }
+      } catch { /* ignore */ }
     }
     if (!font && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
       font = lastActiveFormatsRef.current.font;
@@ -2811,8 +2808,6 @@ const QuillWrapper = forwardRef(({
         });
       }
     });
-
-    setPopupValueVersion((prev) => prev + 1);
 
     const sizePickers = container.querySelectorAll('.ql-size.ql-picker');
     sizePickers.forEach(picker => {
@@ -4593,8 +4588,14 @@ const QuillWrapper = forwardRef(({
       if (source !== 'user') return;
       const quillRoot = editor?.root || getQuillEditor()?.root;
 
+      const isNewlineOrStructureChange = Array.isArray(delta?.ops) && delta.ops.some(
+        (op) => typeof op.insert === 'string' && op.insert.includes('\n')
+      );
+
       if (commitOnBlurOnly) {
-        syncUnwrappedParagraphs();
+        if (isNewlineOrStructureChange) {
+          syncUnwrappedParagraphs();
+        }
         const draftContent = quillRoot?.innerHTML || content || "";
         isUserEditingRef.current = true;
         localEditorHtmlRef.current = draftContent;
@@ -4639,27 +4640,28 @@ const QuillWrapper = forwardRef(({
       if (onChangeTimeoutRef.current) {
         clearTimeout(onChangeTimeoutRef.current);
       }
-      if (quillRoot) {
-        syncListItemFontSizeFromChildren(quillRoot);
+      if (isNewlineOrStructureChange) {
+        if (quillRoot) {
+          syncListItemFontSizeFromChildren(quillRoot);
+        }
+        syncUnwrappedParagraphs();
       }
-      syncUnwrappedParagraphs();
       const syncedContent = quillRoot?.innerHTML || content;
       isUserEditingRef.current = true;
       localEditorHtmlRef.current = syncedContent;
-      const relativeContent = normalizeContentForSave(syncedContent);
 
-      if (typeof props.value === "string" && relativeContent === props.value) {
-        return;
-      }
-
-      lastRelativeContentRef.current = relativeContent;
       onChangeTimeoutRef.current = setTimeout(() => {
-        if (onChangeRef.current) {
+        if (onChangeRef.current && localEditorHtmlRef.current) {
+          const relativeContent = normalizeContentForSave(localEditorHtmlRef.current);
+          if (typeof props.value === "string" && relativeContent === props.value) {
+            return;
+          }
+          lastRelativeContentRef.current = relativeContent;
           onChangeRef.current(relativeContent, delta, source, editor);
         }
       }, 300);
     }
-  }, [props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, normalizeContentForSave]);
+  }, [props.value, commitOnBlurOnly, onDraftChange, getQuillEditor, setSelectionWithoutScroll, syncUnwrappedParagraphs, normalizeContentForSave]);
   toolbarHandlerRefs.current.handleOnChange = handleOnChange;
 
   const handleSelectionChange = useCallback((range) => {
