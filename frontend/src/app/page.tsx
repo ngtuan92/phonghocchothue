@@ -361,13 +361,13 @@ export default function Home() {
               href={notificationLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="notification-link-button inline-flex items-center justify-center cursor-pointer font-bold bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none text-xs transition-all duration-300 ease-in-out"
+              className="notification-link-button inline-flex items-center justify-center cursor-pointer font-bold bg-[var(--color-btn-purple)] text-white rounded-tl-xl rounded-br-xl hover:bg-[var(--color-btn-purple-hover)] hover:rounded-bl-xl hover:rounded-tr-xl hover:rounded-br-none hover:rounded-tl-none text-xs whitespace-nowrap transition-all duration-300 ease-in-out"
               style={notificationButtonStyle}
             >
               <RichTextRenderer
                 html={textBtnNotication}
                 configKey="textBtnNotication"
-                className="inline-rich-text notification-button-rich-text"
+                className="inline-rich-text notification-button-rich-text whitespace-nowrap"
                 as="span"
               />
             </a>

@@ -2160,14 +2160,23 @@ footer .rich-text-renderer * {
 .notification-button-rich-text * {
   color: inherit;
   line-height: inherit;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
 }
 
 .notification-link-button {
   font-size: var(--notification-button-font-size, 0.75rem);
-  min-height: calc(1em * 1.13);
-  padding: 0.23em 0.6em 0.25em;
-  line-height: 1.35;
+  min-height: calc(1em * 1.3);
+  padding: 0.32em 0.85em;
+  line-height: 1.25;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap !important;
   overflow: visible;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notification-rich-text p,
@@ -2200,9 +2209,9 @@ footer .rich-text-renderer * {
 
 @media (max-width: 767px) {
   .notification-bubble {
-    max-width: min(200px, calc(100vw - 40px));
+    max-width: min(220px, calc(100vw - 32px));
     gap: 8px;
-    padding: 12px 14px 9px;
+    padding: 12px 14px 10px;
   }
 
   .notification-bird {
@@ -2216,6 +2225,9 @@ footer .rich-text-renderer * {
 
   .notification-link-button {
     font-size: var(--notification-button-font-size-mobile, var(--notification-button-font-size, 0.75rem));
+    padding: 0.28em 0.75em;
+    min-height: calc(1em * 1.25);
+    white-space: nowrap !important;
   }
 
   .notification-rich-text[style*="--fs-mobile"],
