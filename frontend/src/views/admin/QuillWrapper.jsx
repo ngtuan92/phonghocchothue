@@ -4768,6 +4768,11 @@ const QuillWrapper = forwardRef(({
       if (newData.caption) newImg.setAttribute('data-caption', newData.caption);
       else newImg.removeAttribute('data-caption');
 
+      const wrapper = newImg.closest('.image-wrapper') || newImg.parentElement;
+      if (wrapper) {
+        ensureImageCaptionNode(wrapper, newData.caption || '');
+      }
+
       if (newData.borderRadius) {
         newImg.style.borderRadius = newData.borderRadius;
         newImg.setAttribute('data-border-radius', newData.borderRadius);
@@ -4804,11 +4809,14 @@ const QuillWrapper = forwardRef(({
   const handleContainerDblClick = useCallback((ev) => {
     if (disableImageWrap || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
 
-    const clickedImg = ev.target.closest && ev.target.closest('img');
-    if (!clickedImg) return;
+    const clickedWrapper = ev.target.closest && (ev.target.closest('.image-wrapper') || ev.target.closest('img'));
+    if (!clickedWrapper) return;
 
     const quill = getQuillEditor();
     if (!quill) return;
+
+    const clickedImg = clickedWrapper.tagName === 'IMG' ? clickedWrapper : clickedWrapper.querySelector('img');
+    if (!clickedImg) return;
 
     const src = clickedImg.getAttribute('src');
     const actualImg = Array.from(quill.root.querySelectorAll('img')).find(i => i.getAttribute('src') === src);
@@ -5981,6 +5989,18 @@ const QuillWrapper = forwardRef(({
 
     const handleKeyDown = (e) => {
       if (e.key === 'Backspace' || e.key === 'Delete') {
+        const target = e.target;
+        if (
+          isModalOpen ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable ||
+          target.closest?.('input, textarea, select, [contenteditable="true"], [role="dialog"], .modal, .mantine-Modal-root, .quill-wrapper-container .ql-editor')
+        ) {
+          return;
+        }
+
         e.preventDefault();
         handleDeleteImage();
       }
@@ -5990,7 +6010,7 @@ const QuillWrapper = forwardRef(({
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
     };
-  }, [selectedImage, handleDeleteImage]);
+  }, [selectedImage, isModalOpen, handleDeleteImage]);
 
   const renderModals = () => {
     if (!isMounted) return null;
