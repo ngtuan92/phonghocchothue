@@ -8506,12 +8506,12 @@ const QuillWrapper = forwardRef(({
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
-          font-size: 16px !important;
-          line-height: 1.4 !important;
+          font-size: 13px !important;
+          line-height: 1.35 !important;
           pointer-events: none !important;
           box-sizing: border-box !important;
           padding: 0 4px !important;
-          margin-top: 8px !important;
+          margin-top: 4px !important;
           margin-bottom: 4px !important;
           white-space: normal !important;
           overflow-wrap: anywhere !important;
@@ -8557,11 +8557,11 @@ const QuillWrapper = forwardRef(({
           }
           .ql-editor .image-caption {
             display: block !important;
-            font-size: 10px !important;
-            line-height: 1.4 !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
             padding: 0 8px !important;
-            margin-top: 8px !important;
-            margin-bottom: 6px !important;
+            margin-top: 3px !important;
+            margin-bottom: 4px !important;
           }
           .editor-inline-image-caption {
             display: none !important;
@@ -9171,10 +9171,12 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
         .quill-wrapper-container .ql-editor .image-wrapper .image-caption {
           display: block !important;
-          font-size: 16px !important;
-          line-height: 1.4 !important;
+          font-size: 13px !important;
+          line-height: 1.35 !important;
           font-style: italic !important;
           text-align: center !important;
+          margin-top: 4px !important;
+          margin-bottom: 4px !important;
         }
 
         @media (max-width: 767px) {
@@ -9184,8 +9186,10 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
           .quill-wrapper-container .ql-editor .image-wrapper .image-caption {
             display: block !important;
-            font-size: 10px !important;
-            line-height: 1.4 !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            margin-top: 3px !important;
+            margin-bottom: 4px !important;
           }
         }
       `}} />

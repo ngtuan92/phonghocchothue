@@ -820,39 +820,36 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
         .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
-        .rich-text-renderer .image-wrapper .image-caption {
-          font-size: inherit !important;
+        .rich-text-renderer .image-wrapper .image-caption,
+        .rich-text-renderer .image-caption {
+          font-size: 13px !important;
+          line-height: 1.35 !important;
+          margin-top: 4px !important;
+          margin-bottom: 8px !important;
+          font-style: italic !important;
+          color: #666666 !important;
+          text-align: center !important;
         }
         @media (min-width: 768px) {
+          .rich-text-renderer .image-caption,
           .rich-text-renderer [style*="--fs-desktop"] .image-caption,
           .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption {
-            font-size: var(--fs-desktop) !important;
+            font-size: 13px !important;
+            line-height: 1.35 !important;
+            margin-top: 4px !important;
+            margin-bottom: 8px !important;
           }
         }
         @media (max-width: 767px) {
+          .rich-text-renderer .image-caption,
           .rich-text-renderer [style*="--fs-mobile"] .image-caption,
           .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
-            font-size: var(--fs-mobile) !important;
-            font-size: var(--fs-mobile) !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            margin-top: 3px !important;
+            margin-bottom: 6px !important;
           }
           .rich-text-renderer li[style*="--fs-mobile"]::marker {
-            font-size: var(--fs-mobile) !important;
-          }
-        }
-        .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
-        .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
-        .rich-text-renderer .image-wrapper .image-caption {
-          font-size: inherit !important;
-        }
-        @media (min-width: 768px) {
-          .rich-text-renderer [style*="--fs-desktop"] .image-caption,
-          .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption {
-            font-size: var(--fs-desktop) !important;
-          }
-        }
-        @media (max-width: 767px) {
-          .rich-text-renderer [style*="--fs-mobile"] .image-caption,
-          .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
             font-size: var(--fs-mobile) !important;
           }
         }
@@ -1000,11 +997,11 @@ const RICH_TEXT_RENDERER_STYLES = `
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
-          font-size: inherit !important;
-          line-height: 1.4 !important;
+          font-size: 13px !important;
+          line-height: 1.35 !important;
           padding: 0 4px !important;
-          margin-top: 8px !important;
-          margin-bottom: 4px !important;
+          margin-top: 4px !important;
+          margin-bottom: 6px !important;
           display: block !important;
         }
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
@@ -1075,11 +1072,11 @@ const RICH_TEXT_RENDERER_STYLES = `
             display: block !important;
             position: static !important;
             clear: both !important;
-            font-size: inherit !important;
-            margin-top: 8px !important;
-            margin-bottom: 8px !important;
+            font-size: 11px !important;
+            margin-top: 3px !important;
+            margin-bottom: 6px !important;
             padding: 0 8px !important;
-            line-height: 1.45 !important;
+            line-height: 1.35 !important;
             font-style: italic !important;
             text-align: center !important;
           }
@@ -1087,8 +1084,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .image-wrap-left .image-caption,
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
-            margin-top: 8px !important;
-            margin-bottom: 8px !important;
+            margin-top: 3px !important;
+            margin-bottom: 6px !important;
+            font-size: 11px !important;
           }
           .rich-text-renderer .image-wrap-left img,
           .rich-text-renderer .image-wrap-right img {
@@ -1099,11 +1097,11 @@ const RICH_TEXT_RENDERER_STYLES = `
         .image-caption {
           text-align: center;
           color: #666;
-          font-size: inherit;
-          margin-top: 12px;
-          margin-bottom: 0;
+          font-size: 13px;
+          margin-top: 4px;
+          margin-bottom: 8px;
           font-style: italic;
-          line-height: 1.4;
+          line-height: 1.35;
           display: block;
           width: 100%;
         }

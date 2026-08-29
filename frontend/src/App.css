@@ -2478,3 +2478,30 @@ footer .rich-text-renderer * {
     vertical-align: middle !important;
   }
 }
+
+/* Global Image Caption Styling - Compact & Tight to Image */
+.image-wrapper .image-caption,
+.image-caption {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  color: #666666 !important;
+  font-style: italic !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  margin-top: 4px !important;
+  margin-bottom: 8px !important;
+  padding: 0 4px !important;
+}
+
+@media (max-width: 767px) {
+  .image-wrapper .image-caption,
+  .image-caption {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    margin-top: 3px !important;
+    margin-bottom: 6px !important;
+    padding: 0 6px !important;
+  }
+}
+
