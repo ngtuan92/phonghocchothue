@@ -570,6 +570,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const normalizeLineHeight = (value: string) => {
     const cleanValue = String(value).trim();
     if (cleanValue.startsWith("-")) return "";
+    const num = parseFloat(cleanValue);
+    if (!isNaN(num) && num > 0 && num <= 3 && !cleanValue.endsWith("px") && !cleanValue.endsWith("rem") && !cleanValue.endsWith("em") && !cleanValue.endsWith("%")) {
+      return cleanValue;
+    }
     return /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(cleanValue) ? `${cleanValue}px` : cleanValue;
   };
 
