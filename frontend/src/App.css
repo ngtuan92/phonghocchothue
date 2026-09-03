@@ -1096,14 +1096,14 @@
 
   .blog-excerpt-rich-text > :first-child::before {
     content: "\201C";
-    left: 10%;
+    left: 0;
     top: 0;
   }
 
   .blog-excerpt-rich-text > :last-child::after {
     bottom: 0;
     content: "\201D";
-    right: 10%;
+    right: 0;
   }
 }
 
