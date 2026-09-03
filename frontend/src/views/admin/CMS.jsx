@@ -1298,27 +1298,11 @@ export default function CMS() {
         return newData;
       };
 
-      const normalizeFaqLineHeight = (val, defaultVal) => {
-        if (!val) return defaultVal;
-        const num = parseFloat(val);
-        if (!isNaN(num) && num <= 3) return defaultVal;
-        return String(val);
-      };
-
       const addFAQ = () => {
         const currentData = getCurrentFAQData();
-        const lastItem = currentData[currentData.length - 1] || {};
         const newItem = {
           question: "",
           answer: "",
-          qFontSize: lastItem.qFontSize || "18px",
-          qFontSizeMobile: lastItem.qFontSizeMobile || "16px",
-          qLineHeight: normalizeFaqLineHeight(lastItem.qLineHeight, "28px"),
-          qLineHeightMobile: normalizeFaqLineHeight(lastItem.qLineHeightMobile, "24px"),
-          aFontSize: lastItem.aFontSize || "16px",
-          aFontSizeMobile: lastItem.aFontSizeMobile || "14px",
-          aLineHeight: normalizeFaqLineHeight(lastItem.aLineHeight, "26px"),
-          aLineHeightMobile: normalizeFaqLineHeight(lastItem.aLineHeightMobile, "22px"),
         };
         const newData = [...currentData, newItem];
         commitFAQData(newData);
@@ -1361,10 +1345,10 @@ export default function CMS() {
                       onDraftChange={(val) => updateFAQ(index, "question", val, { commit: false })}
                       onBlur={(val) => commitFAQDraft(index, "question", val)}
                       placeholder="Nhập nội dung câu hỏi..."
-                      lineHeight={normalizeFaqLineHeight(item.qLineHeight, "28px")}
-                      lineHeightMobile={normalizeFaqLineHeight(item.qLineHeightMobile, "24px")}
-                      fontSize={item.qFontSize || "18px"}
-                      fontSizeMobile={item.qFontSizeMobile || "16px"}
+                      lineHeight={item.qLineHeight || ""}
+                      lineHeightMobile={item.qLineHeightMobile || ""}
+                      fontSize={item.qFontSize || ""}
+                      fontSizeMobile={item.qFontSizeMobile || ""}
                       translateY={item.qTranslateY}
                       translateYMobile={item.qTranslateYMobile}
                       onChangeLineHeight={(val) => updateFAQ(index, "qLineHeight", val)}
@@ -1393,10 +1377,10 @@ export default function CMS() {
                       onDraftChange={(val) => updateFAQ(index, "answer", val, { commit: false })}
                       onBlur={(val) => commitFAQDraft(index, "answer", val)}
                       placeholder="Nhập nội dung câu trả lời..."
-                      lineHeight={normalizeFaqLineHeight(item.aLineHeight, "26px")}
-                      lineHeightMobile={normalizeFaqLineHeight(item.aLineHeightMobile, "22px")}
-                      fontSize={item.aFontSize || "16px"}
-                      fontSizeMobile={item.aFontSizeMobile || "14px"}
+                      lineHeight={item.aLineHeight || ""}
+                      lineHeightMobile={item.aLineHeightMobile || ""}
+                      fontSize={item.aFontSize || ""}
+                      fontSizeMobile={item.aFontSizeMobile || ""}
                       translateY={item.aTranslateY}
                       translateYMobile={item.aTranslateYMobile}
                       onChangeLineHeight={(val) => updateFAQ(index, "aLineHeight", val)}

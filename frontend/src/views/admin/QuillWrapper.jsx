@@ -6933,7 +6933,7 @@ const QuillWrapper = forwardRef(({
                     onFocus={() => focusControlInput('fontSize')}
                     className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     style={{ fontSize: '16px' }}
-                    placeholder="16"
+                    placeholder=""
                   />
                 </div>
                 <button
