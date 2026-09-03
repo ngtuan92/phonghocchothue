@@ -859,6 +859,8 @@
 }
 
 /* Image wrapper wrapping support */
+.quill-wrapper-container .ql-editor .image-wrap-left,
+.ql-editor .image-wrap-left,
 .rich-text-renderer .image-wrap-left {
   float: left !important;
   margin-right: 20px !important;
@@ -866,8 +868,12 @@
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
+  width: min-content !important;
+  max-width: 100% !important;
 }
 
+.quill-wrapper-container .ql-editor .image-wrap-right,
+.ql-editor .image-wrap-right,
 .rich-text-renderer .image-wrap-right {
   float: right !important;
   margin-left: 20px !important;
@@ -875,8 +881,12 @@
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
+  width: min-content !important;
+  max-width: 100% !important;
 }
 
+.quill-wrapper-container .ql-editor .image-wrap-left img,
+.quill-wrapper-container .ql-editor .image-wrap-right img,
 .rich-text-renderer .image-wrap-left img,
 .rich-text-renderer .image-wrap-right img {
   display: block !important;
@@ -886,6 +896,9 @@
 }
 
 /* Caption in floated wrappers: position static for natural document flow and no text overlap */
+.quill-wrapper-container .ql-editor .image-caption,
+.ql-editor .image-caption,
+.rich-text-renderer .image-caption,
 .rich-text-renderer .image-wrap-left .image-caption,
 .rich-text-renderer .image-wrap-right .image-caption {
   position: static !important;
@@ -893,11 +906,17 @@
   color: #666666 !important;
   font-style: italic !important;
   font-size: inherit !important;
-  line-height: 1.4 !important;
+  line-height: 1.35 !important;
   padding: 0 4px !important;
-  margin-top: 8px !important;
+  margin-top: 4px !important;
   margin-bottom: 4px !important;
   display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  box-sizing: border-box !important;
 }
 
 @media (min-width: 768px) {

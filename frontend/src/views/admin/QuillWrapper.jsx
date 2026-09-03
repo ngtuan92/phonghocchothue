@@ -177,9 +177,12 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   if (wrapMode === 'left' || wrapMode === 'right') {
     wrapper?.classList.add(`image-wrap-${wrapMode}`);
   }
+  const widthAttr = target.getAttribute('width') || target.style.width;
+  const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
+
   setImportantStyles(node, {
     ...IMAGE_WRAP_DISPLAY[wrapMode],
-    'width': '',
+    'width': widthVal || '',
     'max-width': '100%',
     'margin-top': wrapMode === 'none' ? '20px' : '0',
     'margin-bottom': '16px',
@@ -189,7 +192,7 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   if (wrapper && wrapper !== node) {
     setImportantStyles(wrapper, {
       ...IMAGE_WRAP_DISPLAY[wrapMode],
-      'width': '',
+      'width': widthVal || (wrapMode === 'none' ? 'auto' : 'min-content'),
       'max-width': '100%',
       'margin-top': wrapMode === 'none' ? '20px' : '0',
       'margin-bottom': '16px',
@@ -1043,9 +1046,11 @@ const normalizeImageWrappersForEdit = (html) => {
     wrapper.setAttribute('data-wrap', wrap);
     wrapper.classList.remove('image-wrap-left', 'image-wrap-right');
     if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
+    const widthAttr = img.getAttribute('width') || img.style.width;
+    const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
     setImportantStyles(wrapper, {
       ...IMAGE_WRAP_DISPLAY[wrap],
-      'width': '',
+      'width': widthVal || (wrap === 'none' ? 'auto' : 'min-content'),
       'max-width': '100%',
       'margin-top': wrap === 'none' ? '12px' : '0',
       'margin-bottom': '10px',
@@ -2546,6 +2551,17 @@ const QuillWrapper = forwardRef(({
       const wrapper = img.closest('.image-wrapper');
       if (!wrapper) return;
       ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
+      const widthAttr = img.getAttribute('width') || img.style.width;
+      const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : (img.clientWidth ? `${img.clientWidth}px` : '');
+      if (widthVal) {
+        const parsed = /^\d+$/.test(widthVal) ? `${widthVal}px` : widthVal;
+        wrapper.style.setProperty('width', parsed, 'important');
+        wrapper.style.setProperty('max-width', '100%', 'important');
+      } else {
+        const wrap = wrapper.getAttribute('data-wrap') || 'none';
+        wrapper.style.setProperty('width', wrap === 'none' ? 'auto' : 'min-content', 'important');
+        wrapper.style.setProperty('max-width', '100%', 'important');
+      }
     });
 
     const isWhitespaceOnlyBlock = (el) => {
@@ -5831,6 +5847,11 @@ const QuillWrapper = forwardRef(({
       img.style.setProperty('height', 'auto', 'important');
       img.style.setProperty('max-width', '100%', 'important');
       img.setAttribute('width', widthValue);
+      const wrapper = img.closest('.image-wrapper');
+      if (wrapper) {
+        wrapper.style.setProperty('width', widthValue, 'important');
+        wrapper.style.setProperty('max-width', '100%', 'important');
+      }
       liveResizeImage = img;
 
       if (quill) {
@@ -8502,6 +8523,9 @@ const QuillWrapper = forwardRef(({
           margin-left: 0 !important;
           display: inline-block !important;
           position: relative !important;
+          width: min-content !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
         .ql-editor .image-wrap-right {
           float: right !important;
@@ -8511,6 +8535,9 @@ const QuillWrapper = forwardRef(({
           margin-right: 0 !important;
           display: inline-block !important;
           position: relative !important;
+          width: min-content !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
         .ql-editor .image-wrapper img {
           display: block !important;
@@ -8528,11 +8555,12 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrapper[data-wrap="none"] {
           float: none !important;
           display: block !important;
-          width: auto !important;
+          width: min-content !important;
           max-width: 100% !important;
           margin-left: auto !important;
           margin-right: auto !important;
           clear: both !important;
+          box-sizing: border-box !important;
         }
         .ql-editor .image-wrapper[data-wrap="none"] img {
           margin-left: auto !important;
@@ -8541,6 +8569,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-caption {
           display: block !important;
           width: 100% !important;
+          max-width: 100% !important;
           text-align: center !important;
           color: #666666 !important;
           font-style: italic !important;
@@ -8552,7 +8581,8 @@ const QuillWrapper = forwardRef(({
           margin-top: 4px !important;
           margin-bottom: 4px !important;
           white-space: normal !important;
-          overflow-wrap: anywhere !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
           overflow: visible !important;
         }
         .editor-inline-image-caption {
