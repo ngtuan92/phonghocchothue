@@ -2548,6 +2548,13 @@ const QuillWrapper = forwardRef(({
       ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
     });
 
+    const isWhitespaceOnlyBlock = (el) => {
+      if (!el || el.tagName !== 'P') return false;
+      if (el.querySelector('img, video, iframe, svg, canvas, table, audio')) return false;
+      const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
+      return text === '';
+    };
+
     editor.querySelectorAll('.editor-image-spacer-mobile-hide').forEach((el) => {
       el.classList.remove('editor-image-spacer-mobile-hide');
     });
@@ -2555,13 +2562,13 @@ const QuillWrapper = forwardRef(({
       if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
       let prev = target.previousElementSibling;
-      while (prev && isEmptyQuillParagraph(prev)) {
+      while (prev && isWhitespaceOnlyBlock(prev)) {
         prev.classList.add('editor-image-spacer-mobile-hide');
         prev = prev.previousElementSibling;
       }
 
       let next = target.nextElementSibling;
-      while (next && isEmptyQuillParagraph(next)) {
+      while (next && isWhitespaceOnlyBlock(next)) {
         next.classList.add('editor-image-spacer-mobile-hide');
         next = next.nextElementSibling;
       }
@@ -3398,9 +3405,11 @@ const QuillWrapper = forwardRef(({
     quill.on('text-change', syncUnwrappedParagraphs);
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
+    quill.on('text-change', syncImageCaptionBlots);
 
     const handleRootInput = () => {
       syncUnwrappedParagraphs();
+      syncImageCaptionBlots();
     };
     quill.root.addEventListener('input', handleRootInput, true);
 
@@ -3418,6 +3427,14 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     }, 100);
+
+    setTimeout(() => {
+      syncImageCaptionBlots();
+    }, 400);
+
+    setTimeout(() => {
+      syncImageCaptionBlots();
+    }, 1000);
 
     return () => {
       container.removeEventListener('mousedown', handleMousedown, true);
@@ -3445,6 +3462,7 @@ const QuillWrapper = forwardRef(({
       quill.off('text-change', syncUnwrappedParagraphs);
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
+      quill.off('text-change', syncImageCaptionBlots);
     };
   }, [
     isReady,
@@ -8588,7 +8606,25 @@ const QuillWrapper = forwardRef(({
           }
 
           /* Collapse empty spacer paragraphs adjacent to wrapped images in admin editor on mobile */
+          .editor-image-spacer-mobile-hide,
+          .ql-editor .editor-image-spacer-mobile-hide,
           .quill-wrapper-container .ql-editor .editor-image-spacer-mobile-hide,
+          .quill-wrapper-container.is-blog-editor .ql-editor .editor-image-spacer-mobile-hide,
+          .ql-editor p.editor-image-spacer-mobile-hide,
+          p.editor-image-spacer-mobile-hide,
+
+          /* Collapse consecutive empty whitespace preserve paragraphs on mobile so 5-6 Enter hits don't create blank voids */
+          .quill-wrapper-container .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+
+          /* Adjacent image-wrapper whitespace blocks */
+          .ql-editor .image-wrapper + .ql-whitespace-preserve,
+          .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper),
+          .ql-editor img + .ql-whitespace-preserve,
+          .ql-editor .ql-whitespace-preserve:has(+ img),
+
           .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
           .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child),
           .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),

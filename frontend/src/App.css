@@ -2553,7 +2553,25 @@ footer .rich-text-renderer * {
   }
 
   /* Admin Quill Editor: Collapse empty spacer paragraphs adjacent to wrapped images on mobile */
+  .editor-image-spacer-mobile-hide,
+  .ql-editor .editor-image-spacer-mobile-hide,
   .quill-wrapper-container .ql-editor .editor-image-spacer-mobile-hide,
+  .quill-wrapper-container.is-blog-editor .ql-editor .editor-image-spacer-mobile-hide,
+  .ql-editor p.editor-image-spacer-mobile-hide,
+  p.editor-image-spacer-mobile-hide,
+
+  /* Collapse consecutive empty whitespace preserve paragraphs on mobile so 5-6 Enter hits don't create blank voids */
+  .quill-wrapper-container .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+
+  /* Adjacent image-wrapper whitespace blocks */
+  .ql-editor .image-wrapper + .ql-whitespace-preserve,
+  .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper),
+  .ql-editor img + .ql-whitespace-preserve,
+  .ql-editor .ql-whitespace-preserve:has(+ img),
+
   .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
   .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child),
   .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
