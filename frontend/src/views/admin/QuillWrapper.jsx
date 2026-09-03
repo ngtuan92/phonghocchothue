@@ -6933,7 +6933,7 @@ const QuillWrapper = forwardRef(({
                     onFocus={() => focusControlInput('fontSize')}
                     className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     style={{ fontSize: '16px' }}
-                    placeholder=""
+                    placeholder="16"
                   />
                 </div>
                 <button
@@ -6960,7 +6960,7 @@ const QuillWrapper = forwardRef(({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    const current = parseInt(getPopupInputValue('fontSizeMobile', fontSizeMobile)) || 13;
+                    const current = parseInt(getPopupInputValue('fontSizeMobile', fontSizeMobile)) || 14;
                     updateControlValue('fontSizeMobile', Math.max(1, current - 1).toString(), onChangeFontSizeMobile);
                   }}
                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
