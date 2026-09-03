@@ -906,7 +906,7 @@ const stripEditorCaptionArtifacts = (html) => {
   return html
     .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-inline-image-caption(?:-preview)?\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
     .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
-    .replace(/\s*\beditor-image-spacer-mobile-hide\b/gi, "");
+    .replace(/\s*\b(?:editor-)?image-spacer-mobile-hide\b/gi, "");
 };
 
 const unwrapRichTextControlsForEdit = (html) => {
@@ -2555,21 +2555,21 @@ const QuillWrapper = forwardRef(({
       return text === '';
     };
 
-    editor.querySelectorAll('.editor-image-spacer-mobile-hide').forEach((el) => {
-      el.classList.remove('editor-image-spacer-mobile-hide');
+    editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
+      el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
     });
     editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
       if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
       let prev = target.previousElementSibling;
       while (prev && isWhitespaceOnlyBlock(prev)) {
-        prev.classList.add('editor-image-spacer-mobile-hide');
+        prev.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
         prev = prev.previousElementSibling;
       }
 
       let next = target.nextElementSibling;
       while (next && isWhitespaceOnlyBlock(next)) {
-        next.classList.add('editor-image-spacer-mobile-hide');
+        next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
         next = next.nextElementSibling;
       }
     });
@@ -8605,64 +8605,19 @@ const QuillWrapper = forwardRef(({
             display: none !important;
           }
 
-          /* Collapse empty spacer paragraphs adjacent to wrapped images in admin editor on mobile */
+          /* 1. Elements tagged by spacer detector */
+          .image-spacer-mobile-hide,
           .editor-image-spacer-mobile-hide,
+          .ql-editor .image-spacer-mobile-hide,
           .ql-editor .editor-image-spacer-mobile-hide,
+          .quill-wrapper-container .ql-editor .image-spacer-mobile-hide,
           .quill-wrapper-container .ql-editor .editor-image-spacer-mobile-hide,
+          .quill-wrapper-container.is-blog-editor .ql-editor .image-spacer-mobile-hide,
           .quill-wrapper-container.is-blog-editor .ql-editor .editor-image-spacer-mobile-hide,
+          .ql-editor p.image-spacer-mobile-hide,
           .ql-editor p.editor-image-spacer-mobile-hide,
-          p.editor-image-spacer-mobile-hide,
-
-          /* Collapse consecutive empty whitespace preserve paragraphs on mobile so 5-6 Enter hits don't create blank voids */
-          .quill-wrapper-container .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-
-          /* Adjacent image-wrapper whitespace blocks */
-          .ql-editor .image-wrapper + .ql-whitespace-preserve,
-          .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper),
-          .ql-editor img + .ql-whitespace-preserve,
-          .ql-editor .ql-whitespace-preserve:has(+ img),
-
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-
-          .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
-          .quill-wrapper-container .ql-editor .image-wrapper + p:empty + p:empty,
-          .quill-wrapper-container .ql-editor .image-wrapper + p:empty + p:empty + p:empty,
-          .quill-wrapper-container .ql-editor .image-wrapper + p:empty + p:empty + p:empty + p:empty,
-
-          .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor img + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor img + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor img + p.ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor img + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-
-          /* Empty paragraphs preceding image-wrapper */
-          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ p:has(> br:only-child) + .image-wrapper),
-          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ p:has(> br:only-child) + p:has(> br:only-child) + .image-wrapper),
-          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ p.ql-whitespace-preserve + .image-wrapper),
-          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ p.ql-whitespace-preserve + p.ql-whitespace-preserve + .image-wrapper),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p:empty:has(+ p:empty + .image-wrapper) {
+          p.image-spacer-mobile-hide,
+          p.editor-image-spacer-mobile-hide {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -8670,6 +8625,54 @@ const QuillWrapper = forwardRef(({
             min-height: 0 !important;
             line-height: 0 !important;
             font-size: 0 !important;
+            border: none !important;
+          }
+
+          /* 2. Collapse consecutive whitespace paragraphs on mobile */
+          .quill-wrapper-container .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            border: none !important;
+          }
+
+          /* 3. Whitespace blocks directly following image */
+          .quill-wrapper-container .ql-editor .image-wrapper + .ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
+          .quill-wrapper-container .ql-editor img + .ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor img + p:has(> br:only-child) {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            border: none !important;
+          }
+
+          /* 4. Whitespace blocks directly preceding image */
+          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ img),
+          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ img) {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+            border: none !important;
           }
 
           /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
