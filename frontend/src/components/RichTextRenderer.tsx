@@ -1169,6 +1169,67 @@ const RICH_TEXT_RENDERER_STYLES = `
             line-height: 0 !important;
             font-size: 0 !important;
           }
+
+          /* Mobile: Force left alignment for all text in blog and room details,
+             ensuring any admin-defined right/center alignments only apply on desktop */
+          .rich-text-renderer.blog-content p,
+          .rich-text-renderer.blog-content h1,
+          .rich-text-renderer.blog-content h2,
+          .rich-text-renderer.blog-content h3,
+          .rich-text-renderer.blog-content h4,
+          .rich-text-renderer.blog-content h5,
+          .rich-text-renderer.blog-content h6,
+          .rich-text-renderer.blog-content li,
+          .rich-text-renderer.blog-content blockquote,
+          .rich-text-renderer.blog-content div:not(.image-wrapper):not(.image-caption),
+          .rich-text-renderer.blog-content .ql-align-right,
+          .rich-text-renderer.blog-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.blog-content .ql-align-center,
+          .rich-text-renderer.blog-content .ql-align-center *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.blog-content .ql-align-justify,
+          .rich-text-renderer.blog-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.blog-content [style*="text-align"],
+          .rich-text-renderer.blog-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.room-detail-content p,
+          .rich-text-renderer.room-detail-content h1,
+          .rich-text-renderer.room-detail-content h2,
+          .rich-text-renderer.room-detail-content h3,
+          .rich-text-renderer.room-detail-content h4,
+          .rich-text-renderer.room-detail-content h5,
+          .rich-text-renderer.room-detail-content h6,
+          .rich-text-renderer.room-detail-content li,
+          .rich-text-renderer.room-detail-content blockquote,
+          .rich-text-renderer.room-detail-content div:not(.image-wrapper):not(.image-caption),
+          .rich-text-renderer.room-detail-content .ql-align-right,
+          .rich-text-renderer.room-detail-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.room-detail-content .ql-align-center,
+          .rich-text-renderer.room-detail-content .ql-align-center *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.room-detail-content .ql-align-justify,
+          .rich-text-renderer.room-detail-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.room-detail-content [style*="text-align"],
+          .rich-text-renderer.room-detail-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.blog-content-area p,
+          .rich-text-renderer.blog-content-area [style*="text-align"],
+          .rich-text-renderer.ckeditor-content p,
+          .rich-text-renderer.ckeditor-content [style*="text-align"],
+          .rich-text-renderer.room-summary-desc p,
+          .rich-text-renderer.room-summary-desc [style*="text-align"] {
+            text-align: left !important;
+          }
+
+          /* Ensure image captions remain centered on mobile */
+          .rich-text-renderer.blog-content .image-caption,
+          .rich-text-renderer.blog-content .image-caption *,
+          .rich-text-renderer.blog-content figcaption,
+          .rich-text-renderer.blog-content figcaption *,
+          .rich-text-renderer.room-detail-content .image-caption,
+          .rich-text-renderer.room-detail-content .image-caption *,
+          .rich-text-renderer.room-detail-content figcaption,
+          .rich-text-renderer.room-detail-content figcaption *,
+          .rich-text-renderer.ckeditor-content .image-caption,
+          .rich-text-renderer.ckeditor-content .image-caption * {
+            text-align: center !important;
+          }
         }
         
         .image-caption {
