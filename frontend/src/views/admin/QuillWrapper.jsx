@@ -1202,6 +1202,7 @@ const QuillWrapper = forwardRef(({
   const popupInputValuesRef = useRef({});
   const [popupValueVersion, setPopupValueVersion] = useState(0);
   const activeControlInputKeyRef = useRef(null);
+  const pastedRangesRef = useRef([]);
   const [modules, setModules] = useState(null);
   const [dynamicFonts, setDynamicFonts] = useState([]);
   const fontSearchValueRef = useRef("");
@@ -1733,12 +1734,28 @@ const QuillWrapper = forwardRef(({
 
     const format = canUseInlineSelectionControls ? quill.getFormat(selection) : {};
 
-    const desktopSize = format.fontSizeDesktop
-      ? String(format.fontSizeDesktop).replace('px', '')
-      : String(fontSize || "").replace('px', '');
-    const mobileSize = format.fontSizeMobile
-      ? String(format.fontSizeMobile).replace('px', '')
-      : String(fontSizeMobile || "").replace('px', '');
+    const isPastedAtSelection = () => {
+      if (!selection || !pastedRangesRef.current || !pastedRangesRef.current.length) return false;
+      const selStart = selection.index;
+      const selEnd = selection.index + (selection.length || 0);
+      return pastedRangesRef.current.some(r => {
+        return Math.max(selStart, r.start) <= Math.min(selEnd, r.end);
+      });
+    };
+    const wasPasted = isPastedAtSelection();
+
+    const inlineDesktopSize = format.fontSizeDesktop || format.size;
+    const desktopSize = inlineDesktopSize
+      ? String(inlineDesktopSize).replace('px', '')
+      : wasPasted
+        ? ""
+        : String(fontSize || "").replace('px', '');
+    const inlineMobileSize = format.fontSizeMobile;
+    const mobileSize = inlineMobileSize
+      ? String(inlineMobileSize).replace('px', '')
+      : wasPasted
+        ? ""
+        : String(fontSizeMobile || "").replace('px', '');
     const lh = format.lineHeight
       ? String(format.lineHeight).replace('px', '')
       : String(lineHeight || "").replace('px', '');
@@ -4092,6 +4109,15 @@ const QuillWrapper = forwardRef(({
       handlePaste = (e) => {
         const clipboard = e.clipboardData || window.clipboardData;
         let text = clipboard.getData('text/plain');
+        try {
+          const sel = quill.getSelection?.() || quill.getSelection?.(true) || { index: 0, length: 0 };
+          const pLen = Math.max((text || '').length, 1);
+          pastedRangesRef.current.push({
+            start: sel.index,
+            end: sel.index + pLen,
+            time: Date.now()
+          });
+        } catch { /* ignore */ }
         const clipboardHtml = clipboard.getData('text/html');
         let serializedDelta = '';
         try {

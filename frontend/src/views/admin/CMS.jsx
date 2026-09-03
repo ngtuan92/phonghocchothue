@@ -1303,6 +1303,10 @@ export default function CMS() {
         const newItem = {
           question: "",
           answer: "",
+          qFontSize: "18px",
+          qFontSizeMobile: "16px",
+          aFontSize: "16px",
+          aFontSizeMobile: "14px",
         };
         const newData = [...currentData, newItem];
         commitFAQData(newData);
@@ -1347,8 +1351,8 @@ export default function CMS() {
                       placeholder="Nhập nội dung câu hỏi..."
                       lineHeight={item.qLineHeight || ""}
                       lineHeightMobile={item.qLineHeightMobile || ""}
-                      fontSize={item.qFontSize || ""}
-                      fontSizeMobile={item.qFontSizeMobile || ""}
+                      fontSize={item.qFontSize || "18px"}
+                      fontSizeMobile={item.qFontSizeMobile || "16px"}
                       translateY={item.qTranslateY}
                       translateYMobile={item.qTranslateYMobile}
                       onChangeLineHeight={(val) => updateFAQ(index, "qLineHeight", val)}
@@ -1379,8 +1383,8 @@ export default function CMS() {
                       placeholder="Nhập nội dung câu trả lời..."
                       lineHeight={item.aLineHeight || ""}
                       lineHeightMobile={item.aLineHeightMobile || ""}
-                      fontSize={item.aFontSize || ""}
-                      fontSizeMobile={item.aFontSizeMobile || ""}
+                      fontSize={item.aFontSize || "16px"}
+                      fontSizeMobile={item.aFontSizeMobile || "14px"}
                       translateY={item.aTranslateY}
                       translateYMobile={item.aTranslateYMobile}
                       onChangeLineHeight={(val) => updateFAQ(index, "aLineHeight", val)}
