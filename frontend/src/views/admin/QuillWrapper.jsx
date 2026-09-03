@@ -905,7 +905,8 @@ const stripEditorCaptionArtifacts = (html) => {
   if (!html || typeof html !== "string") return html;
   return html
     .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-inline-image-caption(?:-preview)?\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
-    .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "");
+    .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/\s*\beditor-image-spacer-mobile-hide\b/gi, "");
 };
 
 const unwrapRichTextControlsForEdit = (html) => {
@@ -2545,6 +2546,25 @@ const QuillWrapper = forwardRef(({
       const wrapper = img.closest('.image-wrapper');
       if (!wrapper) return;
       ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
+    });
+
+    editor.querySelectorAll('.editor-image-spacer-mobile-hide').forEach((el) => {
+      el.classList.remove('editor-image-spacer-mobile-hide');
+    });
+    editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
+      if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
+
+      let prev = target.previousElementSibling;
+      while (prev && isEmptyQuillParagraph(prev)) {
+        prev.classList.add('editor-image-spacer-mobile-hide');
+        prev = prev.previousElementSibling;
+      }
+
+      let next = target.nextElementSibling;
+      while (next && isEmptyQuillParagraph(next)) {
+        next.classList.add('editor-image-spacer-mobile-hide');
+        next = next.nextElementSibling;
+      }
     });
   }, []);
   const getVisibleImageRect = useCallback((imgRect, editorRect) => {
@@ -8565,6 +8585,55 @@ const QuillWrapper = forwardRef(({
           }
           .editor-inline-image-caption {
             display: none !important;
+          }
+
+          /* Collapse empty spacer paragraphs adjacent to wrapped images in admin editor on mobile */
+          .quill-wrapper-container .ql-editor .editor-image-spacer-mobile-hide,
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor .image-wrapper + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+
+          .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
+          .quill-wrapper-container .ql-editor .image-wrapper + p:empty + p:empty,
+          .quill-wrapper-container .ql-editor .image-wrapper + p:empty + p:empty + p:empty,
+          .quill-wrapper-container .ql-editor .image-wrapper + p:empty + p:empty + p:empty + p:empty,
+
+          .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor img + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor img + p:has(> br:only-child) + p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor img + p.ql-whitespace-preserve,
+          .quill-wrapper-container .ql-editor img + p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+
+          /* Empty paragraphs preceding image-wrapper */
+          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ p:has(> br:only-child) + .image-wrapper),
+          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ p:has(> br:only-child) + p:has(> br:only-child) + .image-wrapper),
+          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ p.ql-whitespace-preserve + .image-wrapper),
+          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ p.ql-whitespace-preserve + p.ql-whitespace-preserve + .image-wrapper),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p:empty:has(+ p:empty + .image-wrapper) {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
           }
 
           /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
