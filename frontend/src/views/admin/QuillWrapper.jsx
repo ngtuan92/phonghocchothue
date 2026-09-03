@@ -243,6 +243,20 @@ const preserveClipboardHtmlWhitespace = (html) => {
   if (!html || typeof DOMParser === 'undefined') return html;
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Strip Google Docs / MS Word default pt font sizes (e.g. 11pt, 12pt) and default line heights
+  doc.body.querySelectorAll('[style]').forEach((el) => {
+    if (el.style.fontSize && (/pt/i.test(el.style.fontSize) || el.style.fontSize === '11pt' || el.style.fontSize === '13.3333px')) {
+      el.style.removeProperty('font-size');
+    }
+    if (el.style.lineHeight && (el.style.lineHeight === '1.38' || el.style.lineHeight === '1.15' || /normal/i.test(el.style.lineHeight))) {
+      el.style.removeProperty('line-height');
+    }
+    if (!el.getAttribute('style') || !el.getAttribute('style').trim()) {
+      el.removeAttribute('style');
+    }
+  });
+
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
   let node = walker.nextNode();
   while (node) {
@@ -1744,18 +1758,18 @@ const QuillWrapper = forwardRef(({
     };
     const wasPasted = isPastedAtSelection();
 
-    const inlineDesktopSize = format.fontSizeDesktop || format.size;
+    const inlineDesktopSize = format.fontSizeDesktop;
     const desktopSize = inlineDesktopSize
-      ? String(inlineDesktopSize).replace('px', '')
+      ? String(inlineDesktopSize).replace(/[^0-9]/g, '')
       : wasPasted
         ? ""
-        : String(fontSize || "").replace('px', '');
+        : String(fontSize || "").replace(/[^0-9]/g, '');
     const inlineMobileSize = format.fontSizeMobile;
     const mobileSize = inlineMobileSize
-      ? String(inlineMobileSize).replace('px', '')
+      ? String(inlineMobileSize).replace(/[^0-9]/g, '')
       : wasPasted
         ? ""
-        : String(fontSizeMobile || "").replace('px', '');
+        : String(fontSizeMobile || "").replace(/[^0-9]/g, '');
     const lh = format.lineHeight
       ? String(format.lineHeight).replace('px', '')
       : String(lineHeight || "").replace('px', '');
