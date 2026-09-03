@@ -2503,5 +2503,54 @@ footer .rich-text-renderer * {
     margin-bottom: 6px !important;
     padding: 0 6px !important;
   }
+
+  /* Hide whitespace spacer paragraphs placed around images for desktop float layout */
+  .rich-text-renderer .image-spacer-mobile-hide,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer img + .ql-whitespace-preserve,
+  .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+  }
+
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .image-wrapper),
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .ql-whitespace-preserve + .image-wrapper),
+  .rich-text-renderer .ql-whitespace-preserve:has(+ img),
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + img) {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+  }
+
+  /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
+  .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+  }
 }
+
 

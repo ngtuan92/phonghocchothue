@@ -375,6 +375,31 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
+      const isWhitespaceSpacerBlock = (el: Element | null): boolean => {
+        if (!el) return false;
+        if (el.querySelector('img, video, iframe, svg, canvas, table, audio')) return false;
+        const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
+        if (text !== '') return false;
+        const html = el.innerHTML || '';
+        return /^(?:\s|<br\s*\/?>|&nbsp;|\u00a0)*$/i.test(html) || el.classList.contains('ql-whitespace-preserve');
+      };
+
+      root?.querySelectorAll('.image-wrapper, img').forEach((target) => {
+        if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
+
+        let prev = target.previousElementSibling;
+        while (prev && isWhitespaceSpacerBlock(prev)) {
+          prev.classList.add('image-spacer-mobile-hide');
+          prev = prev.previousElementSibling;
+        }
+
+        let next = target.nextElementSibling;
+        while (next && isWhitespaceSpacerBlock(next)) {
+          next.classList.add('image-spacer-mobile-hide');
+          next = next.nextElementSibling;
+        }
+      });
+
       if (root) processedHtml = root.innerHTML;
     }
 
@@ -1091,6 +1116,54 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .image-wrap-left img,
           .rich-text-renderer .image-wrap-right img {
             margin-bottom: 0 !important;
+          }
+
+          /* Hide whitespace spacer paragraphs placed around images for desktop layout */
+          .rich-text-renderer .image-spacer-mobile-hide,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+          }
+
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .ql-whitespace-preserve + .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ img),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + img) {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+          }
+
+          /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
+          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
           }
         }
         
