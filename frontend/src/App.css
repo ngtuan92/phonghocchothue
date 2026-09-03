@@ -868,7 +868,6 @@
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
-  width: min-content !important;
   max-width: 100% !important;
 }
 
@@ -881,7 +880,6 @@
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
-  width: min-content !important;
   max-width: 100% !important;
 }
 

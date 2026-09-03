@@ -1228,6 +1228,7 @@ const QuillWrapper = forwardRef(({
   const lastRelativeContentRef = useRef("");
   const localEditorHtmlRef = useRef(null);
   const isUserEditingRef = useRef(false);
+  const isSyncingImageCaptionsRef = useRef(false);
   const isSyncingExternalValueRef = useRef(false);
   const lastSyncedExternalValueRef = useRef(null);
   const suppressControlInputBlurRef = useRef(false);
@@ -2543,52 +2544,62 @@ const QuillWrapper = forwardRef(({
   }, [commitOnBlurOnly]);
 
   const syncImageCaptionBlots = useCallback(() => {
-    const editor = containerRef.current?.querySelector('.ql-editor');
-    if (!editor) return;
+    if (isSyncingImageCaptionsRef.current) return;
+    isSyncingImageCaptionsRef.current = true;
+    try {
+      const editor = containerRef.current?.querySelector('.ql-editor');
+      if (!editor) return;
 
-    editor.querySelectorAll('.editor-inline-image-caption, .editor-inline-image-caption-preview').forEach((el) => el.remove());
-    editor.querySelectorAll('img').forEach((img) => {
-      const wrapper = img.closest('.image-wrapper');
-      if (!wrapper) return;
-      ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
-      const widthAttr = img.getAttribute('width') || img.style.width;
-      const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : (img.clientWidth ? `${img.clientWidth}px` : '');
-      if (widthVal) {
-        const parsed = /^\d+$/.test(widthVal) ? `${widthVal}px` : widthVal;
-        wrapper.style.setProperty('width', parsed, 'important');
-        wrapper.style.setProperty('max-width', '100%', 'important');
-      } else {
-        const wrap = wrapper.getAttribute('data-wrap') || 'none';
-        wrapper.style.setProperty('width', wrap === 'none' ? 'auto' : 'min-content', 'important');
-        wrapper.style.setProperty('max-width', '100%', 'important');
-      }
-    });
+      editor.querySelectorAll('.editor-inline-image-caption, .editor-inline-image-caption-preview').forEach((el) => el.remove());
+      editor.querySelectorAll('img').forEach((img) => {
+        const wrapper = img.closest('.image-wrapper');
+        if (!wrapper) return;
+        ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
+        const widthAttr = img.getAttribute('width') || img.style.width;
+        const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : (img.clientWidth ? `${img.clientWidth}px` : '');
+        if (widthVal) {
+          const parsed = /^\d+$/.test(widthVal) ? `${widthVal}px` : widthVal;
+          if (wrapper.style.width !== parsed) {
+            wrapper.style.setProperty('width', parsed, 'important');
+          }
+          if (wrapper.style.maxWidth !== '100%') {
+            wrapper.style.setProperty('max-width', '100%', 'important');
+          }
+        }
+      });
 
-    const isWhitespaceOnlyBlock = (el) => {
-      if (!el || el.tagName !== 'P') return false;
-      if (el.querySelector('img, video, iframe, svg, canvas, table, audio')) return false;
-      const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
-      return text === '';
-    };
+      const isWhitespaceOnlyBlock = (el) => {
+        if (!el || el.tagName !== 'P') return false;
+        if (el.querySelector('img, video, iframe, svg, canvas, table, audio')) return false;
+        const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
+        return text === '';
+      };
 
-    editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
-      el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
-    });
-    editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
-      if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
+      editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
+        el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+      });
+      editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
+        if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
-      let prev = target.previousElementSibling;
-      while (prev && isWhitespaceOnlyBlock(prev)) {
-        prev.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
-        prev = prev.previousElementSibling;
-      }
+        let prev = target.previousElementSibling;
+        while (prev && isWhitespaceOnlyBlock(prev)) {
+          if (!prev.classList.contains('editor-image-spacer-mobile-hide')) {
+            prev.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+          }
+          prev = prev.previousElementSibling;
+        }
 
-      let next = target.nextElementSibling;
-      while (next && isWhitespaceOnlyBlock(next)) {
-        next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
-        next = next.nextElementSibling;
-      }
-    });
+        let next = target.nextElementSibling;
+        while (next && isWhitespaceOnlyBlock(next)) {
+          if (!next.classList.contains('editor-image-spacer-mobile-hide')) {
+            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+          }
+          next = next.nextElementSibling;
+        }
+      });
+    } finally {
+      isSyncingImageCaptionsRef.current = false;
+    }
   }, []);
   const getVisibleImageRect = useCallback((imgRect, editorRect) => {
     if (!editorRect) {
@@ -3421,11 +3432,9 @@ const QuillWrapper = forwardRef(({
     quill.on('text-change', syncUnwrappedParagraphs);
     quill.on('text-change', updateSizePickerLabel);
     quill.on('text-change', handleContentChange);
-    quill.on('text-change', syncImageCaptionBlots);
 
     const handleRootInput = () => {
       syncUnwrappedParagraphs();
-      syncImageCaptionBlots();
     };
     quill.root.addEventListener('input', handleRootInput, true);
 
@@ -3443,14 +3452,6 @@ const QuillWrapper = forwardRef(({
         } catch { /* ignore */ }
       }
     }, 100);
-
-    setTimeout(() => {
-      syncImageCaptionBlots();
-    }, 400);
-
-    setTimeout(() => {
-      syncImageCaptionBlots();
-    }, 1000);
 
     return () => {
       container.removeEventListener('mousedown', handleMousedown, true);
@@ -3478,7 +3479,6 @@ const QuillWrapper = forwardRef(({
       quill.off('text-change', syncUnwrappedParagraphs);
       quill.off('text-change', updateSizePickerLabel);
       quill.off('text-change', handleContentChange);
-      quill.off('text-change', syncImageCaptionBlots);
     };
   }, [
     isReady,
@@ -8523,7 +8523,6 @@ const QuillWrapper = forwardRef(({
           margin-left: 0 !important;
           display: inline-block !important;
           position: relative !important;
-          width: min-content !important;
           max-width: 100% !important;
           box-sizing: border-box !important;
         }
@@ -8535,7 +8534,6 @@ const QuillWrapper = forwardRef(({
           margin-right: 0 !important;
           display: inline-block !important;
           position: relative !important;
-          width: min-content !important;
           max-width: 100% !important;
           box-sizing: border-box !important;
         }
@@ -8555,7 +8553,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrapper[data-wrap="none"] {
           float: none !important;
           display: block !important;
-          width: min-content !important;
+          width: auto !important;
           max-width: 100% !important;
           margin-left: auto !important;
           margin-right: auto !important;
