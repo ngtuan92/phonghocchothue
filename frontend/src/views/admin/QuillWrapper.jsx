@@ -3248,28 +3248,33 @@ const QuillWrapper = forwardRef(({
 
                     // Case 1: Cursor is at or before the first visible character of an indented line
                     // (User clicked before "Đại" to push paragraph down and insert blank line above)
+                    // We insert a blank \n BEFORE the current line's content (i.e. before the leading
+                    // whitespace), so the current indented paragraph is pushed down intact.
                     if (restOfLine.trim().length > 0 && offset <= leadingWs.length) {
                       e.preventDefault();
                       e.stopPropagation();
                       e.stopImmediatePropagation();
 
                       if (sel.length > 0) {
-                        quill.deleteText(sel.index, sel.length, 'user');
+                        quill.deleteText(sel.index, sel.length, 'silent');
                       }
 
                       const lineFormats = {};
                       if (currentFormats.align) lineFormats.align = currentFormats.align;
                       if (currentFormats.direction) lineFormats.direction = currentFormats.direction;
 
-                      quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
-                      const targetCursorPos = lineStartIndex + 1 + Math.max(offset, leadingWs.length);
-                      quill.setSelection(targetCursorPos, 0, 'user');
+                      // Insert \n at the very start of this line (before the leading whitespace).
+                      // This creates a new empty paragraph above and pushes the indented
+                      // paragraph (with its leading \t/spaces) down untouched.
+                      quill.insertText(lineStartIndex, '\n', lineFormats, 'silent');
 
-                      if (inheritedFont) {
-                        try {
-                          quill.format('font', inheritedFont, 'user');
-                        } catch (err) { /* ignore */ }
-                      }
+                      // Cursor should land right before the first visible character
+                      // (= after the leading whitespace on the pushed-down line).
+                      const targetCursorPos = lineStartIndex + 1 + leadingWs.length;
+                      quill.setSelection(targetCursorPos, 0, 'silent');
+
+                      // Do NOT call quill.format('font') here – it triggers Quill's normalizer
+                      // which can strip the leading whitespace we just preserved.
 
                       window.setTimeout(() => {
                         try {
