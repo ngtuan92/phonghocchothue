@@ -38,6 +38,90 @@ export default function BlogCategoryPage() {
     return getBlogCategoryLabel(cat);
   };
 
+  const displayCategory = getCategoryLabel(category);
+  const cleanCategory = stripHtmlAndCss(displayCategory);
+
+  const subtitleRef = React.useRef<HTMLParagraphElement>(null);
+  const contentRowRef = React.useRef<HTMLDivElement>(null);
+  const [layoutMetrics, setLayoutMetrics] = useState<{ asideWidth: number; gap: number } | null>(null);
+
+  useEffect(() => {
+    const getTargetOffset = () => {
+      if (!subtitleRef.current || !contentRowRef.current) return null;
+
+      let textLeft = 0;
+      try {
+        const walker = document.createTreeWalker(subtitleRef.current, NodeFilter.SHOW_TEXT);
+        let firstTextNode: Node | null = null;
+        while (walker.nextNode()) {
+          if (walker.currentNode.textContent && walker.currentNode.textContent.trim().length > 0) {
+            firstTextNode = walker.currentNode;
+            break;
+          }
+        }
+        if (firstTextNode) {
+          const range = document.createRange();
+          range.setStart(firstTextNode, 0);
+          range.setEnd(firstTextNode, Math.min(1, firstTextNode.textContent?.length || 1));
+          const rect = range.getBoundingClientRect();
+          if (rect && rect.left > 0) {
+            textLeft = rect.left;
+          }
+        }
+      } catch (e) {
+        // fallback
+      }
+
+      if (!textLeft && subtitleRef.current) {
+        textLeft = subtitleRef.current.getBoundingClientRect().left;
+      }
+
+      const rowRect = contentRowRef.current.getBoundingClientRect();
+      return textLeft - rowRect.left;
+    };
+
+    const updateMetrics = () => {
+      if (typeof window === "undefined") return;
+      if (window.innerWidth < 1024) {
+        setLayoutMetrics(null);
+        return;
+      }
+
+      const offset = getTargetOffset();
+      if (offset && offset > 0) {
+        const asideWidth = Math.min(180, Math.max(140, Math.floor(offset - 24)));
+        const gap = Math.max(16, Math.floor(offset - asideWidth));
+        setLayoutMetrics({ asideWidth, gap });
+      }
+    };
+
+    updateMetrics();
+    const timer = setTimeout(updateMetrics, 100);
+
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(updateMetrics).catch(() => {});
+    }
+
+    window.addEventListener("resize", updateMetrics);
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        updateMetrics();
+      });
+      if (subtitleRef.current) observer.observe(subtitleRef.current);
+      if (contentRowRef.current) observer.observe(contentRowRef.current);
+      const scrollContainer = document.getElementById("main-scroll-container");
+      if (scrollContainer) observer.observe(scrollContainer);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateMetrics);
+      observer?.disconnect();
+    };
+  }, [category, displayCategory]);
+
   useEffect(() => {
     fetch(`${URL_API}api/blog/categories?status=1`)
       .then((res) => res.json())
@@ -53,9 +137,6 @@ export default function BlogCategoryPage() {
       })
       .catch((err) => console.error("Lỗi tải danh mục:", err));
   }, []);
-
-  const displayCategory = getCategoryLabel(category);
-  const cleanCategory = stripHtmlAndCss(displayCategory);
 
   useSEO({
     title: `${cleanCategory} - Blog | ChoThuePhongHoc.com`,
@@ -166,9 +247,11 @@ export default function BlogCategoryPage() {
                       </h1>
                     </div>
 
-                    <p className="w-full text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center blog-header-dynamic">
-                      Khám phá các bài viết chuyên sâu về chủ đề {displayCategory} tại ChoThuePhongHoc.com
-                    </p>
+                    <div className="w-full text-center blog-header-dynamic">
+                      <p ref={subtitleRef} className="inline-block text-xs sm:text-sm text-gray-500 leading-relaxed raleway text-center max-w-full">
+                        Khám phá các bài viết chuyên sâu về chủ đề {displayCategory} tại ChoThuePhongHoc.com
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -215,13 +298,20 @@ export default function BlogCategoryPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-16">
+              <div
+                ref={contentRowRef}
+                className="flex flex-col lg:flex-row gap-8 lg:gap-10"
+                style={layoutMetrics ? { columnGap: `${layoutMetrics.gap}px` } : undefined}
+              >
                 {/* Sidebar - Hidden on Mobile, Visible on Desktop (lg+) */}
-                <aside className="hidden lg:block lg:w-[20%]">
+                <aside
+                  className="hidden lg:block lg:w-[180px] flex-shrink-0"
+                  style={layoutMetrics ? { width: `${layoutMetrics.asideWidth}px` } : undefined}
+                >
                   <CategorySidebar currentCategory={category} />
                 </aside>
 
-                <div className="w-full lg:w-[80%]">
+                <div className="w-full lg:flex-1">
                   <Blog isHomePage={false} currentCategory={category} noContainer={true} showFeatured={false} hideTabs={true} />
                 </div>
               </div>
