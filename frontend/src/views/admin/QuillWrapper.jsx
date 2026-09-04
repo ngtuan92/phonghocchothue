@@ -3155,10 +3155,40 @@ const QuillWrapper = forwardRef(({
     quill.root.addEventListener('scroll', handleScroll, true);
 
     const handleKeydownCapture = (e) => {
+      // 1. Handle Tab key to insert actual tab character instead of losing focus
+      if ((e.key === 'Tab' || e.keyCode === 9) && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        let sel = quill.getSelection();
+        if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
+        if (sel && typeof sel.index === 'number') {
+          const fmts = quill.getFormat(sel);
+          if (!fmts.list && !fmts.table) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            quill.insertText(sel.index, '\t', 'user');
+            quill.setSelection(sel.index + 1, 0, 'user');
+            return;
+          }
+        }
+      }
+
+      // 2. Handle Enter key
       if (e.key === 'Enter' || e.keyCode === 13) {
         try {
-          const sel = quill.getSelection() || savedSelectionRef.current;
-          if (sel) {
+          let sel = quill.getSelection();
+          if (!sel || typeof sel.index !== 'number') {
+            sel = savedSelectionRef.current;
+          }
+          if (!sel || typeof sel.index !== 'number') {
+            try {
+              const domSel = typeof window !== 'undefined' ? window.getSelection() : null;
+              if (domSel && domSel.rangeCount > 0) {
+                sel = quill.getSelection(true);
+              }
+            } catch (err) { /* ignore */ }
+          }
+
+          if (sel && typeof sel.index === 'number') {
             let inheritedFont = null;
             let inheritedSize = null;
             let inheritedColor = null;
@@ -3200,8 +3230,113 @@ const QuillWrapper = forwardRef(({
                 lineHeight: inheritedLineHeight
               };
             }
+
+            // Only intercept plain Enter without modifiers
+            if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+              const currentFormats = quill.getFormat(sel);
+              if (!currentFormats.list && !currentFormats['code-block'] && !currentFormats.table) {
+                const [currentLine, offset] = quill.getLine(sel.index);
+                if (currentLine) {
+                  const lineStartIndex = sel.index - offset;
+                  const lineLength = currentLine.length();
+                  const lineText = quill.getText(lineStartIndex, lineLength);
+                  const match = lineText.match(/^[^\S\r\n]+/);
+
+                  if (match) {
+                    const leadingWs = match[0];
+                    const restOfLine = lineText.slice(leadingWs.length).replace(/\n$/, '');
+
+                    // Case 1: Cursor is at or before the first visible character of an indented line
+                    // (User clicked before "Đại" to push paragraph down and insert blank line above)
+                    if (restOfLine.trim().length > 0 && offset <= leadingWs.length) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.stopImmediatePropagation();
+
+                      if (sel.length > 0) {
+                        quill.deleteText(sel.index, sel.length, 'user');
+                      }
+
+                      const lineFormats = {};
+                      if (currentFormats.align) lineFormats.align = currentFormats.align;
+                      if (currentFormats.direction) lineFormats.direction = currentFormats.direction;
+
+                      quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
+                      const targetCursorPos = lineStartIndex + 1 + Math.max(offset, leadingWs.length);
+                      quill.setSelection(targetCursorPos, 0, 'user');
+
+                      if (inheritedFont) {
+                        try {
+                          quill.format('font', inheritedFont, 'user');
+                        } catch (err) { /* ignore */ }
+                      }
+
+                      window.setTimeout(() => {
+                        try {
+                          updateSizePickerLabel();
+                        } catch (err) { /* ignore */ }
+                      }, 0);
+                      return;
+                    }
+
+                    // Case 2: Cursor on line that only has whitespace/tabs -> clean empty line
+                    if (restOfLine.trim().length === 0 && leadingWs.length > 0) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.stopImmediatePropagation();
+
+                      const lineFormats = {};
+                      if (currentFormats.align) lineFormats.align = currentFormats.align;
+                      if (currentFormats.direction) lineFormats.direction = currentFormats.direction;
+
+                      quill.deleteText(lineStartIndex, leadingWs.length, 'user');
+                      quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
+                      quill.setSelection(lineStartIndex + 1, 0, 'user');
+
+                      window.setTimeout(() => {
+                        try {
+                          updateSizePickerLabel();
+                        } catch (err) { /* ignore */ }
+                      }, 0);
+                      return;
+                    }
+
+                    // Case 3: Cursor is at the END of an indented line -> inherit indent
+                    const isAtEndOfLine = offset >= lineText.replace(/\n$/, '').length;
+                    if (isAtEndOfLine) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.stopImmediatePropagation();
+
+                      const lineFormats = {};
+                      if (currentFormats.align) lineFormats.align = currentFormats.align;
+                      if (currentFormats.direction) lineFormats.direction = currentFormats.direction;
+
+                      quill.insertText(sel.index, '\n' + leadingWs, lineFormats, 'user');
+                      quill.setSelection(sel.index + 1 + leadingWs.length, 0, 'user');
+
+                      if (inheritedFont) {
+                        try {
+                          quill.formatText(sel.index + 1, leadingWs.length, 'font', inheritedFont, 'user');
+                          quill.format('font', inheritedFont, 'user');
+                        } catch (err) { /* ignore */ }
+                      }
+
+                      window.setTimeout(() => {
+                        try {
+                          updateSizePickerLabel();
+                        } catch (err) { /* ignore */ }
+                      }, 0);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
           }
-        } catch (err) { /* ignore */ }
+        } catch (err) {
+          console.warn('handleKeydownCapture error:', err);
+        }
       }
     };
 
@@ -3437,6 +3572,10 @@ const QuillWrapper = forwardRef(({
         quill.keyboard.bindings[k] = quill.keyboard.bindings[k].filter(b => !b._isCustomEnter);
         quill.keyboard.bindings[k].unshift({
           key: k,
+          shiftKey: null,
+          altKey: null,
+          ctrlKey: null,
+          metaKey: null,
           _isCustomEnter: true,
           handler: enterHandler
         });
@@ -3462,6 +3601,10 @@ const QuillWrapper = forwardRef(({
         quill.keyboard.bindings[k] = quill.keyboard.bindings[k].filter(b => !b._isCustomTab);
         quill.keyboard.bindings[k].unshift({
           key: k,
+          shiftKey: null,
+          altKey: null,
+          ctrlKey: null,
+          metaKey: null,
           _isCustomTab: true,
           handler: tabHandler
         });
