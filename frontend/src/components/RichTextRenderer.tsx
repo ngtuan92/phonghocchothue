@@ -400,6 +400,56 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
+      // Group wrap-left / wrap-right images with their following text siblings
+      // so on mobile we can display text first (order: 1), and image second (order: 2),
+      // while on desktop display: contents preserves 100% native float wrapping!
+      const wrapWrappers = Array.from(
+        root?.querySelectorAll('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right') || []
+      );
+
+      wrapWrappers.forEach((wrapper) => {
+        if (wrapper.parentElement?.classList.contains('rich-text-wrap-group')) return;
+
+        const isWrapLeft = wrapper.classList.contains('image-wrap-left');
+        const wrapMode = isWrapLeft ? 'left' : 'right';
+        const parent = wrapper.parentNode;
+        if (!parent) return;
+
+        const textSiblings: Element[] = [];
+        let curr = wrapper.nextElementSibling;
+        while (curr) {
+          // Stop if we hit another image-wrapper, rich-text-wrap-group, or an element containing media/table, or a major section break (hr, h1, h2)
+          if (
+            curr.classList.contains('image-wrapper') ||
+            curr.classList.contains('rich-text-wrap-group') ||
+            curr.querySelector('.image-wrapper, img, video, iframe, table') ||
+            /^(HR|H1|H2)$/i.test(curr.tagName)
+          ) {
+            break;
+          }
+          textSiblings.push(curr);
+          curr = curr.nextElementSibling;
+        }
+
+        // Only group if there are text siblings following this image
+        if (textSiblings.length > 0) {
+          const group = doc.createElement('div');
+          group.className = `rich-text-wrap-group wrap-${wrapMode}`;
+
+          const textContainer = doc.createElement('div');
+          textContainer.className = 'rich-text-wrap-text';
+
+          parent.insertBefore(group, wrapper);
+          group.appendChild(wrapper);
+
+          textSiblings.forEach((sibling) => {
+            textContainer.appendChild(sibling);
+          });
+
+          group.appendChild(textContainer);
+        }
+      });
+
       if (root) processedHtml = root.innerHTML;
     }
 
@@ -1063,8 +1113,75 @@ const RICH_TEXT_RENDERER_STYLES = `
           clear: both !important;
         }
         
+        /* Desktop: transparent wrap grouping for 100% native float text wrap */
+        @media (min-width: 768px) {
+          .rich-text-renderer .rich-text-wrap-group,
+          .rich-text-wrap-group,
+          .rich-text-renderer .rich-text-wrap-text,
+          .rich-text-wrap-text {
+            display: contents !important;
+          }
+        }
+        
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
+          /* Wrap text grouping: text first (order: 1), image second (order: 2) */
+          .rich-text-renderer .rich-text-wrap-group,
+          .rich-text-wrap-group {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            margin-bottom: 16px !important;
+          }
+          .rich-text-renderer .rich-text-wrap-text,
+          .rich-text-wrap-text {
+            display: block !important;
+            order: 1 !important;
+            width: 100% !important;
+          }
+          .rich-text-renderer .rich-text-wrap-text > *:first-child {
+            margin-top: 0 !important;
+          }
+          .rich-text-renderer .rich-text-wrap-text > *:last-child {
+            margin-bottom: 0 !important;
+          }
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper,
+          .rich-text-wrap-group > .image-wrapper {
+            display: block !important;
+            order: 2 !important;
+            float: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: 10px !important;
+            margin-bottom: 0px !important;
+          }
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper img,
+          .rich-text-wrap-group > .image-wrapper img {
+            float: none !important;
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-bottom: 0px !important;
+          }
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper .image-caption,
+          .rich-text-wrap-group > .image-wrapper .image-caption {
+            display: block !important;
+            position: static !important;
+            clear: both !important;
+            font-size: 11px !important;
+            margin-top: 3px !important;
+            margin-bottom: 6px !important;
+            padding: 0 8px !important;
+            line-height: 1.35 !important;
+            font-style: italic !important;
+            text-align: center !important;
+          }
+
           .rich-text-renderer img[data-wrap="left"],
           .rich-text-renderer img[data-wrap="right"] {
             float: none !important;

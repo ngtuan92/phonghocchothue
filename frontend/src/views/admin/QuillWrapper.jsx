@@ -244,7 +244,6 @@ const preserveClipboardHtmlWhitespace = (html) => {
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
 
-  // Strip Google Docs / MS Word default pt font sizes (e.g. 11pt, 12pt) and default line heights
   doc.body.querySelectorAll('[style]').forEach((el) => {
     if (el.style.fontSize && (/pt/i.test(el.style.fontSize) || el.style.fontSize === '11pt' || el.style.fontSize === '13.3333px')) {
       el.style.removeProperty('font-size');
