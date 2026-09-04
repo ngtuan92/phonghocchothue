@@ -3333,6 +3333,78 @@ const QuillWrapper = forwardRef(({
           if (context.format.align) lineFormats.align = context.format.align;
           if (context.format.direction) lineFormats.direction = context.format.direction;
 
+          // Check if current line has leading whitespace (thụt đầu dòng: tabs / spaces)
+          try {
+            const [currentLine, offset] = this.quill.getLine(range.index);
+            if (currentLine) {
+              const lineStartIndex = range.index - offset;
+              const lineLength = currentLine.length();
+              const lineText = this.quill.getText(lineStartIndex, lineLength);
+              const match = lineText.match(/^[\t \u00a0]+/);
+
+              if (match) {
+                const leadingWs = match[0];
+                const restOfLine = lineText.slice(leadingWs.length).replace(/\n$/, '');
+
+                // Case 1: Cursor is at or before the first visible character of an indented line
+                // (e.g. user clicked before "Đại ý" to push the paragraph down / add an empty line above)
+                if (restOfLine.trim().length > 0 && offset <= leadingWs.length) {
+                  // Insert clean newline BEFORE the leading whitespace so the line above is a clean empty line,
+                  // and the indented paragraph below keeps 100% of its indentation!
+                  this.quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
+                  this.quill.setSelection(lineStartIndex + 1 + offset, 0, 'user');
+
+                  if (inlineFormats.font) {
+                    lastActiveFormatsRef.current = { ...inlineFormats };
+                  }
+                  window.setTimeout(() => {
+                    try {
+                      updateSizePickerLabel();
+                    } catch (e) { /* ignore */ }
+                  }, 0);
+                  return false;
+                }
+
+                // Case 2: Cursor is on a line that only contains whitespace/tabs (no text) and presses Enter
+                // Clear the orphan whitespace so the empty line becomes truly empty without lingering tabs
+                if (restOfLine.trim().length === 0 && leadingWs.length > 0) {
+                  this.quill.deleteText(lineStartIndex, leadingWs.length, 'user');
+                  this.quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
+                  this.quill.setSelection(lineStartIndex + 1, 0, 'user');
+
+                  window.setTimeout(() => {
+                    try {
+                      updateSizePickerLabel();
+                    } catch (e) { /* ignore */ }
+                  }, 0);
+                  return false;
+                }
+
+                // Case 3: Cursor is at the END of an indented line and presses Enter to start a new paragraph
+                const isAtEndOfLine = offset >= lineText.replace(/\n$/, '').length;
+                if (isAtEndOfLine) {
+                  this.quill.insertText(range.index, '\n' + leadingWs, lineFormats, 'user');
+                  this.quill.setSelection(range.index + 1 + leadingWs.length, 0, 'user');
+
+                  if (inlineFormats.font) {
+                    lastActiveFormatsRef.current = { ...inlineFormats };
+                    try {
+                      this.quill.formatText(range.index + 1, leadingWs.length, 'font', inlineFormats.font, 'user');
+                    } catch (e) { /* ignore */ }
+                  }
+                  window.setTimeout(() => {
+                    try {
+                      updateSizePickerLabel();
+                    } catch (e) { /* ignore */ }
+                  }, 0);
+                  return false;
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Indent preservation on Enter error:', e);
+          }
+
           // Insert exactly ONE newline
           this.quill.insertText(range.index, '\n', lineFormats, 'user');
           this.quill.setSelection(range.index + 1, 0, 'user');
@@ -3361,6 +3433,28 @@ const QuillWrapper = forwardRef(({
       };
 
       quill.keyboard.bindings[13].unshift(customEnterBinding);
+    }
+
+    if (quill.keyboard) {
+      if (!Array.isArray(quill.keyboard.bindings[9])) {
+        quill.keyboard.bindings[9] = [];
+      }
+      quill.keyboard.bindings[9] = quill.keyboard.bindings[9].filter(b => !b._isCustomTab);
+
+      const customTabBinding = {
+        key: 9,
+        _isCustomTab: true,
+        handler: function (range, context) {
+          if (context.format.list || context.format.table) {
+            return true;
+          }
+          this.quill.insertText(range.index, '\t', 'user');
+          this.quill.setSelection(range.index + 1, 0, 'user');
+          return false;
+        }
+      };
+
+      quill.keyboard.bindings[9].unshift(customTabBinding);
     }
 
     const handleAutoInheritFormatsOnTextChange = (delta, oldDelta, source) => {
