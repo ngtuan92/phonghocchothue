@@ -2611,14 +2611,7 @@ const QuillWrapper = forwardRef(({
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
         if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
-        let prev = target.previousElementSibling;
-        while (prev && isWhitespaceOnlyBlock(prev)) {
-          if (!prev.classList.contains('editor-image-spacer-mobile-hide')) {
-            prev.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
-          }
-          prev = prev.previousElementSibling;
-        }
-
+        // Note: Do NOT tag prev with spacer-hide because whitespace before an image is an intentional line break (cách dòng)
         let next = target.nextElementSibling;
         while (next && isWhitespaceOnlyBlock(next)) {
           if (!next.classList.contains('editor-image-spacer-mobile-hide')) {
@@ -8726,21 +8719,7 @@ const QuillWrapper = forwardRef(({
             border: none !important;
           }
 
-          /* 4. Whitespace blocks directly preceding image */
-          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ img),
-          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ img) {
-            display: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: 0 !important;
-            min-height: 0 !important;
-            line-height: 0 !important;
-            font-size: 0 !important;
-            border: none !important;
-          }
+
 
           /* Robust styling reset for Quill Toolbar in admin panel to prevent overrides */
           .quill-wrapper-container .ql-toolbar.ql-snow * {

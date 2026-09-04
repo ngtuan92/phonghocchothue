@@ -391,7 +391,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
-      // 2. Mark truly empty whitespace spacer blocks so they are cleanly hidden on mobile
       root?.querySelectorAll('p, div').forEach((el) => {
         if (isWhitespaceSpacerBlock(el)) {
           el.classList.add('image-spacer-mobile-hide');
@@ -1237,10 +1236,45 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-bottom: 0 !important;
           }
 
-          /* Hide truly empty whitespace spacer paragraphs on mobile */
+          /* Hide whitespace spacer paragraphs placed around images for desktop layout */
           .rich-text-renderer .image-spacer-mobile-hide,
-          .rich-text-renderer p:empty,
-          .rich-text-renderer p:has(> br:only-child) {
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+          }
+
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .ql-whitespace-preserve + .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ img),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + img) {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
+          }
+
+          /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
+          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;

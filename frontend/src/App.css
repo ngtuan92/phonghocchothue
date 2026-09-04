@@ -2695,10 +2695,27 @@ footer .rich-text-renderer * {
     padding: 0 6px !important;
   }
 
-  /* Hide truly empty whitespace spacer paragraphs on mobile */
-  .rich-text-renderer .image-spacer-mobile-hide,
+  /* Single empty paragraph renders as intentional line break (cách dòng) on mobile */
+  .rich-text-renderer p:has(> br:only-child),
+  .rich-text-renderer p.ql-whitespace-preserve:has(> br:only-child) {
+    display: block !important;
+    min-height: 1.2em !important;
+    margin: 0 0 0.5rem 0 !important;
+  }
+
+  /* Collapse consecutive empty paragraphs on mobile so multiple Enters don't create huge blank spaces */
+  .rich-text-renderer p:has(> br:only-child) + p:has(> br:only-child),
+  .rich-text-renderer p.ql-whitespace-preserve:has(> br:only-child) + p.ql-whitespace-preserve:has(> br:only-child),
+  .rich-text-renderer p:has(> br:only-child) + p.ql-whitespace-preserve:has(> br:only-child),
+  .rich-text-renderer p.ql-whitespace-preserve:has(> br:only-child) + p:has(> br:only-child) {
+    display: none !important;
+    margin: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Hide truly empty tags (no content at all) and wrap spacers */
   .rich-text-renderer p:empty,
-  .rich-text-renderer p:has(> br:only-child) {
+  .rich-text-renderer .wrap-spacer-mobile-hide {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -2762,21 +2779,6 @@ footer .rich-text-renderer * {
     border: none !important;
   }
 
-  /* Admin Quill Editor: 4. Whitespace blocks directly preceding image */
-  .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ .image-wrapper),
-  .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
-  .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
-  .quill-wrapper-container .ql-editor p.ql-whitespace-preserve:has(+ img),
-  .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ img) {
-    display: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    line-height: 0 !important;
-    font-size: 0 !important;
-    border: none !important;
-  }
 }
 
 
