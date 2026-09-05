@@ -185,13 +185,18 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   }
   const widthAttr = target.getAttribute('width') || target.style.width;
   const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
+  const hasCaption = Boolean(
+    wrapper?.querySelector(':scope > .image-caption')?.textContent?.trim() ||
+    target.getAttribute('data-caption')?.trim()
+  );
+  const bottomMargin = wrapMode === 'none' ? '20px' : (hasCaption ? '16px' : '4px');
 
   setImportantStyles(node, {
     ...IMAGE_WRAP_DISPLAY[wrapMode],
     'width': widthVal || '',
     'max-width': '100%',
     'margin-top': wrapMode === 'none' ? '20px' : '0',
-    'margin-bottom': '16px',
+    'margin-bottom': bottomMargin,
     'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
     'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
   });
@@ -201,7 +206,7 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
       'width': widthVal || (wrapMode === 'none' ? 'auto' : 'min-content'),
       'max-width': '100%',
       'margin-top': wrapMode === 'none' ? '20px' : '0',
-      'margin-bottom': '16px',
+      'margin-bottom': bottomMargin,
       'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
       'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
     });
@@ -1109,12 +1114,13 @@ const normalizeImageWrappersForEdit = (html) => {
     if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
     const widthAttr = img.getAttribute('width') || img.style.width;
     const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
+    const hasCaption = Boolean(caption);
     setImportantStyles(wrapper, {
       ...IMAGE_WRAP_DISPLAY[wrap],
       'width': widthVal || (wrap === 'none' ? 'auto' : 'min-content'),
       'max-width': '100%',
       'margin-top': wrap === 'none' ? '12px' : '0',
-      'margin-bottom': '10px',
+      'margin-bottom': wrap === 'none' ? '10px' : (hasCaption ? '10px' : '4px'),
       'margin-left': wrap === 'right' ? '20px' : wrap === 'none' ? 'auto' : '0',
       'margin-right': wrap === 'left' ? '20px' : wrap === 'none' ? 'auto' : '0',
     });
@@ -2319,8 +2325,13 @@ const QuillWrapper = forwardRef(({
     styleTarget.style.setProperty('float', wrapMode === 'left' ? 'left' : wrapMode === 'right' ? 'right' : 'none', 'important');
     styleTarget.style.setProperty('clear', wrapMode === 'none' ? 'none' : 'both', 'important');
     styleTarget.style.setProperty('display', wrapMode === 'none' ? 'block' : 'inline-block', 'important');
+    const hasCaption = Boolean(
+      wrapper?.querySelector(':scope > .image-caption')?.textContent?.trim() ||
+      img.getAttribute('data-caption')?.trim()
+    );
+    const bottomMargin = wrapMode === 'none' ? '16px' : (hasCaption ? '16px' : '4px');
     styleTarget.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '0', 'important');
-    styleTarget.style.setProperty('margin-bottom', wrapMode === 'none' ? '16px' : '16px', 'important');
+    styleTarget.style.setProperty('margin-bottom', bottomMargin, 'important');
     styleTarget.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
     styleTarget.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
     styleTarget.style.setProperty('max-width', '100%', 'important');
@@ -8327,6 +8338,10 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrapper[data-wrap="none"] img {
           margin-left: auto !important;
           margin-right: auto !important;
+        }
+        .ql-editor .image-wrapper:not(:has(.image-caption)),
+        .ql-editor .image-wrapper:has(.image-caption:empty) {
+          margin-bottom: 4px !important;
         }
         .ql-editor .image-caption {
           display: block !important;

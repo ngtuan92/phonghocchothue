@@ -1077,6 +1077,10 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin: 0 !important;
           margin-bottom: 0 !important;
         }
+        .rich-text-renderer .image-wrapper:not(:has(.image-caption)),
+        .rich-text-renderer .image-wrapper:has(.image-caption:empty) {
+          margin-bottom: 4px !important;
+        }
         /* Caption in floated wrappers: position static for natural document flow and no text overlap */
         .rich-text-renderer .image-wrap-left .image-caption,
         .rich-text-renderer .image-wrap-right .image-caption {

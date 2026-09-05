@@ -901,6 +901,15 @@
   margin-bottom: 0 !important;
 }
 
+.rich-text-renderer .image-wrapper:not(:has(.image-caption)),
+.rich-text-renderer .image-wrapper:has(.image-caption:empty),
+.quill-wrapper-container .ql-editor .image-wrapper:not(:has(.image-caption)),
+.quill-wrapper-container .ql-editor .image-wrapper:has(.image-caption:empty),
+.ql-editor .image-wrapper:not(:has(.image-caption)),
+.ql-editor .image-wrapper:has(.image-caption:empty) {
+  margin-bottom: 4px !important;
+}
+
 /* Caption in floated wrappers: position static for natural document flow and no text overlap */
 .quill-wrapper-container .ql-editor .image-caption,
 .ql-editor .image-caption,
