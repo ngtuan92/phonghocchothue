@@ -25,6 +25,12 @@ import {
   selectClipboardSpacingSource,
   serializeRichTextDelta,
 } from "@/utils/richTextClipboard.mjs";
+import {
+  FontSizePopup,
+  SpacingPopup,
+  TranslateXPopup,
+  TranslateYPopup,
+} from "./popups/ControlPopups";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API || "http://localhost:8080/");
 
@@ -6714,100 +6720,28 @@ const QuillWrapper = forwardRef(({
         document.body
       )}
 
-      {isMounted && showSpacingPopup && createPortal(
-        <div
-          className="ql-line-height-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
-          style={{
-            position: 'fixed',
-            top: safeNumber(popupPosition.top),
-            left: safeNumber(popupPosition.left, 12),
-            width: `${safeNumber(popupPosition.width, 200)}px`,
-            maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box',
-            zIndex: 99999,
+      {isMounted && (
+        <SpacingPopup
+          visible={showSpacingPopup}
+          position={popupPosition}
+          anchor={controlPopupAnchorRef.current?.lineHeight}
+          initialDesktop={getPopupInputValue('lineHeight', lineHeight)}
+          initialMobile={getPopupInputValue('lineHeightMobile', lineHeightMobile)}
+          onChangeDesktop={(val) => updateControlDraftValue('lineHeight', val, false)}
+          onChangeMobile={(val) => updateControlDraftValue('lineHeightMobile', val, false)}
+          onApply={() => {
+            preserveAdminScrollDuring(() => {
+              commitControlInput(true);
+              setShowSpacingPopup(false);
+            });
           }}
-          onMouseDown={keepPopupInteractionStable}
-          onClick={(e) => e.stopPropagation()}
-          onDoubleClick={keepPopupInteractionStable}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Giãn dòng</span>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => {
-                preserveAdminScrollDuring(() => {
-                  commitControlInput(true);
-                  setShowSpacingPopup(false);
-                });
-              }}
-            >
-              x
-            </button>
-          </div>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Máy tính (px)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Mặc định. VD: 32"
-                  value={getPopupInputValue('lineHeight', lineHeight)}
-                  onChange={(e) => updateControlDraftValue('lineHeight', e.target.value, false, e.currentTarget)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      commitControlInput(true);
-                    }
-                  }}
-                  onBlur={handleControlInputBlur}
-                  onClick={(e) => e.stopPropagation()}
-                  onFocus={() => focusControlInput('lineHeight')}
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 focus:border-primary focus:outline-none"
-                  style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Mặc định. VD: 24"
-                  value={getPopupInputValue('lineHeightMobile', lineHeightMobile)}
-                  onChange={(e) => updateControlDraftValue('lineHeightMobile', e.target.value, false, e.currentTarget)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      commitControlInput(true);
-                    }
-                  }}
-                  onBlur={handleControlInputBlur}
-                  onClick={(e) => e.stopPropagation()}
-                  onFocus={() => focusControlInput('lineHeightMobile')}
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1 focus:border-primary focus:outline-none"
-                  style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                type="button"
-                className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
-                onClick={() => {
-                  preserveAdminScrollDuring(() => {
-                    commitControlInput(true);
-                    setShowSpacingPopup(false);
-                  });
-                }}
-              >
-                Xác nhận
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
+          onClose={() => {
+            preserveAdminScrollDuring(() => {
+              commitControlInput(true);
+              setShowSpacingPopup(false);
+            });
+          }}
+        />
       )}
 
       {isMounted && responsiveColorPopup.visible && createPortal(
@@ -6874,319 +6808,66 @@ const QuillWrapper = forwardRef(({
         document.body
       )}
 
-      {isMounted && showFontSizePopup && hasResponsive && createPortal(
-        <div
-          className="ql-font-size-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
-          style={{
-            position: 'fixed',
-            top: safeNumber(fontSizePopupPosition.top),
-            left: safeNumber(fontSizePopupPosition.left, 12),
-            width: `${safeNumber(fontSizePopupPosition.width, 210)}px`,
-            maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box',
-            zIndex: 99999,
+      {isMounted && hasResponsive && (
+        <FontSizePopup
+          visible={showFontSizePopup}
+          position={fontSizePopupPosition}
+          anchor={controlPopupAnchorRef.current?.fontSize}
+          initialDesktop={getPopupInputValue('fontSize', fontSize)}
+          initialMobile={getPopupInputValue('fontSizeMobile', fontSizeMobile)}
+          onChangeDesktop={(val) => updateControlDraftValue('fontSize', val, false)}
+          onChangeMobile={(val) => updateControlDraftValue('fontSizeMobile', val, false)}
+          onStepDesktop={(val) => updateControlValue('fontSize', val, onChangeFontSize)}
+          onStepMobile={(val) => updateControlValue('fontSizeMobile', val, onChangeFontSizeMobile)}
+          onClose={() => {
+            preserveAdminScrollDuring(() => {
+              commitControlInput(true);
+              setShowFontSizePopup(false);
+            });
           }}
-          onMouseDown={keepPopupInteractionStable}
-          onClick={(e) => e.stopPropagation()}
-          onDoubleClick={keepPopupInteractionStable}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Cỡ chữ</span>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => {
-                preserveAdminScrollDuring(() => {
-                  commitControlInput(true);
-                  setShowFontSizePopup(false);
-                });
-              }}
-            >
-              x
-            </button>
-          </div>
-          <div className="space-y-4">
-            {/* Desktop size control */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
-                Máy tính
-              </span>
-              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    const current = parseInt(getPopupInputValue('fontSize', fontSize)) || 16;
-                    updateControlValue('fontSize', Math.max(1, current - 1).toString(), onChangeFontSize);
-                  }}
-                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
-                >
-                  -
-                </button>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getPopupInputValue('fontSize', fontSize)}
-                    onBeforeInput={keepPopupInputKeyInInput}
-                    onChange={(e) => updateControlDraftValue('fontSize', e.target.value, false, e.currentTarget)}
-                    onKeyDown={(e) => {
-                      keepPopupInputKeyInInput(e);
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        commitControlInput(true);
-                      }
-                    }}
-                    onBlur={handleControlInputBlur}
-                    onClick={(e) => e.stopPropagation()}
-                    onFocus={() => focusControlInput('fontSize')}
-                    className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    style={{ fontSize: '16px' }}
-                    placeholder=""
-                  />
-                </div>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    const current = parseInt(getPopupInputValue('fontSize', fontSize)) || 16;
-                    updateControlValue('fontSize', (current + 1).toString(), onChangeFontSize);
-                  }}
-                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Mobile size control */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
-                Điện thoại
-              </span>
-              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    const current = parseInt(getPopupInputValue('fontSizeMobile', fontSizeMobile)) || 14;
-                    updateControlValue('fontSizeMobile', Math.max(1, current - 1).toString(), onChangeFontSizeMobile);
-                  }}
-                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
-                >
-                  -
-                </button>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getPopupInputValue('fontSizeMobile', fontSizeMobile)}
-                    onBeforeInput={keepPopupInputKeyInInput}
-                    onChange={(e) => updateControlDraftValue('fontSizeMobile', e.target.value, false, e.currentTarget)}
-                    onKeyDown={(e) => {
-                      keepPopupInputKeyInInput(e);
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        commitControlInput(true);
-                      }
-                    }}
-                    onBlur={handleControlInputBlur}
-                    onClick={(e) => e.stopPropagation()}
-                    onFocus={() => focusControlInput('fontSizeMobile')}
-                    className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    style={{ fontSize: '16px' }}
-                    placeholder=""
-                  />
-                </div>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    const current = parseInt(getPopupInputValue('fontSizeMobile', fontSizeMobile)) || 13;
-                    updateControlValue('fontSizeMobile', (current + 1).toString(), onChangeFontSizeMobile);
-                  }}
-                  className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded font-bold transition-all text-xs focus:outline-none"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
+        />
       )}
 
-      {isMounted && showTranslateXPopup && createPortal(
-        <div
-          className="ql-translate-x-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
-          style={{
-            position: 'fixed',
-            top: safeNumber(translateXPopupPosition.top),
-            left: safeNumber(translateXPopupPosition.left, 12),
-            width: `${safeNumber(translateXPopupPosition.width, 200)}px`,
-            maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box',
-            zIndex: 99999,
+      {isMounted && (
+        <TranslateXPopup
+          visible={showTranslateXPopup}
+          position={translateXPopupPosition}
+          anchor={controlPopupAnchorRef.current?.translateX}
+          initialDesktop={getPopupInputValue('translateX', translateX)}
+          initialMobile={getPopupInputValue('translateXMobile', translateXMobile)}
+          onChangeDesktop={(val) => updateControlDraftValue('translateX', val, true)}
+          onChangeMobile={(val) => updateControlDraftValue('translateXMobile', val, true)}
+          onClose={() => {
+            preserveAdminScrollDuring(() => {
+              commitControlInput(true);
+              setShowTranslateXPopup(false);
+            });
           }}
-          onMouseDown={keepPopupInteractionStable}
-          onClick={(e) => e.stopPropagation()}
-          onDoubleClick={keepPopupInteractionStable}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Dịch ngang</span>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => {
-                preserveAdminScrollDuring(() => {
-                  commitControlInput(true);
-                  setShowTranslateXPopup(false);
-                });
-              }}
-            >
-              x
-            </button>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Máy tính (px)</label>
-              <input
-                type="text"
-                placeholder="VD: -20 hoặc 10"
-                value={getPopupInputValue('translateX', translateX)}
-                onChange={(e) => updateControlDraftValue('translateX', e.target.value, true, e.currentTarget)}
-                onKeyDown={(e) => {
-                  keepPopupInputKeyInInput(e);
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    commitControlInput(true);
-                  }
-                }}
-                onBlur={handleControlInputBlur}
-                onClick={(e) => e.stopPropagation()}
-                onFocus={() => focusControlInput('translateX')}
-                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
-              <input
-                type="text"
-                placeholder="VD: -10 hoặc 5"
-                value={getPopupInputValue('translateXMobile', translateXMobile)}
-                onChange={(e) => updateControlDraftValue('translateXMobile', e.target.value, true, e.currentTarget)}
-                onKeyDown={(e) => {
-                  keepPopupInputKeyInInput(e);
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    commitControlInput(true);
-                  }
-                }}
-                onBlur={handleControlInputBlur}
-                onClick={(e) => e.stopPropagation()}
-                onFocus={() => focusControlInput('translateXMobile')}
-                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
-              />
-            </div>
-          </div>
-        </div>,
-        document.body
+        />
       )}
 
-      {isMounted && showTranslatePopup && createPortal(
-        <div
-          className="ql-translate-y-popup fixed bg-white border border-gray-200 rounded-xl p-4 shadow-xl z-[99999]"
-          style={{
-            position: 'fixed',
-            top: safeNumber(translatePopupPosition.top),
-            left: safeNumber(translatePopupPosition.left, 12),
-            width: `${safeNumber(translatePopupPosition.width, 200)}px`,
-            maxWidth: 'calc(100vw - 24px)',
-            boxSizing: 'border-box',
-            zIndex: 99999,
+      {isMounted && (
+        <TranslateYPopup
+          visible={showTranslatePopup}
+          position={translatePopupPosition}
+          anchor={controlPopupAnchorRef.current?.translateY}
+          initialDesktop={getPopupInputValue('translateY', translateY)}
+          initialMobile={getPopupInputValue('translateYMobile', translateYMobile)}
+          onChangeDesktop={(val) => updateControlDraftValue('translateY', val, true)}
+          onChangeMobile={(val) => updateControlDraftValue('translateYMobile', val, true)}
+          onApply={() => {
+            preserveAdminScrollDuring(() => {
+              commitControlInput(true);
+              setShowTranslatePopup(false);
+            });
           }}
-          onMouseDown={keepPopupInteractionStable}
-          onClick={(e) => e.stopPropagation()}
-          onDoubleClick={keepPopupInteractionStable}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1f2937' }}>Dịch dọc</span>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
-              onClick={() => {
-                preserveAdminScrollDuring(() => {
-                  commitControlInput(true);
-                  setShowTranslatePopup(false);
-                });
-              }}
-            >
-              x
-            </button>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Máy tính (px)</label>
-              <input
-                type="text"
-                placeholder="VD: -20 hoặc 10"
-                value={getPopupInputValue('translateY', translateY)}
-                onChange={(e) => updateControlDraftValue('translateY', e.target.value, true, e.currentTarget)}
-                onKeyDown={(e) => {
-                  keepPopupInputKeyInInput(e);
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    commitControlInput(true);
-                  }
-                }}
-                onBlur={handleControlInputBlur}
-                onClick={(e) => e.stopPropagation()}
-                onFocus={() => focusControlInput('translateY')}
-                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#4b5563' }}>Điện thoại (px)</label>
-              <input
-                type="text"
-                placeholder="VD: -10 hoặc 5"
-                value={getPopupInputValue('translateYMobile', translateYMobile)}
-                onChange={(e) => updateControlDraftValue('translateYMobile', e.target.value, true, e.currentTarget)}
-                onKeyDown={(e) => {
-                  keepPopupInputKeyInInput(e);
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    commitControlInput(true);
-                  }
-                }}
-                onBlur={handleControlInputBlur}
-                onClick={(e) => e.stopPropagation()}
-                onFocus={() => focusControlInput('translateYMobile')}
-                className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-primary focus:outline-none"
-                style={{ color: '#1f2937', backgroundColor: '#ffffff', fontSize: '16px' }}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                type="button"
-                className="px-3 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-green-700 transition-all focus:outline-none"
-                onClick={() => {
-                  preserveAdminScrollDuring(() => {
-                    commitControlInput(true);
-                    setShowTranslatePopup(false);
-                  });
-                }}
-              >
-                Xác nhận
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
+          onClose={() => {
+            preserveAdminScrollDuring(() => {
+              commitControlInput(true);
+              setShowTranslatePopup(false);
+            });
+          }}
+        />
       )}
 
       <input
