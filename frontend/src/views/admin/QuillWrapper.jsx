@@ -6965,19 +6965,27 @@ const QuillWrapper = forwardRef(({
           }
         }
 
+        /* Separate editor content with margin to prevent toolbar overlap with tall fonts and accents */
+        .quill-wrapper-container .ql-container {
+          margin-top: 16px !important;
+        }
+
         /* Auto scale editor container to avoid overlap with toolbar when translating */
         .quill-wrapper-container[style*="--translate-y"] .ql-container {
-          margin-top: calc(-1 * min(var(--translate-y), 0px)) !important;
-          margin-bottom: calc(max(var(--translate-y), 0px)) !important;
+          margin-top: calc(16px + (-1 * min(var(--translate-y, 0px), 0px))) !important;
+          margin-bottom: calc(max(var(--translate-y, 0px), 0px)) !important;
           overflow: visible !important;
         }
         .quill-wrapper-container[style*="--translate-y"] .ql-editor {
           overflow: visible !important;
         }
         @media (max-width: 767px) {
+          .quill-wrapper-container .ql-container {
+            margin-top: 12px !important;
+          }
           .quill-wrapper-container[style*="--translate-y"] .ql-container {
-            margin-top: calc(-1 * min(var(--translate-y-mobile, var(--translate-y)), 0px)) !important;
-            margin-bottom: calc(max(var(--translate-y-mobile, var(--translate-y)), 0px)) !important;
+            margin-top: calc(12px + (-1 * min(var(--translate-y-mobile, var(--translate-y, 0px)), 0px))) !important;
+            margin-bottom: calc(max(var(--translate-y-mobile, var(--translate-y, 0px)), 0px)) !important;
           }
         }
         @media (min-width: 768px) {
@@ -8945,6 +8953,7 @@ const QuillWrapper = forwardRef(({
 
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-container,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-container {
+          margin-top: 16px !important;
           min-height: auto !important;
           max-height: none !important;
           overflow: visible !important;
@@ -8959,6 +8968,7 @@ const QuillWrapper = forwardRef(({
           background: #ffffff !important;
           border-bottom: 1px solid #d1d5db !important;
           box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+          margin-bottom: 16px !important;
         }
 
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,

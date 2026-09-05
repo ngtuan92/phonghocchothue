@@ -272,8 +272,12 @@
   margin-right: max(0px, calc(var(--blog-editor-text-inset) - 24px));
 }
 
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-container {
+  margin-top: 16px !important;
+}
+
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor {
-  padding: 16px min(24px, var(--blog-editor-text-inset)) !important;
+  padding: 20px min(24px, var(--blog-editor-text-inset)) 16px !important;
 }
 
 @media (min-width: 640px) and (max-width: 767px) {
