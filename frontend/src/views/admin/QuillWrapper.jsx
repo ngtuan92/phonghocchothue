@@ -430,6 +430,48 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
       delay: 700,
       maxStack: 100,
       userOnly: true
+    },
+    keyboard: {
+      bindings: {
+        backspaceAfterImage: {
+          key: 8, // Backspace
+          collapsed: true,
+          offset: 0,
+          handler(range, context) {
+            if (range.index === 0) return true;
+            try {
+              const [prevLine] = this.quill.getLine(range.index - 1);
+              const [prevLeaf] = this.quill.getLeaf(range.index - 1);
+
+              const isImage = (blot) => {
+                if (!blot) return false;
+                if (blot.statics?.blotName === 'image') return true;
+                if (blot.domNode?.classList?.contains('image-wrapper')) return true;
+                if (blot.domNode?.tagName === 'IMG' || blot.domNode?.querySelector?.('img')) return true;
+                return false;
+              };
+
+              if (isImage(prevLine) || isImage(prevLeaf)) {
+                if (context.empty) {
+                  // Xoa dong trong hien tai de keo noi dung ben duoi len sat anh (neu co noi dung phia sau)
+                  if (this.quill.getLength() > range.index + 1) {
+                    this.quill.deleteText(range.index, 1, Quill.sources.USER);
+                    this.quill.setSelection(range.index, 0, Quill.sources.SILENT);
+                  }
+                  // Chan hanh vi mac dinh cua Quill (xoa khoi anh range.index - 1)
+                  return false;
+                } else {
+                  // Con tro o dau dong co chu ngay duoi anh: chan khong cho Backspace xoa anh
+                  return false;
+                }
+              }
+            } catch (err) {
+              console.error('Error in backspaceAfterImage keyboard handler:', err);
+            }
+            return true;
+          }
+        }
+      }
     }
   };
 };
@@ -7455,7 +7497,7 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor > h6:first-child,
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
-          margin-top: 16px !important;
+          margin-top: 26px !important;
         }
         .quill-wrapper-container .ql-editor.ql-blank::before {
           top: 32px !important;

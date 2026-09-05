@@ -273,7 +273,7 @@
 }
 
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
-  margin-top: 16px !important;
+  margin-top: 26px !important;
 }
 
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor {
@@ -2579,7 +2579,7 @@ footer .rich-text-renderer * {
 }
 .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child,
 .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
-  margin-top: 16px !important;
+  margin-top: 26px !important;
 }
 .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
 .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
