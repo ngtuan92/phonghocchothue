@@ -3234,6 +3234,7 @@ const QuillWrapper = forwardRef(({
             // Only intercept plain Enter without modifiers
             if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
               const currentFormats = quill.getFormat(sel);
+              console.log('[ENTER-DEBUG] Plain Enter detected. sel:', JSON.stringify(sel), 'formats:', JSON.stringify(currentFormats));
               if (!currentFormats.list && !currentFormats['code-block'] && !currentFormats.table) {
                 const [currentLine, offset] = quill.getLine(sel.index);
                 if (currentLine) {
@@ -3242,15 +3243,24 @@ const QuillWrapper = forwardRef(({
                   const lineText = quill.getText(lineStartIndex, lineLength);
                   const match = lineText.match(/^[^\S\r\n]+/);
 
+                  console.log('[ENTER-DEBUG] lineStartIndex:', lineStartIndex, 'offset:', offset, 'lineLength:', lineLength);
+                  console.log('[ENTER-DEBUG] lineText repr:', JSON.stringify(lineText));
+                  console.log('[ENTER-DEBUG] lineText charCodes:', Array.from(lineText).map(c => c.charCodeAt(0)));
+                  console.log('[ENTER-DEBUG] match:', match ? JSON.stringify(match[0]) : 'null');
+
                   if (match) {
                     const leadingWs = match[0];
                     const restOfLine = lineText.slice(leadingWs.length).replace(/\n$/, '');
 
+                    console.log('[ENTER-DEBUG] leadingWs:', JSON.stringify(leadingWs), 'len:', leadingWs.length);
+                    console.log('[ENTER-DEBUG] leadingWs charCodes:', Array.from(leadingWs).map(c => c.charCodeAt(0)));
+                    console.log('[ENTER-DEBUG] restOfLine:', JSON.stringify(restOfLine));
+                    console.log('[ENTER-DEBUG] restOfLine.trim().length:', restOfLine.trim().length);
+                    console.log('[ENTER-DEBUG] offset <= leadingWs.length:', offset, '<=', leadingWs.length, '=', offset <= leadingWs.length);
+
                     // Case 1: Cursor is at or before the first visible character of an indented line
-                    // (User clicked before "Đại" to push paragraph down and insert blank line above)
-                    // We insert a blank \n BEFORE the current line's content (i.e. before the leading
-                    // whitespace), so the current indented paragraph is pushed down intact.
                     if (restOfLine.trim().length > 0 && offset <= leadingWs.length) {
+                      console.log('[ENTER-DEBUG] >>> CASE 1 TRIGGERED');
                       e.preventDefault();
                       e.stopPropagation();
                       e.stopImmediatePropagation();
@@ -3263,29 +3273,65 @@ const QuillWrapper = forwardRef(({
                       if (currentFormats.align) lineFormats.align = currentFormats.align;
                       if (currentFormats.direction) lineFormats.direction = currentFormats.direction;
 
-                      // Insert \n at the very start of this line (before the leading whitespace).
-                      // This creates a new empty paragraph above and pushes the indented
-                      // paragraph (with its leading \t/spaces) down untouched.
+                      // Snapshot before
+                      const docTextBefore = quill.getText(0, Math.min(quill.getLength(), 200));
+                      console.log('[ENTER-DEBUG] BEFORE insertText - docText:', JSON.stringify(docTextBefore));
+
                       quill.insertText(lineStartIndex, '\n', lineFormats, 'silent');
 
-                      // Cursor should land right before the first visible character
-                      // (= after the leading whitespace on the pushed-down line).
+                      // Snapshot after insertText
+                      const docTextAfterInsert = quill.getText(0, Math.min(quill.getLength(), 200));
+                      console.log('[ENTER-DEBUG] AFTER insertText - docText:', JSON.stringify(docTextAfterInsert));
+
+                      // Check the pushed-down line
+                      const newLineStart = lineStartIndex + 1;
+                      const newLineText = quill.getText(newLineStart, Math.min(50, quill.getLength() - newLineStart));
+                      console.log('[ENTER-DEBUG] pushed-down line text:', JSON.stringify(newLineText));
+                      console.log('[ENTER-DEBUG] pushed-down charCodes:', Array.from(newLineText.substring(0, 10)).map(c => c.charCodeAt(0)));
+
                       const targetCursorPos = lineStartIndex + 1 + leadingWs.length;
+                      console.log('[ENTER-DEBUG] targetCursorPos:', targetCursorPos);
                       quill.setSelection(targetCursorPos, 0, 'silent');
 
-                      // Do NOT call quill.format('font') here – it triggers Quill's normalizer
-                      // which can strip the leading whitespace we just preserved.
+                      // Snapshot after setSelection
+                      const docTextAfterSel = quill.getText(0, Math.min(quill.getLength(), 200));
+                      console.log('[ENTER-DEBUG] AFTER setSelection - docText:', JSON.stringify(docTextAfterSel));
 
+                      // Check after a tick to see if normalizer runs
                       window.setTimeout(() => {
                         try {
+                          const docTextAfterTick = quill.getText(0, Math.min(quill.getLength(), 200));
+                          console.log('[ENTER-DEBUG] AFTER setTimeout(0) - docText:', JSON.stringify(docTextAfterTick));
+                          const sel2 = quill.getSelection();
+                          console.log('[ENTER-DEBUG] AFTER setTimeout(0) - selection:', JSON.stringify(sel2));
                           updateSizePickerLabel();
-                        } catch (err) { /* ignore */ }
+                        } catch (err) {
+                          console.warn('[ENTER-DEBUG] setTimeout error:', err);
+                        }
                       }, 0);
+
+                      // Also check after longer delay
+                      window.setTimeout(() => {
+                        try {
+                          const docTextAfterLong = quill.getText(0, Math.min(quill.getLength(), 200));
+                          console.log('[ENTER-DEBUG] AFTER setTimeout(100) - docText:', JSON.stringify(docTextAfterLong));
+                          // Check DOM directly
+                          const editorRoot = quill.root;
+                          const paragraphs = editorRoot.querySelectorAll('p');
+                          paragraphs.forEach((p, i) => {
+                            console.log('[ENTER-DEBUG] p[' + i + '] innerHTML:', JSON.stringify(p.innerHTML.substring(0, 200)));
+                            console.log('[ENTER-DEBUG] p[' + i + '] textContent:', JSON.stringify(p.textContent.substring(0, 100)));
+                          });
+                        } catch (err) {
+                          console.warn('[ENTER-DEBUG] long setTimeout error:', err);
+                        }
+                      }, 100);
                       return;
                     }
 
                     // Case 2: Cursor on line that only has whitespace/tabs -> clean empty line
                     if (restOfLine.trim().length === 0 && leadingWs.length > 0) {
+                      console.log('[ENTER-DEBUG] >>> CASE 2 TRIGGERED');
                       e.preventDefault();
                       e.stopPropagation();
                       e.stopImmediatePropagation();
@@ -3308,7 +3354,9 @@ const QuillWrapper = forwardRef(({
 
                     // Case 3: Cursor is at the END of an indented line -> inherit indent
                     const isAtEndOfLine = offset >= lineText.replace(/\n$/, '').length;
+                    console.log('[ENTER-DEBUG] Case3 check: offset:', offset, '>= lineText.replace.length:', lineText.replace(/\n$/, '').length, '=', isAtEndOfLine);
                     if (isAtEndOfLine) {
+                      console.log('[ENTER-DEBUG] >>> CASE 3 TRIGGERED');
                       e.preventDefault();
                       e.stopPropagation();
                       e.stopImmediatePropagation();
@@ -3334,13 +3382,21 @@ const QuillWrapper = forwardRef(({
                       }, 0);
                       return;
                     }
+
+                    console.log('[ENTER-DEBUG] >>> NO CASE MATCHED - falling through to Quill default');
+                  } else {
+                    console.log('[ENTER-DEBUG] No leading whitespace match - falling through to Quill default');
                   }
+                } else {
+                  console.log('[ENTER-DEBUG] No currentLine - falling through to Quill default');
                 }
+              } else {
+                console.log('[ENTER-DEBUG] In list/code-block/table - falling through to Quill default');
               }
             }
           }
         } catch (err) {
-          console.warn('handleKeydownCapture error:', err);
+          console.warn('[ENTER-DEBUG] handleKeydownCapture error:', err);
         }
       }
     };
