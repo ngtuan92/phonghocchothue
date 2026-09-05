@@ -3277,6 +3277,13 @@ const QuillWrapper = forwardRef(({
                       console.warn('[ENTER-DEBUG] Case 1 targetCursorPos=' + targetCursorPos);
                       quill.setSelection(targetCursorPos, 0, 'user');
 
+                      if (inheritedFont) {
+                        try {
+                          quill.formatText(lineStartIndex + 1, leadingWs.length, 'font', inheritedFont, 'user');
+                          quill.format('font', inheritedFont, 'user');
+                        } catch (err) { /* ignore */ }
+                      }
+
                       window.setTimeout(() => {
                         try {
                           updateSizePickerLabel();
@@ -8227,17 +8234,27 @@ const QuillWrapper = forwardRef(({
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-ui {
           display: none !important;
         }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
-        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor span,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor span,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li,
         .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor,
         .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
         .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor span,
         .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor li,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
+        .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve,
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"],
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"],
         .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor [style*="white-space: break-spaces"] {
-          white-space: break-spaces !important;
+          white-space: pre-wrap !important;
+          tab-size: 4 !important;
+          -moz-tab-size: 4 !important;
           overflow-wrap: break-word !important;
           word-break: normal !important;
         }

@@ -2568,7 +2568,18 @@ footer .rich-text-renderer * {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
   transform: none !important;
+  white-space: pre-wrap !important;
+  tab-size: 4 !important;
+  -moz-tab-size: 4 !important;
   /* Prevents text from being translated up and cut off by the toolbar */
+}
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor span,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor span {
+  white-space: pre-wrap !important;
+  tab-size: 4 !important;
+  -moz-tab-size: 4 !important;
 }
 
 .blog-hero-title.blog-hero-title .rich-text-renderer.blog-heading-rich[style*="--custom-line-height:"][style*="--fs"] > h1:not([style*="--fs"]):not([style*="font-size"]),
