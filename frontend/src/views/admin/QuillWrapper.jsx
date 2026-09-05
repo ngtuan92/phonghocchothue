@@ -1306,23 +1306,29 @@ const QuillWrapper = forwardRef(({
     setPopupValueVersion((prev) => prev + 1);
   }, []);
 
+  const getScrollParents = (root) => {
+    const scrollParents = [window];
+    let current = root instanceof HTMLElement ? root : null;
+    while (current && current !== document.body) {
+      if (current.scrollHeight > current.clientHeight || current.scrollWidth > current.clientWidth) {
+        const style = window.getComputedStyle(current);
+        if (
+          (/(auto|scroll|overlay)/.test(style.overflowY) && current.scrollHeight > current.clientHeight) ||
+          (/(auto|scroll|overlay)/.test(style.overflowX) && current.scrollWidth > current.clientWidth)
+        ) {
+          scrollParents.push(current);
+        }
+      }
+      current = current.parentElement;
+    }
+    return scrollParents;
+  };
+
   const focusWithoutScroll = useCallback((target) => {
     if (!target || typeof window === 'undefined') return;
 
     const root = target.root || getQuillEditor()?.root || target;
-    const scrollParents = [window];
-    let current = root instanceof HTMLElement ? root : null;
-
-    while (current && current !== document.body) {
-      const style = window.getComputedStyle(current);
-      if (
-        (/(auto|scroll|overlay)/.test(style.overflowY) && current.scrollHeight > current.clientHeight) ||
-        (/(auto|scroll|overlay)/.test(style.overflowX) && current.scrollWidth > current.clientWidth)
-      ) {
-        scrollParents.push(current);
-      }
-      current = current.parentElement;
-    }
+    const scrollParents = getScrollParents(root);
 
     const positions = scrollParents.map((element) => (
       element === window
@@ -1355,7 +1361,7 @@ const QuillWrapper = forwardRef(({
 
     restore();
     window.requestAnimationFrame(restore);
-  }, []);
+  }, [getQuillEditor]);
 
   const getClampedControlPopupPosition = useCallback((button, popupWidth = 220, cacheKey = "", popupHeight = 220) => {
     if (typeof window === 'undefined') {
@@ -1499,24 +1505,6 @@ const QuillWrapper = forwardRef(({
       return null;
     }
   }, [getQuillEditor]);
-
-  const getScrollParents = (root) => {
-    const scrollParents = [window];
-    let current = root instanceof HTMLElement ? root : null;
-    while (current && current !== document.body) {
-      if (current.scrollHeight > current.clientHeight || current.scrollWidth > current.clientWidth) {
-        const style = window.getComputedStyle(current);
-        if (
-          (/(auto|scroll|overlay)/.test(style.overflowY) && current.scrollHeight > current.clientHeight) ||
-          (/(auto|scroll|overlay)/.test(style.overflowX) && current.scrollWidth > current.clientWidth)
-        ) {
-          scrollParents.push(current);
-        }
-      }
-      current = current.parentElement;
-    }
-    return scrollParents;
-  };
 
   const preserveScrollAround = useCallback((root, action) => {
     if (typeof window === 'undefined') {
@@ -2975,6 +2963,7 @@ const QuillWrapper = forwardRef(({
       if (toolbar && (toolbar === e.target || toolbar.contains(e.target))) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.target instanceof Element && e.target.closest?.('.ql-picker')) return;
+        if (isCustomControlTarget(e.target)) return;
         if (isMobileAdminViewport()) return;
 
         const quillInstance = getQuillEditor();
@@ -4757,7 +4746,7 @@ const QuillWrapper = forwardRef(({
   toolbarHandlerRefs.current.handleOnChange = handleOnChange;
 
   const handleSelectionChange = useCallback((range) => {
-    const isControlPopupOpen = showFontSizePopup || showSpacingPopup || showTranslateXPopup || showTranslatePopup;
+    const isControlPopupOpen = Boolean(controlPopupOpenRef.current);
     const isEditingControlPopup = isControlPopupInputActive();
     if (range) {
       typingSelectionRef.current = range;
@@ -4782,7 +4771,7 @@ const QuillWrapper = forwardRef(({
       updateSizePickerLabel(range);
     }
     if (commitOnBlurOnly && !isControlPopupOpen) return;
-  }, [canUseMobileSelectionToolbar, commitOnBlurOnly, showFontSizePopup, showSpacingPopup, showTranslatePopup, syncSelectionControlsFromFormat, updateMobileSelectionToolbarPosition, updateSizePickerLabel]);
+  }, [canUseMobileSelectionToolbar, commitOnBlurOnly, syncSelectionControlsFromFormat, updateMobileSelectionToolbarPosition, updateSizePickerLabel]);
 
   useEffect(() => {
     if (!commitOnBlurOnly || !isReady) return;
@@ -5097,91 +5086,89 @@ const QuillWrapper = forwardRef(({
         'font-size-custom': function () {
           const button = containerRef.current?.querySelector('.ql-font-size-custom');
           if (button && containerRef.current) {
-            preserveEditorScrollDuring(() => {
-              toolbarHandlerRefs.current.commitControlDrafts?.();
-              closeAllToolbarPickers();
-              clearPopupInputValues();
-              const qSel = this.quill?.getSelection?.();
-              const currentSelection = qSel || savedSelectionRef.current || typingSelectionRef.current;
-              const finalSelection = getCurrentControlSelection(currentSelection);
-              controlSelectionRef.current = finalSelection;
-              toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
+            if (controlPopupVisibleRef.current?.fontSize) {
+              closeControlPopups();
+              return;
+            }
+            closeAllToolbarPickers();
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            const finalSelection = getCurrentControlSelection(currentSelection);
+            controlSelectionRef.current = finalSelection;
+            toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
 
-              window.setTimeout(() => {
-                setPopupValueVersion((prev) => prev + 1);
-              }, 0);
-
-              controlPopupAnchorRef.current.fontSize = button;
-              setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
-              setShowSpacingPopup(false);
-              setShowTranslateXPopup(false);
-              setShowTranslatePopup(false);
-              setShowFontSizePopup(true);
-              clearMobileNativeSelectionOverlay(finalSelection);
-            });
+            controlPopupAnchorRef.current.fontSize = button;
+            setFontSizePopupPosition(getClampedControlPopupPosition(button, 210, 'fontSize', 230));
+            setShowSpacingPopup(false);
+            setShowTranslateXPopup(false);
+            setShowTranslatePopup(false);
+            setShowFontSizePopup(true);
+            clearMobileNativeSelectionOverlay(finalSelection);
           }
         },
         'line-height': function () {
           const button = containerRef.current?.querySelector('.ql-line-height');
           if (button && containerRef.current) {
-            preserveEditorScrollDuring(() => {
-              toolbarHandlerRefs.current.commitControlDrafts?.();
-              closeAllToolbarPickers();
-              clearPopupInputValues();
-              const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
-              const finalSelection = getCurrentControlSelection(currentSelection);
-              controlSelectionRef.current = finalSelection;
-              toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
-              controlPopupAnchorRef.current.lineHeight = button;
-              setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
-              setShowFontSizePopup(false);
-              setShowTranslateXPopup(false);
-              setShowTranslatePopup(false);
-              setShowSpacingPopup(true);
-              clearMobileNativeSelectionOverlay(finalSelection);
-            });
+            if (controlPopupVisibleRef.current?.lineHeight) {
+              closeControlPopups();
+              return;
+            }
+            closeAllToolbarPickers();
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            const finalSelection = getCurrentControlSelection(currentSelection);
+            controlSelectionRef.current = finalSelection;
+            toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
+
+            controlPopupAnchorRef.current.lineHeight = button;
+            setPopupPosition(getClampedControlPopupPosition(button, 200, 'lineHeight', 220));
+            setShowFontSizePopup(false);
+            setShowTranslateXPopup(false);
+            setShowTranslatePopup(false);
+            setShowSpacingPopup(true);
+            clearMobileNativeSelectionOverlay(finalSelection);
           }
         },
         'translate-x': function () {
           const button = containerRef.current?.querySelector('.ql-translate-x');
           if (button && containerRef.current) {
-            preserveEditorScrollDuring(() => {
-              toolbarHandlerRefs.current.commitControlDrafts?.();
-              closeAllToolbarPickers();
-              clearPopupInputValues();
-              const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
-              const finalSelection = getCurrentControlSelection(currentSelection);
-              controlSelectionRef.current = finalSelection;
-              toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
-              controlPopupAnchorRef.current.translateX = button;
-              setTranslateXPopupPosition(getClampedControlPopupPosition(button, 200, 'translateX', 220));
-              setShowFontSizePopup(false);
-              setShowSpacingPopup(false);
-              setShowTranslatePopup(false);
-              setShowTranslateXPopup(true);
-              clearMobileNativeSelectionOverlay(finalSelection);
-            });
+            if (controlPopupVisibleRef.current?.translateX) {
+              closeControlPopups();
+              return;
+            }
+            closeAllToolbarPickers();
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            const finalSelection = getCurrentControlSelection(currentSelection);
+            controlSelectionRef.current = finalSelection;
+            toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
+
+            controlPopupAnchorRef.current.translateX = button;
+            setTranslateXPopupPosition(getClampedControlPopupPosition(button, 200, 'translateX', 220));
+            setShowFontSizePopup(false);
+            setShowSpacingPopup(false);
+            setShowTranslatePopup(false);
+            setShowTranslateXPopup(true);
+            clearMobileNativeSelectionOverlay(finalSelection);
           }
         },
         'translate-y': function () {
           const button = containerRef.current?.querySelector('.ql-translate-y');
           if (button && containerRef.current) {
-            preserveEditorScrollDuring(() => {
-              toolbarHandlerRefs.current.commitControlDrafts?.();
-              closeAllToolbarPickers();
-              clearPopupInputValues();
-              const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
-              const finalSelection = getCurrentControlSelection(currentSelection);
-              controlSelectionRef.current = finalSelection;
-              toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
-              controlPopupAnchorRef.current.translateY = button;
-              setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
-              setShowFontSizePopup(false);
-              setShowSpacingPopup(false);
-              setShowTranslateXPopup(false);
-              setShowTranslatePopup(true);
-              clearMobileNativeSelectionOverlay(finalSelection);
-            });
+            if (controlPopupVisibleRef.current?.translateY) {
+              closeControlPopups();
+              return;
+            }
+            closeAllToolbarPickers();
+            const currentSelection = this.quill?.getSelection?.() || savedSelectionRef.current || typingSelectionRef.current;
+            const finalSelection = getCurrentControlSelection(currentSelection);
+            controlSelectionRef.current = finalSelection;
+            toolbarHandlerRefs.current.syncSelectionControlsFromFormat?.(finalSelection);
+
+            controlPopupAnchorRef.current.translateY = button;
+            setTranslatePopupPosition(getClampedControlPopupPosition(button, 200, 'translateY', 220));
+            setShowFontSizePopup(false);
+            setShowSpacingPopup(false);
+            setShowTranslateXPopup(false);
+            setShowTranslatePopup(true);
+            clearMobileNativeSelectionOverlay(finalSelection);
           }
         },
         more: function () {
@@ -6603,28 +6590,11 @@ const QuillWrapper = forwardRef(({
     };
 
     window.addEventListener('resize', updateOpenPopupPosition);
-    if (!isMobileAdminViewport()) {
-      window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
-      window.visualViewport?.addEventListener('scroll', updateOpenPopupPosition);
-    } else {
-      window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
-    }
-
-    const raf = window.requestAnimationFrame(updateOpenPopupPosition);
-    const timeoutId = window.setTimeout(updateOpenPopupPosition, 50);
-    const keyboardTimeoutId = window.setTimeout(updateOpenPopupPosition, 350);
+    window.visualViewport?.addEventListener('resize', updateOpenPopupPosition);
 
     return () => {
-      window.cancelAnimationFrame(raf);
-      window.clearTimeout(timeoutId);
-      window.clearTimeout(keyboardTimeoutId);
       window.removeEventListener('resize', updateOpenPopupPosition);
-      if (!isMobileAdminViewport()) {
-        window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
-        window.visualViewport?.removeEventListener('scroll', updateOpenPopupPosition);
-      } else {
-        window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
-      }
+      window.visualViewport?.removeEventListener('resize', updateOpenPopupPosition);
     };
   }, [
     getClampedControlPopupPosition,
@@ -6632,6 +6602,7 @@ const QuillWrapper = forwardRef(({
     showFontSizePopup,
     showSpacingPopup,
     showTranslatePopup,
+    showTranslateXPopup,
   ]);
 
   useEffect(() => {
