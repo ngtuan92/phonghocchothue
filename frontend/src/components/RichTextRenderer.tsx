@@ -414,18 +414,22 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
 
         const textSiblings: Element[] = [];
         let curr = wrapper.nextElementSibling;
-        while (curr) {
-          // Stop if we hit another image-wrapper, rich-text-wrap-group, or an element containing media/table, or a major section break (hr, h1, h2)
-          if (
-            curr.classList.contains('image-wrapper') ||
-            curr.classList.contains('rich-text-wrap-group') ||
-            curr.querySelector('.image-wrapper, img, video, iframe, table') ||
-            /^(HR|H1|H2)$/i.test(curr.tagName)
-          ) {
-            break;
-          }
-          textSiblings.push(curr);
+
+        // Skip whitespace spacer blocks if any
+        while (curr && isWhitespaceSpacerBlock(curr)) {
           curr = curr.nextElementSibling;
+        }
+
+        // Only group the single immediate content sibling (the wrapped paragraph)
+        // so that subsequent paragraphs stay below the image on mobile!
+        if (
+          curr &&
+          !curr.classList.contains('image-wrapper') &&
+          !curr.classList.contains('rich-text-wrap-group') &&
+          !curr.querySelector('.image-wrapper, img, video, iframe, table') &&
+          !/^(HR|H1|H2)$/i.test(curr.tagName)
+        ) {
+          textSiblings.push(curr);
         }
 
         // Only group if there are text siblings following this image
