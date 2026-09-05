@@ -272,7 +272,7 @@
   margin-right: max(0px, calc(var(--blog-editor-text-inset) - 24px));
 }
 
-.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-container {
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
   margin-top: 16px !important;
 }
 
@@ -2576,6 +2576,10 @@ footer .rich-text-renderer * {
   tab-size: 4 !important;
   -moz-tab-size: 4 !important;
   /* Prevents text from being translated up and cut off by the toolbar */
+}
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
+  margin-top: 16px !important;
 }
 .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
 .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
