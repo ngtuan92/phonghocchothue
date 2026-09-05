@@ -1124,6 +1124,27 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: table !important;
           clear: both !important;
         }
+
+        /* Preserve intentional line breaks (cách dòng) from Admin editor */
+        .rich-text-renderer .ql-whitespace-preserve,
+        .rich-text-renderer p.ql-whitespace-preserve {
+          display: block !important;
+          min-height: 1.5em !important;
+          line-height: 1.5 !important;
+          margin-top: 0 !important;
+          margin-bottom: 0.5rem !important;
+        }
+        .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
+        .rich-text-renderer .ql-whitespace-preserve:has(+ .rich-text-wrap-group),
+        .rich-text-renderer .ql-whitespace-preserve:has(+ [class*="image-wrap"]),
+        .rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
+        .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group),
+        .rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
+          display: block !important;
+          min-height: 1.5em !important;
+          line-height: 1.5 !important;
+          padding-bottom: 0.75rem !important;
+        }
         
         /* Desktop: transparent wrap grouping for 100% native float text wrap */
         @media (min-width: 768px) {
