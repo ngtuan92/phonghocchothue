@@ -835,6 +835,7 @@
 /* Text wrapping: float left */
 .rich-text-renderer img[data-wrap="left"] {
   float: left !important;
+  clear: both !important;
   margin-right: 20px !important;
   margin-bottom: 16px !important;
   margin-top: 0 !important;
@@ -845,6 +846,7 @@
 /* Text wrapping: float right */
 .rich-text-renderer img[data-wrap="right"] {
   float: right !important;
+  clear: both !important;
   margin-left: 20px !important;
   margin-bottom: 16px !important;
   margin-top: 0 !important;
@@ -867,6 +869,7 @@
 .ql-editor .image-wrap-left,
 .rich-text-renderer .image-wrap-left {
   float: left !important;
+  clear: both !important;
   margin-right: 20px !important;
   margin-bottom: 10px !important;
   margin-top: 0 !important;
@@ -879,6 +882,7 @@
 .ql-editor .image-wrap-right,
 .rich-text-renderer .image-wrap-right {
   float: right !important;
+  clear: both !important;
   margin-left: 20px !important;
   margin-bottom: 10px !important;
   margin-top: 0 !important;

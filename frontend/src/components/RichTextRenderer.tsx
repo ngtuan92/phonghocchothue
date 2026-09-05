@@ -345,6 +345,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           wrapperEl.classList.remove('image-wrap-left', 'image-wrap-right');
           if (wrapMode === 'left' || wrapMode === 'right') {
             wrapperEl.classList.add(`image-wrap-${wrapMode}`);
+            wrapperEl.style.clear = 'both';
+          } else {
+            wrapperEl.style.removeProperty('clear');
           }
           wrapperEl.style.removeProperty('margin');
           wrapperEl.style.marginLeft = 'auto';
@@ -1022,6 +1025,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Text wrapping: float left */
         .rich-text-renderer img[data-wrap="left"] {
           float: left !important;
+          clear: both !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1031,6 +1035,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Text wrapping: float right */
         .rich-text-renderer img[data-wrap="right"] {
           float: right !important;
+          clear: both !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1049,6 +1054,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Image wrapper wrapping support */
         .rich-text-renderer .image-wrap-left {
           float: left !important;
+          clear: both !important;
           margin-right: 20px !important;
           margin-bottom: 10px !important;
           margin-top: 0 !important;
@@ -1057,6 +1063,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
+          clear: both !important;
           margin-left: 20px !important;
           margin-bottom: 10px !important;
           margin-top: 0 !important;

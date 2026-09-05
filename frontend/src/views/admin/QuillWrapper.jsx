@@ -144,9 +144,9 @@ const RESPONSIVE_CONTROL_CALLBACK_KEYS = {
 };
 
 const IMAGE_WRAP_DISPLAY = {
-  left: { float: 'left', display: 'inline' },
-  right: { float: 'right', display: 'inline' },
-  none: { float: 'none', display: 'block' },
+  left: { float: 'left', display: 'inline', clear: 'both' },
+  right: { float: 'right', display: 'inline', clear: 'both' },
+  none: { float: 'none', display: 'block', clear: 'none' },
 };
 
 const RESPONSIVE_INLINE_FORMATS = {
@@ -2317,6 +2317,7 @@ const QuillWrapper = forwardRef(({
     }
     const styleTarget = wrapper || img;
     styleTarget.style.setProperty('float', wrapMode === 'left' ? 'left' : wrapMode === 'right' ? 'right' : 'none', 'important');
+    styleTarget.style.setProperty('clear', wrapMode === 'none' ? 'none' : 'both', 'important');
     styleTarget.style.setProperty('display', wrapMode === 'none' ? 'block' : 'inline-block', 'important');
     styleTarget.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '0', 'important');
     styleTarget.style.setProperty('margin-bottom', wrapMode === 'none' ? '16px' : '16px', 'important');
@@ -8274,8 +8275,10 @@ const QuillWrapper = forwardRef(({
           margin-top: 12px !important;
           margin-bottom: 10px !important;
         }
-        .ql-editor .image-wrap-left {
+        .ql-editor .image-wrap-left,
+        .ql-editor .image-wrapper.image-wrap-left {
           float: left !important;
+          clear: both !important;
           margin-right: 20px !important;
           margin-bottom: 10px !important;
           margin-top: 0 !important;
@@ -8285,8 +8288,10 @@ const QuillWrapper = forwardRef(({
           max-width: 100% !important;
           box-sizing: border-box !important;
         }
-        .ql-editor .image-wrap-right {
+        .ql-editor .image-wrap-right,
+        .ql-editor .image-wrapper.image-wrap-right {
           float: right !important;
+          clear: both !important;
           margin-left: 20px !important;
           margin-bottom: 10px !important;
           margin-top: 0 !important;
