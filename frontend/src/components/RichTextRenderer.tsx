@@ -394,12 +394,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
-      root?.querySelectorAll('p, div').forEach((el) => {
-        if (isWhitespaceSpacerBlock(el)) {
-          el.classList.add('image-spacer-mobile-hide');
-        }
-      });
-
       // Group wrap-left / wrap-right images with their following text siblings
       // so on mobile we can display text first (order: 1), and image second (order: 2),
       // while on desktop display: contents preserves 100% native float wrapping!
@@ -415,19 +409,12 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const parent = wrapper.parentNode;
         if (!parent) return;
 
-        // Mark whitespace spacers immediately preceding the wrap image
-        let prev = wrapper.previousElementSibling;
-        while (prev && isWhitespaceSpacerBlock(prev)) {
-          prev.classList.add('image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
-          prev = prev.previousElementSibling;
-        }
-
         const textSiblings: Element[] = [];
         let curr = wrapper.nextElementSibling;
 
-        // Skip & mark whitespace spacer blocks between image and text
+        // Skip & mark whitespace spacer blocks directly between image and wrapped text
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          curr.classList.add('image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
+          curr.classList.add('wrap-spacer-mobile-hide');
           curr = curr.nextElementSibling;
         }
 
@@ -441,12 +428,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           !/^(HR|H1|H2)$/i.test(curr.tagName)
         ) {
           textSiblings.push(curr);
-          curr = curr.nextElementSibling;
-        }
-
-        // Mark whitespace spacers immediately following the wrapped paragraph (the Enter on wraptext!)
-        while (curr && isWhitespaceSpacerBlock(curr)) {
-          curr.classList.add('image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
           curr = curr.nextElementSibling;
         }
 
@@ -1173,8 +1154,12 @@ const RICH_TEXT_RENDERER_STYLES = `
         
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
-          /* On mobile: preserve intentional line breaks ONLY for regular text (not associated with wrap) */
-          .rich-text-renderer p.ql-whitespace-preserve:not(.image-spacer-mobile-hide):not(.wrap-spacer-mobile-hide):not([class*="spacer-mobile-hide"]) {
+          /* On mobile: preserve intentional line breaks (cách dòng) */
+          .rich-text-renderer .ql-whitespace-preserve:not(.wrap-spacer-mobile-hide),
+          .rich-text-renderer p.ql-whitespace-preserve:not(.wrap-spacer-mobile-hide),
+          .rich-text-renderer .ql-whitespace-spacer:not(.wrap-spacer-mobile-hide),
+          .rich-text-renderer p.ql-whitespace-spacer:not(.wrap-spacer-mobile-hide),
+          .rich-text-renderer p:has(> br:only-child):not(.wrap-spacer-mobile-hide) {
             display: block !important;
             min-height: 1.2em !important;
             line-height: 1.2 !important;
@@ -1303,62 +1288,11 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-bottom: 0 !important;
           }
 
-          /* Hide whitespace spacer paragraphs placed around wrap images / wrap groups on mobile */
-          .rich-text-renderer .image-spacer-mobile-hide,
+          /* Hide whitespace spacer paragraphs placed directly inside wrap text on mobile */
           .rich-text-renderer .wrap-spacer-mobile-hide,
-          .rich-text-renderer [class*="spacer-mobile-hide"],
-          .rich-text-renderer p.image-spacer-mobile-hide,
-          .rich-text-renderer p.wrap-spacer-mobile-hide,
-          .rich-text-renderer p.ql-whitespace-preserve.image-spacer-mobile-hide,
-          .rich-text-renderer p.ql-whitespace-preserve.wrap-spacer-mobile-hide,
-          .rich-text-renderer p.ql-whitespace-preserve[class*="spacer-mobile-hide"],
-          .rich-text-renderer p.ql-whitespace-spacer[class*="spacer-mobile-hide"],
-          .rich-text-renderer div.image-spacer-mobile-hide,
-          .rich-text-renderer div.wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group ~ .image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group ~ [class*="spacer-mobile-hide"],
-          .rich-text-renderer .rich-text-wrap-group + .image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + p.image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + p.wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + p.ql-whitespace-preserve,
-          .rich-text-renderer .rich-text-wrap-group + p.ql-whitespace-spacer,
-          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-preserve,
-          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-spacer,
-          .rich-text-renderer .rich-text-wrap-group + p:has(br),
-          .rich-text-renderer .rich-text-wrap-group + p:empty,
-          .rich-text-renderer .rich-text-wrap-group + * + p.image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + * + p.wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + * + p.ql-whitespace-preserve,
-          .rich-text-renderer .rich-text-wrap-text .image-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-text .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-text p.ql-whitespace-preserve,
-          .rich-text-renderer .rich-text-wrap-text p.ql-whitespace-spacer,
-          .rich-text-renderer .rich-text-wrap-text p:has(br),
           .rich-text-renderer .rich-text-wrap-text p:empty,
-          .rich-text-renderer .image-wrapper + .image-spacer-mobile-hide,
-          .rich-text-renderer .image-wrapper + .wrap-spacer-mobile-hide,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-spacer,
-          .rich-text-renderer .image-wrapper + p.ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + p.ql-whitespace-spacer,
-          .rich-text-renderer .image-wrapper + p:has(br),
-          .rich-text-renderer .image-wrapper + p:empty,
-          .rich-text-renderer img + .image-spacer-mobile-hide,
-          .rich-text-renderer img + .wrap-spacer-mobile-hide,
-          .rich-text-renderer img + .ql-whitespace-preserve,
-          .rich-text-renderer img + .ql-whitespace-spacer,
-          .rich-text-renderer img + p.ql-whitespace-preserve,
-          .rich-text-renderer img + p.ql-whitespace-spacer,
-          .rich-text-renderer img + p:has(br),
-          .rich-text-renderer img + p:empty,
-          .rich-text-renderer p.ql-whitespace-preserve:has(+ .image-wrapper),
-          .rich-text-renderer p.ql-whitespace-preserve:has(+ .rich-text-wrap-group),
-          .rich-text-renderer p.ql-whitespace-preserve:has(+ [class*="image-wrap"]),
-          .rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
-          .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group),
-          .rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
+          .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -1370,7 +1304,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
 
           /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
-          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve {
+          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .ql-whitespace-spacer + .ql-whitespace-spacer,
+          .rich-text-renderer p:has(> br:only-child) + p:has(> br:only-child) {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
