@@ -2443,6 +2443,9 @@ const QuillWrapper = forwardRef(({
       // 1. Scan upwards (previous siblings)
       let prevEl = p.previousElementSibling;
       while (prevEl) {
+        if (prevEl.tagName === 'IMG' || prevEl.querySelector?.('img') || prevEl.classList?.contains('image-wrapper')) {
+          break;
+        }
         const prevSpan = prevEl.querySelector?.('span[style*="font-family"], [class*="ql-font-"]') ||
                          (prevEl.matches?.('span[style*="font-family"], [class*="ql-font-"]') ? prevEl : null);
         if (prevSpan) {
@@ -2463,6 +2466,9 @@ const QuillWrapper = forwardRef(({
       if (!prevFontFamily) {
         let nextEl = p.nextElementSibling;
         while (nextEl) {
+          if (nextEl.tagName === 'IMG' || nextEl.querySelector?.('img') || nextEl.classList?.contains('image-wrapper')) {
+            break;
+          }
           const nextSpan = nextEl.querySelector?.('span[style*="font-family"], [class*="ql-font-"]') ||
                            (nextEl.matches?.('span[style*="font-family"], [class*="ql-font-"]') ? nextEl : null);
           if (nextSpan) {
@@ -2471,33 +2477,50 @@ const QuillWrapper = forwardRef(({
               const cls = Array.from(nextSpan.classList).find(c => c.startsWith('ql-font-'));
               if (cls) prevFontFamily = cls.replace('ql-font-', '');
             }
-            if (!prevFsDesktop) prevFsDesktop = nextSpan.style?.getPropertyValue('--fs-desktop') || '';
-            if (!prevFsMobile) prevFsMobile = nextSpan.style?.getPropertyValue('--fs-mobile') || '';
-            if (!prevColor) prevColor = nextSpan.style?.color || '';
+            prevFsDesktop = nextSpan.style?.getPropertyValue('--fs-desktop') || '';
+            prevFsMobile = nextSpan.style?.getPropertyValue('--fs-mobile') || '';
+            prevColor = nextSpan.style?.color || '';
             break;
           }
           nextEl = nextEl.nextElementSibling;
         }
       }
 
-      // 3. Scan entire editor document for any formatted span
+      if (prevFsDesktop) {
+        const dNum = parseFloat(String(prevFsDesktop).replace('px', ''));
+        if (!isNaN(dNum) && dNum >= 32) prevFsDesktop = '';
+      }
+      if (prevFsMobile) {
+        const mNum = parseFloat(String(prevFsMobile).replace('px', ''));
+        if (!isNaN(mNum) && mNum >= 32) prevFsMobile = '';
+      }
+
+      // 3. Scan entire editor document for any formatted span (skip title spans >= 32px)
       if (!prevFontFamily) {
-        const docSpan = editor.querySelector('span[style*="font-family"], [class*="ql-font-"]');
-        if (docSpan) {
+        const spans = editor.querySelectorAll('span[style*="font-family"], [class*="ql-font-"]');
+        for (const docSpan of spans) {
+          const fs = docSpan.style?.getPropertyValue('--fs-desktop') || docSpan.style?.fontSize || '';
+          const fsNum = parseFloat(String(fs).replace('px', ''));
+          if (!isNaN(fsNum) && fsNum >= 32) continue;
           prevFontFamily = docSpan.style?.fontFamily || '';
           if (!prevFontFamily && docSpan.classList) {
             const cls = Array.from(docSpan.classList).find(c => c.startsWith('ql-font-'));
             if (cls) prevFontFamily = cls.replace('ql-font-', '');
           }
-          if (!prevFsDesktop) prevFsDesktop = docSpan.style?.getPropertyValue('--fs-desktop') || '';
+          if (!prevFsDesktop) prevFsDesktop = fs;
           if (!prevFsMobile) prevFsMobile = docSpan.style?.getPropertyValue('--fs-mobile') || '';
           if (!prevColor) prevColor = docSpan.style?.color || '';
+          if (prevFontFamily) break;
         }
       }
 
       // 4. Fallback to lastActiveFormatsRef
       if (!prevFontFamily && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
-        prevFontFamily = lastActiveFormatsRef.current.font;
+        const activeSize = lastActiveFormatsRef.current?.size;
+        const aNum = parseFloat(String(activeSize || '').replace('px', ''));
+        if (isNaN(aNum) || aNum < 32) {
+          prevFontFamily = lastActiveFormatsRef.current.font;
+        }
       }
 
       // 5. Fallback to active toolbar picker
@@ -2898,7 +2921,12 @@ const QuillWrapper = forwardRef(({
     const rawFontVal = Array.isArray(font) ? font[0] : font;
     const fontVal = rawFontVal && rawFontVal !== 'macdinh' ? rawFontVal : DEFAULT_FONT_VALUE;
 
-    if (fontVal && fontVal !== 'macdinh') {
+    const hasActualUserSelection = Boolean(
+      (rangeOverride && typeof rangeOverride.index === 'number') ||
+      (typeof quill.hasFocus === 'function' && quill.hasFocus()) ||
+      quill.getSelection()
+    );
+    if (hasActualUserSelection && fontVal && fontVal !== 'macdinh') {
       lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: fontVal };
     }
 
@@ -3221,8 +3249,19 @@ const QuillWrapper = forwardRef(({
       }
 
       // 2. Fast helpers to resolve line formatting without scanning loops
+      const isImageBlotOrNode = (l) => {
+        if (!l) return false;
+        if (l.statics?.blotName === 'image' || l.statics?.blotName === 'imageBlot') return true;
+        if (l.domNode) {
+          if (l.domNode.tagName === 'IMG') return true;
+          if (l.domNode.querySelector?.('img')) return true;
+          if (l.domNode.classList?.contains('image-wrapper')) return true;
+        }
+        return false;
+      };
+
       const getLineFormatting = (line) => {
-        if (!line) return null;
+        if (!line || isImageBlotOrNode(line)) return null;
         try {
           if (line.length() > 1) {
             const lineStart = quill.getIndex(line);
@@ -3243,15 +3282,26 @@ const QuillWrapper = forwardRef(({
                 if (!lineHeight && styles?.lineHeight) lineHeight = styles.lineHeight;
               }
             }
+            if (size) {
+              const sNum = parseFloat(String(size).replace('px', ''));
+              if (!isNaN(sNum) && sNum >= 32) {
+                size = null; // Do not inherit title/display sizes
+              }
+            }
             if (font || size || color || lineHeight) {
               return { font, size, color, lineHeight };
             }
           } else if (line.domNode) {
             const domFont = resolveFontFromDomNode(line.domNode);
             const styles = resolveInlineStylesFromDomNode(line.domNode);
+            let sVal = styles?.size || null;
+            if (sVal) {
+              const sNum = parseFloat(String(sVal).replace('px', ''));
+              if (!isNaN(sNum) && sNum >= 32) sVal = null;
+            }
             return {
               font: domFont && domFont !== 'macdinh' ? domFont : null,
-              size: styles?.size || null,
+              size: sVal,
               color: styles?.color || null,
               lineHeight: styles?.lineHeight || null,
             };
@@ -3265,8 +3315,11 @@ const QuillWrapper = forwardRef(({
         const current = getLineFormatting(currentLine);
         if (current?.font || current?.size) return current;
 
-        const first = prioritizeNext ? currentLine.next : currentLine.prev;
-        const second = prioritizeNext ? currentLine.prev : currentLine.next;
+        const isPrevImg = isImageBlotOrNode(currentLine.prev);
+        const isNextImg = isImageBlotOrNode(currentLine.next);
+
+        const first = (prioritizeNext || isPrevImg) ? (!isNextImg ? currentLine.next : null) : (!isPrevImg ? currentLine.prev : null);
+        const second = (prioritizeNext || isPrevImg) ? (!isPrevImg ? currentLine.prev : null) : (!isNextImg ? currentLine.next : null);
 
         const firstFmt = getLineFormatting(first);
         if (firstFmt?.font || firstFmt?.size) return firstFmt;
@@ -3486,7 +3539,8 @@ const QuillWrapper = forwardRef(({
           const hasSize = Boolean(currentFmt?.size);
 
           if (!hasFont || !hasSize) {
-            const prioritizeNext = Boolean(currentLine.next && currentLine.next.length() > 1 && (!currentLine.prev || currentLine.prev.length() <= 1));
+            const isPrevImg = isImageBlotOrNode(currentLine.prev);
+            const prioritizeNext = isPrevImg || Boolean(currentLine.next && currentLine.next.length() > 1 && (!currentLine.prev || currentLine.prev.length() <= 1));
             const inherited = getInheritedFormatForLine(currentLine, prioritizeNext);
 
             if (!hasFont && inherited.font) {
