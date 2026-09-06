@@ -2688,7 +2688,7 @@ footer .rich-text-renderer * {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 12px !important;
   }
   .rich-text-renderer .rich-text-wrap-text,
   .rich-text-wrap-text {
@@ -2739,6 +2739,51 @@ footer .rich-text-renderer * {
     text-align: center !important;
   }
 
+  .rich-text-renderer img[data-wrap="left"],
+  .rich-text-renderer img[data-wrap="right"] {
+    float: none !important;
+  }
+
+  .rich-text-renderer .image-wrapper.image-wrap-left,
+  .rich-text-renderer .image-wrapper.image-wrap-right,
+  .rich-text-renderer .image-wrap-left,
+  .rich-text-renderer .image-wrap-right {
+    float: none !important;
+    clear: both !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 12px !important;
+    margin-bottom: 10px !important;
+    display: block !important;
+  }
+  .rich-text-renderer .image-wrapper.image-wrap-left img,
+  .rich-text-renderer .image-wrapper.image-wrap-right img,
+  .rich-text-renderer .image-wrap-left img,
+  .rich-text-renderer .image-wrap-right img {
+    float: none !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .rich-text-renderer .image-wrapper.image-wrap-left .image-caption,
+  .rich-text-renderer .image-wrapper.image-wrap-right .image-caption,
+  .rich-text-renderer .image-wrap-left .image-caption,
+  .rich-text-renderer .image-wrap-right .image-caption {
+    display: block !important;
+    font-size: 11px !important;
+    margin-top: 3px !important;
+    margin-bottom: 6px !important;
+    padding: 0 8px !important;
+    line-height: 1.35 !important;
+    font-style: italic !important;
+    text-align: center !important;
+  }
+
   .image-wrapper .image-caption,
   .image-caption {
     font-size: 11px !important;
@@ -2766,9 +2811,55 @@ footer .rich-text-renderer * {
     height: 0 !important;
   }
 
-  /* Hide truly empty tags (no content at all) and wrap spacers */
+  /* Hide truly empty tags (no content at all) and wrap spacers associated with wraptext */
   .rich-text-renderer p:empty,
-  .rich-text-renderer .wrap-spacer-mobile-hide {
+  .rich-text-renderer .wrap-spacer-mobile-hide,
+  .rich-text-renderer p.wrap-spacer-mobile-hide,
+  .rich-text-renderer div.wrap-spacer-mobile-hide,
+  .rich-text-renderer .wrap-spacer-mobile-hide *,
+  .rich-text-renderer p.wrap-spacer-mobile-hide *,
+  .rich-text-renderer p.ql-whitespace-preserve.wrap-spacer-mobile-hide,
+  .rich-text-renderer p.ql-whitespace-spacer.wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group ~ [class*="wrap-spacer-mobile-hide"],
+  .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide *,
+  .rich-text-renderer .rich-text-wrap-group + * + .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-preserve,
+  .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-spacer,
+  .rich-text-renderer .rich-text-wrap-group + [class*="whitespace"],
+  .rich-text-renderer .rich-text-wrap-group + p:has(br),
+  .rich-text-renderer .rich-text-wrap-group + p:empty,
+  .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-spacer + .ql-whitespace-spacer,
+  .rich-text-renderer .rich-text-wrap-group + p:has(br) + p:has(br),
+  .rich-text-renderer .rich-text-wrap-text .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-text .ql-whitespace-preserve,
+  .rich-text-renderer .rich-text-wrap-text .ql-whitespace-spacer,
+  .rich-text-renderer .rich-text-wrap-text p:has(br),
+  .rich-text-renderer .rich-text-wrap-text p:empty,
+  .rich-text-renderer .image-wrapper + .wrap-spacer-mobile-hide,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-spacer,
+  .rich-text-renderer .image-wrapper + p:has(br),
+  .rich-text-renderer .image-wrapper + p:empty,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve,
+  .rich-text-renderer .image-wrapper + .ql-whitespace-spacer + .ql-whitespace-spacer,
+  .rich-text-renderer .image-wrapper + p:has(br) + p:has(br),
+  .rich-text-renderer img + .wrap-spacer-mobile-hide,
+  .rich-text-renderer img + .ql-whitespace-preserve,
+  .rich-text-renderer img + .ql-whitespace-spacer,
+  .rich-text-renderer img + p:has(br),
+  .rich-text-renderer img + p:empty,
+  .rich-text-renderer .wrap-spacer-mobile-hide:has(+ .rich-text-wrap-group),
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .rich-text-wrap-group),
+  .rich-text-renderer .ql-whitespace-spacer:has(+ .rich-text-wrap-group),
+  .rich-text-renderer p:has(br):has(+ .rich-text-wrap-group),
+  .rich-text-renderer p:empty:has(+ .rich-text-wrap-group),
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
+  .rich-text-renderer .ql-whitespace-spacer:has(+ .image-wrapper),
+  .rich-text-renderer p:has(br):has(+ .image-wrapper),
+  .rich-text-renderer p:empty:has(+ .image-wrapper) {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -2776,6 +2867,7 @@ footer .rich-text-renderer * {
     min-height: 0 !important;
     line-height: 0 !important;
     font-size: 0 !important;
+    border: none !important;
   }
 
   /* Admin Quill Editor: 1. Elements tagged by spacer detector */

@@ -415,11 +415,19 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const parent = wrapper.parentNode;
         if (!parent) return;
 
+        // Mark whitespace spacers immediately preceding the wrap image
+        let prev = wrapper.previousElementSibling;
+        while (prev && isWhitespaceSpacerBlock(prev)) {
+          prev.classList.add('image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
+          prev = prev.previousElementSibling;
+        }
+
         const textSiblings: Element[] = [];
         let curr = wrapper.nextElementSibling;
 
-        // Skip whitespace spacer blocks if any
+        // Skip & mark whitespace spacer blocks between image and text
         while (curr && isWhitespaceSpacerBlock(curr)) {
+          curr.classList.add('image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
           curr = curr.nextElementSibling;
         }
 
@@ -433,6 +441,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           !/^(HR|H1|H2)$/i.test(curr.tagName)
         ) {
           textSiblings.push(curr);
+          curr = curr.nextElementSibling;
+        }
+
+        // Mark whitespace spacers immediately following the wrapped paragraph (the Enter on wraptext!)
+        while (curr && isWhitespaceSpacerBlock(curr)) {
+          curr.classList.add('image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
+          curr = curr.nextElementSibling;
         }
 
         // Only group if there are text siblings following this image
@@ -1125,29 +1140,29 @@ const RICH_TEXT_RENDERER_STYLES = `
           clear: both !important;
         }
 
-        /* Preserve intentional line breaks (cách dòng) from Admin editor */
-        .rich-text-renderer .ql-whitespace-preserve,
-        .rich-text-renderer p.ql-whitespace-preserve {
-          display: block !important;
-          min-height: 1.5em !important;
-          line-height: 1.5 !important;
-          margin-top: 0 !important;
-          margin-bottom: 0.5rem !important;
-        }
-        .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
-        .rich-text-renderer .ql-whitespace-preserve:has(+ .rich-text-wrap-group),
-        .rich-text-renderer .ql-whitespace-preserve:has(+ [class*="image-wrap"]),
-        .rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
-        .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group),
-        .rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
-          display: block !important;
-          min-height: 1.5em !important;
-          line-height: 1.5 !important;
-          padding-bottom: 0.75rem !important;
-        }
-        
-        /* Desktop: transparent wrap grouping for 100% native float text wrap */
+        /* Desktop: Preserve intentional line breaks (cách dòng) from Admin editor */
         @media (min-width: 768px) {
+          .rich-text-renderer .ql-whitespace-preserve,
+          .rich-text-renderer p.ql-whitespace-preserve {
+            display: block !important;
+            min-height: 1.5em !important;
+            line-height: 1.5 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0.5rem !important;
+          }
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ .rich-text-wrap-group),
+          .rich-text-renderer .ql-whitespace-preserve:has(+ [class*="image-wrap"]),
+          .rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
+          .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group),
+          .rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
+            display: block !important;
+            min-height: 1.5em !important;
+            line-height: 1.5 !important;
+            padding-bottom: 0.75rem !important;
+          }
+
+          /* Desktop: transparent wrap grouping for 100% native float text wrap */
           .rich-text-renderer .rich-text-wrap-group,
           .rich-text-wrap-group,
           .rich-text-renderer .rich-text-wrap-text,
@@ -1158,13 +1173,22 @@ const RICH_TEXT_RENDERER_STYLES = `
         
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
+          /* On mobile: preserve intentional line breaks ONLY for regular text (not associated with wrap) */
+          .rich-text-renderer p.ql-whitespace-preserve:not(.image-spacer-mobile-hide):not(.wrap-spacer-mobile-hide):not([class*="spacer-mobile-hide"]) {
+            display: block !important;
+            min-height: 1.2em !important;
+            line-height: 1.2 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0.5rem !important;
+          }
+
           /* Wrap text grouping: text first (order: 1), image second (order: 2) */
           .rich-text-renderer .rich-text-wrap-group,
           .rich-text-wrap-group {
             display: flex !important;
             flex-direction: column !important;
             width: 100% !important;
-            margin-bottom: 16px !important;
+            margin-bottom: 12px !important;
           }
           .rich-text-renderer .rich-text-wrap-text,
           .rich-text-wrap-text {
@@ -1235,6 +1259,13 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-top: 6px !important;
             margin-bottom: 12px !important;
           }
+          /* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 */
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-left,
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-right,
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper {
+            margin-bottom: 0 !important;
+            margin-top: 10px !important;
+          }
           /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
           .rich-text-renderer img[data-wrap="none"],
           .rich-text-renderer img:not([data-wrap]) {
@@ -1272,20 +1303,62 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-bottom: 0 !important;
           }
 
-          /* Hide whitespace spacer paragraphs placed around images for desktop layout */
+          /* Hide whitespace spacer paragraphs placed around wrap images / wrap groups on mobile */
           .rich-text-renderer .image-spacer-mobile-hide,
+          .rich-text-renderer .wrap-spacer-mobile-hide,
+          .rich-text-renderer [class*="spacer-mobile-hide"],
+          .rich-text-renderer p.image-spacer-mobile-hide,
+          .rich-text-renderer p.wrap-spacer-mobile-hide,
+          .rich-text-renderer p.ql-whitespace-preserve.image-spacer-mobile-hide,
+          .rich-text-renderer p.ql-whitespace-preserve.wrap-spacer-mobile-hide,
+          .rich-text-renderer p.ql-whitespace-preserve[class*="spacer-mobile-hide"],
+          .rich-text-renderer p.ql-whitespace-spacer[class*="spacer-mobile-hide"],
+          .rich-text-renderer div.image-spacer-mobile-hide,
+          .rich-text-renderer div.wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group ~ .image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group ~ [class*="spacer-mobile-hide"],
+          .rich-text-renderer .rich-text-wrap-group + .image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + p.image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + p.wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + p.ql-whitespace-preserve,
+          .rich-text-renderer .rich-text-wrap-group + p.ql-whitespace-spacer,
+          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-preserve,
+          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-spacer,
+          .rich-text-renderer .rich-text-wrap-group + p:has(br),
+          .rich-text-renderer .rich-text-wrap-group + p:empty,
+          .rich-text-renderer .rich-text-wrap-group + * + p.image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + * + p.wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + * + p.ql-whitespace-preserve,
+          .rich-text-renderer .rich-text-wrap-text .image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-text .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-text p.ql-whitespace-preserve,
+          .rich-text-renderer .rich-text-wrap-text p.ql-whitespace-spacer,
+          .rich-text-renderer .rich-text-wrap-text p:has(br),
+          .rich-text-renderer .rich-text-wrap-text p:empty,
+          .rich-text-renderer .image-wrapper + .image-spacer-mobile-hide,
+          .rich-text-renderer .image-wrapper + .wrap-spacer-mobile-hide,
           .rich-text-renderer .image-wrapper + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .image-wrapper + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + .ql-whitespace-spacer,
+          .rich-text-renderer .image-wrapper + p.ql-whitespace-preserve,
+          .rich-text-renderer .image-wrapper + p.ql-whitespace-spacer,
+          .rich-text-renderer .image-wrapper + p:has(br),
+          .rich-text-renderer .image-wrapper + p:empty,
+          .rich-text-renderer img + .image-spacer-mobile-hide,
+          .rich-text-renderer img + .wrap-spacer-mobile-hide,
           .rich-text-renderer img + .ql-whitespace-preserve,
-          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer img + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve + .ql-whitespace-preserve {
+          .rich-text-renderer img + .ql-whitespace-spacer,
+          .rich-text-renderer img + p.ql-whitespace-preserve,
+          .rich-text-renderer img + p.ql-whitespace-spacer,
+          .rich-text-renderer img + p:has(br),
+          .rich-text-renderer img + p:empty,
+          .rich-text-renderer p.ql-whitespace-preserve:has(+ .image-wrapper),
+          .rich-text-renderer p.ql-whitespace-preserve:has(+ .rich-text-wrap-group),
+          .rich-text-renderer p.ql-whitespace-preserve:has(+ [class*="image-wrap"]),
+          .rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
+          .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group),
+          .rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -1293,20 +1366,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             min-height: 0 !important;
             line-height: 0 !important;
             font-size: 0 !important;
-          }
-
-          .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
-          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .image-wrapper),
-          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + .ql-whitespace-preserve + .image-wrapper),
-          .rich-text-renderer .ql-whitespace-preserve:has(+ img),
-          .rich-text-renderer .ql-whitespace-preserve:has(+ .ql-whitespace-preserve + img) {
-            display: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: 0 !important;
-            min-height: 0 !important;
-            line-height: 0 !important;
-            font-size: 0 !important;
+            border: none !important;
           }
 
           /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */

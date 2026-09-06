@@ -975,7 +975,7 @@ const stripEditorCaptionArtifacts = (html) => {
   return html
     .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-inline-image-caption(?:-preview)?\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
     .replace(/<([a-z0-9-]+)\b[^>]*class=["'][^"']*\beditor-image-caption\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, "")
-    .replace(/\s*\b(?:editor-)?image-spacer-mobile-hide\b/gi, "");
+    .replace(/\s*\b(?:editor-)?(?:image|wrap)-spacer-mobile-hide\b/gi, "");
 };
 
 const unwrapRichTextControlsForEdit = (html) => {
@@ -2619,13 +2619,50 @@ const QuillWrapper = forwardRef(({
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
         if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
-        // Note: Do NOT tag prev with spacer-hide because whitespace before an image is an intentional line break (cách dòng)
-        let next = target.nextElementSibling;
-        while (next && isWhitespaceOnlyBlock(next)) {
-          if (!next.classList.contains('editor-image-spacer-mobile-hide')) {
-            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+        const isWrap = target.classList.contains('image-wrap-left') ||
+          target.classList.contains('image-wrap-right') ||
+          target.getAttribute('data-wrap') === 'left' ||
+          target.getAttribute('data-wrap') === 'right' ||
+          !!target.querySelector?.('img[data-wrap="left"], img[data-wrap="right"]');
+
+        if (isWrap) {
+          // Hide whitespace spacers immediately preceding the wrap image
+          let prev = target.previousElementSibling;
+          while (prev && isWhitespaceOnlyBlock(prev)) {
+            prev.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+            prev = prev.previousElementSibling;
           }
-          next = next.nextElementSibling;
+
+          // Hide whitespace spacers between wrap image and text
+          let next = target.nextElementSibling;
+          while (next && isWhitespaceOnlyBlock(next)) {
+            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+            next = next.nextElementSibling;
+          }
+
+          // Walk through wrapped content paragraph(s) until we hit the Enter spacer
+          while (
+            next &&
+            !isWhitespaceOnlyBlock(next) &&
+            !next.classList.contains('image-wrapper') &&
+            !next.querySelector?.('.image-wrapper, img, video, iframe, table')
+          ) {
+            next = next.nextElementSibling;
+          }
+
+          // Hide whitespace spacers immediately following the wrapped text (the Enter pressed on desktop wraptext!)
+          while (next && isWhitespaceOnlyBlock(next)) {
+            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+            next = next.nextElementSibling;
+          }
+        } else {
+          let next = target.nextElementSibling;
+          while (next && isWhitespaceOnlyBlock(next)) {
+            if (!next.classList.contains('editor-image-spacer-mobile-hide')) {
+              next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+            }
+            next = next.nextElementSibling;
+          }
         }
       });
     } finally {
@@ -8450,12 +8487,27 @@ const QuillWrapper = forwardRef(({
             border: none !important;
           }
 
-          /* 3. Whitespace blocks directly following image */
+          /* 3. Whitespace blocks preceding or following wrap image */
+          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper.image-wrap-left),
+          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper.image-wrap-right),
+          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrapper.image-wrap-left),
+          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrapper.image-wrap-right),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper.image-wrap-left),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper.image-wrap-right),
+          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrap-left),
+          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrap-right),
+          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrap-left),
+          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrap-right),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrap-left),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrap-right),
           .quill-wrapper-container .ql-editor .image-wrapper + .ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(br),
           .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
+          .quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
           .quill-wrapper-container .ql-editor img + .ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor img + p:has(> br:only-child) {
+          .quill-wrapper-container .ql-editor img + p:has(br),
+          .quill-wrapper-container .ql-editor img + p:empty,
+          .quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
