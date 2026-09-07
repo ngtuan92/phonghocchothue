@@ -1074,15 +1074,21 @@ const preserveSignificantInlineWhitespaceForQuill = (html) => {
     if (!parent || parent.closest("script, style")) return;
 
     const text = String(node.textContent || "").replace(/\u00a0/g, " ");
-    node.textContent = text.replace(/(^ +| {2,}| +$)/g, (spaces) => "\u00a0".repeat(spaces.length));
+    // Only convert runs of 2+ spaces to \u00a0 to preserve intentional multi-spacing.
+    // NEVER convert single boundary spaces (^ + or +$) to \u00a0, as that glues adjacent formatted words together!
+    node.textContent = text.replace(/ {2,}/g, (spaces) => "\u00a0".repeat(spaces.length));
   });
 
   root.querySelectorAll("p, div, h1, h2, h3, h4, h5, h6, li").forEach((block) => {
-    const hasSignificantWhitespace = /\u00a0| {2,}/.test(block.textContent || "");
+    // Only apply break-spaces if the block actually has multiple consecutive spaces or tabs
+    const hasSignificantWhitespace = /(?:\u00a0| ){2,}|\t/.test(block.textContent || "");
     if (block.style.overflowWrap === "anywhere") {
       block.style.overflowWrap = "break-word";
     }
-    if (!hasSignificantWhitespace) return;
+    if (!hasSignificantWhitespace) {
+      block.style.removeProperty("white-space");
+      return;
+    }
     block.style.whiteSpace = "break-spaces";
     block.style.overflowWrap = "break-word";
   });

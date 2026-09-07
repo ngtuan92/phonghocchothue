@@ -1464,6 +1464,34 @@
     text-align: center !important;
   }
 
+  /* Mobile: Natural line wrapping without artificial phrase compounds or rigid whitespace locks */
+  .blog-content p:not(.ql-whitespace-spacer),
+  .blog-content div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
+  .blog-content li,
+  .blog-content blockquote,
+  .blog-content span:not(.ql-whitespace-spacer),
+  .blog-content strong,
+  .blog-content em,
+  .room-detail-content p:not(.ql-whitespace-spacer),
+  .room-detail-content div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
+  .room-detail-content li,
+  .room-detail-content blockquote,
+  .room-detail-content span:not(.ql-whitespace-spacer),
+  .room-detail-content strong,
+  .room-detail-content em,
+  .ckeditor-content p:not(.ql-whitespace-spacer),
+  .ckeditor-content div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
+  .ckeditor-content li,
+  .ckeditor-content blockquote,
+  .ckeditor-content span:not(.ql-whitespace-spacer),
+  .ckeditor-content strong,
+  .ckeditor-content em {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    hyphens: manual !important;
+  }
+
   .blog-content p {
     margin-bottom: 0.5rem !important;
   }

@@ -123,14 +123,8 @@ const normalizeNaturalTextWrapping = (html: string, keepLeadingWhitespace = fals
   const root = doc.body.firstElementChild;
   if (!root) return html;
 
-  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  let textNode = walker.nextNode();
-  while (textNode) {
-    textNode = walker.nextNode();
-  }
-
   root.querySelectorAll<HTMLElement>("[style]").forEach((element) => {
-    if (element.closest(".ql-whitespace-spacer")) return;
+    if (element.closest(".ql-whitespace-spacer, .ql-whitespace-preserve")) return;
     element.style.removeProperty("white-space");
     element.style.removeProperty("overflow-wrap");
     element.style.removeProperty("word-break");
@@ -154,10 +148,48 @@ const normalizeCustomLineHeightUnits = (html: string) => {
   });
 };
 
+const normalizeWordSeparators = (html: string) => {
+  if (!html) return html;
+
+  // 1. Protect intentional runs of 2+ spaces / non-breaking spaces (indentation / multi-spacing)
+  const multiSpaceTokens: string[] = [];
+  let tokenized = html.replace(/(?:&nbsp;|\u00a0| ){2,}/g, (match: string) => {
+    const token = `___MULTI_NBSP_${multiSpaceTokens.length}___`;
+    multiSpaceTokens.push(match.replace(/ /g, '\u00a0'));
+    return token;
+  });
+
+  // 2. Protect standalone spacer blocks (<p ...>&nbsp;</p> or <div ...>&nbsp;</div> or blocks with only whitespace/breaks)
+  const spacerTokens: string[] = [];
+  tokenized = tokenized.replace(/(<(p|div|h[1-6]|li)\b[^>]*>)\s*(?:&nbsp;|\u00a0|<br\s*\/?>|\s)*\s*(<\/\2>)/gi, (match: string) => {
+    const token = `___SPACER_BLOCK_${spacerTokens.length}___`;
+    spacerTokens.push(match);
+    return token;
+  });
+
+  // 3. Normalize single &nbsp; / \u00a0 inside empty inline tags between formatted words:
+  // e.g. <em ...>&nbsp;</em> -> ' '
+  tokenized = tokenized.replace(/(<(span|strong|em|b|i|u|small|font)\b[^>]*>)\s*(?:&nbsp;|\u00a0)\s*(<\/\2>)/gi, ' ');
+
+  // 4. Convert all remaining isolated single &nbsp; or \u00a0 to normal breakable space ' '
+  // so words never get glued into long unbreakable compound phrases on mobile
+  tokenized = tokenized.replace(/&nbsp;|\u00a0/g, ' ');
+
+  // 5. Restore spacer blocks
+  tokenized = tokenized.replace(/___SPACER_BLOCK_(\d+)___/g, (_match: string, index: string) => spacerTokens[Number(index)] || '');
+
+  // 6. Restore intentional multi-space runs
+  tokenized = tokenized.replace(/___MULTI_NBSP_(\d+)___/g, (_match: string, index: string) => multiSpaceTokens[Number(index)] || ' ');
+
+  return tokenized;
+};
+
 const preserveSignificantInlineWhitespace = (html: string) => {
   if (!html) return html;
   return html.replace(/(>|^)([^<]+)(<|$)/g, (_match: string, prefix: string, text: string, suffix: string) => {
-    const converted = text.replace(/(^ +| {2,}| +$)/g, (spaces: string) => "\u00a0".repeat(spaces.length));
+    // Only convert runs of 2+ spaces to \u00a0 to preserve intentional multi-spacing.
+    // NEVER convert single boundary spaces (^ + or +$) to \u00a0, which glues adjacent formatted words together!
+    const converted = text.replace(/ {2,}/g, (spaces: string) => "\u00a0".repeat(spaces.length));
     return prefix + converted + suffix;
   });
 };
@@ -636,7 +668,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     processedHtml = normalizeBlockHighlightHtml(processedHtml);
     processedHtml = normalizeResponsiveLineHeightStyles(processedHtml);
     processedHtml = normalizeCustomLineHeightUnits(processedHtml);
+
+    // Normalize isolated non-breaking spaces between words so phrases can wrap naturally on mobile
+    processedHtml = normalizeWordSeparators(processedHtml);
     processedHtml = preserveSignificantInlineWhitespace(processedHtml);
+
+    if (naturalTextWrapping) {
+      processedHtml = normalizeNaturalTextWrapping(processedHtml, preserveLeadingIndent);
+    }
+
     processedHtml = normalizeVietnameseHtml(processedHtml);
     return processedHtml;
   }, [html, naturalTextWrapping, normalizeNbsp, preserveLeadingIndent, preserveNbsp, configKey, stripAllFontStyles]);
@@ -1460,6 +1500,20 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer.ckeditor-content .image-caption,
           .rich-text-renderer.ckeditor-content .image-caption * {
             text-align: center !important;
+          }
+
+          /* Mobile: Natural line wrapping without artificial phrase compounds or rigid whitespace locks */
+          .rich-text-renderer p:not(.ql-whitespace-spacer),
+          .rich-text-renderer div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
+          .rich-text-renderer li,
+          .rich-text-renderer blockquote,
+          .rich-text-renderer span:not(.ql-whitespace-spacer),
+          .rich-text-renderer strong,
+          .rich-text-renderer em {
+            white-space: normal !important;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+            hyphens: manual !important;
           }
         }
         

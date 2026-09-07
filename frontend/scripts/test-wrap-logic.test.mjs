@@ -435,3 +435,49 @@ test('Unit Test: Table following wrap group stays outside wrap group', () => {
   assert.equal(wrapGroup.nextElementSibling.tagName, 'TABLE', 'Table immediately follows wrap group');
 });
 
+test('Unit Test: Word separator normalization prevents unbreakable compounds around formatted tags while preserving intentional spacer blocks', () => {
+  const normalizeWordSeparators = (html) => {
+    if (!html) return html;
+    const multiSpaceTokens = [];
+    let tokenized = html.replace(/(?:&nbsp;|\u00a0| ){2,}/g, (match) => {
+      const token = `___MULTI_NBSP_${multiSpaceTokens.length}___`;
+      multiSpaceTokens.push(match.replace(/ /g, '\u00a0'));
+      return token;
+    });
+    const spacerTokens = [];
+    tokenized = tokenized.replace(/(<(p|div|h[1-6]|li)\b[^>]*>)\s*(?:&nbsp;|\u00a0|<br\s*\/?>|\s)*\s*(<\/\2>)/gi, (match) => {
+      const token = `___SPACER_BLOCK_${spacerTokens.length}___`;
+      spacerTokens.push(match);
+      return token;
+    });
+    tokenized = tokenized.replace(/(<(span|strong|em|b|i|u|small|font)\b[^>]*>)\s*(?:&nbsp;|\u00a0)\s*(<\/\2>)/gi, ' ');
+    tokenized = tokenized.replace(/&nbsp;|\u00a0/g, ' ');
+    tokenized = tokenized.replace(/___SPACER_BLOCK_(\d+)___/g, (_, index) => spacerTokens[Number(index)] || '');
+    tokenized = tokenized.replace(/___MULTI_NBSP_(\d+)___/g, (_, index) => multiSpaceTokens[Number(index)] || ' ');
+    return tokenized;
+  };
+
+  const preserveSignificantInlineWhitespace = (html) => {
+    if (!html) return html;
+    return html.replace(/(>|^)([^<]+)(<|$)/g, (_match, prefix, text, suffix) => {
+      const converted = text.replace(/ {2,}/g, (spaces) => "\u00a0".repeat(spaces.length));
+      return prefix + converted + suffix;
+    });
+  };
+
+  // Test case with formatted words like in real blog
+  const inputHtml = '<p>đến những người&nbsp;</em><strong><em>coi</em></strong><em>&nbsp;</em><strong><em>thường</em></strong><em>&nbsp;những nguy cơ</p><p class="ql-whitespace-preserve">&nbsp;</p>';
+  let processed = normalizeWordSeparators(inputHtml);
+  processed = preserveSignificantInlineWhitespace(processed);
+
+  // Assert that words 'người', 'coi', 'thường', 'những' are NOT bound by \u00a0 or &nbsp;
+  assert.ok(!processed.includes('người\u00a0'), 'người does not have non-breaking space');
+  assert.ok(!processed.includes('&nbsp;những'), 'những does not have leading &nbsp;');
+  assert.ok(!processed.includes('\u00a0coi'), 'coi does not have non-breaking space');
+  assert.ok(!processed.includes('\u00a0thường'), 'thường does not have non-breaking space');
+
+  // Assert that empty spacer block is preserved
+  assert.ok(processed.includes('<p class="ql-whitespace-preserve">&nbsp;</p>'), 'Spacer block &nbsp; is preserved');
+});
+
+
