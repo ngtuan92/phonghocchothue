@@ -2,9 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);
-const { JSDOM } = require('jsdom');
+const { JSDOM } = await import('jsdom');
 const DOMParser = new JSDOM().window.DOMParser;
 
 function processWrapGroups(html) {
