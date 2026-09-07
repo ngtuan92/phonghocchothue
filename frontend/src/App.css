@@ -2671,13 +2671,21 @@ footer .rich-text-renderer * {
   padding: 0 4px !important;
 }
 
-/* Desktop: transparent wrap grouping for 100% native float text wrap */
+/* Desktop: flow-root wrap grouping for native float text wrap and clean boundary */
 @media (min-width: 768px) {
   .rich-text-renderer .rich-text-wrap-group,
-  .rich-text-wrap-group,
+  .rich-text-wrap-group {
+    display: flow-root !important;
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+  }
   .rich-text-renderer .rich-text-wrap-text,
   .rich-text-wrap-text {
     display: contents !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
+  .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
+    margin-top: 0 !important;
   }
 }
 

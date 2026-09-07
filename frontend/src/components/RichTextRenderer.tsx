@@ -348,10 +348,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             wrapperEl.style.clear = 'both';
           } else {
             wrapperEl.style.removeProperty('clear');
+            wrapperEl.style.removeProperty('margin');
+            wrapperEl.style.marginLeft = 'auto';
+            wrapperEl.style.marginRight = 'auto';
           }
-          wrapperEl.style.removeProperty('margin');
-          wrapperEl.style.marginLeft = 'auto';
-          wrapperEl.style.marginRight = 'auto';
         }
 
         if (wrapperEl && imgEl && !wrapperEl.style.width) {
@@ -409,23 +409,41 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const parent = wrapper.parentNode;
         if (!parent) return;
 
-        const textSiblings: Element[] = [];
+        // 1. Collect leading spacer blocks directly between image and wrapped text
+        const leadingSpacers: Element[] = [];
         let curr = wrapper.nextElementSibling;
-
-        // Skip & mark whitespace spacer blocks directly between image and wrapped text
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          curr.classList.add('wrap-spacer-mobile-hide');
+          leadingSpacers.push(curr);
           curr = curr.nextElementSibling;
         }
 
-        // Only group the single immediate content sibling (the wrapped paragraph)
-        // so that subsequent paragraphs stay below the image on mobile!
-        if (
+        // Quill artifact: when an image is inserted, Quill places an empty paragraph right after it.
+        // In Quill editor, .image-wrapper + .ql-whitespace-preserve is hidden.
+        // If there's only 1 spacer, remove it so it doesn't displace subsequent paragraphs or create unwanted gap.
+        // If there are >1 spacers, author explicitly pressed Enter -> 1st is artifact (remove),
+        // remaining are intentional and belong at the start of textSiblings.
+        const intentionalLeadingSpacers: Element[] = [];
+        if (leadingSpacers.length === 1) {
+          leadingSpacers[0].remove();
+        } else if (leadingSpacers.length > 1) {
+          leadingSpacers[0].remove();
+          for (let i = 1; i < leadingSpacers.length; i++) {
+            leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
+            intentionalLeadingSpacers.push(leadingSpacers[i]);
+          }
+        }
+
+        // 2. Collect ALL consecutive content blocks belonging to this wrap section.
+        // Stop when hitting an empty spacer (author hit Enter to end the wrap section),
+        // another image, a heading, or a divider.
+        const textSiblings: Element[] = [...intentionalLeadingSpacers];
+        while (
           curr &&
+          !isWhitespaceSpacerBlock(curr) &&
           !curr.classList.contains('image-wrapper') &&
           !curr.classList.contains('rich-text-wrap-group') &&
           !curr.querySelector('.image-wrapper, img, video, iframe, table') &&
-          !/^(HR|H1|H2)$/i.test(curr.tagName)
+          !/^(HR|H1|H2|H3|H4|H5|H6)$/i.test(curr.tagName)
         ) {
           textSiblings.push(curr);
           curr = curr.nextElementSibling;
@@ -1143,12 +1161,20 @@ const RICH_TEXT_RENDERER_STYLES = `
             padding-bottom: 0.75rem !important;
           }
 
-          /* Desktop: transparent wrap grouping for 100% native float text wrap */
+          /* Desktop: flow-root wrap grouping for native float text wrap and clean boundary */
           .rich-text-renderer .rich-text-wrap-group,
-          .rich-text-wrap-group,
+          .rich-text-wrap-group {
+            display: flow-root !important;
+            width: 100% !important;
+            margin-bottom: 0.5rem !important;
+          }
           .rich-text-renderer .rich-text-wrap-text,
           .rich-text-wrap-text {
             display: contents !important;
+          }
+          .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
+          .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
+            margin-top: 0 !important;
           }
         }
         
