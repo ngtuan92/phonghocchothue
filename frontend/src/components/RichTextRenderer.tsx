@@ -445,6 +445,17 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           curr = curr.nextElementSibling;
         }
 
+        // 3. Consume the first trailing whitespace spacer directly following the wrapped text.
+        // In Quill, hitting Enter once at the end of wrapped text creates an empty block
+        // to exit/break to a new line. Since rich-text-wrap-group (flow-root) already isolates
+        // the float and starts subsequent content on a new line, this first spacer is redundant
+        // and causes an unwanted blank gap between wraptext and the following paragraph.
+        if (curr && isWhitespaceSpacerBlock(curr)) {
+          const exitSpacer = curr;
+          curr = curr.nextElementSibling;
+          exitSpacer.remove();
+        }
+
         // Only group if there are text siblings following this image
         if (textSiblings.length > 0) {
           const group = doc.createElement('div');

@@ -72,6 +72,17 @@ function processWrapGroups(html) {
       curr = curr.nextElementSibling;
     }
 
+    // 3. Consume the first trailing whitespace spacer directly following the wrapped text.
+    // In Quill, hitting Enter once at the end of wrapped text creates an empty block
+    // to exit/break to a new line. Since rich-text-wrap-group (flow-root) already isolates
+    // the float and starts subsequent content on a new line, this first spacer is redundant
+    // and causes an unwanted blank gap between wraptext and the following paragraph.
+    if (curr && isWhitespaceSpacerBlock(curr)) {
+      const exitSpacer = curr;
+      curr = curr.nextElementSibling;
+      exitSpacer.remove();
+    }
+
     if (textSiblings.length > 0) {
       const group = doc.createElement('div');
       group.className = `rich-text-wrap-group wrap-${wrapMode}`;
@@ -93,7 +104,7 @@ function processWrapGroups(html) {
   return root;
 }
 
-test('Unit Test: Plane section groups all 3 wrapped paragraphs and separates the trailing section', () => {
+test('Unit Test: Plane section groups all 3 wrapped paragraphs and separates the trailing section without extra gap', () => {
   const fixture = `
     <p>Intro paragraph</p>
     <div class="image-wrapper image-wrap-left"><img src="plane.jpg" data-wrap="left" width="404px"></div>
@@ -120,12 +131,10 @@ test('Unit Test: Plane section groups all 3 wrapped paragraphs and separates the
   assert.ok(paragraphs[2].textContent.includes('Câu trả lời khá bất ngờ'));
   assert.ok(paragraphs[3].textContent.includes('Đơn giản là vì'));
 
-  // Verify subsequent section is OUTSIDE wrapGroup
+  // Verify redundant exit spacer is consumed, and Đọc xong đoạn này follows directly
   const nextSibling = wrapGroup.nextElementSibling;
-  assert.ok(nextSibling, 'Spacer paragraph follows wrap group');
-  assert.ok(nextSibling.classList.contains('ql-whitespace-preserve'));
-  const nextContent = nextSibling.nextElementSibling;
-  assert.ok(nextContent.textContent.includes('Đọc xong đoạn này'), 'Đọc xong đoạn này is outside wrap group');
+  assert.ok(nextSibling, 'Next content follows wrap group');
+  assert.ok(nextSibling.textContent.includes('Đọc xong đoạn này'), 'Đọc xong đoạn này immediately follows wrap group without blank gap');
 });
 
 test('Unit Test: Gold coins section preserves intentional leading whitespace on desktop', () => {
@@ -134,6 +143,7 @@ test('Unit Test: Gold coins section preserves intentional leading whitespace on 
     <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide">&nbsp;</p>
     <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide">&nbsp;</p>
     <p class="ql-whitespace-preserve">Trong một thế giới mà chúng ta liên tục bị bao phủ bởi những câu chuyện thành công phi thường...</p>
+    <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide">&nbsp;</p>
     <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide">&nbsp;</p>
     <p class="ql-whitespace-preserve">Nói đơn giản (theo cách tôi hiểu)...</p>
   `;
@@ -177,9 +187,8 @@ test('Unit Test: Real blog HTML transforms correctly across all 5 images', () =>
   assert.ok(planeTextChildren[2].textContent.includes('Câu trả lời khá bất ngờ'));
   assert.ok(planeTextChildren[3].textContent.includes('buồng phi công'));
 
-  // Following plane group should be a spacer then 'Đọc xong đoạn này'
-  assert.ok(planeGroup.nextElementSibling.classList.contains('ql-whitespace-preserve'), 'Plane group followed by spacer');
-  assert.ok(planeGroup.nextElementSibling.nextElementSibling.textContent.includes('Đọc xong đoạn này'));
+  // Following plane group should be 'Đọc xong đoạn này' directly without the redundant exit spacer
+  assert.ok(planeGroup.nextElementSibling.textContent.includes('Đọc xong đoạn này'), 'Plane group followed directly by next paragraph without blank space');
 
   // Check Gold coins group (group 1)
   const goldGroup = groups[1];
