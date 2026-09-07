@@ -422,7 +422,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         // They are marked with wrap-spacer-mobile-hide so on mobile they are hidden.
         const intentionalLeadingSpacers: Element[] = [];
         for (let i = 0; i < leadingSpacers.length; i++) {
-          leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
+          leadingSpacers[i].classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
+          if (!leadingSpacers[i].innerHTML || leadingSpacers[i].innerHTML.trim() === '') {
+            leadingSpacers[i].innerHTML = '&nbsp;';
+          }
           intentionalLeadingSpacers.push(leadingSpacers[i]);
         }
 
@@ -1135,7 +1138,10 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Desktop: Preserve intentional line breaks (cách dòng) from Admin editor */
         @media (min-width: 768px) {
           .rich-text-renderer .ql-whitespace-preserve,
-          .rich-text-renderer p.ql-whitespace-preserve {
+          .rich-text-renderer p.ql-whitespace-preserve,
+          .rich-text-renderer .ql-whitespace-spacer,
+          .rich-text-renderer p.ql-whitespace-spacer,
+          .rich-text-renderer p:has(> br:only-child) {
             display: block !important;
             min-height: 1.5em !important;
             line-height: 1.5 !important;

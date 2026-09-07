@@ -51,7 +51,10 @@ function processWrapGroups(html) {
     // They are marked with wrap-spacer-mobile-hide so on mobile they are hidden.
     const intentionalLeadingSpacers = [];
     for (let i = 0; i < leadingSpacers.length; i++) {
-      leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
+      leadingSpacers[i].classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
+      if (!leadingSpacers[i].innerHTML || leadingSpacers[i].innerHTML.trim() === '') {
+        leadingSpacers[i].innerHTML = '&nbsp;';
+      }
       intentionalLeadingSpacers.push(leadingSpacers[i]);
     }
 
