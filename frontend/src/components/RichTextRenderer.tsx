@@ -292,30 +292,28 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         ? (captionMatch?.[1] || "").trim()
         : (titleMatch?.[1] || "").trim();
 
-      const wrapMode = wrapMatch?.[1] || '';
+      const wrapMode = wrapMatch?.[1] || 'none';
       const wrapClass = wrapMode === 'left' || wrapMode === 'right' ? ` image-wrap-${wrapMode}` : '';
 
-      if (captionText) {
-        const widthMatch = cleanAttrs.match(/width=["']([^"']*)["']/i);
-        const styleMatch = cleanAttrs.match(/style=["']([^"']*)["']/i);
+      const widthMatch = cleanAttrs.match(/width=["']([^"']*)["']/i);
+      const styleMatch = cleanAttrs.match(/style=["']([^"']*)["']/i);
 
-        let inlineWidth = "";
-        if (widthMatch) {
-          const wVal = widthMatch[1].trim();
+      let inlineWidth = "";
+      if (widthMatch) {
+        const wVal = widthMatch[1].trim();
+        inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
+      } else if (styleMatch) {
+        const styleStr = styleMatch[1];
+        const widthStyle = styleStr.match(/width:\s*([^;]+)/i);
+        if (widthStyle) {
+          const wVal = widthStyle[1].trim();
           inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
-        } else if (styleMatch) {
-          const styleStr = styleMatch[1];
-          const widthStyle = styleStr.match(/width:\s*([^;]+)/i);
-          if (widthStyle) {
-            const wVal = widthStyle[1].trim();
-            inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
-          }
         }
-
-        const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
-        return `<div class="image-wrapper${wrapClass}"${wrapperStyle}><img${cleanAttrs}><div class="image-caption">${captionText}</div></div>`;
       }
-      return `<img${cleanAttrs}>`;
+
+      const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
+      const captionHtml = captionText ? `<div class="image-caption">${captionText}</div>` : '';
+      return `<div class="image-wrapper${wrapClass}" data-wrap="${wrapMode}"${wrapperStyle}><img${cleanAttrs}>${captionHtml}</div>`;
     });
 
     processedHtml = processedHtml.replace(
@@ -324,7 +322,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
     );
 
     processedHtml = processedHtml.replace(
-      /<p[^>]*>\s*(<div class="image-wrapper(?: image-wrap-(?:left|right))?"[^>]*><img[^>]*>(?:<div class="image-caption">[\s\S]*?<\/div>)?<\/div>)\s*<\/p>/gi,
+      /<p[^>]*>\s*(<div\b[^>]*\bclass=["'][^"']*\bimage-wrapper\b[^"']*["'][^>]*>[\s\S]*?<\/div>)\s*<\/p>/gi,
       '$1'
     );
 
@@ -334,11 +332,37 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       const doc = new DOMParser().parseFromString(`<div>${processedHtml}</div>`, 'text/html');
       const root = doc.body.firstElementChild;
 
-      root?.querySelectorAll('.image-wrapper').forEach((wrapper) => {
-        const img = wrapper.querySelector('img');
-        const wrapperEl = wrapper instanceof HTMLElement ? wrapper : null;
-        const imgEl = img instanceof HTMLElement ? img : null;
-        const wrapMode = img?.getAttribute('data-wrap') || wrapper.getAttribute('data-wrap') || 'none';
+      // Clean phantom empty paragraphs from HTML parser artifacts
+      root?.querySelectorAll('p').forEach((p) => {
+        if (!p.children.length && !p.textContent?.trim() && !p.classList.contains('ql-whitespace-preserve') && !p.classList.contains('ql-whitespace-spacer')) {
+          p.remove();
+        }
+      });
+
+      // Normalize ALL images to have .image-wrapper and proper wrap attributes
+      root?.querySelectorAll('img').forEach((img) => {
+        let wrapper = img.closest('.image-wrapper');
+        const wrapMode = img.getAttribute('data-wrap') || wrapper?.getAttribute('data-wrap') || 'none';
+        const caption = (
+          img.getAttribute('data-caption')
+          || img.getAttribute('title')
+          || wrapper?.querySelector(':scope > .image-caption')?.textContent
+          || ''
+        ).replace(/\s+/g, ' ').trim();
+
+        if (!wrapper) {
+          wrapper = doc.createElement('div');
+          wrapper.className = 'image-wrapper';
+          const parentP = img.parentElement?.tagName === 'P' && img.parentElement.children.length === 1 && !img.parentElement.textContent?.trim()
+            ? img.parentElement
+            : null;
+          const target = parentP || img;
+          target.replaceWith(wrapper);
+          wrapper.appendChild(img);
+        }
+
+        const wrapperEl = (typeof HTMLElement !== 'undefined' && wrapper instanceof HTMLElement) ? wrapper : (wrapper as any);
+        const imgEl = (typeof HTMLElement !== 'undefined' && img instanceof HTMLElement) ? img : (img as any);
 
         if (wrapperEl) {
           wrapperEl.setAttribute('data-wrap', wrapMode);
@@ -352,28 +376,29 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             wrapperEl.style.marginLeft = 'auto';
             wrapperEl.style.marginRight = 'auto';
           }
-        }
 
-        if (wrapperEl && imgEl && !wrapperEl.style.width) {
-          const imageWidth = imgEl.getAttribute('width') || imgEl.style.width || '';
-          const normalizedWidth = /^\d+$/.test(imageWidth.trim()) ? `${imageWidth.trim()}px` : imageWidth.trim();
-
-          if (normalizedWidth) {
-            wrapperEl.style.width = normalizedWidth;
-            wrapperEl.style.maxWidth = '100%';
+          if (imgEl && !wrapperEl.style.width) {
+            const imageWidth = imgEl.getAttribute('width') || imgEl.style.width || '';
+            const normalizedWidth = /^\d+$/.test(imageWidth.trim()) ? `${imageWidth.trim()}px` : imageWidth.trim();
+            if (normalizedWidth) {
+              wrapperEl.style.width = normalizedWidth;
+              wrapperEl.style.maxWidth = '100%';
+            }
           }
         }
 
-        const captionText = (
-          wrapper.querySelector(':scope > .image-caption')?.textContent
-          || img?.getAttribute('data-caption')
-          || ''
-        ).replace(/\s+/g, ' ').trim();
+        if (caption && !wrapper.querySelector(':scope > .image-caption')) {
+          const capDiv = doc.createElement('div');
+          capDiv.className = 'image-caption';
+          capDiv.textContent = caption;
+          wrapper.appendChild(capDiv);
+        }
+
         const next = wrapper.nextElementSibling;
         const nextText = (next?.textContent || '').replace(/\s+/g, ' ').trim();
         const nextHasMedia = !!next?.querySelector?.('img, video, iframe, svg, canvas');
 
-        if (captionText && next && !nextHasMedia && nextText === captionText) {
+        if (caption && next && !nextHasMedia && nextText === caption) {
           next.remove();
         }
       });
@@ -439,7 +464,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           !curr.classList.contains('image-wrapper') &&
           !curr.classList.contains('rich-text-wrap-group') &&
           !curr.querySelector('.image-wrapper, img, video, iframe, table') &&
-          !/^(HR|H1|H2|H3|H4|H5|H6)$/i.test(curr.tagName)
+          !/^(HR|H1|H2|H3|H4|H5|H6|TABLE|FIGURE|IFRAME)$/i.test(curr.tagName)
         ) {
           textSiblings.push(curr);
           curr = curr.nextElementSibling;
@@ -782,8 +807,32 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer h1,
         .rich-text-renderer h2,
-        .rich-text-renderer h3 {
+        .rich-text-renderer h3,
+        .rich-text-renderer h4,
+        .rich-text-renderer h5,
+        .rich-text-renderer h6,
+        .rich-text-renderer hr,
+        .rich-text-renderer table {
           clear: both !important;
+        }
+        .rich-text-renderer table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          margin: 1rem 0 !important;
+          overflow-x: auto !important;
+          display: table !important;
+        }
+        .rich-text-renderer th,
+        .rich-text-renderer td {
+          border: 1px solid #e5e7eb !important;
+          padding: 0.5rem 0.75rem !important;
+          text-align: left !important;
+        }
+        .rich-text-renderer iframe {
+          max-width: 100% !important;
+          border-radius: 8px !important;
+          margin: 1rem auto !important;
+          display: block !important;
         }
         .rich-text-renderer ul,
         .rich-text-renderer ol {

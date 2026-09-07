@@ -701,7 +701,12 @@
 
 .rich-text-renderer h1,
 .rich-text-renderer h2,
-.rich-text-renderer h3 {
+.rich-text-renderer h3,
+.rich-text-renderer h4,
+.rich-text-renderer h5,
+.rich-text-renderer h6,
+.rich-text-renderer hr,
+.rich-text-renderer table {
   clear: both !important;
 }
 
