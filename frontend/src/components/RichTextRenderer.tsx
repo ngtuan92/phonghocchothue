@@ -417,20 +417,13 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           curr = curr.nextElementSibling;
         }
 
-        // Quill artifact: when an image is inserted, Quill places an empty paragraph right after it.
-        // In Quill editor, .image-wrapper + .ql-whitespace-preserve is hidden.
-        // If there's only 1 spacer, remove it so it doesn't displace subsequent paragraphs or create unwanted gap.
-        // If there are >1 spacers, author explicitly pressed Enter -> 1st is artifact (remove),
-        // remaining are intentional and belong at the start of textSiblings.
+        // All leading spacers between image and wrapped text are preserved on desktop
+        // so intentional top spacing (Enter) is rendered beside the image.
+        // They are marked with wrap-spacer-mobile-hide so on mobile they are hidden.
         const intentionalLeadingSpacers: Element[] = [];
-        if (leadingSpacers.length === 1) {
-          leadingSpacers[0].remove();
-        } else if (leadingSpacers.length > 1) {
-          leadingSpacers[0].remove();
-          for (let i = 1; i < leadingSpacers.length; i++) {
-            leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
-            intentionalLeadingSpacers.push(leadingSpacers[i]);
-          }
+        for (let i = 0; i < leadingSpacers.length; i++) {
+          leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
+          intentionalLeadingSpacers.push(leadingSpacers[i]);
         }
 
         // 2. Collect ALL consecutive content blocks belonging to this wrap section.

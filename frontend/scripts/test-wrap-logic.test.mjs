@@ -48,16 +48,13 @@ function processWrapGroups(html) {
       curr = curr.nextElementSibling;
     }
 
-    // Quill artifact handling
+    // All leading spacers between image and wrapped text are preserved on desktop
+    // so intentional top spacing (Enter) is rendered beside the image.
+    // They are marked with wrap-spacer-mobile-hide so on mobile they are hidden.
     const intentionalLeadingSpacers = [];
-    if (leadingSpacers.length === 1) {
-      leadingSpacers[0].remove();
-    } else if (leadingSpacers.length > 1) {
-      leadingSpacers[0].remove();
-      for (let i = 1; i < leadingSpacers.length; i++) {
-        leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
-        intentionalLeadingSpacers.push(leadingSpacers[i]);
-      }
+    for (let i = 0; i < leadingSpacers.length; i++) {
+      leadingSpacers[i].classList.add('wrap-spacer-mobile-hide');
+      intentionalLeadingSpacers.push(leadingSpacers[i]);
     }
 
     // 2. Collect ALL consecutive content blocks belonging to this wrap section
@@ -114,12 +111,13 @@ test('Unit Test: Plane section groups all 3 wrapped paragraphs and separates the
   const textContainer = wrapGroup.querySelector('.rich-text-wrap-text');
   assert.ok(textContainer, 'Text container exists inside wrap group');
 
-  // Verify all 3 paragraphs are inside textContainer
+  // Verify leading spacer + 3 paragraphs are inside textContainer
   const paragraphs = textContainer.querySelectorAll('p');
-  assert.equal(paragraphs.length, 3, 'All 3 paragraphs must be inside textContainer');
-  assert.ok(paragraphs[0].textContent.includes('Bài toán đặt ra'));
-  assert.ok(paragraphs[1].textContent.includes('Câu trả lời khá bất ngờ'));
-  assert.ok(paragraphs[2].textContent.includes('Đơn giản là vì'));
+  assert.equal(paragraphs.length, 4, 'Must contain 1 leading spacer and 3 content paragraphs');
+  assert.ok(paragraphs[0].classList.contains('wrap-spacer-mobile-hide'), 'First paragraph is the leading spacer');
+  assert.ok(paragraphs[1].textContent.includes('Bài toán đặt ra'));
+  assert.ok(paragraphs[2].textContent.includes('Câu trả lời khá bất ngờ'));
+  assert.ok(paragraphs[3].textContent.includes('Đơn giản là vì'));
 
   // Verify subsequent section is OUTSIDE wrapGroup
   const nextSibling = wrapGroup.nextElementSibling;
@@ -145,12 +143,13 @@ test('Unit Test: Gold coins section preserves intentional leading whitespace on 
 
   const textContainer = wrapGroup.querySelector('.rich-text-wrap-text');
   const children = textContainer.children;
-  assert.equal(children.length, 2, 'Must contain 1 intentional spacer and 1 text paragraph');
+  assert.equal(children.length, 3, 'Must contain 2 intentional spacers and 1 text paragraph');
 
-  // First child should be the intentional spacer
-  assert.ok(children[0].classList.contains('wrap-spacer-mobile-hide'), 'Intentional spacer has wrap-spacer-mobile-hide');
-  // Second child should be the text paragraph
-  assert.ok(children[1].textContent.includes('Trong một thế giới'), 'Text paragraph follows intentional spacer');
+  // First and second children should be the intentional spacers
+  assert.ok(children[0].classList.contains('wrap-spacer-mobile-hide'), 'Intentional spacer 1 has wrap-spacer-mobile-hide');
+  assert.ok(children[1].classList.contains('wrap-spacer-mobile-hide'), 'Intentional spacer 2 has wrap-spacer-mobile-hide');
+  // Third child should be the text paragraph
+  assert.ok(children[2].textContent.includes('Trong một thế giới'), 'Text paragraph follows intentional spacers');
 
   // Verify trailing content is outside
   const nextSibling = wrapGroup.nextElementSibling;
@@ -171,10 +170,11 @@ test('Unit Test: Real blog HTML transforms correctly across all 5 images', () =>
   const planeGroup = groups[0];
   assert.ok(planeGroup.classList.contains('wrap-left'));
   const planeTextChildren = planeGroup.querySelector('.rich-text-wrap-text').querySelectorAll('p');
-  assert.equal(planeTextChildren.length, 3, 'Plane wrap text must contain exactly 3 paragraphs');
-  assert.ok(planeTextChildren[0].textContent.includes('Bài toán đặt ra'));
-  assert.ok(planeTextChildren[1].textContent.includes('Câu trả lời khá bất ngờ'));
-  assert.ok(planeTextChildren[2].textContent.includes('buồng phi công'));
+  assert.equal(planeTextChildren.length, 4, 'Plane wrap text must contain 1 leading spacer + 3 paragraphs');
+  assert.ok(planeTextChildren[0].classList.contains('wrap-spacer-mobile-hide'), 'Plane has leading spacer at top');
+  assert.ok(planeTextChildren[1].textContent.includes('Bài toán đặt ra'));
+  assert.ok(planeTextChildren[2].textContent.includes('Câu trả lời khá bất ngờ'));
+  assert.ok(planeTextChildren[3].textContent.includes('buồng phi công'));
 
   // Following plane group should be a spacer then 'Đọc xong đoạn này'
   assert.ok(planeGroup.nextElementSibling.classList.contains('ql-whitespace-preserve'), 'Plane group followed by spacer');
@@ -184,8 +184,9 @@ test('Unit Test: Real blog HTML transforms correctly across all 5 images', () =>
   const goldGroup = groups[1];
   assert.ok(goldGroup.classList.contains('wrap-right'));
   const goldChildren = goldGroup.querySelector('.rich-text-wrap-text').children;
-  assert.equal(goldChildren.length, 2, 'Gold coins has 1 intentional spacer and 1 text paragraph');
-  assert.ok(goldChildren[0].classList.contains('wrap-spacer-mobile-hide'), 'Intentional spacer is first child');
-  assert.ok(goldChildren[1].textContent.includes('Trong một thế giới'));
+  assert.equal(goldChildren.length, 3, 'Gold coins has 2 intentional spacers and 1 text paragraph');
+  assert.ok(goldChildren[0].classList.contains('wrap-spacer-mobile-hide'), 'Intentional spacer 1 is first child');
+  assert.ok(goldChildren[1].classList.contains('wrap-spacer-mobile-hide'), 'Intentional spacer 2 is second child');
+  assert.ok(goldChildren[2].textContent.includes('Trong một thế giới'));
 });
 
