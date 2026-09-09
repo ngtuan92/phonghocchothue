@@ -1477,12 +1477,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group ~ .editor-image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group ~ .image-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group + .editor-image-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group + .image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-preserve,
-          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-spacer,
           .rich-text-renderer .rich-text-wrap-group + p:has(> br:only-child),
           .rich-text-renderer .rich-text-wrap-group + p:empty,
           .rich-text-renderer .image-wrapper + .wrap-spacer-mobile-hide,
@@ -1502,15 +1499,10 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
 
           /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
-          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-spacer,
-          .rich-text-renderer .ql-whitespace-spacer + .ql-whitespace-preserve,
-          .rich-text-renderer .ql-whitespace-spacer + .ql-whitespace-spacer,
-          .rich-text-renderer p:has(> br:only-child) + .ql-whitespace-preserve,
-          .rich-text-renderer p:has(> br:only-child) + .ql-whitespace-spacer,
-          .rich-text-renderer .ql-whitespace-preserve + p:has(> br:only-child),
-          .rich-text-renderer .ql-whitespace-spacer + p:has(> br:only-child),
-          .rich-text-renderer p:has(> br:only-child) + p:has(> br:only-child) {
+          .rich-text-renderer p:has(> br:only-child) + p:has(> br:only-child),
+          .rich-text-renderer p:empty + p:empty,
+          .rich-text-renderer p:has(> br:only-child) + p:empty,
+          .rich-text-renderer p:empty + p:has(> br:only-child) {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;

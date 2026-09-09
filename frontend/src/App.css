@@ -2946,11 +2946,13 @@ footer .rich-text-renderer * {
     border: none !important;
   }
 
-  /* Admin Quill Editor: 2. Collapse consecutive whitespace paragraphs on mobile */
-  .quill-wrapper-container .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-  .quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-  .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-  .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve {
+  /* Admin Quill Editor: 2. Collapse consecutive truly empty whitespace paragraphs on mobile */
+  .quill-wrapper-container .ql-editor p:has(> br:only-child) + p:has(> br:only-child),
+  .quill-wrapper-container.is-blog-editor .ql-editor p:has(> br:only-child) + p:has(> br:only-child),
+  .ql-editor p:has(> br:only-child) + p:has(> br:only-child),
+  .ql-editor p:empty + p:empty,
+  .ql-editor p:has(> br:only-child) + p:empty,
+  .ql-editor p:empty + p:has(> br:only-child) {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -2962,11 +2964,12 @@ footer .rich-text-renderer * {
   }
 
   /* Admin Quill Editor: 3. Whitespace blocks directly following image */
-  .quill-wrapper-container .ql-editor .image-wrapper + .ql-whitespace-preserve,
   .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
   .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
-  .quill-wrapper-container .ql-editor img + .ql-whitespace-preserve,
-  .quill-wrapper-container .ql-editor img + p:has(> br:only-child) {
+  .quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
+  .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
+  .quill-wrapper-container .ql-editor img + p:empty,
+  .quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;

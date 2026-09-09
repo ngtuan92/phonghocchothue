@@ -2618,6 +2618,38 @@ const QuillWrapper = forwardRef(({
       if (!editor) return;
 
       editor.querySelectorAll('.editor-inline-image-caption, .editor-inline-image-caption-preview').forEach((el) => el.remove());
+
+      // Clean inline float/margin from image wrappers so CSS classes and mobile rules control layout
+      editor.querySelectorAll('.image-wrapper').forEach((wrapper) => {
+        const currentStyle = wrapper.getAttribute('style') || '';
+        if (currentStyle) {
+          const cleaned = currentStyle
+            .split(';')
+            .map((part) => part.trim())
+            .filter((part) => {
+              if (!part) return false;
+              const lower = part.toLowerCase();
+              return !(
+                lower.startsWith('float:') ||
+                lower.startsWith('clear:') ||
+                lower.startsWith('display:') ||
+                lower.startsWith('margin:') ||
+                lower.startsWith('margin-left:') ||
+                lower.startsWith('margin-right:') ||
+                lower.startsWith('margin-top:') ||
+                lower.startsWith('margin-bottom:')
+              );
+            })
+            .map((part) => part.replace(/\s*!important/gi, '').trim())
+            .join('; ');
+          if (cleaned) {
+            wrapper.setAttribute('style', cleaned);
+          } else {
+            wrapper.removeAttribute('style');
+          }
+        }
+      });
+
       editor.querySelectorAll('img').forEach((img) => {
         const wrapper = img.closest('.image-wrapper');
         if (!wrapper) return;
@@ -2626,12 +2658,8 @@ const QuillWrapper = forwardRef(({
         const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : (img.clientWidth ? `${img.clientWidth}px` : '');
         if (widthVal) {
           const parsed = /^\d+$/.test(widthVal) ? `${widthVal}px` : widthVal;
-          if (wrapper.style.width !== parsed) {
-            wrapper.style.setProperty('width', parsed, 'important');
-          }
-          if (wrapper.style.maxWidth !== '100%') {
-            wrapper.style.setProperty('max-width', '100%', 'important');
-          }
+          wrapper.style.width = parsed;
+          wrapper.style.maxWidth = '100%';
         }
       });
 
@@ -2644,6 +2672,14 @@ const QuillWrapper = forwardRef(({
 
       editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
         el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+      });
+
+      // Strip ql-whitespace-preserve and mobile-hide from ANY block containing non-empty text
+      editor.querySelectorAll('.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide').forEach((el) => {
+        const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
+        if (text !== '') {
+          el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
+        }
       });
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
         if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
@@ -6535,6 +6571,7 @@ const QuillWrapper = forwardRef(({
         lastRelativeContentRef.current = props.value || "";
         localEditorHtmlRef.current = null;
         window.requestAnimationFrame(() => {
+          syncImageCaptionBlots();
           isSyncingExternalValueRef.current = false;
         });
       }
@@ -8532,11 +8569,13 @@ const QuillWrapper = forwardRef(({
             border: none !important;
           }
 
-          /* 2. Collapse consecutive whitespace paragraphs on mobile */
-          .quill-wrapper-container .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .quill-wrapper-container.is-blog-editor .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .ql-editor .ql-whitespace-preserve + .ql-whitespace-preserve,
-          .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve {
+          /* 2. Collapse consecutive truly empty whitespace paragraphs on mobile */
+          .quill-wrapper-container .ql-editor p:has(> br:only-child) + p:has(> br:only-child),
+          .quill-wrapper-container.is-blog-editor .ql-editor p:has(> br:only-child) + p:has(> br:only-child),
+          .ql-editor p:has(> br:only-child) + p:has(> br:only-child),
+          .ql-editor p:empty + p:empty,
+          .ql-editor p:has(> br:only-child) + p:empty,
+          .ql-editor p:empty + p:has(> br:only-child) {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -8547,25 +8586,13 @@ const QuillWrapper = forwardRef(({
             border: none !important;
           }
 
-          /* 3. Whitespace blocks preceding or following wrap image */
-          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper.image-wrap-left),
-          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrapper.image-wrap-right),
-          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrapper.image-wrap-left),
-          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrapper.image-wrap-right),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper.image-wrap-left),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper.image-wrap-right),
-          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrap-left),
-          .quill-wrapper-container .ql-editor .ql-whitespace-preserve:has(+ .image-wrap-right),
-          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrap-left),
-          .quill-wrapper-container .ql-editor p:has(br):has(+ .image-wrap-right),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrap-left),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrap-right),
-          .quill-wrapper-container .ql-editor .image-wrapper + .ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(br),
+          /* 3. Empty whitespace blocks directly preceding or following wrap image */
+          .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
+          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
           .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
           .quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
-          .quill-wrapper-container .ql-editor img + .ql-whitespace-preserve,
-          .quill-wrapper-container .ql-editor img + p:has(br),
+          .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
           .quill-wrapper-container .ql-editor img + p:empty,
           .quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
             display: none !important;
