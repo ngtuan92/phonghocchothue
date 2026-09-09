@@ -102,25 +102,73 @@ function processWrapGroups(html) {
     const wrapperEl = wrapper?.style ? wrapper : null;
     const imgEl = img?.style ? img : null;
 
+    const cleanImageInlineStyle = (styleStr) => {
+      if (!styleStr) return '';
+      return styleStr
+        .split(';')
+        .map((part) => part.trim())
+        .filter((part) => {
+          if (!part) return false;
+          const lower = part.toLowerCase();
+          if (
+            lower.startsWith('float:') ||
+            lower.startsWith('clear:') ||
+            lower.startsWith('display:') ||
+            lower.startsWith('margin:') ||
+            lower.startsWith('margin-left:') ||
+            lower.startsWith('margin-right:') ||
+            lower.startsWith('margin-top:') ||
+            lower.startsWith('margin-bottom:')
+          ) {
+            return false;
+          }
+          return true;
+        })
+        .map((part) => {
+          if (/^(?:max-|min-)?(?:width|height)\s*:/i.test(part)) {
+            return part.replace(/\s*!important/gi, '').trim();
+          }
+          return part;
+        })
+        .join('; ');
+    };
+
     if (wrapperEl) {
       wrapperEl.setAttribute('data-wrap', wrapMode);
       wrapperEl.classList.remove('image-wrap-left', 'image-wrap-right');
       if (wrapMode === 'left' || wrapMode === 'right') {
         wrapperEl.classList.add(`image-wrap-${wrapMode}`);
-        wrapperEl.style.clear = 'both';
-      } else {
-        wrapperEl.style.removeProperty('clear');
-        wrapperEl.style.removeProperty('margin');
-        wrapperEl.style.marginLeft = 'auto';
-        wrapperEl.style.marginRight = 'auto';
       }
 
-      if (imgEl && !wrapperEl.style.width) {
-        const imageWidth = imgEl.getAttribute('width') || imgEl.style.width || '';
-        const normalizedWidth = /^\d+$/.test(imageWidth.trim()) ? `${imageWidth.trim()}px` : imageWidth.trim();
+      const currentWrapperStyle = wrapperEl.getAttribute('style');
+      const cleanedWrapperStyle = cleanImageInlineStyle(currentWrapperStyle);
+      if (cleanedWrapperStyle) {
+        wrapperEl.setAttribute('style', cleanedWrapperStyle);
+      } else {
+        wrapperEl.removeAttribute('style');
+      }
+
+      if (imgEl) {
+        const currentImgStyle = imgEl.getAttribute('style');
+        const cleanedImgStyle = cleanImageInlineStyle(currentImgStyle);
+        if (cleanedImgStyle) {
+          imgEl.setAttribute('style', cleanedImgStyle);
+        } else {
+          imgEl.removeAttribute('style');
+        }
+      }
+
+      const finalWrapperStyle = wrapperEl.getAttribute('style') || '';
+      if (!/width\s*:/i.test(finalWrapperStyle)) {
+        const imageWidth = (imgEl && (imgEl.getAttribute('width') || imgEl.style?.width)) || '';
+        const normalizedWidth = /^\d+$/.test(String(imageWidth).trim()) ? `${String(imageWidth).trim()}px` : String(imageWidth).trim();
         if (normalizedWidth) {
-          wrapperEl.style.width = normalizedWidth;
-          wrapperEl.style.maxWidth = '100%';
+          wrapperEl.setAttribute(
+            'style',
+            finalWrapperStyle
+              ? `${finalWrapperStyle}; width: ${normalizedWidth}; max-width: 100%;`
+              : `width: ${normalizedWidth}; max-width: 100%;`
+          );
         }
       }
     }
@@ -479,5 +527,37 @@ test('Unit Test: Word separator normalization prevents unbreakable compounds aro
   // Assert that empty spacer block is preserved
   assert.ok(processed.includes('<p class="ql-whitespace-preserve">&nbsp;</p>'), 'Spacer block &nbsp; is preserved');
 });
+
+test('Unit Test: Inline wrap styles (float, margin-left 20px, !important) are stripped from image wrappers so mobile layout is not shifted', () => {
+  const inputHtml = `
+    <div class="image-wrapper image-wrap-right" contenteditable="false" data-wrap="right" style="float: right !important; display: inline !important; clear: both !important; max-width: 100% !important; margin: 0px 0px 4px 20px !important; width: 308px !important;">
+      <img src="test-gold.jpg" data-wrap="right" style="display: block !important; margin: 0px !important; max-width: 100% !important; height: auto !important; width: 308px !important;" width="308px">
+      <div class="image-caption">Bức tranh minh họa</div>
+    </div>
+    <p>Đoạn văn tiếp nối hình ảnh để tạo thành nhóm bọc chữ wrap-right.</p>
+  `;
+
+  const root = processWrapGroups(inputHtml);
+  const wrapper = root.querySelector('.image-wrapper');
+  assert.ok(wrapper, 'Image wrapper exists');
+  assert.ok(wrapper.classList.contains('image-wrap-right'), 'Has image-wrap-right class');
+  assert.equal(wrapper.getAttribute('data-wrap'), 'right', 'data-wrap is right');
+
+  const wrapperStyle = wrapper.getAttribute('style') || '';
+  assert.ok(!wrapperStyle.includes('float'), 'float is removed from inline style');
+  assert.ok(!wrapperStyle.includes('margin-left'), 'margin-left is removed from inline style');
+  assert.ok(!wrapperStyle.includes('margin:'), 'margin is removed from inline style');
+  assert.ok(!wrapperStyle.includes('!important'), '!important is removed from inline style');
+  assert.ok(wrapperStyle.includes('width: 308px'), 'width is preserved without !important');
+
+  const img = wrapper.querySelector('img');
+  assert.ok(img, 'Image exists');
+  const imgStyle = img.getAttribute('style') || '';
+  assert.ok(!imgStyle.includes('float'), 'img float is removed');
+  assert.ok(!imgStyle.includes('margin:'), 'img margin is removed');
+  assert.ok(!imgStyle.includes('!important'), 'img !important is removed');
+  assert.ok(imgStyle.includes('width: 308px'), 'img width is preserved without !important');
+});
+
 
 

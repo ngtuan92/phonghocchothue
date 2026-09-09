@@ -396,25 +396,73 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const wrapperEl = (typeof HTMLElement !== 'undefined' && wrapper instanceof HTMLElement) ? wrapper : (wrapper as any);
         const imgEl = (typeof HTMLElement !== 'undefined' && img instanceof HTMLElement) ? img : (img as any);
 
+        const cleanImageInlineStyle = (styleStr: string | null) => {
+          if (!styleStr) return '';
+          return styleStr
+            .split(';')
+            .map((part) => part.trim())
+            .filter((part) => {
+              if (!part) return false;
+              const lower = part.toLowerCase();
+              if (
+                lower.startsWith('float:') ||
+                lower.startsWith('clear:') ||
+                lower.startsWith('display:') ||
+                lower.startsWith('margin:') ||
+                lower.startsWith('margin-left:') ||
+                lower.startsWith('margin-right:') ||
+                lower.startsWith('margin-top:') ||
+                lower.startsWith('margin-bottom:')
+              ) {
+                return false;
+              }
+              return true;
+            })
+            .map((part) => {
+              if (/^(?:max-|min-)?(?:width|height)\s*:/i.test(part)) {
+                return part.replace(/\s*!important/gi, '').trim();
+              }
+              return part;
+            })
+            .join('; ');
+        };
+
         if (wrapperEl) {
           wrapperEl.setAttribute('data-wrap', wrapMode);
           wrapperEl.classList.remove('image-wrap-left', 'image-wrap-right');
           if (wrapMode === 'left' || wrapMode === 'right') {
             wrapperEl.classList.add(`image-wrap-${wrapMode}`);
-            wrapperEl.style.clear = 'both';
-          } else {
-            wrapperEl.style.removeProperty('clear');
-            wrapperEl.style.removeProperty('margin');
-            wrapperEl.style.marginLeft = 'auto';
-            wrapperEl.style.marginRight = 'auto';
           }
 
-          if (imgEl && !wrapperEl.style.width) {
-            const imageWidth = imgEl.getAttribute('width') || imgEl.style.width || '';
-            const normalizedWidth = /^\d+$/.test(imageWidth.trim()) ? `${imageWidth.trim()}px` : imageWidth.trim();
+          const currentWrapperStyle = wrapperEl.getAttribute('style');
+          const cleanedWrapperStyle = cleanImageInlineStyle(currentWrapperStyle);
+          if (cleanedWrapperStyle) {
+            wrapperEl.setAttribute('style', cleanedWrapperStyle);
+          } else {
+            wrapperEl.removeAttribute('style');
+          }
+
+          if (imgEl) {
+            const currentImgStyle = imgEl.getAttribute('style');
+            const cleanedImgStyle = cleanImageInlineStyle(currentImgStyle);
+            if (cleanedImgStyle) {
+              imgEl.setAttribute('style', cleanedImgStyle);
+            } else {
+              imgEl.removeAttribute('style');
+            }
+          }
+
+          const finalWrapperStyle = wrapperEl.getAttribute('style') || '';
+          if (!/width\s*:/i.test(finalWrapperStyle)) {
+            const imageWidth = (imgEl && (imgEl.getAttribute('width') || imgEl.style?.width)) || '';
+            const normalizedWidth = /^\d+$/.test(String(imageWidth).trim()) ? `${String(imageWidth).trim()}px` : String(imageWidth).trim();
             if (normalizedWidth) {
-              wrapperEl.style.width = normalizedWidth;
-              wrapperEl.style.maxWidth = '100%';
+              wrapperEl.setAttribute(
+                'style',
+                finalWrapperStyle
+                  ? `${finalWrapperStyle}; width: ${normalizedWidth}; max-width: 100%;`
+                  : `width: ${normalizedWidth}; max-width: 100%;`
+              );
             }
           }
         }
