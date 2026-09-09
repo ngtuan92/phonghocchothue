@@ -1586,6 +1586,35 @@ const RICH_TEXT_RENDERER_STYLES = `
             overflow-wrap: break-word !important;
             hyphens: manual !important;
           }
+
+          /* Ensure buttons and explicitly nowrap rich text never wrap to multiple lines on mobile */
+          .rich-text-renderer.notification-button-rich-text,
+          .rich-text-renderer.notification-button-rich-text *,
+          .rich-text-renderer.whitespace-nowrap,
+          .rich-text-renderer.whitespace-nowrap *,
+          .rich-text-renderer .whitespace-nowrap,
+          .rich-text-renderer .whitespace-nowrap *,
+          .rich-text-renderer .inline-rich-text,
+          .rich-text-renderer .inline-rich-text *,
+          .notification-button-rich-text,
+          .notification-button-rich-text *,
+          .notification-link-button,
+          .notification-link-button * {
+            white-space: nowrap !important;
+            word-break: keep-all !important;
+            overflow-wrap: normal !important;
+          }
+
+          /* Ensure H2 section headings on mobile take 100% width and balance text nicely */
+          .describe-h2-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .describe-h2-wrapper h1,
+          .describe-h2-wrapper h2,
+          .describe-h2-wrapper h3 {
+            text-wrap: balance !important;
+          }
         }
         
         .image-caption {
