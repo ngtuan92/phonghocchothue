@@ -550,12 +550,14 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           curr = curr.nextElementSibling;
         }
 
-        // 3. Consume the first trailing whitespace spacer directly following the wrapped text.
-        // In Quill, hitting Enter once at the end of wrapped text creates an empty block
-        // to exit/break to a new line. Since rich-text-wrap-group (flow-root) already isolates
-        // the float and starts subsequent content on a new line, this first spacer is redundant
-        // and causes an unwanted blank gap between wraptext and the following paragraph.
-        if (curr && isWhitespaceSpacerBlock(curr)) {
+        // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
+        // In Quill, hitting Enter at the end of wrapped text creates empty spacer blocks
+        // (often tagged with editor-image-spacer-mobile-hide / image-spacer-mobile-hide)
+        // simply to advance the cursor below the floated image in the editor.
+        // Since rich-text-wrap-group (flow-root on desktop, flex-col on mobile) already isolates
+        // the float and starts subsequent content on a new line, all consecutive trailing exit spacers
+        // are non-intentional artifacts and cause unwanted blank gaps.
+        while (curr && isWhitespaceSpacerBlock(curr)) {
           const exitSpacer = curr;
           curr = curr.nextElementSibling;
           exitSpacer.remove();
@@ -1328,11 +1330,11 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
           /* On mobile: preserve intentional line breaks (cách dòng) */
-          .rich-text-renderer .ql-whitespace-preserve:not(.wrap-spacer-mobile-hide),
-          .rich-text-renderer p.ql-whitespace-preserve:not(.wrap-spacer-mobile-hide),
-          .rich-text-renderer .ql-whitespace-spacer:not(.wrap-spacer-mobile-hide),
-          .rich-text-renderer p.ql-whitespace-spacer:not(.wrap-spacer-mobile-hide),
-          .rich-text-renderer p:has(> br:only-child):not(.wrap-spacer-mobile-hide) {
+          .rich-text-renderer .ql-whitespace-preserve:not(.wrap-spacer-mobile-hide):not(.image-spacer-mobile-hide):not(.editor-image-spacer-mobile-hide):not([class*="mobile-hide"]),
+          .rich-text-renderer p.ql-whitespace-preserve:not(.wrap-spacer-mobile-hide):not(.image-spacer-mobile-hide):not(.editor-image-spacer-mobile-hide):not([class*="mobile-hide"]),
+          .rich-text-renderer .ql-whitespace-spacer:not(.wrap-spacer-mobile-hide):not(.image-spacer-mobile-hide):not(.editor-image-spacer-mobile-hide):not([class*="mobile-hide"]),
+          .rich-text-renderer p.ql-whitespace-spacer:not(.wrap-spacer-mobile-hide):not(.image-spacer-mobile-hide):not(.editor-image-spacer-mobile-hide):not([class*="mobile-hide"]),
+          .rich-text-renderer p:has(> br:only-child):not(.wrap-spacer-mobile-hide):not(.image-spacer-mobile-hide):not(.editor-image-spacer-mobile-hide):not([class*="mobile-hide"]) {
             display: block !important;
             min-height: 1.2em !important;
             line-height: 1.2 !important;
@@ -1461,11 +1463,34 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-bottom: 0 !important;
           }
 
-          /* Hide whitespace spacer paragraphs placed directly inside wrap text on mobile */
+          /* Hide whitespace spacer paragraphs placed directly inside wrap text or associated with images on mobile */
           .rich-text-renderer .wrap-spacer-mobile-hide,
+          .rich-text-renderer .editor-image-spacer-mobile-hide,
+          .rich-text-renderer .image-spacer-mobile-hide,
+          .rich-text-renderer [class*="wrap-spacer-mobile-hide"],
+          .rich-text-renderer [class*="image-spacer-mobile-hide"],
+          .rich-text-renderer [class*="editor-image-spacer-mobile-hide"],
           .rich-text-renderer .rich-text-wrap-text .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-text .editor-image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-text .image-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-text p:empty,
-          .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide {
+          .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group ~ .editor-image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group ~ .image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + .editor-image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + .image-spacer-mobile-hide,
+          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-preserve,
+          .rich-text-renderer .rich-text-wrap-group + .ql-whitespace-spacer,
+          .rich-text-renderer .rich-text-wrap-group + p:has(> br:only-child),
+          .rich-text-renderer .rich-text-wrap-group + p:empty,
+          .rich-text-renderer .image-wrapper + .wrap-spacer-mobile-hide,
+          .rich-text-renderer .image-wrapper + .editor-image-spacer-mobile-hide,
+          .rich-text-renderer .image-wrapper + .image-spacer-mobile-hide,
+          .rich-text-renderer img + .wrap-spacer-mobile-hide,
+          .rich-text-renderer img + .editor-image-spacer-mobile-hide,
+          .rich-text-renderer img + .image-spacer-mobile-hide {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -1478,7 +1503,13 @@ const RICH_TEXT_RENDERER_STYLES = `
 
           /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
           .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-preserve,
+          .rich-text-renderer .ql-whitespace-preserve + .ql-whitespace-spacer,
+          .rich-text-renderer .ql-whitespace-spacer + .ql-whitespace-preserve,
           .rich-text-renderer .ql-whitespace-spacer + .ql-whitespace-spacer,
+          .rich-text-renderer p:has(> br:only-child) + .ql-whitespace-preserve,
+          .rich-text-renderer p:has(> br:only-child) + .ql-whitespace-spacer,
+          .rich-text-renderer .ql-whitespace-preserve + p:has(> br:only-child),
+          .rich-text-renderer .ql-whitespace-spacer + p:has(> br:only-child),
           .rich-text-renderer p:has(> br:only-child) + p:has(> br:only-child) {
             display: none !important;
             margin: 0 !important;

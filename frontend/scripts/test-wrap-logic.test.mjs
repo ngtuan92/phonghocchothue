@@ -243,12 +243,14 @@ function processWrapGroups(html) {
       curr = curr.nextElementSibling;
     }
 
-    // 3. Consume the first trailing whitespace spacer directly following the wrapped text.
-    // In Quill, hitting Enter once at the end of wrapped text creates an empty block
-    // to exit/break to a new line. Since rich-text-wrap-group (flow-root) already isolates
-    // the float and starts subsequent content on a new line, this first spacer is redundant
-    // and causes an unwanted blank gap between wraptext and the following paragraph.
-    if (curr && isWhitespaceSpacerBlock(curr)) {
+    // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
+    // In Quill, hitting Enter at the end of wrapped text creates empty spacer blocks
+    // (often tagged with editor-image-spacer-mobile-hide / image-spacer-mobile-hide)
+    // simply to advance the cursor below the floated image in the editor.
+    // Since rich-text-wrap-group (flow-root on desktop, flex-col on mobile) already isolates
+    // the float and starts subsequent content on a new line, all consecutive trailing exit spacers
+    // are non-intentional artifacts and cause unwanted blank gaps.
+    while (curr && isWhitespaceSpacerBlock(curr)) {
       const exitSpacer = curr;
       curr = curr.nextElementSibling;
       exitSpacer.remove();
@@ -333,10 +335,10 @@ test('Unit Test: Gold coins section preserves intentional leading whitespace on 
   // Third child should be the text paragraph
   assert.ok(children[2].textContent.includes('Trong một thế giới'), 'Text paragraph follows intentional spacers');
 
-  // Verify trailing content is outside
+  // Verify trailing exit spacers are all consumed so Nói đơn giản follows directly without blank gap
   const nextSibling = wrapGroup.nextElementSibling;
-  assert.ok(nextSibling.classList.contains('ql-whitespace-preserve'), 'Trailing spacer is outside wrap group');
-  assert.ok(nextSibling.nextElementSibling.textContent.includes('Nói đơn giản'), 'Nói đơn giản is outside wrap group');
+  assert.ok(nextSibling, 'Next sibling exists');
+  assert.ok(nextSibling.textContent.includes('Nói đơn giản'), 'Nói đơn giản immediately follows wrap group without trailing blank gap');
 });
 
 test('Unit Test: Real blog HTML transforms correctly across all 5 images', () => {
@@ -559,5 +561,36 @@ test('Unit Test: Inline wrap styles (float, margin-left 20px, !important) are st
   assert.ok(imgStyle.includes('width: 308px'), 'img width is preserved without !important');
 });
 
+test('Unit Test: Multiple trailing exit spacers after wrap text are ALL consumed so no blank gaps exist before next content', () => {
+  const inputHtml = `
+    <div class="image-wrapper image-wrap-right" data-wrap="right">
+      <img src="painting.jpg" data-wrap="right">
+      <div class="image-caption">To have to stoop to get on in the world</div>
+    </div>
+    <p>To have to stoop to get on in the world</p>
+    <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide ql-whitespace-spacer">&nbsp;</p>
+    <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide ql-whitespace-spacer">&nbsp;</p>
+    <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide ql-whitespace-spacer">&nbsp;</p>
+    <p class="ql-whitespace-preserve editor-image-spacer-mobile-hide image-spacer-mobile-hide ql-whitespace-spacer">&nbsp;</p>
+    <p>7. Câu tục ngữ gốc nó là To have the world spinning on one's thumb</p>
+  `;
 
+  const root = processWrapGroups(inputHtml);
+  const wrapGroup = root.querySelector('.rich-text-wrap-group');
+  assert.ok(wrapGroup, 'Wrap group created');
 
+  // Verify wrapped text inside group
+  const wrapText = wrapGroup.querySelector('.rich-text-wrap-text');
+  assert.ok(wrapText, 'Wrap text container exists');
+  assert.ok(wrapText.textContent.includes('To have to stoop'), 'Contains wrapped text');
+
+  // Verify that the immediate next sibling of the wrap group is the next real paragraph!
+  const nextElement = wrapGroup.nextElementSibling;
+  assert.ok(nextElement, 'Has next sibling element');
+  assert.equal(nextElement.tagName, 'P', 'Next element is paragraph');
+  assert.ok(nextElement.textContent.includes('7. Câu tục ngữ gốc'), 'Next element is paragraph 7 directly without any spacer blocks!');
+
+  // Verify there are NO trailing spacer paragraphs remaining between wrap group and paragraph 7
+  const allSpacers = root.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide');
+  assert.equal(allSpacers.length, 0, 'All 4 trailing exit spacers were consumed and eliminated');
+});
