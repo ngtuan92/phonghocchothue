@@ -1166,7 +1166,6 @@ export default function ProductForm(props) {
                   roomContentDraftRef.current = val;
                   setRoomContent(val);
                 }}
-                placeholder="Nhập mô tả chi tiết phòng học..."
                 isBlogEditor={true}
                 className="room-desc-editor"
                 minHeight="160px"
