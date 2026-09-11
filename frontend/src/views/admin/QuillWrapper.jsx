@@ -7631,22 +7631,22 @@ const QuillWrapper = forwardRef(({
           margin-bottom: 1.0rem !important;
           font-weight: 400 !important;
         }
-        /* Khoang cach rieng cho chu hang dau trong editor (16px) tranh bi che/cham vien tren */
-        .quill-wrapper-container .ql-editor > *:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > *:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > p:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > h1:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > h2:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > h3:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > h4:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > h5:first-child,
-        .quill-wrapper-container.is-blog-editor .ql-editor > h6:first-child,
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
+        /* Khoang cach tren 26px chi ap dung cho o noi dung chi tiet (phong/blog) */
+        .room-desc-editor.quill-wrapper-container .ql-editor > *:first-child,
+        .blog-desc-editor.quill-wrapper-container .ql-editor > *:first-child,
+        .blog-content-area .quill-wrapper-container .ql-editor > *:first-child,
+        .product-dialog-quill--content .quill-wrapper-container .ql-editor > *:first-child {
           margin-top: 26px !important;
         }
-        .quill-wrapper-container .ql-editor.ql-blank::before {
+        .room-desc-editor.quill-wrapper-container .ql-editor.ql-blank::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor.ql-blank::before,
+        .blog-content-area .quill-wrapper-container .ql-editor.ql-blank::before,
+        .product-dialog-quill--content .quill-wrapper-container .ql-editor.ql-blank::before {
           top: 32px !important;
+        }
+        /* Cac o editor khac (ten phong, tieu de blog, excerpt, gia, thiet bi...) khong can khoang cach tren */
+        .quill-wrapper-container:not(.room-desc-editor):not(.blog-desc-editor) .ql-editor > *:first-child {
+          margin-top: 0 !important;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor strong:not([style*="color"]) {
           font-weight: 700 !important;
