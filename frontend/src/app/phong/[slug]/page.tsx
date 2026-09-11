@@ -920,7 +920,7 @@ export default function DetailPage() {
                   display: none !important;
                 }
                 .ckeditor-content p {
-                  margin: 1rem 0 !important;
+                  margin: 0 0 0.5rem 0 !important;
                   line-height: inherit !important;
                 }
                 .ckeditor-content h1 {
@@ -977,8 +977,8 @@ export default function DetailPage() {
                   margin-left: auto !important;
                   margin-right: auto !important;
                 }
-                .room-summary-desc .image-wrapper,
-                .ckeditor-content .image-wrapper {
+                .room-summary-desc .image-wrapper:not(.image-wrap-left):not(.image-wrap-right),
+                .ckeditor-content .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
                   width: auto !important;
                   max-width: 100% !important;
                 }

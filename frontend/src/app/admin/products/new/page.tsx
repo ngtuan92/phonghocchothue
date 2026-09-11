@@ -53,7 +53,7 @@ export default function NewProductPage() {
   };
 
   return (
-    <div className="w-full h-full p-2 md:p-6 max-w-[1600px] mx-auto relative">
+    <div className="blog-edit-page w-full h-full p-2 md:p-6 relative">
       {isSubmitting && <Loading />}
 
       {/* Simple Back button */}
