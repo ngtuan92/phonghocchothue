@@ -1150,8 +1150,8 @@ export default function ProductForm(props) {
           </div>
 
           {/* Canvas rộng tối đa đạt đúng cấu trúc tỉ lệ hiển thị trên trang public */}
-          <div className="w-full blog-content-area bg-white rounded-xl ckeditor-content content-img py-2">
-            <div className="product-dialog-quill product-dialog-quill--content border border-gray-200 rounded-xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
+          <div className="w-full blog-content-area bg-white rounded-xl">
+            <div className="border border-gray-200 rounded-2xl overflow-visible bg-white shadow-sm ring-1 ring-black/5">
               <LazyQuillWrapper
                 key={`quill-content-${id || 'new'}`}
                 theme="snow"
@@ -1168,8 +1168,8 @@ export default function ProductForm(props) {
                 }}
                 placeholder=""
                 isBlogEditor={true}
-                className="room-desc-editor"
-                minHeight="160px"
+                className="room-desc-editor blog-desc-editor"
+                minHeight="180px"
                 maxHeight="520px"
                 lineHeight={roomLineHeight}
                 lineHeightMobile={roomLineHeightMobile}

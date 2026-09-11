@@ -573,7 +573,7 @@ export default function DetailPage() {
           loading="eager"
         />
       )}
-      <div className="absolute inset-0 flex items-center justify-center p-[30px] sm:p-[70px] 1400px:p-[70px] 1700px:p-[85px]">
+      <div className="blog-detail-viewport absolute inset-0 flex items-center justify-center">
         <div
           id="detail-scroll-container"
           className="w-full h-full rounded-[15px] sm:rounded-[30px] overflow-y-auto sm:overflow-y-hidden overflow-x-hidden hover:overflow-y-auto hide-scrollbar"
@@ -689,7 +689,7 @@ export default function DetailPage() {
             </div>
           </Modal>
           {/* Header section */}
-          <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 py-16 px-[40px] sm:px-20 pb-3 sm:pb-16 items-start sm:-mt-[30px]" id="#">
+          <div className="main-container flex flex-col lg:flex-row gap-2 sm:gap-4 py-16 pb-3 sm:pb-16 items-start sm:-mt-[30px]" id="#">
             <div className="flex-1 relative">
               <CarouselWithThumb
                 items={productData.product.images}
@@ -793,14 +793,15 @@ export default function DetailPage() {
             </div>
           </div>
           {/* Detail section */}
-          <div
-            className="mt-8 w-auto border-b-2 border-[#003a6a] px-0 flex justify-start mx-[40px] sm:mx-20"
-            id="about"
-          >
-            <span className="px-4 py-2 bg-[#003a6a] text-white poppins-bold text-sm sm:text-lg">
-              Chi tiết
-            </span>
-          </div>
+          <div className="main-container">
+            <div
+              className="mt-8 w-full border-b-2 border-[#003a6a] px-0 flex justify-start"
+              id="about"
+            >
+              <span className="px-4 py-2 bg-[#003a6a] text-white poppins-bold text-sm sm:text-lg">
+                Chi tiết
+              </span>
+            </div>
           <>
             <style dangerouslySetInnerHTML={{
               __html: `
@@ -1022,17 +1023,10 @@ export default function DetailPage() {
                 }
               `
             }} />
-            <div
-              className="mt-4 px-[40px] sm:px-20 content-img text-xs sm:text-base ckeditor-content"
-              style={{
-                wordWrap: "break-word",
-                lineHeight: "1.6",
-                letterSpacing: "0.01em",
-              }}
-            >
+            <article className="blog-content-area mt-4 mb-20">
               <RichTextRenderer 
                 html={processedContent} 
-                className="room-detail-content" 
+                className="room-detail-content blog-content" 
                 fontSize={product.fontSize}
                 fontSizeMobile={product.fontSizeMobile}
                 lineHeight={product.lineHeight}
@@ -1042,8 +1036,9 @@ export default function DetailPage() {
                 naturalTextWrapping
                 preserveLeadingIndent
               />
-            </div>
+            </article>
           </>
+        </div>
           <div id="room" className="mb-[60px] sm:mb-0">
             <ProductCard />
           </div>
