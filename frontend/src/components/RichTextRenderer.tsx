@@ -492,12 +492,67 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         return /^(?:\s|<br\s*\/?>|&nbsp;|\u00a0)*$/i.test(html) || el.classList.contains('ql-whitespace-preserve');
       };
 
-      root?.querySelectorAll('.ql-whitespace-preserve').forEach((el) => {
+      // Clean spacer classes from ANY element that has actual text or media so real content is never hidden on mobile
+      root?.querySelectorAll(
+        '.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide, [class*="spacer-mobile-hide"]'
+      ).forEach((el) => {
         const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
-        if (text !== '') {
-          el.classList.remove('ql-whitespace-preserve');
+        const hasMedia = !!el.querySelector('img, video, iframe, table, audio, svg, canvas');
+        if (text !== '' || hasMedia) {
+          el.classList.remove(
+            'ql-whitespace-preserve',
+            'editor-image-spacer-mobile-hide',
+            'image-spacer-mobile-hide',
+            'wrap-spacer-mobile-hide'
+          );
+          const currentClass = el.getAttribute('class') || '';
+          const cleanedClass = currentClass
+            .replace(/\b(?:ql-whitespace-preserve|editor-image-spacer-mobile-hide|image-spacer-mobile-hide|wrap-spacer-mobile-hide)\b/g, '')
+            .trim();
+          if (cleanedClass) {
+            el.setAttribute('class', cleanedClass);
+          } else {
+            el.removeAttribute('class');
+          }
         }
       });
+
+      const isHeadingOrSectionTitle = (el: Element | null): boolean => {
+        if (!el) return false;
+        const tag = el.tagName.toUpperCase();
+        if (/^(H1|H2|H3|H4|H5|H6)$/.test(tag)) return true;
+        if (el.querySelector('h1, h2, h3, h4, h5, h6')) return true;
+
+        const text = (el.textContent || '').trim();
+        if (!text) return false;
+
+        // Numbered section prefix: e.g. "1. ", "2. ", "1.1 ", "I. ", "A. " followed by letter/number
+        const hasNumberedPrefix = /^\s*(?:\d+[\.\)]|[IVXLCDM]+[\.\)]|\d+\.\d+(?:\.\d+)?[\.\)]?)\s+[A-ZÀ-Ỹ0-9]/u.test(text);
+
+        const hasBold =
+          el.classList.toString().includes('bold') ||
+          !!el.querySelector('[class*="bold"], strong, b') ||
+          /font-weight\s*:\s*(?:bold|[6-9]00)/i.test(el.getAttribute('style') || '');
+
+        const fullHtml = el.outerHTML || '';
+        const fsMatch = fullHtml.match(/--fs-desktop:\s*(\d+)px/i) || fullHtml.match(/font-size:\s*(\d+)px/i);
+        const isLargeFont = fsMatch ? parseInt(fsMatch[1], 10) >= 19 : false;
+
+        if (hasNumberedPrefix && text.length < 200) return true;
+        if (hasBold && isLargeFont && text.length < 200) return true;
+
+        // Check if this block immediately precedes another image-wrapper (skipping empty spacers)
+        let probe = el.nextElementSibling;
+        while (probe && isWhitespaceSpacerBlock(probe)) {
+          probe = probe.nextElementSibling;
+        }
+        if (probe && (probe.classList.contains('image-wrapper') || probe.querySelector('.image-wrapper, img'))) {
+          if (hasBold && text.length < 150) return true;
+          if (isLargeFont && text.length < 150) return true;
+        }
+
+        return false;
+      };
 
       // Group wrap-left / wrap-right images with their following text siblings
       // so on mobile we can display text first (order: 1), and image second (order: 2),
@@ -544,7 +599,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           !curr.classList.contains('image-wrapper') &&
           !curr.classList.contains('rich-text-wrap-group') &&
           !curr.querySelector('.image-wrapper, img, video, iframe, table') &&
-          !/^(HR|H1|H2|H3|H4|H5|H6|TABLE|FIGURE|IFRAME)$/i.test(curr.tagName)
+          !/^(HR|H1|H2|H3|H4|H5|H6|TABLE|FIGURE|IFRAME)$/i.test(curr.tagName) &&
+          !isHeadingOrSectionTitle(curr)
         ) {
           textSiblings.push(curr);
           curr = curr.nextElementSibling;
@@ -563,8 +619,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           exitSpacer.remove();
         }
 
-        // Only group if there are text siblings following this image
-        if (textSiblings.length > 0) {
+        // Only group if there are real content siblings following this image
+        const hasRealContent = textSiblings.some((s) => !isWhitespaceSpacerBlock(s));
+        if (textSiblings.length > 0 && hasRealContent) {
           const group = doc.createElement('div');
           group.className = `rich-text-wrap-group wrap-${wrapMode}`;
 
@@ -1419,10 +1476,11 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-top: 6px !important;
             margin-bottom: 12px !important;
           }
-          /* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 */
+          /* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 and order: 2 */
           .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-left,
           .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-right,
           .rich-text-renderer .rich-text-wrap-group > .image-wrapper {
+            order: 2 !important;
             margin-bottom: 0 !important;
             margin-top: 10px !important;
           }
@@ -1474,6 +1532,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .rich-text-wrap-text .editor-image-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-text .image-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-text p:empty,
+          .rich-text-renderer .rich-text-wrap-text p:has(> br:only-child),
           .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
           .rich-text-renderer .rich-text-wrap-group ~ .editor-image-spacer-mobile-hide,

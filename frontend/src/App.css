@@ -2759,6 +2759,8 @@ footer .rich-text-renderer * {
   .rich-text-renderer .rich-text-wrap-text > *:last-child {
     margin-bottom: 0 !important;
   }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-left,
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-right,
   .rich-text-renderer .rich-text-wrap-group > .image-wrapper,
   .rich-text-wrap-group > .image-wrapper {
     display: block !important;
