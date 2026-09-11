@@ -260,7 +260,7 @@ const LazyQuillWrapper = React.memo(function LazyQuillWrapper({ minHeight = "120
           {previewText ? (
             <span className="line-clamp-4">{previewText}</span>
           ) : (
-            <span className="text-gray-400">{props.placeholder || "Nhập nội dung..."}</span>
+            <span className="text-gray-400">{props.placeholder !== undefined ? props.placeholder : ""}</span>
           )}
         </button>
       )}
@@ -775,7 +775,7 @@ export default function ProductForm(props) {
                     setRoomSlug(generatedSlug);
                     setErrors((prev) => ({ ...prev, roomName: "" }));
                   }}
-                  placeholder="Nhập tên phòng..."
+                  placeholder=""
                   isBlogEditor={true}
                   className="room-name-editor"
                   lineHeight={roomNameLineHeight}
@@ -813,7 +813,7 @@ export default function ProductForm(props) {
                   }`}
                 value={roomSlug}
                 onChange={handleRoomSlugChange}
-                placeholder="vi-du-ten-phong"
+                placeholder=""
               />
               {errors.roomSlug && (
                 <Typography variant="small" color="red" className="mt-1 flex items-center gap-1 font-medium text-xs">
@@ -888,7 +888,7 @@ export default function ProductForm(props) {
                     roomPriceDraftRef.current = val;
                     setRoomPrice(val);
                   }}
-                  placeholder="Ví dụ: 80.000 đ/h..."
+                  placeholder=""
                   isBlogEditor={true}
                   disableImageWrap={true}
                   lineHeight={roomPriceLineHeight}
@@ -933,7 +933,7 @@ export default function ProductForm(props) {
                     roomEquipmentDraftRef.current = val;
                     setRoomEquipment(val);
                   }}
-                  placeholder="Ví dụ: Sức chứa 45 chỗ..."
+                  placeholder=""
                   isBlogEditor={true}
                   disableImageWrap={true}
                   lineHeight={roomEquipmentLineHeight}
@@ -1076,7 +1076,7 @@ export default function ProductForm(props) {
                   className="w-full px-3 py-2 text-xs text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoTitle}
                   onChange={handleSeoTitleChange}
-                  placeholder="Tiêu đề SEO cho phòng học..."
+                  placeholder=""
                 />
               </div>
 
@@ -1089,7 +1089,7 @@ export default function ProductForm(props) {
                   className="w-full px-3 py-2 text-xs text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoDescription}
                   onChange={handleSeoDescriptionChange}
-                  placeholder="Mô tả SEO ngắn gọn..."
+                  placeholder=""
                   rows={2}
                 />
               </div>
@@ -1104,7 +1104,7 @@ export default function ProductForm(props) {
                   className="w-full px-3 py-2 text-xs text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-[#15803d] focus:outline-none transition-colors"
                   value={seoKeywords}
                   onChange={handleSeoKeywordsChange}
-                  placeholder="Từ khóa cách nhau bằng dấu phẩy..."
+                  placeholder=""
                 />
               </div>
 
@@ -1253,7 +1253,10 @@ export default function ProductForm(props) {
           min-height: 80px;
           padding: 12px 16px !important;
         }
-        .room-desc-editor .ql-editor.ql-blank::before {
+        .room-desc-editor .ql-editor.ql-blank::before,
+        .room-summary-editor .ql-editor.ql-blank::before,
+        .room-name-editor .ql-editor.ql-blank::before,
+        .product-dialog-quill--name .ql-editor.ql-blank::before {
           content: none !important;
           display: none !important;
         }

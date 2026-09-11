@@ -207,7 +207,7 @@ const LazyQuillWrapper = React.memo(function LazyQuillWrapper({ minHeight = "120
           {previewText ? (
             <span className="line-clamp-5">{previewText}</span>
           ) : (
-            <span className="text-gray-400">{props.placeholder || "Nhap noi dung..."}</span>
+            <span className="text-gray-400">{props.placeholder !== undefined ? props.placeholder : ""}</span>
           )}
         </button>
       )}
@@ -655,7 +655,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
               <div className="flex gap-2">
                 <DraftTextField
                   type="text"
-                  placeholder="Nhập chuyên mục mới..."
+                  placeholder=""
                   className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
                   value={formData.category}
                   onCommit={handleCategoryCommit}
@@ -701,7 +701,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
             </div>
             <DraftTextField
               type="text"
-              placeholder="Tên tác giả..."
+              placeholder=""
               className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:border-primary outline-none text-sm text-foreground font-medium bg-white transition-all duration-300 shadow-sm"
               value={formData.authorName}
               onCommit={handleAuthorNameCommit}
