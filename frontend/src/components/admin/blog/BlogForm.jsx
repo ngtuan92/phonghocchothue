@@ -593,7 +593,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
               className="blog-title-editor min-h-[80px]"
               minHeight="80px"
               maxHeight="150px"
-              placeholder="Nhập tiêu đề ấn tượng cho bài viết…"
+              placeholder=""
               disableImageWrap={true}
               lineHeight={formData.titleLineHeight}
               lineHeightMobile={formData.titleLineHeightMobile}
@@ -728,7 +728,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 className="blog-excerpt-editor min-h-[120px]"
                 minHeight="120px"
                 maxHeight="200px"
-                placeholder="Mô tả ngắn gọn nội dung bài viết..."
+                placeholder=""
                 disableImageWrap={true}
                 lineHeight={formData.excerptLineHeight}
                 lineHeightMobile={formData.excerptLineHeightMobile}
@@ -814,6 +814,7 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
                 onDraftChange={(val) => updateRichField("content", val)}
                 onBlur={(val) => commitRichField("content", val)}
                 className="blog-desc-editor"
+                placeholder=""
                 minHeight="180px"
                 maxHeight="520px"
                 isBlogEditor={true}
@@ -956,6 +957,16 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
           </svg>
         </button>
       )}
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .blog-title-editor .ql-editor.ql-blank::before,
+        .blog-excerpt-editor .ql-editor.ql-blank::before,
+        .blog-desc-editor .ql-editor.ql-blank::before {
+          content: none !important;
+          display: none !important;
+        }
+      ` }} />
     </form>
   );
 }

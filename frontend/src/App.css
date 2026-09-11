@@ -2993,8 +2993,11 @@ footer .rich-text-renderer * {
   }
 }
 
-/* Suppress placeholder in room description editor */
-.room-desc-editor .ql-editor.ql-blank::before {
+/* Suppress placeholder in room description and blog editors */
+.room-desc-editor .ql-editor.ql-blank::before,
+.blog-title-editor .ql-editor.ql-blank::before,
+.blog-excerpt-editor .ql-editor.ql-blank::before,
+.blog-desc-editor .ql-editor.ql-blank::before {
   content: none !important;
   display: none !important;
 }
