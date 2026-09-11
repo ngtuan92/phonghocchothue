@@ -1166,6 +1166,7 @@ export default function ProductForm(props) {
                   roomContentDraftRef.current = val;
                   setRoomContent(val);
                 }}
+                placeholder=""
                 isBlogEditor={true}
                 className="room-desc-editor"
                 minHeight="160px"
@@ -1251,6 +1252,10 @@ export default function ProductForm(props) {
         .product-dialog-quill--equipment .room-summary-editor.quill-wrapper-container.is-blog-editor .ql-editor {
           min-height: 80px;
           padding: 12px 16px !important;
+        }
+        .room-desc-editor .ql-editor.ql-blank::before {
+          content: none !important;
+          display: none !important;
         }
       ` }} />
       <div className="fixed bottom-8 right-8 z-[9998] flex items-center gap-3">

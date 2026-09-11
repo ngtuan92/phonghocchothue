@@ -2991,7 +2991,10 @@ footer .rich-text-renderer * {
     font-size: 0 !important;
     border: none !important;
   }
-
 }
 
-
+/* Suppress placeholder in room description editor */
+.room-desc-editor .ql-editor.ql-blank::before {
+  content: none !important;
+  display: none !important;
+}

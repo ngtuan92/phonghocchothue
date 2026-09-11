@@ -964,7 +964,7 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
                     roomContentDraftRef.current = val;
                     setIfChanged(setRoomContent, val);
                   }}
-                  placeholder="Nhập mô tả chi tiết về phòng..."
+                  placeholder=""
                   isBlogEditor={true}
                   className="room-desc-editor"
                   minHeight="160px"
@@ -1170,6 +1170,10 @@ function DialogComponent({ open, id, handleOpen, onSave, dataEdit }) {
           .product-dialog-quill--equipment .ql-editor,
           .product-dialog-quill--contains .ql-editor {
             min-height: 80px;
+          }
+          .room-desc-editor .ql-editor.ql-blank::before {
+            content: none !important;
+            display: none !important;
           }
         ` }} />
 
