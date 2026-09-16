@@ -3544,27 +3544,41 @@ const QuillWrapper = forwardRef(({
         if (sel && typeof sel.index === 'number' && sel.length === 0) {
           const [currentLine, offset] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-          if (lineFormats.list && offset === 0) {
-            const curIndent = parseInt(lineFormats.indent || 0, 10);
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+          if (lineFormats.list) {
+            const lineStartIndex = sel.index - offset;
+            const textBeforeCursor = quill.getText(lineStartIndex, offset);
+            if (offset === 0 || textBeforeCursor.trim() === '') {
+              const curIndent = parseInt(lineFormats.indent || 0, 10);
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
 
-            if (curIndent > 0) {
-              // Outdent by 1 level
-              quill.formatLine(sel.index, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-            } else {
-              // At level 0: remove list
-              quill.formatLine(sel.index, 1, { list: false, indent: false }, 'user');
+              if (textBeforeCursor.length > 0) {
+                quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
+              }
+
+              if (curIndent > 0) {
+                // Outdent by 1 level
+                quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+              } else {
+                // At level 0: remove list
+                quill.formatLine(lineStartIndex, 1, { list: false, indent: false }, 'user');
+              }
+              syncListCounters(quill.root);
+              try {
+                quill.setSelection(lineStartIndex, 0, 'silent');
+              } catch { /* ignore */ }
+              return;
             }
-            syncListCounters(quill.root);
-            return;
           }
         }
       }
 
-      // 1c. Handle Space key after list markers with leading spaces/tabs (e.g. "   1.", "  -", "\t*")
-      // Retains user-intended child indentation instead of wiping to indent: 0
+      // 1c. Handle Space key:
+      // (A) If on a list item and at offset 0 (or only whitespace before cursor):
+      //     Pressing Space INDENTS the list item (moves dot/number in with user's space, never leaves it stuck at đầu hàng)!
+      // (B) If typing spaces/tabs followed by list marker (e.g. "   .", "   1.", "   -", "   1,"):
+      //     Converts to child list with indentation corresponding to spaces, never jumps to đầu hàng!
       if ((e.key === ' ' || e.keyCode === 32) && !e.ctrlKey && !e.altKey && !e.metaKey) {
         let sel = quill.getSelection();
         if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
@@ -3575,7 +3589,30 @@ const QuillWrapper = forwardRef(({
             if (!lineFormats['code-block'] && !lineFormats.table) {
               const lineStartIndex = sel.index - offset;
               const textBeforeCursor = quill.getText(lineStartIndex, offset);
-              const listAutoMatch = textBeforeCursor.match(/^(\s*)(\d+\.|-|\*|\[ ?\]|\[x\])$/);
+
+              // Case A: Cursor is at beginning of an existing list item (or only whitespace before cursor)
+              if (lineFormats.list && textBeforeCursor.trim() === '') {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                // Delete any accidental spaces already typed before cursor on this list item
+                if (textBeforeCursor.length > 0) {
+                  quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
+                }
+
+                const curIndent = parseInt(lineFormats.indent || 0, 10);
+                const newIndent = Math.min(curIndent + 1, 8);
+                quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
+                syncListCounters(quill.root);
+                try {
+                  quill.setSelection(lineStartIndex, 0, 'silent');
+                } catch { /* ignore */ }
+                return;
+              }
+
+              // Case B: User typed leading spaces/tabs + marker (e.g. "      .", "   1.", "   -", "   1,")
+              const listAutoMatch = textBeforeCursor.match(/^(\s*)([0-9]+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
               if (listAutoMatch) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -3585,7 +3622,7 @@ const QuillWrapper = forwardRef(({
                 const rawMarker = listAutoMatch[2];
 
                 let listType = 'ordered';
-                if (rawMarker === '-' || rawMarker === '*') {
+                if (rawMarker === '-' || rawMarker === '*' || rawMarker === '+' || rawMarker === '.' || rawMarker === '•') {
                   listType = 'bullet';
                 } else if (rawMarker === '[]' || rawMarker === '[ ]') {
                   listType = 'unchecked';
@@ -3597,8 +3634,8 @@ const QuillWrapper = forwardRef(({
                 if (leadingWs.length > 0) {
                   const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
                   const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
-                  indentLevel = Math.max(indentLevel, wsIndent);
-                } else if (indentLevel === 0) {
+                  indentLevel = wsIndent;
+                } else {
                   const prevLine = currentLine.prev;
                   if (prevLine && prevLine.formats) {
                     const prevFmt = prevLine.formats();
@@ -3606,7 +3643,7 @@ const QuillWrapper = forwardRef(({
                       const prevIndent = parseInt(prevFmt.indent || 0, 10);
                       if (prevFmt.list !== listType && prevIndent === 0) {
                         indentLevel = 1;
-                      } else if (prevIndent > 0) {
+                      } else {
                         indentLevel = prevIndent;
                       }
                     }
@@ -3923,6 +3960,19 @@ const QuillWrapper = forwardRef(({
     };
 
     quill.root.addEventListener('keydown', handleKeydownCapture, true);
+
+    try {
+      if (quill.keyboard && quill.keyboard.bindings) {
+        [' ', 32].forEach((k) => {
+          if (Array.isArray(quill.keyboard.bindings[k])) {
+            quill.keyboard.bindings[k] = quill.keyboard.bindings[k].filter((b) => {
+              const pStr = b?.prefix ? b.prefix.toString() : '';
+              return !pStr.includes('d+\\.') && !pStr.includes('list');
+            });
+          }
+        });
+      }
+    } catch { /* ignore */ }
 
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(quill.root);
