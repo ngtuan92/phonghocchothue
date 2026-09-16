@@ -3380,14 +3380,15 @@ const QuillWrapper = forwardRef(({
     quill.root.addEventListener('scroll', handleScroll, true);
 
     const handleKeydownCapture = (e) => {
-      // 1. Handle Tab and Shift+Tab key for Lists and general tab indent
+      // 1. Handle Tab and Shift+Tab key (Google Docs / Word style indentation)
       if ((e.key === 'Tab' || e.keyCode === 9) && !e.ctrlKey && !e.altKey && !e.metaKey) {
         let sel = quill.getSelection();
         if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
         if (sel && typeof sel.index === 'number') {
           const [currentLine] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-          if (lineFormats.list) {
+
+          if (!lineFormats.table) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -3397,7 +3398,7 @@ const QuillWrapper = forwardRef(({
               // Shift + Tab: Outdent
               if (curIndent > 0) {
                 quill.formatLine(sel.index, Math.max(sel.length, 1), 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-              } else {
+              } else if (lineFormats.list) {
                 quill.formatLine(sel.index, Math.max(sel.length, 1), { list: false, indent: false }, 'user');
               }
             } else {
@@ -3409,40 +3410,33 @@ const QuillWrapper = forwardRef(({
             try { quill.setSelection(sel.index, sel.length, 'silent'); } catch { /* ignore */ }
             return;
           }
-
-          if (!e.shiftKey && !lineFormats.table) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            quill.insertText(sel.index, '\t', 'user');
-            quill.setSelection(sel.index + 1, 0, 'user');
-            return;
-          }
         }
       }
 
-      // 1b. Handle Backspace at start of list line (outdent / remove list)
+      // 1b. Handle Backspace at start of line (outdent / remove list)
       if ((e.key === 'Backspace' || e.keyCode === 8) && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
         let sel = quill.getSelection();
         if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
         if (sel && typeof sel.index === 'number' && sel.length === 0) {
           const [currentLine, offset] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-          if (lineFormats.list && offset === 0) {
+          if (offset === 0) {
             const curIndent = parseInt(lineFormats.indent || 0, 10);
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-
             if (curIndent > 0) {
-              // Outdent by 1 level
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
               quill.formatLine(sel.index, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-            } else {
-              // At level 0: remove list
+              syncListCounters(quill.root);
+              return;
+            } else if (lineFormats.list) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
               quill.formatLine(sel.index, 1, { list: false, indent: false }, 'user');
+              syncListCounters(quill.root);
+              return;
             }
-            syncListCounters(quill.root);
-            return;
           }
         }
       }
@@ -5501,8 +5495,6 @@ const QuillWrapper = forwardRef(({
           try {
             const [currentLine] = quill.getLine(range.index);
             const currentFmt = currentLine ? currentLine.formats() : (quill.getFormat(range) || {});
-            const prevLine = currentLine?.prev;
-            const prevFmt = prevLine ? prevLine.formats() : {};
 
             // 1. Toggling off active list (clicking same list icon to deactivate list)
             if (!value || currentFmt.list === value) {
@@ -5514,41 +5506,62 @@ const QuillWrapper = forwardRef(({
                 quill.formatLine(range.index, Math.max(range.length, 1), { list: false, indent: false }, 'user');
               }
             } else {
-              // 2. Switching list type:
-              // - Switching bullet -> ordered: thut le vao trong (+1 level tu bullet hien tai hoac prev)
-              // - Switching ordered -> bullet: thut le vao trong (+1 level tu so hien tai hoac prev)
-              const isSwitchingFromBulletToOrdered = (
-                value === 'ordered' && (currentFmt.list === 'bullet' || (!currentFmt.list && prevFmt.list === 'bullet'))
-              );
-              const isSwitchingFromOrderedToBullet = (
-                value === 'bullet' && (currentFmt.list === 'ordered' || (!currentFmt.list && prevFmt.list === 'ordered'))
-              );
-
-              if (isSwitchingFromBulletToOrdered) {
-                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
-                const newIndent = Math.min(baseIndent + 1, 8);
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: 'ordered',
-                  indent: newIndent
-                }, 'user');
-              } else if (isSwitchingFromOrderedToBullet) {
-                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
-                const newIndent = Math.min(baseIndent + 1, 8);
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: 'bullet',
-                  indent: newIndent
-                }, 'user');
-              } else if (currentFmt.list) {
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: value,
-                  indent: currentFmt.indent || false
-                }, 'user');
-              } else {
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: value,
-                  indent: false
-                }, 'user');
+              // Check if current line has leading whitespace (spaces/tabs from manual indent)
+              let detectedLeadingIndent = 0;
+              if (currentLine) {
+                const lineStartIndex = quill.getIndex(currentLine);
+                const lineLength = currentLine.length();
+                const lineText = quill.getText(lineStartIndex, lineLength);
+                const wsMatch = lineText.match(/^[ \t]+/);
+                if (wsMatch) {
+                  const wsStr = wsMatch[0];
+                  const tabCount = (wsStr.match(/\t/g) || []).length;
+                  const spaceCount = (wsStr.match(/ /g) || []).length;
+                  detectedLeadingIndent = Math.min(8, Math.max(1, tabCount + Math.round(spaceCount / 2)));
+                  quill.deleteText(lineStartIndex, wsStr.length, 'user');
+                }
               }
+
+              // Scan backwards (skipping empty lines) to find nearest preceding list block
+              let prevListFmt = null;
+              let scanLine = currentLine?.prev;
+              while (scanLine) {
+                const sf = scanLine.formats ? scanLine.formats() : {};
+                if (sf.list) {
+                  prevListFmt = sf;
+                  break;
+                }
+                if (scanLine.length() > 1) {
+                  break;
+                }
+                scanLine = scanLine.prev;
+              }
+
+              const currentIndent = parseInt(currentFmt.indent || 0, 10);
+              let targetIndent = false;
+
+              if (detectedLeadingIndent > 0) {
+                // User pressed Tab or spaces to indent cursor: use that indent level!
+                targetIndent = detectedLeadingIndent;
+              } else if (currentIndent > 0) {
+                // Line already has indent format: keep it!
+                targetIndent = currentIndent;
+              } else if (currentFmt.list && currentFmt.list !== value) {
+                // Actively switching list type on an existing list item: indent into child (+1 level)
+                targetIndent = Math.min(currentIndent + 1, 8);
+              } else if (prevListFmt && prevListFmt.list !== value) {
+                // Preceding list item was of different type: become child of that list!
+                const baseIndent = parseInt(prevListFmt.indent || 0, 10);
+                targetIndent = Math.min(baseIndent + 1, 8);
+              } else if (prevListFmt && prevListFmt.list === value) {
+                // Preceding list item was of same type: continue at same indent
+                targetIndent = prevListFmt.indent || false;
+              }
+
+              quill.formatLine(range.index, Math.max(range.length, 1), {
+                list: value,
+                indent: targetIndent || false
+              }, 'user');
             }
 
             syncListCounters(quill.root);
@@ -8247,60 +8260,87 @@ const QuillWrapper = forwardRef(({
           user-select: none !important;
         }
 
-        /* Bullet symbols by indent level (Google Docs / Word hierarchy) */
+        /* Bullet symbols by indent level (Google Docs / Word hierarchy) - Bold & Visible */
         .quill-wrapper-container .ql-editor li[data-list="bullet"]::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"]::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"]::before {
           content: "•" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.6em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1::before {
           content: "◦" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.4em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2::before {
           content: "▪" !important;
-          font-size: 0.9em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.25em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3::before {
           content: "•" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.6em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4::before {
           content: "◦" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.4em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5::before {
           content: "▪" !important;
-          font-size: 0.9em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.25em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-6::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-6::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-6::before {
           content: "•" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.6em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-7::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-7::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-7::before {
           content: "◦" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.4em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-8::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-8::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-8::before {
           content: "▪" !important;
-          font-size: 0.9em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.25em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
 
         /* Ordered list numbering */
@@ -8313,6 +8353,9 @@ const QuillWrapper = forwardRef(({
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"]::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"]::before {
           content: counter(ql-ordered-counter) "." !important;
+          font-family: inherit !important;
+          font-size: 1em !important;
+          font-weight: inherit !important;
         }
 
         /* Hierarchical Indentation (Google Docs / Word style: 2rem = 32px per level) */
@@ -8321,66 +8364,66 @@ const QuillWrapper = forwardRef(({
         .blog-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-1,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1 {
+        .quill-wrapper-container .ql-editor .ql-indent-1,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-1,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-1 {
           margin-left: 2rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-2,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2 {
+        .quill-wrapper-container .ql-editor .ql-indent-2,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-2,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-2 {
           margin-left: 4rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-3,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3 {
+        .quill-wrapper-container .ql-editor .ql-indent-3,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-3,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-3 {
           margin-left: 6rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-4,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4 {
+        .quill-wrapper-container .ql-editor .ql-indent-4,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-4,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-4 {
           margin-left: 8rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-5,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5 {
+        .quill-wrapper-container .ql-editor .ql-indent-5,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-5,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-5 {
           margin-left: 10rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-6,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6 {
+        .quill-wrapper-container .ql-editor .ql-indent-6,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-6,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-6 {
           margin-left: 12rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-7,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7 {
+        .quill-wrapper-container .ql-editor .ql-indent-7,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-7,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-7 {
           margin-left: 14rem !important;
         }
-        .quill-wrapper-container .ql-editor li.ql-indent-8,
-        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8 {
+        .quill-wrapper-container .ql-editor .ql-indent-8,
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-8,
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-8 {
           margin-left: 16rem !important;
         }
 
         @media (max-width: 640px) {
-          .quill-wrapper-container .ql-editor li.ql-indent-1,
-          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
-          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1 {
+          .quill-wrapper-container .ql-editor .ql-indent-1,
+          .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-1,
+          .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-1 {
             margin-left: 1.25rem !important;
           }
-          .quill-wrapper-container .ql-editor li.ql-indent-2,
-          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
-          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2 {
+          .quill-wrapper-container .ql-editor .ql-indent-2,
+          .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-2,
+          .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-2 {
             margin-left: 2.5rem !important;
           }
-          .quill-wrapper-container .ql-editor li.ql-indent-3,
-          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
-          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3 {
+          .quill-wrapper-container .ql-editor .ql-indent-3,
+          .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-3,
+          .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-3 {
             margin-left: 3.75rem !important;
           }
-          .quill-wrapper-container .ql-editor li.ql-indent-4,
-          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
-          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4 {
+          .quill-wrapper-container .ql-editor .ql-indent-4,
+          .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-4,
+          .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-4 {
             margin-left: 5rem !important;
           }
         }

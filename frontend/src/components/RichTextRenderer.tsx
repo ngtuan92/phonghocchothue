@@ -1088,42 +1088,69 @@ const RICH_TEXT_RENDERER_STYLES = `
           user-select: none !important;
         }
 
-        /* Bullet symbols by indent level (Google Docs / Word hierarchy) */
+        /* Bullet symbols by indent level (Google Docs / Word hierarchy) - Bold & Visible */
         .rich-text-renderer li[data-list="bullet"]::before {
           content: "•" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.6em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-1::before {
           content: "◦" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.4em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-2::before {
           content: "▪" !important;
-          font-size: 0.9em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.25em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-3::before {
           content: "•" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.6em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-4::before {
           content: "◦" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.4em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-5::before {
           content: "▪" !important;
-          font-size: 0.9em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.25em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-6::before {
           content: "•" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.6em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-7::before {
           content: "◦" !important;
-          font-size: 1.15em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.4em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
         .rich-text-renderer li[data-list="bullet"].ql-indent-8::before {
           content: "▪" !important;
-          font-size: 0.9em !important;
+          font-family: Arial, "Segoe UI", sans-serif !important;
+          font-size: 1.25em !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
         }
 
         /* Ordered list numbering */
@@ -1132,48 +1159,51 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer li[data-list="ordered"]::before {
           content: counter(ql-ordered-counter) "." !important;
+          font-family: inherit !important;
+          font-size: 1em !important;
+          font-weight: inherit !important;
         }
 
         /* Hierarchical Indentation (Google Docs / Word style: 2rem = 32px per level) */
         .rich-text-renderer li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
         }
-        .rich-text-renderer li.ql-indent-1 {
+        .rich-text-renderer .ql-indent-1 {
           margin-left: 2rem !important;
         }
-        .rich-text-renderer li.ql-indent-2 {
+        .rich-text-renderer .ql-indent-2 {
           margin-left: 4rem !important;
         }
-        .rich-text-renderer li.ql-indent-3 {
+        .rich-text-renderer .ql-indent-3 {
           margin-left: 6rem !important;
         }
-        .rich-text-renderer li.ql-indent-4 {
+        .rich-text-renderer .ql-indent-4 {
           margin-left: 8rem !important;
         }
-        .rich-text-renderer li.ql-indent-5 {
+        .rich-text-renderer .ql-indent-5 {
           margin-left: 10rem !important;
         }
-        .rich-text-renderer li.ql-indent-6 {
+        .rich-text-renderer .ql-indent-6 {
           margin-left: 12rem !important;
         }
-        .rich-text-renderer li.ql-indent-7 {
+        .rich-text-renderer .ql-indent-7 {
           margin-left: 14rem !important;
         }
-        .rich-text-renderer li.ql-indent-8 {
+        .rich-text-renderer .ql-indent-8 {
           margin-left: 16rem !important;
         }
 
         @media (max-width: 640px) {
-          .rich-text-renderer li.ql-indent-1 {
+          .rich-text-renderer .ql-indent-1 {
             margin-left: 1.25rem !important;
           }
-          .rich-text-renderer li.ql-indent-2 {
+          .rich-text-renderer .ql-indent-2 {
             margin-left: 2.5rem !important;
           }
-          .rich-text-renderer li.ql-indent-3 {
+          .rich-text-renderer .ql-indent-3 {
             margin-left: 3.75rem !important;
           }
-          .rich-text-renderer li.ql-indent-4 {
+          .rich-text-renderer .ql-indent-4 {
             margin-left: 5rem !important;
           }
         }
