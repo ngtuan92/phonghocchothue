@@ -1004,17 +1004,37 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer li[data-list="bullet"] {
           list-style-type: disc !important;
+          counter-reset: ql-ordered-counter !important;
+        }
+        .rich-text-renderer ol > li[data-list="ordered"]:first-child,
+        .rich-text-renderer li[data-list="bullet"] + li[data-list="ordered"] {
+          counter-reset: ql-ordered-counter !important;
         }
         .rich-text-renderer li[data-list="ordered"] {
-          list-style-type: decimal !important;
+          list-style-type: none !important;
+          counter-increment: ql-ordered-counter !important;
+        }
+        .rich-text-renderer li[data-list="ordered"]::marker {
+          content: none !important;
+        }
+        .rich-text-renderer li[data-list="ordered"]::before {
+          content: counter(ql-ordered-counter) ". " !important;
+          display: inline !important;
+          color: currentColor !important;
+          font-size: inherit !important;
+          line-height: inherit !important;
+          margin-right: 0.3em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"]::before {
+          content: none !important;
+          display: none !important;
         }
         .rich-text-renderer li::marker {
           color: currentColor;
           font-size: 1em;
           line-height: inherit;
         }
-        .rich-text-renderer .ql-ui,
-        .rich-text-renderer li::before {
+        .rich-text-renderer .ql-ui {
           content: none !important;
           display: none !important;
         }

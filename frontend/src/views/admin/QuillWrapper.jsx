@@ -5208,6 +5208,89 @@ const QuillWrapper = forwardRef(({
     mods.toolbar = {
       container: newToolbar,
       handlers: {
+        // Fix: khi convert ordered list item -> heading, bao ton so thu tu (gong GDocs)
+        header: function (value) {
+          const quill = this.quill;
+          const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+          if (!range) {
+            quill.format('header', value || false, 'user');
+            return;
+          }
+          try {
+            // Lay tat ca cac lines trong selection
+            const lines = quill.getLines(range.index, Math.max(range.length, 1));
+            // Neu co bat ky line nao la ordered list item, xu ly tung line
+            const hasOrderedListLine = lines.some((line) => {
+              const fmt = quill.getFormat(quill.getIndex(line), 1);
+              return fmt && fmt.list === 'ordered';
+            });
+            if (hasOrderedListLine && value) {
+              // Tinh so thu tu cua tung ordered list item trong toan bo editor
+              // de biet prefix "N." can them
+              const allLines = quill.getLines(0, quill.getLength());
+              // Build counter: duyet toan bo lines theo thu tu, dem ordered items trong tung sequence
+              const lineCounters = new Map();
+              let counter = 0;
+              let prevWasOrdered = false;
+              for (const ln of allLines) {
+                const lnIdx = quill.getIndex(ln);
+                const lnFmt = quill.getFormat(lnIdx, 1);
+                const isOrdered = lnFmt && lnFmt.list === 'ordered';
+                const isBullet = lnFmt && lnFmt.list === 'bullet';
+                if (isOrdered) {
+                  // Reset neu truoc do la bullet hoac paragraph (sequence moi)
+                  if (!prevWasOrdered) counter = 0;
+                  counter++;
+                  lineCounters.set(ln, counter);
+                  prevWasOrdered = true;
+                } else if (isBullet) {
+                  prevWasOrdered = false;
+                  counter = 0;
+                } else {
+                  prevWasOrdered = false;
+                  counter = 0;
+                }
+              }
+              // Apply: voi moi line la ordered, them prefix so thu tu roi format heading
+              quill.history.cutoff();
+              let deltaOffset = 0;
+              for (const line of lines) {
+                const fmt = quill.getFormat(quill.getIndex(line) + deltaOffset, 1);
+                if (fmt && fmt.list === 'ordered') {
+                  const num = lineCounters.get(line) || 1;
+                  const prefix = num + '. ';
+                  const lineIdx = quill.getIndex(line) + deltaOffset;
+                  // Insert prefix vao dau line
+                  quill.insertText(lineIdx, prefix, 'user');
+                  deltaOffset += prefix.length;
+                }
+              }
+              // Format toan bo selection thanh heading
+              quill.formatLine(range.index, Math.max(range.length + deltaOffset, 1), 'header', value || false, 'user');
+              // Khoi phuc selection
+              try {
+                setSelectionWithoutScroll(quill, range.index, range.length + deltaOffset, 'silent');
+              } catch { /* ignore */ }
+              window.setTimeout(() => {
+                try {
+                  localEditorHtmlRef.current = quill.root.innerHTML;
+                  toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+                } catch { /* ignore */ }
+              }, 0);
+              return;
+            }
+          } catch (err) {
+            console.error('header handler error:', err);
+          }
+          // Default Quill header format
+          quill.format('header', value || false, 'user');
+          window.setTimeout(() => {
+            try {
+              localEditorHtmlRef.current = quill.root.innerHTML;
+              toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+            } catch { /* ignore */ }
+          }, 0);
+        },
         'color-desktop-custom': function () {
           openResponsiveColorPicker(this.quill, 'color', 'desktop');
         },
@@ -7851,17 +7934,42 @@ const QuillWrapper = forwardRef(({
           overflow-wrap: break-word !important;
           word-break: normal !important;
         }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]),
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol:has(li[data-list]) {
-          list-style-type: decimal !important;
-        }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"],
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] {
           list-style-type: disc !important;
+          /* Reset ql-ordered-counter khi gap bullet, de ordered sequence tiep theo bat dau tu 1 */
+          counter-reset: ql-ordered-counter !important;
+        }
+        /* Reset counter khi la ordered item dau tien trong ol hoac dung sau bullet item */
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol > li[data-list="ordered"]:first-child,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol > li[data-list="ordered"]:first-child,
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] + li[data-list="ordered"],
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] + li[data-list="ordered"] {
+          counter-reset: ql-ordered-counter !important;
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"],
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"] {
-          list-style-type: decimal !important;
+          list-style-type: none !important;
+          counter-increment: ql-ordered-counter !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::marker,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::marker {
+          content: none !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::before,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::before {
+          content: counter(ql-ordered-counter) ". " !important;
+          display: inline !important;
+          color: currentColor !important;
+          font-size: inherit !important;
+          line-height: inherit !important;
+          margin-right: 0.3em !important;
+        }
+        /* bullet items giu nguyen ::before none tu rule o tren */
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"]::before,
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"]::before {
+          content: none !important;
+          display: none !important;
         }
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::marker,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::marker {
