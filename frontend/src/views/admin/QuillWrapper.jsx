@@ -467,6 +467,96 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
             return true;
           }
         },
+        'list autofill': {
+          key: ' ',
+          shiftKey: null,
+          collapsed: true,
+          format: {
+            'code-block': false,
+            blockquote: false,
+            table: false
+          },
+          prefix: /^\s*?(\d+\.|-|\*|\[ ?\]|\[x\])$/,
+          handler(range, context) {
+            if (this.quill.scroll.query('list') == null) return true;
+            const { length } = context.prefix;
+            const [line, offset] = this.quill.getLine(range.index);
+            if (offset > length) return true;
+
+            const match = context.prefix.match(/^(\s*)(\d+\.|-|\*|\[ ?\]|\[x\])$/);
+            const leadingWs = match ? match[1] : '';
+            const rawMarker = match ? match[2] : context.prefix.trim();
+
+            let value = 'ordered';
+            switch (rawMarker) {
+              case '[]':
+              case '[ ]':
+                value = 'unchecked';
+                break;
+              case '[x]':
+                value = 'checked';
+                break;
+              case '-':
+              case '*':
+                value = 'bullet';
+                break;
+              default:
+                value = 'ordered';
+            }
+
+            const currentFmt = line.formats ? line.formats() : {};
+            let indentLevel = parseInt(currentFmt.indent || 0, 10);
+            if (leadingWs.length > 0) {
+              const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
+              const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+              indentLevel = Math.max(indentLevel, wsIndent);
+            } else if (indentLevel === 0) {
+              const prevLine = line.prev;
+              if (prevLine && prevLine.formats) {
+                const prevFmt = prevLine.formats();
+                if (prevFmt.list) {
+                  const prevIndent = parseInt(prevFmt.indent || 0, 10);
+                  if (prevFmt.list !== value && prevIndent === 0) {
+                    indentLevel = 1;
+                  } else if (prevIndent > 0) {
+                    indentLevel = prevIndent;
+                  }
+                }
+              }
+            }
+
+            this.quill.insertText(range.index, ' ', Quill.sources.USER);
+            this.quill.history.cutoff();
+
+            const Delta = Quill.import('delta') || window.Delta;
+            if (Delta) {
+              const listAttrs = { list: value };
+              if (indentLevel > 0) {
+                listAttrs.indent = indentLevel;
+              }
+              const delta = new Delta()
+                .retain(range.index - offset)
+                .delete(length + 1)
+                .retain(line.length() - 2 - offset)
+                .retain(1, listAttrs);
+              this.quill.updateContents(delta, Quill.sources.USER);
+              this.quill.history.cutoff();
+              this.quill.setSelection(range.index - length, Quill.sources.SILENT);
+              syncListCounters(this.quill.root);
+              return false;
+            }
+
+            const lineStartIndex = range.index - offset;
+            this.quill.deleteText(lineStartIndex, length + 1, 'user');
+            this.quill.formatLine(lineStartIndex, 1, {
+              list: value,
+              indent: indentLevel > 0 ? indentLevel : false
+            }, 'user');
+            this.quill.setSelection(lineStartIndex, 0, 'user');
+            syncListCounters(this.quill.root);
+            return false;
+          }
+        },
         backspaceAfterImage: {
           key: 8, // Backspace
           collapsed: true,
@@ -3443,6 +3533,70 @@ const QuillWrapper = forwardRef(({
             }
             syncListCounters(quill.root);
             return;
+          }
+        }
+      }
+
+      // 1c. Handle Space key after list markers with leading spaces/tabs (e.g. "   1.", "  -", "\t*")
+      // Retains user-intended child indentation instead of wiping to indent: 0
+      if ((e.key === ' ' || e.keyCode === 32) && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        let sel = quill.getSelection();
+        if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
+        if (sel && typeof sel.index === 'number' && sel.length === 0) {
+          const [currentLine, offset] = quill.getLine(sel.index);
+          if (currentLine) {
+            const lineFormats = currentLine.formats ? currentLine.formats() : (quill.getFormat(sel) || {});
+            if (!lineFormats['code-block'] && !lineFormats.table) {
+              const lineStartIndex = sel.index - offset;
+              const textBeforeCursor = quill.getText(lineStartIndex, offset);
+              const listAutoMatch = textBeforeCursor.match(/^(\s*)(\d+\.|-|\*|\[ ?\]|\[x\])$/);
+              if (listAutoMatch) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                const leadingWs = listAutoMatch[1] || '';
+                const rawMarker = listAutoMatch[2];
+
+                let listType = 'ordered';
+                if (rawMarker === '-' || rawMarker === '*') {
+                  listType = 'bullet';
+                } else if (rawMarker === '[]' || rawMarker === '[ ]') {
+                  listType = 'unchecked';
+                } else if (rawMarker === '[x]') {
+                  listType = 'checked';
+                }
+
+                let indentLevel = parseInt(lineFormats.indent || 0, 10);
+                if (leadingWs.length > 0) {
+                  const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
+                  const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+                  indentLevel = Math.max(indentLevel, wsIndent);
+                } else if (indentLevel === 0) {
+                  const prevLine = currentLine.prev;
+                  if (prevLine && prevLine.formats) {
+                    const prevFmt = prevLine.formats();
+                    if (prevFmt.list) {
+                      const prevIndent = parseInt(prevFmt.indent || 0, 10);
+                      if (prevFmt.list !== listType && prevIndent === 0) {
+                        indentLevel = 1;
+                      } else if (prevIndent > 0) {
+                        indentLevel = prevIndent;
+                      }
+                    }
+                  }
+                }
+
+                quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
+                quill.formatLine(lineStartIndex, 1, {
+                  list: listType,
+                  indent: indentLevel > 0 ? indentLevel : false
+                }, 'user');
+                quill.setSelection(lineStartIndex, 0, 'user');
+                syncListCounters(quill.root);
+                return;
+              }
+            }
           }
         }
       }
