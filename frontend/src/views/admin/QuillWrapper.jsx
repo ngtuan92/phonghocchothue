@@ -467,6 +467,32 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
             return true;
           }
         },
+        listSpaceIndent: {
+          key: ' ',
+          collapsed: true,
+          format: ['list'],
+          handler(range, context) {
+            const [line, offset] = this.quill.getLine(range.index);
+            if (!line) return true;
+            const lineStartIndex = range.index - offset;
+            const textBefore = this.quill.getText(lineStartIndex, offset);
+            // If cursor is at start of list item or only whitespace typed before cursor:
+            if (offset === 0 || textBefore.trim() === '') {
+              if (textBefore.length > 0) {
+                this.quill.deleteText(lineStartIndex, textBefore.length, 'user');
+              }
+              const curIndent = parseInt(context.format.indent || 0, 10);
+              const newIndent = Math.min(curIndent + 1, 8);
+              this.quill.format('indent', newIndent, 'user');
+              syncListCounters(this.quill.root);
+              try {
+                this.quill.setSelection(lineStartIndex, 0, 'silent');
+              } catch { /* ignore */ }
+              return false; // Prevent inserting space character into list item!
+            }
+            return true;
+          }
+        },
         'list autofill': {
           key: ' ',
           shiftKey: null,
@@ -476,32 +502,26 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
             blockquote: false,
             table: false
           },
-          prefix: /^\s*?(\d+\.|-|\*|\[ ?\]|\[x\])$/,
+          prefix: /^\s*?(\d+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/,
           handler(range, context) {
             if (this.quill.scroll.query('list') == null) return true;
             const { length } = context.prefix;
             const [line, offset] = this.quill.getLine(range.index);
             if (offset > length) return true;
 
-            const match = context.prefix.match(/^(\s*)(\d+\.|-|\*|\[ ?\]|\[x\])$/);
+            const match = context.prefix.match(/^(\s*)(\d+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
             const leadingWs = match ? match[1] : '';
             const rawMarker = match ? match[2] : context.prefix.trim();
 
             let value = 'ordered';
-            switch (rawMarker) {
-              case '[]':
-              case '[ ]':
-                value = 'unchecked';
-                break;
-              case '[x]':
-                value = 'checked';
-                break;
-              case '-':
-              case '*':
-                value = 'bullet';
-                break;
-              default:
-                value = 'ordered';
+            if (rawMarker === '[]' || rawMarker === '[ ]') {
+              value = 'unchecked';
+            } else if (rawMarker === '[x]') {
+              value = 'checked';
+            } else if (rawMarker === '-' || rawMarker === '*' || rawMarker === '+' || rawMarker === '.' || rawMarker === '•') {
+              value = 'bullet';
+            } else {
+              value = 'ordered';
             }
 
             const currentFmt = line.formats ? line.formats() : {};
@@ -525,29 +545,8 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
               }
             }
 
-            this.quill.insertText(range.index, ' ', Quill.sources.USER);
-            this.quill.history.cutoff();
-
-            const Delta = Quill.import('delta') || window.Delta;
-            if (Delta) {
-              const listAttrs = { list: value };
-              if (indentLevel > 0) {
-                listAttrs.indent = indentLevel;
-              }
-              const delta = new Delta()
-                .retain(range.index - offset)
-                .delete(length + 1)
-                .retain(line.length() - 2 - offset)
-                .retain(1, listAttrs);
-              this.quill.updateContents(delta, Quill.sources.USER);
-              this.quill.history.cutoff();
-              this.quill.setSelection(range.index - length, Quill.sources.SILENT);
-              syncListCounters(this.quill.root);
-              return false;
-            }
-
             const lineStartIndex = range.index - offset;
-            this.quill.deleteText(lineStartIndex, length + 1, 'user');
+            this.quill.deleteText(lineStartIndex, length, 'user');
             this.quill.formatLine(lineStartIndex, 1, {
               list: value,
               indent: indentLevel > 0 ? indentLevel : false
@@ -3482,11 +3481,26 @@ const QuillWrapper = forwardRef(({
     window.addEventListener('resize', handleResize);
     quill.root.addEventListener('scroll', handleScroll, true);
 
+    const getActiveSelection = () => {
+      try {
+        let s = quill.getSelection(true);
+        if (s && typeof s.index === 'number') return s;
+        const domSel = typeof window !== 'undefined' ? window.getSelection() : null;
+        if (domSel && domSel.rangeCount > 0) {
+          s = quill.getSelection(true);
+          if (s && typeof s.index === 'number') return s;
+        }
+      } catch { /* ignore */ }
+      if (savedSelectionRef.current && typeof savedSelectionRef.current.index === 'number') {
+        return savedSelectionRef.current;
+      }
+      return null;
+    };
+
     const handleKeydownCapture = (e) => {
       // 1. Handle Tab and Shift+Tab key for Lists and general tab indent
       if ((e.key === 'Tab' || e.keyCode === 9) && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        let sel = quill.getSelection();
-        if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
+        const sel = getActiveSelection();
         if (sel && typeof sel.index === 'number') {
           const [currentLine] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
@@ -3539,8 +3553,7 @@ const QuillWrapper = forwardRef(({
 
       // 1b. Handle Backspace at start of list line (outdent / remove list)
       if ((e.key === 'Backspace' || e.keyCode === 8) && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        let sel = quill.getSelection();
-        if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
+        const sel = getActiveSelection();
         if (sel && typeof sel.index === 'number' && sel.length === 0) {
           const [currentLine, offset] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
@@ -3575,20 +3588,53 @@ const QuillWrapper = forwardRef(({
       }
 
       // 1c. Handle Space key:
-      // (A) If on a list item and at offset 0 (or only whitespace before cursor):
+      // (A) Auto-convert manually spaced list lines like ".          text" into clean indented lists
+      // (B) If on a list item and at offset 0 (or only whitespace before cursor):
       //     Pressing Space INDENTS the list item (moves dot/number in with user's space, never leaves it stuck at đầu hàng)!
-      // (B) If typing spaces/tabs followed by list marker (e.g. "   .", "   1.", "   -", "   1,"):
+      // (C) If typing spaces/tabs followed by list marker (e.g. "   .", "   1.", "   -", "   1,"):
       //     Converts to child list with indentation corresponding to spaces, never jumps to đầu hàng!
       if ((e.key === ' ' || e.keyCode === 32) && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        let sel = quill.getSelection();
-        if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
+        const sel = getActiveSelection();
         if (sel && typeof sel.index === 'number' && sel.length === 0) {
           const [currentLine, offset] = quill.getLine(sel.index);
           if (currentLine) {
             const lineFormats = currentLine.formats ? currentLine.formats() : (quill.getFormat(sel) || {});
             if (!lineFormats['code-block'] && !lineFormats.table) {
               const lineStartIndex = sel.index - offset;
+              const lineLength = currentLine.length();
+              const wholeLineText = quill.getText(lineStartIndex, Math.max(0, lineLength - 1));
               const textBeforeCursor = quill.getText(lineStartIndex, offset);
+
+              // Auto-fix manual spaced list lines like ".          text" or "   .   text"
+              const manualSpacedMatch = wholeLineText.match(/^(\s*)(\.|\-|\*|\+|\•|\d+[.,)]|[a-zA-Z][.,)])(\s{2,})(.*)$/);
+              if (manualSpacedMatch) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                const spaces = manualSpacedMatch[1] || '';
+                const rawMarker = manualSpacedMatch[2];
+                const restText = (manualSpacedMatch[4] || '').trimStart();
+                let listType = 'ordered';
+                if (rawMarker === '-' || rawMarker === '*' || rawMarker === '+' || rawMarker === '.' || rawMarker === '•') {
+                  listType = 'bullet';
+                }
+
+                const effectiveSpaces = spaces.replace(/\t/g, '  ').length;
+                const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+
+                quill.deleteText(lineStartIndex, lineLength - 1, 'user');
+                if (restText.length > 0) {
+                  quill.insertText(lineStartIndex, restText + ' ', 'user');
+                }
+                quill.formatLine(lineStartIndex, 1, {
+                  list: listType,
+                  indent: wsIndent
+                }, 'user');
+                quill.setSelection(lineStartIndex + restText.length + 1, 0, 'user');
+                syncListCounters(quill.root);
+                return;
+              }
 
               // Case A: Cursor is at beginning of an existing list item (or only whitespace before cursor)
               if (lineFormats.list && textBeforeCursor.trim() === '') {
@@ -3749,18 +3795,7 @@ const QuillWrapper = forwardRef(({
       // 3. Handle Enter key
       if (e.key === 'Enter' || e.keyCode === 13) {
         try {
-          let sel = quill.getSelection();
-          if (!sel || typeof sel.index !== 'number') {
-            sel = savedSelectionRef.current;
-          }
-          if (!sel || typeof sel.index !== 'number') {
-            try {
-              const domSel = typeof window !== 'undefined' ? window.getSelection() : null;
-              if (domSel && domSel.rangeCount > 0) {
-                sel = quill.getSelection(true);
-              }
-            } catch { /* ignore */ }
-          }
+          const sel = getActiveSelection();
 
           if (sel && typeof sel.index === 'number') {
             // Only intercept plain Enter without modifiers
@@ -3960,19 +3995,6 @@ const QuillWrapper = forwardRef(({
     };
 
     quill.root.addEventListener('keydown', handleKeydownCapture, true);
-
-    try {
-      if (quill.keyboard && quill.keyboard.bindings) {
-        [' ', 32].forEach((k) => {
-          if (Array.isArray(quill.keyboard.bindings[k])) {
-            quill.keyboard.bindings[k] = quill.keyboard.bindings[k].filter((b) => {
-              const pStr = b?.prefix ? b.prefix.toString() : '';
-              return !pStr.includes('d+\\.') && !pStr.includes('list');
-            });
-          }
-        });
-      }
-    } catch { /* ignore */ }
 
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(quill.root);
@@ -5770,19 +5792,13 @@ const QuillWrapper = forwardRef(({
                 // User tabbed or spaced before selecting list
                 finalIndent = wsIndent;
               } else {
-                const isSwitchingFromBulletToOrdered = (
-                  value === 'ordered' && (currentFmt.list === 'bullet' || (!currentFmt.list && prevFmt.list === 'bullet'))
-                );
-                const isSwitchingFromOrderedToBullet = (
-                  value === 'bullet' && (currentFmt.list === 'ordered' || (!currentFmt.list && prevFmt.list === 'ordered'))
-                );
-
-                if (isSwitchingFromBulletToOrdered || isSwitchingFromOrderedToBullet) {
-                  const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
-                  finalIndent = Math.min(baseIndent + 1, 8);
+                const isSwitchingFormatOnSameItem = Boolean(currentFmt.list && currentFmt.list !== value);
+                if (isSwitchingFormatOnSameItem) {
+                  const baseIndent = parseInt(currentFmt.indent || 0, 10);
+                  finalIndent = baseIndent > 0 ? baseIndent : 1;
                 } else if (currentFmt.list) {
                   finalIndent = currentFmt.indent || false;
-                } else if (prevFmt.list) {
+                } else if (prevFmt.list && lineText.trim().length === 0) {
                   const prevIndent = parseInt(prevFmt.indent || 0, 10);
                   if (prevFmt.list !== value) {
                     finalIndent = Math.min(prevIndent + 1, 8);
