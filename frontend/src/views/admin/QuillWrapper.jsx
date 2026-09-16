@@ -1085,6 +1085,19 @@ const syncListCounters = (root) => {
     let prevIndent = 0;
 
     items.forEach((li) => {
+      // Clean up accidental leading tabs/spaces inside <li> DOM text nodes so bullet is attached to text
+      if (li.firstChild && li.firstChild.nodeType === 3) {
+        const textVal = li.firstChild.nodeValue || '';
+        const leadMatch = textVal.match(/^[\t ]+/);
+        if (leadMatch) {
+          li.firstChild.nodeValue = textVal.slice(leadMatch[0].length);
+          if (!li.className.includes('ql-indent-')) {
+            li.classList.add('ql-indent-1');
+            changedCount += 1;
+          }
+        }
+      }
+
       const type = li.getAttribute('data-list');
       const match = li.className.match(/ql-indent-(\d+)/);
       const indent = match ? parseInt(match[1], 10) : 0;
@@ -3482,21 +3495,34 @@ const QuillWrapper = forwardRef(({
             e.stopPropagation();
             e.stopImmediatePropagation();
 
+            const lineStartIndex = quill.getIndex(currentLine);
+            const lineLength = currentLine.length();
+            const lineText = quill.getText(lineStartIndex, lineLength);
+            const leadingWsMatch = lineText.match(/^([\t ]+)/);
+            let cleanedOffset = 0;
+            if (leadingWsMatch) {
+              cleanedOffset = leadingWsMatch[1].length;
+              quill.deleteText(lineStartIndex, cleanedOffset, 'user');
+            }
+
             const curIndent = parseInt(lineFormats.indent || 0, 10);
             if (e.shiftKey) {
               // Shift + Tab: Outdent
               if (curIndent > 0) {
-                quill.formatLine(sel.index, Math.max(sel.length, 1), 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+                quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
               } else {
-                quill.formatLine(sel.index, Math.max(sel.length, 1), { list: false, indent: false }, 'user');
+                quill.formatLine(lineStartIndex, 1, { list: false, indent: false }, 'user');
               }
             } else {
               // Tab: Indent (+1 level, max 8)
               const newIndent = Math.min(curIndent + 1, 8);
-              quill.formatLine(sel.index, Math.max(sel.length, 1), 'indent', newIndent, 'user');
+              quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
             }
             syncListCounters(quill.root);
-            try { quill.setSelection(sel.index, sel.length, 'silent'); } catch { /* ignore */ }
+            try {
+              const targetPos = Math.max(lineStartIndex, sel.index - cleanedOffset);
+              quill.setSelection(targetPos, 0, 'silent');
+            } catch { /* ignore */ }
             return;
           }
 
@@ -5658,51 +5684,72 @@ const QuillWrapper = forwardRef(({
             const prevLine = currentLine?.prev;
             const prevFmt = prevLine ? prevLine.formats() : {};
 
+            const lineStartIndex = quill.getIndex(currentLine);
+            const lineLength = currentLine.length();
+            const lineText = quill.getText(lineStartIndex, lineLength);
+
+            // Check for leading tabs and spaces in the text
+            const leadingWsMatch = lineText.match(/^([\t ]+)/);
+            let leadingWsLen = 0;
+            let wsIndent = 0;
+            if (leadingWsMatch) {
+              const leadingWs = leadingWsMatch[1];
+              leadingWsLen = leadingWs.length;
+              const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
+              wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+            }
+
             // 1. Toggling off active list (clicking same list icon to deactivate list)
-            if (!value || currentFmt.list === value) {
+            if (!value || (currentFmt.list === value && wsIndent === 0)) {
               const curIndent = parseInt(currentFmt.indent || 0, 10);
               if (currentFmt.list === value && curIndent > 0) {
                 // Outdent 1 level when toggling indented item
-                quill.formatLine(range.index, Math.max(range.length, 1), 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+                quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
               } else {
-                quill.formatLine(range.index, Math.max(range.length, 1), { list: false, indent: false }, 'user');
+                quill.formatLine(lineStartIndex, 1, { list: false, indent: false }, 'user');
               }
             } else {
-              // 2. Switching list type:
-              // - Switching bullet -> ordered: thut le vao trong (+1 level tu bullet hien tai hoac prev)
-              // - Switching ordered -> bullet: thut le vao trong (+1 level tu so hien tai hoac prev)
-              const isSwitchingFromBulletToOrdered = (
-                value === 'ordered' && (currentFmt.list === 'bullet' || (!currentFmt.list && prevFmt.list === 'bullet'))
-              );
-              const isSwitchingFromOrderedToBullet = (
-                value === 'bullet' && (currentFmt.list === 'ordered' || (!currentFmt.list && prevFmt.list === 'ordered'))
-              );
-
-              if (isSwitchingFromBulletToOrdered) {
-                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
-                const newIndent = Math.min(baseIndent + 1, 8);
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: 'ordered',
-                  indent: newIndent
-                }, 'user');
-              } else if (isSwitchingFromOrderedToBullet) {
-                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
-                const newIndent = Math.min(baseIndent + 1, 8);
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: 'bullet',
-                  indent: newIndent
-                }, 'user');
-              } else if (currentFmt.list) {
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: value,
-                  indent: currentFmt.indent || false
-                }, 'user');
-              } else {
-                quill.formatLine(range.index, Math.max(range.length, 1), {
-                  list: value,
-                  indent: false
-                }, 'user');
+              // Strip leading tabs/spaces from the text so bullet/number attaches directly next to text
+              if (leadingWsLen > 0) {
+                quill.deleteText(lineStartIndex, leadingWsLen, 'user');
               }
+
+              // Determine final indent level:
+              let finalIndent = false;
+              if (wsIndent > 0) {
+                // User tabbed or spaced before selecting list
+                finalIndent = wsIndent;
+              } else {
+                const isSwitchingFromBulletToOrdered = (
+                  value === 'ordered' && (currentFmt.list === 'bullet' || (!currentFmt.list && prevFmt.list === 'bullet'))
+                );
+                const isSwitchingFromOrderedToBullet = (
+                  value === 'bullet' && (currentFmt.list === 'ordered' || (!currentFmt.list && prevFmt.list === 'ordered'))
+                );
+
+                if (isSwitchingFromBulletToOrdered || isSwitchingFromOrderedToBullet) {
+                  const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
+                  finalIndent = Math.min(baseIndent + 1, 8);
+                } else if (currentFmt.list) {
+                  finalIndent = currentFmt.indent || false;
+                } else if (prevFmt.list) {
+                  const prevIndent = parseInt(prevFmt.indent || 0, 10);
+                  if (prevFmt.list !== value) {
+                    finalIndent = Math.min(prevIndent + 1, 8);
+                  } else {
+                    finalIndent = prevIndent === 0 ? false : prevIndent;
+                  }
+                }
+              }
+
+              quill.formatLine(lineStartIndex, 1, {
+                list: value,
+                indent: finalIndent
+              }, 'user');
+
+              try {
+                quill.setSelection(lineStartIndex, 0, 'user');
+              } catch { /* ignore */ }
             }
 
             syncListCounters(quill.root);
