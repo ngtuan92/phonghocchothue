@@ -1058,11 +1058,46 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: list-item !important;
           line-height: inherit;
           list-style-position: outside !important;
+        }
+        .rich-text-renderer li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
           padding-left: 0 !important;
         }
+        /* Hierarchical Indentation (Google Docs / Word style) */
+        .rich-text-renderer li.ql-indent-1 { margin-left: 2rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-2 { margin-left: 4rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-3 { margin-left: 6rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-4 { margin-left: 8rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-5 { margin-left: 10rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-6 { margin-left: 12rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-7 { margin-left: 14rem !important; padding-left: 0 !important; }
+        .rich-text-renderer li.ql-indent-8 { margin-left: 16rem !important; padding-left: 0 !important; }
+
+        @media (max-width: 640px) {
+          .rich-text-renderer li.ql-indent-1 { margin-left: 1.25rem !important; }
+          .rich-text-renderer li.ql-indent-2 { margin-left: 2.5rem !important; }
+          .rich-text-renderer li.ql-indent-3 { margin-left: 3.75rem !important; }
+          .rich-text-renderer li.ql-indent-4 { margin-left: 5rem !important; }
+        }
+
+        /* Bullet marker hierarchy (Level 0: disc •, Level 1: circle ◦, Level 2: square ▪) */
         .rich-text-renderer li[data-list="bullet"] {
           list-style-type: disc !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-1 {
+          list-style-type: circle !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-2 {
+          list-style-type: square !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-3 {
+          list-style-type: disc !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-4 {
+          list-style-type: circle !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-5 {
+          list-style-type: square !important;
         }
         .rich-text-renderer li[data-list="ordered"] {
           list-style-type: none !important;

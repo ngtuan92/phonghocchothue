@@ -3351,19 +3351,70 @@ const QuillWrapper = forwardRef(({
     quill.root.addEventListener('scroll', handleScroll, true);
 
     const handleKeydownCapture = (e) => {
-      // 1. Handle Tab key to insert actual tab character instead of losing focus
-      if ((e.key === 'Tab' || e.keyCode === 9) && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // 1. Handle Tab and Shift+Tab key for Lists and general tab indent
+      if ((e.key === 'Tab' || e.keyCode === 9) && !e.ctrlKey && !e.altKey && !e.metaKey) {
         let sel = quill.getSelection();
         if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
         if (sel && typeof sel.index === 'number') {
           const fmts = quill.getFormat(sel);
-          if (!fmts.list && !fmts.table) {
+          if (fmts.list) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            const curIndent = parseInt(fmts.indent || 0, 10);
+            if (e.shiftKey) {
+              // Shift + Tab: Outdent
+              if (curIndent > 0) {
+                quill.formatLine(sel.index, Math.max(sel.length, 1), 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+              } else {
+                quill.formatLine(sel.index, Math.max(sel.length, 1), { list: false, indent: false }, 'user');
+              }
+            } else {
+              // Tab: Indent (+1 level, max 8)
+              const newIndent = Math.min(curIndent + 1, 8);
+              quill.formatLine(sel.index, Math.max(sel.length, 1), 'indent', newIndent, 'user');
+            }
+            syncListCounters(quill.root);
+            try { quill.setSelection(sel.index, sel.length, 'silent'); } catch { /* ignore */ }
+            return;
+          }
+
+          if (!e.shiftKey && !fmts.table) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             quill.insertText(sel.index, '\t', 'user');
             quill.setSelection(sel.index + 1, 0, 'user');
             return;
+          }
+        }
+      }
+
+      // 1b. Handle Backspace at start of list line (outdent / remove list)
+      if ((e.key === 'Backspace' || e.keyCode === 8) && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        let sel = quill.getSelection();
+        if (!sel || typeof sel.index !== 'number') sel = savedSelectionRef.current;
+        if (sel && typeof sel.index === 'number' && sel.length === 0) {
+          const fmts = quill.getFormat(sel);
+          if (fmts.list) {
+            const [currentLine, offset] = quill.getLine(sel.index);
+            if (currentLine && offset === 0) {
+              const curIndent = parseInt(fmts.indent || 0, 10);
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+
+              if (curIndent > 0) {
+                // Outdent by 1 level
+                quill.formatLine(sel.index, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+              } else {
+                // At level 0: remove list
+                quill.formatLine(sel.index, 1, { list: false, indent: false }, 'user');
+              }
+              syncListCounters(quill.root);
+              return;
+            }
           }
         }
       }
@@ -3470,7 +3521,44 @@ const QuillWrapper = forwardRef(({
             // Only intercept plain Enter without modifiers
             if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
               const currentFormats = quill.getFormat(sel);
-              if (!currentFormats.list && !currentFormats['code-block'] && !currentFormats.table) {
+              if (currentFormats.list) {
+                const [currentLine, offset] = quill.getLine(sel.index);
+                if (currentLine) {
+                  const lineStartIndex = sel.index - offset;
+                  const lineLength = currentLine.length();
+                  const lineText = quill.getText(lineStartIndex, lineLength).replace(/\n$/, '');
+                  // Empty list item: Enter outdents or exits list (Google Docs / Word style)
+                  if (lineText.trim().length === 0) {
+                    const curIndent = parseInt(currentFormats.indent || 0, 10);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    if (curIndent > 0) {
+                      const newIndent = curIndent - 1;
+                      let parentListType = currentFormats.list;
+                      let checkLine = currentLine.prev;
+                      while (checkLine) {
+                        const checkIdx = quill.getIndex(checkLine);
+                        const checkFmt = quill.getFormat(checkIdx, 1);
+                        if (checkFmt.list && parseInt(checkFmt.indent || 0, 10) === newIndent) {
+                          parentListType = checkFmt.list;
+                          break;
+                        }
+                        checkLine = checkLine.prev;
+                      }
+                      quill.formatLine(sel.index, 1, {
+                        list: parentListType,
+                        indent: newIndent === 0 ? false : newIndent
+                      }, 'user');
+                    } else {
+                      quill.formatLine(sel.index, 1, { list: false, indent: false }, 'user');
+                    }
+                    syncListCounters(quill.root);
+                    return;
+                  }
+                }
+              } else if (!currentFormats['code-block'] && !currentFormats.table) {
                 const [currentLine, offset] = quill.getLine(sel.index);
                 if (currentLine) {
                   const lineStartIndex = sel.index - offset;
@@ -5394,37 +5482,36 @@ const QuillWrapper = forwardRef(({
               const curIndent = parseInt(currentFmt.indent || 0, 10);
               if (currentFmt.list === value && curIndent > 0) {
                 // Outdent 1 level when toggling indented item
-                quill.formatLine(range.index, Math.max(range.length, 1), 'indent', curIndent - 1, 'user');
+                quill.formatLine(range.index, Math.max(range.length, 1), 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
               } else {
                 quill.formatLine(range.index, Math.max(range.length, 1), { list: false, indent: false }, 'user');
               }
             } else {
               // 2. Switching list type:
-              // - Switching bullet -> ordered: thut le vao trong (+1 level tu bullet truoc do)
-              // - Switching ordered -> bullet: thut le vao trong (+1 level tu so truoc do)
-              const isSwitchingFromBulletToOrdered = (
-                value === 'ordered' && (currentFmt.list === 'bullet' || (!currentFmt.list && prevFmt.list === 'bullet'))
-              );
-              const isSwitchingFromOrderedToBullet = (
-                value === 'bullet' && (currentFmt.list === 'ordered' || (!currentFmt.list && prevFmt.list === 'ordered'))
-              );
+              // - Switching bullet -> ordered: thut le vao trong (+1 level tu bullet hien tai)
+              // - Switching ordered -> bullet: thut le vao trong (+1 level tu so hien tai)
+              const isSwitchingFromBulletToOrdered = (value === 'ordered' && currentFmt.list === 'bullet');
+              const isSwitchingFromOrderedToBullet = (value === 'bullet' && currentFmt.list === 'ordered');
 
               if (isSwitchingFromBulletToOrdered) {
-                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
+                const baseIndent = parseInt(currentFmt.indent || 0, 10);
                 const newIndent = Math.min(baseIndent + 1, 8);
                 quill.formatLine(range.index, Math.max(range.length, 1), {
                   list: 'ordered',
                   indent: newIndent
                 }, 'user');
               } else if (isSwitchingFromOrderedToBullet) {
-                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
+                const baseIndent = parseInt(currentFmt.indent || 0, 10);
                 const newIndent = Math.min(baseIndent + 1, 8);
                 quill.formatLine(range.index, Math.max(range.length, 1), {
                   list: 'bullet',
                   indent: newIndent
                 }, 'user');
               } else {
-                quill.formatLine(range.index, Math.max(range.length, 1), 'list', value, 'user');
+                quill.formatLine(range.index, Math.max(range.length, 1), {
+                  list: value,
+                  indent: false
+                }, 'user');
               }
             }
 
@@ -8056,6 +8143,9 @@ const QuillWrapper = forwardRef(({
         .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li,
         .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li {
           display: list-item !important;
+        }
+        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li:not([class*="ql-indent-"]),
+        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
           padding-left: 0 !important;
         }
@@ -8099,10 +8189,109 @@ const QuillWrapper = forwardRef(({
           overflow-wrap: break-word !important;
           word-break: normal !important;
         }
+        /* Hierarchical Indentation (Google Docs / Word style) */
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
+        .quill-wrapper-container .ql-editor li.ql-indent-1 {
+          margin-left: 2rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
+        .quill-wrapper-container .ql-editor li.ql-indent-2 {
+          margin-left: 4rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
+        .quill-wrapper-container .ql-editor li.ql-indent-3 {
+          margin-left: 6rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
+        .quill-wrapper-container .ql-editor li.ql-indent-4 {
+          margin-left: 8rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5,
+        .quill-wrapper-container .ql-editor li.ql-indent-5 {
+          margin-left: 10rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6,
+        .quill-wrapper-container .ql-editor li.ql-indent-6 {
+          margin-left: 12rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7,
+        .quill-wrapper-container .ql-editor li.ql-indent-7 {
+          margin-left: 14rem !important;
+          padding-left: 0 !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8,
+        .quill-wrapper-container .ql-editor li.ql-indent-8 {
+          margin-left: 16rem !important;
+          padding-left: 0 !important;
+        }
+
+        @media (max-width: 640px) {
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
+          .quill-wrapper-container .ql-editor li.ql-indent-1 {
+            margin-left: 1.25rem !important;
+          }
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
+          .quill-wrapper-container .ql-editor li.ql-indent-2 {
+            margin-left: 2.5rem !important;
+          }
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
+          .quill-wrapper-container .ql-editor li.ql-indent-3 {
+            margin-left: 3.75rem !important;
+          }
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
+          .quill-wrapper-container .ql-editor li.ql-indent-4 {
+            margin-left: 5rem !important;
+          }
+        }
+
+        /* Bullet marker hierarchy (Level 0: disc •, Level 1: circle ◦, Level 2: square ▪) */
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"],
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"],
         .quill-wrapper-container .ql-editor li[data-list="bullet"] {
           list-style-type: disc !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1,
+        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1 {
+          list-style-type: circle !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2,
+        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2 {
+          list-style-type: square !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3,
+        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3 {
+          list-style-type: disc !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4,
+        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4 {
+          list-style-type: circle !important;
+        }
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5,
+        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5 {
+          list-style-type: square !important;
         }
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"],
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"],
