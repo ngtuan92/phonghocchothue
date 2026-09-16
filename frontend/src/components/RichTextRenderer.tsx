@@ -1040,88 +1040,142 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin: 1rem auto !important;
           display: block !important;
         }
-        .rich-text-renderer ul,
-        .rich-text-renderer ol {
-          padding-left: 1.5rem !important;
-          margin: 0.5rem 0 !important;
-        }
+        /* Unified List System (Google Docs / Word style) - 100% horizontally aligned */
+        .rich-text-renderer ol,
         .rich-text-renderer ul {
-          list-style-type: disc !important;
-        }
-        .rich-text-renderer ol:not(:has(li[data-list])) {
-          list-style-type: decimal !important;
-        }
-        .rich-text-renderer ol:has(li[data-list]) {
-          list-style-type: decimal !important;
+          list-style: none !important;
+          list-style-type: none !important;
+          padding-left: 0 !important;
+          margin: 0 0 1rem 0 !important;
         }
         .rich-text-renderer li {
-          display: list-item !important;
-          line-height: inherit;
-          list-style-position: outside !important;
-        }
-        .rich-text-renderer li:not([class*="ql-indent-"]) {
-          margin-left: 0 !important;
-          padding-left: 0 !important;
-        }
-        /* Hierarchical Indentation (Google Docs / Word style) */
-        .rich-text-renderer li.ql-indent-1 { margin-left: 2rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-2 { margin-left: 4rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-3 { margin-left: 6rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-4 { margin-left: 8rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-5 { margin-left: 10rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-6 { margin-left: 12rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-7 { margin-left: 14rem !important; padding-left: 0 !important; }
-        .rich-text-renderer li.ql-indent-8 { margin-left: 16rem !important; padding-left: 0 !important; }
-
-        @media (max-width: 640px) {
-          .rich-text-renderer li.ql-indent-1 { margin-left: 1.25rem !important; }
-          .rich-text-renderer li.ql-indent-2 { margin-left: 2.5rem !important; }
-          .rich-text-renderer li.ql-indent-3 { margin-left: 3.75rem !important; }
-          .rich-text-renderer li.ql-indent-4 { margin-left: 5rem !important; }
-        }
-
-        /* Bullet marker hierarchy (Level 0: disc •, Level 1: circle ◦, Level 2: square ▪) */
-        .rich-text-renderer li[data-list="bullet"] {
-          list-style-type: disc !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-1 {
-          list-style-type: circle !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-2 {
-          list-style-type: square !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-3 {
-          list-style-type: disc !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-4 {
-          list-style-type: circle !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-5 {
-          list-style-type: square !important;
-        }
-        .rich-text-renderer li[data-list="ordered"] {
+          display: block !important;
+          position: relative !important;
+          box-sizing: border-box !important;
+          list-style: none !important;
           list-style-type: none !important;
-          counter-increment: none !important;
+          padding-left: 28px !important;
+          margin-top: 0.25rem !important;
+          margin-bottom: 0.25rem !important;
+          line-height: 1.6 !important;
         }
-        .rich-text-renderer li[data-list="ordered"]::marker {
-          content: none !important;
-        }
-        .rich-text-renderer li[data-list="ordered"]::before {
-          content: counter(ql-ordered-counter) ". " !important;
-          display: inline !important;
-          color: currentColor !important;
-          font-size: inherit !important;
-          line-height: inherit !important;
-          margin-right: 0.3em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"]::before {
+        .rich-text-renderer li::marker,
+        .rich-text-renderer li *::marker {
           content: none !important;
           display: none !important;
         }
-        .rich-text-renderer li::marker {
-          color: currentColor;
-          font-size: 1em;
-          line-height: inherit;
+        .rich-text-renderer li .ql-ui {
+          display: none !important;
+        }
+
+        /* Unified marker prefix slot [0, 24px] for BOTH bullet and ordered */
+        .rich-text-renderer li::before {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 24px !important;
+          height: 1.6em !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: flex-end !important;
+          padding-right: 6px !important;
+          box-sizing: border-box !important;
+          color: currentColor !important;
+          font-size: inherit !important;
+          line-height: inherit !important;
+          font-weight: normal !important;
+          pointer-events: none !important;
+          user-select: none !important;
+        }
+
+        /* Bullet symbols by indent level (Google Docs / Word hierarchy) */
+        .rich-text-renderer li[data-list="bullet"]::before {
+          content: "•" !important;
+          font-size: 1.15em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-1::before {
+          content: "◦" !important;
+          font-size: 1.15em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-2::before {
+          content: "▪" !important;
+          font-size: 0.9em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-3::before {
+          content: "•" !important;
+          font-size: 1.15em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-4::before {
+          content: "◦" !important;
+          font-size: 1.15em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-5::before {
+          content: "▪" !important;
+          font-size: 0.9em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-6::before {
+          content: "•" !important;
+          font-size: 1.15em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-7::before {
+          content: "◦" !important;
+          font-size: 1.15em !important;
+        }
+        .rich-text-renderer li[data-list="bullet"].ql-indent-8::before {
+          content: "▪" !important;
+          font-size: 0.9em !important;
+        }
+
+        /* Ordered list numbering */
+        .rich-text-renderer li[data-list="ordered"] {
+          counter-increment: none !important;
+        }
+        .rich-text-renderer li[data-list="ordered"]::before {
+          content: counter(ql-ordered-counter) "." !important;
+        }
+
+        /* Hierarchical Indentation (Google Docs / Word style: 2rem = 32px per level) */
+        .rich-text-renderer li:not([class*="ql-indent-"]) {
+          margin-left: 0 !important;
+        }
+        .rich-text-renderer li.ql-indent-1 {
+          margin-left: 2rem !important;
+        }
+        .rich-text-renderer li.ql-indent-2 {
+          margin-left: 4rem !important;
+        }
+        .rich-text-renderer li.ql-indent-3 {
+          margin-left: 6rem !important;
+        }
+        .rich-text-renderer li.ql-indent-4 {
+          margin-left: 8rem !important;
+        }
+        .rich-text-renderer li.ql-indent-5 {
+          margin-left: 10rem !important;
+        }
+        .rich-text-renderer li.ql-indent-6 {
+          margin-left: 12rem !important;
+        }
+        .rich-text-renderer li.ql-indent-7 {
+          margin-left: 14rem !important;
+        }
+        .rich-text-renderer li.ql-indent-8 {
+          margin-left: 16rem !important;
+        }
+
+        @media (max-width: 640px) {
+          .rich-text-renderer li.ql-indent-1 {
+            margin-left: 1.25rem !important;
+          }
+          .rich-text-renderer li.ql-indent-2 {
+            margin-left: 2.5rem !important;
+          }
+          .rich-text-renderer li.ql-indent-3 {
+            margin-left: 3.75rem !important;
+          }
+          .rich-text-renderer li.ql-indent-4 {
+            margin-left: 5rem !important;
+          }
         }
         .rich-text-renderer .ql-ui {
           content: none !important;
