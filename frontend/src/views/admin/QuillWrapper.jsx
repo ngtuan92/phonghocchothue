@@ -954,6 +954,83 @@ const syncListItemFontSizeFromChildren = (root) => {
   return changedCount;
 };
 
+const syncListCounters = (root) => {
+  if (!root?.querySelectorAll) return 0;
+  let changedCount = 0;
+
+  const listContainers = root.querySelectorAll('ol, ul');
+  listContainers.forEach((container) => {
+    const items = Array.from(container.querySelectorAll(':scope > li'));
+    const levelCounters = {};
+    let prevType = null;
+    let prevIndent = 0;
+
+    items.forEach((li) => {
+      const type = li.getAttribute('data-list');
+      const match = li.className.match(/ql-indent-(\d+)/);
+      const indent = match ? parseInt(match[1], 10) : 0;
+
+      if (type === 'ordered') {
+        // Reset counters for deeper levels when returning to shallower level
+        Object.keys(levelCounters).forEach((lvl) => {
+          if (parseInt(lvl, 10) > indent) {
+            delete levelCounters[lvl];
+          }
+        });
+
+        // Sequence logic:
+        // - Indent increased (nested sub-list) -> starts at 1
+        // - First ordered item at this level -> starts at 1
+        // - Follows a bullet item at the SAME level -> starts at 1
+        if (indent > prevIndent || levelCounters[indent] == null) {
+          levelCounters[indent] = 1;
+        } else if (prevType === 'bullet' && indent === prevIndent) {
+          levelCounters[indent] = 1;
+        } else {
+          levelCounters[indent] += 1;
+        }
+
+        const count = levelCounters[indent];
+        const strCount = String(count);
+        if (li.getAttribute('value') !== strCount) {
+          li.setAttribute('value', strCount);
+          li.value = count;
+          changedCount += 1;
+        }
+        if (li.style.getPropertyValue('counter-reset') !== `ql-ordered-counter ${count}`) {
+          li.style.setProperty('counter-reset', `ql-ordered-counter ${count}`);
+          changedCount += 1;
+        }
+
+        prevType = 'ordered';
+        prevIndent = indent;
+      } else if (type === 'bullet') {
+        if (li.hasAttribute('value')) {
+          li.removeAttribute('value');
+          changedCount += 1;
+        }
+        if (li.style.getPropertyValue('counter-reset')) {
+          li.style.removeProperty('counter-reset');
+          changedCount += 1;
+        }
+        Object.keys(levelCounters).forEach((lvl) => {
+          if (parseInt(lvl, 10) > indent) {
+            delete levelCounters[lvl];
+          }
+        });
+        prevType = 'bullet';
+        prevIndent = indent;
+      } else {
+        prevType = null;
+        prevIndent = 0;
+      }
+    });
+  });
+
+  return changedCount;
+};
+
+
 const selectionTouchesList = (quill, selection) => {
   if (!quill || !selection || selection.length <= 0) return false;
 
@@ -3213,6 +3290,7 @@ const QuillWrapper = forwardRef(({
       listSizeSyncFrameRef.current = window.requestAnimationFrame(() => {
         listSizeSyncFrameRef.current = 0;
         syncListItemFontSizeFromChildren(quill.root);
+        syncListCounters(quill.root);
       });
     }
 
@@ -4870,6 +4948,9 @@ const QuillWrapper = forwardRef(({
         if (isNewlineOrStructureChange) {
           syncUnwrappedParagraphs();
         }
+        if (quillRoot) {
+          syncListCounters(quillRoot);
+        }
         const draftContent = quillRoot?.innerHTML || content || "";
         isUserEditingRef.current = true;
         localEditorHtmlRef.current = draftContent;
@@ -4919,6 +5000,9 @@ const QuillWrapper = forwardRef(({
           syncListItemFontSizeFromChildren(quillRoot);
         }
         syncUnwrappedParagraphs();
+      }
+      if (quillRoot) {
+        syncListCounters(quillRoot);
       }
       const syncedContent = quillRoot?.innerHTML || content;
       isUserEditingRef.current = true;
@@ -5286,6 +5370,85 @@ const QuillWrapper = forwardRef(({
           quill.format('header', value || false, 'user');
           window.setTimeout(() => {
             try {
+              localEditorHtmlRef.current = quill.root.innerHTML;
+              toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+            } catch { /* ignore */ }
+          }, 0);
+        },
+        list: function (value) {
+          const quill = this.quill;
+          const range = quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+          if (!range) {
+            quill.format('list', value || false, 'user');
+            return;
+          }
+
+          try {
+            const [currentLine] = quill.getLine(range.index);
+            const currentFmt = quill.getFormat(range);
+            const prevLine = currentLine?.prev;
+            const prevFmt = prevLine ? quill.getFormat(quill.getIndex(prevLine), 1) : {};
+
+            // 1. Toggling off active list (clicking same list icon to deactivate list)
+            if (!value || currentFmt.list === value) {
+              const curIndent = parseInt(currentFmt.indent || 0, 10);
+              if (currentFmt.list === value && curIndent > 0) {
+                // Outdent 1 level when toggling indented item
+                quill.formatLine(range.index, Math.max(range.length, 1), 'indent', curIndent - 1, 'user');
+              } else {
+                quill.formatLine(range.index, Math.max(range.length, 1), { list: false, indent: false }, 'user');
+              }
+            } else {
+              // 2. Switching list type:
+              // - Switching bullet -> ordered: thut le vao trong (+1 level tu bullet truoc do)
+              // - Switching ordered -> bullet: thut le vao trong (+1 level tu so truoc do)
+              const isSwitchingFromBulletToOrdered = (
+                value === 'ordered' && (currentFmt.list === 'bullet' || (!currentFmt.list && prevFmt.list === 'bullet'))
+              );
+              const isSwitchingFromOrderedToBullet = (
+                value === 'bullet' && (currentFmt.list === 'ordered' || (!currentFmt.list && prevFmt.list === 'ordered'))
+              );
+
+              if (isSwitchingFromBulletToOrdered) {
+                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
+                const newIndent = Math.min(baseIndent + 1, 8);
+                quill.formatLine(range.index, Math.max(range.length, 1), {
+                  list: 'ordered',
+                  indent: newIndent
+                }, 'user');
+              } else if (isSwitchingFromOrderedToBullet) {
+                const baseIndent = parseInt((currentFmt.list ? currentFmt.indent : prevFmt.indent) || 0, 10);
+                const newIndent = Math.min(baseIndent + 1, 8);
+                quill.formatLine(range.index, Math.max(range.length, 1), {
+                  list: 'bullet',
+                  indent: newIndent
+                }, 'user');
+              } else {
+                quill.formatLine(range.index, Math.max(range.length, 1), 'list', value, 'user');
+              }
+            }
+
+            syncListCounters(quill.root);
+            try {
+              setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+            } catch { /* ignore */ }
+
+            window.setTimeout(() => {
+              try {
+                syncListCounters(quill.root);
+                localEditorHtmlRef.current = quill.root.innerHTML;
+                toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
+              } catch { /* ignore */ }
+            }, 0);
+            return;
+          } catch (err) {
+            console.error('list handler error:', err);
+          }
+
+          quill.format('list', value || false, 'user');
+          window.setTimeout(() => {
+            try {
+              syncListCounters(quill.root);
               localEditorHtmlRef.current = quill.root.innerHTML;
               toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
             } catch { /* ignore */ }
@@ -6584,6 +6747,7 @@ const QuillWrapper = forwardRef(({
     if (!quill?.root) return;
 
     syncListItemFontSizeFromChildren(quill.root);
+    syncListCounters(quill.root);
   }, [absoluteValue, getQuillEditor]);
 
   let editorValue = localEditorHtmlRef.current ?? absoluteValue;
@@ -6677,6 +6841,7 @@ const QuillWrapper = forwardRef(({
       const quill = getQuillEditor();
       if (quill?.root) {
         syncListItemFontSizeFromChildren(quill.root);
+        syncListCounters(quill.root);
       }
     }, delay));
 
@@ -7934,30 +8099,25 @@ const QuillWrapper = forwardRef(({
           overflow-wrap: break-word !important;
           word-break: normal !important;
         }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"],
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] {
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"],
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"],
+        .quill-wrapper-container .ql-editor li[data-list="bullet"] {
           list-style-type: disc !important;
-          /* Reset ql-ordered-counter khi gap bullet, de ordered sequence tiep theo bat dau tu 1 */
-          counter-reset: ql-ordered-counter !important;
         }
-        /* Reset counter khi la ordered item dau tien trong ol hoac dung sau bullet item */
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol > li[data-list="ordered"]:first-child,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor ol > li[data-list="ordered"]:first-child,
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] + li[data-list="ordered"],
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"] + li[data-list="ordered"] {
-          counter-reset: ql-ordered-counter !important;
-        }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"],
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"] {
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"],
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"],
+        .quill-wrapper-container .ql-editor li[data-list="ordered"] {
           list-style-type: none !important;
-          counter-increment: ql-ordered-counter !important;
+          counter-increment: none !important;
         }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::marker,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::marker {
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"]::marker,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"]::marker,
+        .quill-wrapper-container .ql-editor li[data-list="ordered"]::marker {
           content: none !important;
         }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::before,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="ordered"]::before {
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"]::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="ordered"]::before,
+        .quill-wrapper-container .ql-editor li[data-list="ordered"]::before {
           content: counter(ql-ordered-counter) ". " !important;
           display: inline !important;
           color: currentColor !important;
@@ -7966,13 +8126,15 @@ const QuillWrapper = forwardRef(({
           margin-right: 0.3em !important;
         }
         /* bullet items giu nguyen ::before none tu rule o tren */
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"]::before,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li[data-list="bullet"]::before {
+        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"]::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"]::before,
+        .quill-wrapper-container .ql-editor li[data-list="bullet"]::before {
           content: none !important;
           display: none !important;
         }
-        .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::marker,
-        .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor li::marker {
+        .room-desc-editor.quill-wrapper-container .ql-editor li::marker,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li::marker,
+        .quill-wrapper-container .ql-editor li::marker {
           color: currentColor;
           font-size: 1em;
           line-height: inherit;

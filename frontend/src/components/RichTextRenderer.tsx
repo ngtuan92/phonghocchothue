@@ -765,6 +765,65 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
+      // Synchronize ordered list counters per sequence & indent level
+      const listContainers = root?.querySelectorAll('ol, ul');
+      listContainers?.forEach((container) => {
+        const items = Array.from(container.querySelectorAll(':scope > li'));
+        const levelCounters: Record<number, number> = {};
+        let prevType: string | null = null;
+        let prevIndent = 0;
+
+        items.forEach((li) => {
+          const type = li.getAttribute('data-list');
+          const match = li.className.match(/ql-indent-(\d+)/);
+          const indent = match ? parseInt(match[1], 10) : 0;
+
+          if (type === 'ordered') {
+            Object.keys(levelCounters).forEach((lvl) => {
+              if (parseInt(lvl, 10) > indent) {
+                delete levelCounters[Number(lvl)];
+              }
+            });
+
+            if (indent > prevIndent || levelCounters[indent] == null) {
+              levelCounters[indent] = 1;
+            } else if (prevType === 'bullet' && indent === prevIndent) {
+              levelCounters[indent] = 1;
+            } else {
+              levelCounters[indent] += 1;
+            }
+
+            const count = levelCounters[indent];
+            const strCount = String(count);
+            li.setAttribute('value', strCount);
+            (li as any).value = count;
+            if (li instanceof HTMLElement) {
+              li.style.setProperty('counter-reset', `ql-ordered-counter ${count}`);
+            }
+
+            prevType = 'ordered';
+            prevIndent = indent;
+          } else if (type === 'bullet') {
+            if (li.hasAttribute('value')) {
+              li.removeAttribute('value');
+            }
+            if (li instanceof HTMLElement && li.style.getPropertyValue('counter-reset')) {
+              li.style.removeProperty('counter-reset');
+            }
+            Object.keys(levelCounters).forEach((lvl) => {
+              if (parseInt(lvl, 10) > indent) {
+                delete levelCounters[Number(lvl)];
+              }
+            });
+            prevType = 'bullet';
+            prevIndent = indent;
+          } else {
+            prevType = null;
+            prevIndent = 0;
+          }
+        });
+      });
+
       if (root) processedHtml = root.innerHTML;
     }
 
@@ -1004,15 +1063,10 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer li[data-list="bullet"] {
           list-style-type: disc !important;
-          counter-reset: ql-ordered-counter !important;
-        }
-        .rich-text-renderer ol > li[data-list="ordered"]:first-child,
-        .rich-text-renderer li[data-list="bullet"] + li[data-list="ordered"] {
-          counter-reset: ql-ordered-counter !important;
         }
         .rich-text-renderer li[data-list="ordered"] {
           list-style-type: none !important;
-          counter-increment: ql-ordered-counter !important;
+          counter-increment: none !important;
         }
         .rich-text-renderer li[data-list="ordered"]::marker {
           content: none !important;
