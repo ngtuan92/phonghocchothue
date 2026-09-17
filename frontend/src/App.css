@@ -681,12 +681,21 @@
 }
 
 .rich-text-renderer,
-.rich-text-renderer * {
+.rich-text-renderer *:not(li) {
   max-width: 100% !important;
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
   word-break: normal !important;
   white-space: normal !important;
+}
+
+/* li cần pre-wrap để text align đầu dòng khi có indent */
+.rich-text-renderer li {
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: normal !important;
+  white-space: pre-wrap !important;
 }
 
 .rich-text-renderer {
@@ -759,6 +768,7 @@
   line-height: inherit;
   list-style-position: outside !important;
   padding-left: 0 !important;
+  white-space: pre-wrap !important;
 }
 
 .rich-text-renderer li:not([class*="ql-indent-"]) {
@@ -793,30 +803,7 @@
   list-style-type: disc !important;
   counter-reset: ql-ordered-counter !important;
 }
-.rich-text-renderer li[data-list="bullet"].ql-indent-1 {
-  list-style-type: circle !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-2 {
-  list-style-type: square !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-3 {
-  list-style-type: disc !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-4 {
-  list-style-type: circle !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-5 {
-  list-style-type: square !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-6 {
-  list-style-type: disc !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-7 {
-  list-style-type: circle !important;
-}
-.rich-text-renderer li[data-list="bullet"].ql-indent-8 {
-  list-style-type: square !important;
-}
+
 
 .rich-text-renderer ol > li[data-list="ordered"]:first-child,
 .rich-text-renderer li[data-list="bullet"] + li[data-list="ordered"] {
