@@ -1626,38 +1626,6 @@
   display: list-item !important;
   counter-reset: ql-ordered-counter !important;
 }
-.blog-content li[data-list="bullet"].ql-indent-1,
-.room-summary-desc li[data-list="bullet"].ql-indent-1 {
-  list-style-type: circle !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-2,
-.room-summary-desc li[data-list="bullet"].ql-indent-2 {
-  list-style-type: square !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-3,
-.room-summary-desc li[data-list="bullet"].ql-indent-3 {
-  list-style-type: disc !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-4,
-.room-summary-desc li[data-list="bullet"].ql-indent-4 {
-  list-style-type: circle !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-5,
-.room-summary-desc li[data-list="bullet"].ql-indent-5 {
-  list-style-type: square !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-6,
-.room-summary-desc li[data-list="bullet"].ql-indent-6 {
-  list-style-type: disc !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-7,
-.room-summary-desc li[data-list="bullet"].ql-indent-7 {
-  list-style-type: circle !important;
-}
-.blog-content li[data-list="bullet"].ql-indent-8,
-.room-summary-desc li[data-list="bullet"].ql-indent-8 {
-  list-style-type: square !important;
-}
 
 .blog-content li[data-list="ordered"],
 .room-summary-desc li[data-list="ordered"] {

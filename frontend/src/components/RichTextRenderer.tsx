@@ -1088,42 +1088,10 @@ const RICH_TEXT_RENDERER_STYLES = `
           user-select: none !important;
         }
 
-        /* Bullet symbols by indent level (Google Docs / Word hierarchy) */
+        /* Bullet symbols - Always standard round dot (no symbol hierarchy) */
         .rich-text-renderer li[data-list="bullet"]::before {
           content: "•" !important;
           font-size: 1.15em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-1::before {
-          content: "◦" !important;
-          font-size: 1.15em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-2::before {
-          content: "▪" !important;
-          font-size: 0.9em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-3::before {
-          content: "•" !important;
-          font-size: 1.15em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-4::before {
-          content: "◦" !important;
-          font-size: 1.15em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-5::before {
-          content: "▪" !important;
-          font-size: 0.9em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-6::before {
-          content: "•" !important;
-          font-size: 1.15em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-7::before {
-          content: "◦" !important;
-          font-size: 1.15em !important;
-        }
-        .rich-text-renderer li[data-list="bullet"].ql-indent-8::before {
-          content: "▪" !important;
-          font-size: 0.9em !important;
         }
 
         /* Ordered list numbering */

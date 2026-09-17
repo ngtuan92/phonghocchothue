@@ -828,30 +828,6 @@ export default function DetailPage() {
                   display: list-item !important;
                   counter-reset: ql-ordered-counter !important;
                 }
-                .room-summary-desc li[data-list="bullet"].ql-indent-1 {
-                  list-style-type: circle !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-2 {
-                  list-style-type: square !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-3 {
-                  list-style-type: disc !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-4 {
-                  list-style-type: circle !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-5 {
-                  list-style-type: square !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-6 {
-                  list-style-type: disc !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-7 {
-                  list-style-type: circle !important;
-                }
-                .room-summary-desc li[data-list="bullet"].ql-indent-8 {
-                  list-style-type: square !important;
-                }
                 .room-summary-desc li[data-list="ordered"] {
                   list-style-type: none !important;
                   display: list-item !important;
@@ -956,30 +932,6 @@ export default function DetailPage() {
                   display: list-item !important;
                   counter-reset: ql-ordered-counter !important;
                 }
-                .ckeditor-content li[data-list="bullet"].ql-indent-1 {
-                  list-style-type: circle !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-2 {
-                  list-style-type: square !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-3 {
-                  list-style-type: disc !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-4 {
-                  list-style-type: circle !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-5 {
-                  list-style-type: square !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-6 {
-                  list-style-type: disc !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-7 {
-                  list-style-type: circle !important;
-                }
-                .ckeditor-content li[data-list="bullet"].ql-indent-8 {
-                  list-style-type: square !important;
-                }
                 .ckeditor-content li[data-list="ordered"] {
                   list-style-type: none !important;
                   display: list-item !important;
@@ -1002,13 +954,13 @@ export default function DetailPage() {
                 }
                 .ckeditor-content ul ul,
                 .ckeditor-content ol ul {
-                  list-style-type: circle !important;
+                  list-style-type: disc !important;
                   margin-top: 0.5rem !important;
                   margin-bottom: 0.5rem !important;
                 }
                 .ckeditor-content ol ol,
                 .ckeditor-content ul ol {
-                  list-style-type: lower-alpha !important;
+                  list-style-type: decimal !important;
                   margin-top: 0.5rem !important;
                   margin-bottom: 0.5rem !important;
                 }

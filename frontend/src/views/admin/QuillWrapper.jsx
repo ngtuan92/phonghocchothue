@@ -3726,17 +3726,7 @@ const QuillWrapper = forwardRef(({
 
                     if (curIndent > 0) {
                       const newIndent = curIndent - 1;
-                      let parentListType = lineFormats.list;
-                      let checkLine = currentLine.prev;
-                      while (checkLine) {
-                        const checkFmt = checkLine.formats ? checkLine.formats() : {};
-                        if (checkFmt.list && parseInt(checkFmt.indent || 0, 10) === newIndent) {
-                          parentListType = checkFmt.list;
-                          break;
-                        }
-                        checkLine = checkLine.prev;
-                      }
-                      applyListAndIndent(quill, sel.index, parentListType, newIndent, 'user');
+                      applyListAndIndent(quill, sel.index, lineFormats.list, newIndent, 'user');
                     } else {
                       applyListAndIndent(quill, sel.index, false, 0, 'user');
                     }
@@ -8438,60 +8428,12 @@ const QuillWrapper = forwardRef(({
           user-select: none !important;
         }
 
-        /* Bullet symbols by indent level (Google Docs / Word hierarchy) */
+        /* Bullet symbols - Always standard round dot (no symbol hierarchy) */
         .quill-wrapper-container .ql-editor li[data-list="bullet"]::before,
         .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"]::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"]::before {
           content: "•" !important;
           font-size: 1.15em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-1::before {
-          content: "◦" !important;
-          font-size: 1.15em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-2::before {
-          content: "▪" !important;
-          font-size: 0.9em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-3::before {
-          content: "•" !important;
-          font-size: 1.15em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-4::before {
-          content: "◦" !important;
-          font-size: 1.15em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-5::before {
-          content: "▪" !important;
-          font-size: 0.9em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-6::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-6::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-6::before {
-          content: "•" !important;
-          font-size: 1.15em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-7::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-7::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-7::before {
-          content: "◦" !important;
-          font-size: 1.15em !important;
-        }
-        .quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-8::before,
-        .room-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-8::before,
-        .blog-desc-editor.quill-wrapper-container .ql-editor li[data-list="bullet"].ql-indent-8::before {
-          content: "▪" !important;
-          font-size: 0.9em !important;
         }
 
         /* Ordered list numbering */
