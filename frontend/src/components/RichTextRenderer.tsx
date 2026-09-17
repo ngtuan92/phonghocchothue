@@ -1465,7 +1465,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-top: 0 !important;
           display: inline-block !important;
           position: relative !important;
-          max-width: min(72%, calc(100% - 160px)) !important;
+          max-width: 100% !important;
           box-sizing: border-box !important;
         }
         .rich-text-renderer .image-wrap-right {
@@ -1476,7 +1476,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-top: 0 !important;
           display: inline-block !important;
           position: relative !important;
-          max-width: min(72%, calc(100% - 160px)) !important;
+          max-width: 100% !important;
           box-sizing: border-box !important;
         }
         .rich-text-renderer .image-wrap-left img,
