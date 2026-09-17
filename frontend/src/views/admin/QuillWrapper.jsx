@@ -3570,9 +3570,10 @@ const QuillWrapper = forwardRef(({
                   listType = 'bullet';
                 }
 
+                const baseIndent = parseInt(lineFormats.indent || 0, 10);
                 const numTabs = (spaces.match(/\t/g) || []).length;
                 const numSpaces = spaces.replace(/\t/g, '').length;
-                const wsIndent = Math.min(Math.max(1, numTabs + Math.floor((numSpaces + 1) / 2)), 8);
+                const wsIndent = Math.max(baseIndent, Math.min(Math.max(1, numTabs + Math.floor((numSpaces + 1) / 2)), 8));
 
                 quill.deleteText(lineStartIndex, lineLength - 1, 'user');
                 if (restText.length > 0) {
@@ -3603,11 +3604,11 @@ const QuillWrapper = forwardRef(({
                   listType = 'checked';
                 }
 
-                let indentLevel = 0;
+                let indentLevel = parseInt(lineFormats.indent || 0, 10);
                 if (leadingWs.length > 0) {
                   const numTabs = (leadingWs.match(/\t/g) || []).length;
                   const numSpaces = leadingWs.replace(/\t/g, '').length;
-                  indentLevel = Math.min(Math.max(1, numTabs + Math.floor((numSpaces + 1) / 2)), 8);
+                  indentLevel = Math.max(indentLevel, Math.min(Math.max(1, numTabs + Math.floor((numSpaces + 1) / 2)), 8));
                 }
 
                 quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
