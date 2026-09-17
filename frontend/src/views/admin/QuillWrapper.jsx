@@ -3422,24 +3422,35 @@ const QuillWrapper = forwardRef(({
       if ((e.key === 'Tab' || e.keyCode === 9) && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const sel = getActiveSelection();
         if (sel && typeof sel.index === 'number') {
-          const [currentLine] = quill.getLine(sel.index);
+          const [currentLine, offset] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-          
+
           if (!lineFormats.table) {
             const lineStartIndex = quill.getIndex(currentLine);
+            const lineLength = currentLine.length();
+            const textBeforeCursor = quill.getText(lineStartIndex, offset);
 
-            // In a list: Tab indents the list item (+1 level), Shift+Tab outdents (-1 level)
-            if (lineFormats.list) {
+            // If at the beginning of the line (or empty line / whitespace before cursor) or on a list item:
+            // Tab INDENTS the entire line, Shift+Tab OUTDENTS!
+            if (lineFormats.list || offset === 0 || textBeforeCursor.trim() === '') {
               e.preventDefault();
               e.stopPropagation();
               e.stopImmediatePropagation();
+
+              const lineText = quill.getText(lineStartIndex, lineLength);
+              const leadingWsMatch = lineText.match(/^([^\S\r\n]+)/);
+              let cleanedOffset = 0;
+              if (leadingWsMatch) {
+                cleanedOffset = leadingWsMatch[1].length;
+                quill.deleteText(lineStartIndex, cleanedOffset, 'user');
+              }
 
               const curIndent = parseInt(lineFormats.indent || 0, 10);
               if (e.shiftKey) {
                 // Shift + Tab: Outdent
                 if (curIndent > 0) {
                   quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-                } else {
+                } else if (lineFormats.list) {
                   applyListAndIndent(quill, lineStartIndex, false, 0, 'user');
                 }
               } else {
@@ -3454,23 +3465,13 @@ const QuillWrapper = forwardRef(({
               return;
             }
 
-            // Normal text (paragraphs, headings):
-            if (e.shiftKey) {
-              const curIndent = parseInt(lineFormats.indent || 0, 10);
-              if (curIndent > 0) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-                return;
-              }
-            } else {
-              // Tab on normal text: insert standard \t (renders moderately at 1rem / 16px via tab-size: 4)
+            // In the middle of text:
+            if (!e.shiftKey) {
               e.preventDefault();
               e.stopPropagation();
               e.stopImmediatePropagation();
-              quill.insertText(sel.index, '\t', 'user');
-              quill.setSelection(sel.index + 1, 0, 'user');
+              quill.insertText(sel.index, '    ', 'user');
+              quill.setSelection(sel.index + 4, 0, 'user');
               return;
             }
           }
