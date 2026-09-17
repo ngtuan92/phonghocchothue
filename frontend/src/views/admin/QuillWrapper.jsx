@@ -8379,17 +8379,19 @@ const QuillWrapper = forwardRef(({
           list-style-type: none !important;
           padding-left: 0 !important;
           margin: 0 0 1rem 0 !important;
+          display: flow-root !important;
         }
         .quill-wrapper-container .ql-editor li,
         .quill-wrapper-container.is-blog-editor .ql-editor li,
         .room-desc-editor.quill-wrapper-container .ql-editor li,
         .blog-desc-editor.quill-wrapper-container .ql-editor li {
-          display: flow-root !important;
+          display: block !important;
           position: relative !important;
           box-sizing: border-box !important;
           list-style: none !important;
           list-style-type: none !important;
           padding-left: 28px !important;
+          margin-left: 0 !important;
           margin-top: 0.25rem !important;
           margin-bottom: 0.25rem !important;
           line-height: 1.6 !important;
@@ -8492,81 +8494,151 @@ const QuillWrapper = forwardRef(({
           padding-left: 8rem !important;
         }
 
-        /* List item indentation via margin-left (keeping padding-left: 28px for marker slot) */
+        /* List item indentation via padding-left & ::before left (100% float-safe, never absorbed by wraptext) */
         .quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]),
         .room-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]),
         .blog-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
+          padding-left: 28px !important;
+        }
+        .quill-wrapper-container .ql-editor li:not([class*="ql-indent-"])::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"])::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"])::before {
+          left: 0 !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-1,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1 {
-          margin-left: 1rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 1rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-1::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1::before {
+          left: 1rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-2,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2 {
-          margin-left: 2rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 2rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-2::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2::before {
+          left: 2rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-3,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3 {
-          margin-left: 3rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 3rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-3::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3::before {
+          left: 3rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-4,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4 {
-          margin-left: 4rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 4rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-4::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4::before {
+          left: 4rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-5,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5 {
-          margin-left: 5rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 5rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-5::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5::before {
+          left: 5rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-6,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6 {
-          margin-left: 6rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 6rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-6::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6::before {
+          left: 6rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-7,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7 {
-          margin-left: 7rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 7rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-7::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7::before {
+          left: 7rem !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-8,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8 {
-          margin-left: 8rem !important;
-          padding-left: 28px !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 8rem) !important;
+        }
+        .quill-wrapper-container .ql-editor li.ql-indent-8::before,
+        .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8::before,
+        .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8::before {
+          left: 8rem !important;
         }
 
         @media (max-width: 640px) {
           .quill-wrapper-container .ql-editor li.ql-indent-1,
           .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
           .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1 {
-            margin-left: 0.75rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 0.75rem) !important;
+          }
+          .quill-wrapper-container .ql-editor li.ql-indent-1::before,
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1::before,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1::before {
+            left: 0.75rem !important;
           }
           .quill-wrapper-container .ql-editor li.ql-indent-2,
           .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
           .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2 {
-            margin-left: 1.5rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 1.5rem) !important;
+          }
+          .quill-wrapper-container .ql-editor li.ql-indent-2::before,
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2::before,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2::before {
+            left: 1.5rem !important;
           }
           .quill-wrapper-container .ql-editor li.ql-indent-3,
           .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
           .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3 {
-            margin-left: 2.25rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 2.25rem) !important;
+          }
+          .quill-wrapper-container .ql-editor li.ql-indent-3::before,
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3::before,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3::before {
+            left: 2.25rem !important;
           }
           .quill-wrapper-container .ql-editor li.ql-indent-4,
           .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
           .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4 {
-            margin-left: 3rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 3rem) !important;
+          }
+          .quill-wrapper-container .ql-editor li.ql-indent-4::before,
+          .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4::before,
+          .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4::before {
+            left: 3rem !important;
           }
         }
         .ql-editor img + .editor-image-caption {

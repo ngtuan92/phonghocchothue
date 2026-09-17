@@ -1047,14 +1047,16 @@ const RICH_TEXT_RENDERER_STYLES = `
           list-style-type: none !important;
           padding-left: 0 !important;
           margin: 0 0 1rem 0 !important;
+          display: flow-root !important;
         }
         .rich-text-renderer li {
-          display: flow-root !important;
+          display: block !important;
           position: relative !important;
           box-sizing: border-box !important;
           list-style: none !important;
           list-style-type: none !important;
           padding-left: 28px !important;
+          margin-left: 0 !important;
           margin-top: 0.25rem !important;
           margin-bottom: 0.25rem !important;
           line-height: 1.6 !important;
@@ -1102,47 +1104,99 @@ const RICH_TEXT_RENDERER_STYLES = `
           content: counter(ql-ordered-counter) "." !important;
         }
 
-        /* Hierarchical Indentation: 1rem (16px) per level, matching standard tab-size */
+        /* Hierarchical Indentation: float-safe via padding-left & ::before left */
         .rich-text-renderer li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
+          padding-left: 28px !important;
+        }
+        .rich-text-renderer li:not([class*="ql-indent-"])::before {
+          left: 0 !important;
         }
         .rich-text-renderer li.ql-indent-1 {
-          margin-left: 1rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 1rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-1::before {
+          left: 1rem !important;
         }
         .rich-text-renderer li.ql-indent-2 {
-          margin-left: 2rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 2rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-2::before {
+          left: 2rem !important;
         }
         .rich-text-renderer li.ql-indent-3 {
-          margin-left: 3rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 3rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-3::before {
+          left: 3rem !important;
         }
         .rich-text-renderer li.ql-indent-4 {
-          margin-left: 4rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 4rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-4::before {
+          left: 4rem !important;
         }
         .rich-text-renderer li.ql-indent-5 {
-          margin-left: 5rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 5rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-5::before {
+          left: 5rem !important;
         }
         .rich-text-renderer li.ql-indent-6 {
-          margin-left: 6rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 6rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-6::before {
+          left: 6rem !important;
         }
         .rich-text-renderer li.ql-indent-7 {
-          margin-left: 7rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 7rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-7::before {
+          left: 7rem !important;
         }
         .rich-text-renderer li.ql-indent-8 {
-          margin-left: 8rem !important;
+          margin-left: 0 !important;
+          padding-left: calc(28px + 8rem) !important;
+        }
+        .rich-text-renderer li.ql-indent-8::before {
+          left: 8rem !important;
         }
 
         @media (max-width: 640px) {
           .rich-text-renderer li.ql-indent-1 {
-            margin-left: 0.75rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 0.75rem) !important;
+          }
+          .rich-text-renderer li.ql-indent-1::before {
+            left: 0.75rem !important;
           }
           .rich-text-renderer li.ql-indent-2 {
-            margin-left: 1.5rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 1.5rem) !important;
+          }
+          .rich-text-renderer li.ql-indent-2::before {
+            left: 1.5rem !important;
           }
           .rich-text-renderer li.ql-indent-3 {
-            margin-left: 2.25rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 2.25rem) !important;
+          }
+          .rich-text-renderer li.ql-indent-3::before {
+            left: 2.25rem !important;
           }
           .rich-text-renderer li.ql-indent-4 {
-            margin-left: 3rem !important;
+            margin-left: 0 !important;
+            padding-left: calc(28px + 3rem) !important;
+          }
+          .rich-text-renderer li.ql-indent-4::before {
+            left: 3rem !important;
           }
         }
         .rich-text-renderer .ql-ui {

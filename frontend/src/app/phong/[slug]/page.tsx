@@ -823,10 +823,18 @@ export default function DetailPage() {
                 .room-summary-desc ol:has(li[data-list="ordered"]) {
                   list-style-type: none !important;
                 }
+                .room-summary-desc ol,
+                .room-summary-desc ul {
+                  display: flow-root !important;
+                }
                 .room-summary-desc li[data-list="bullet"] {
-                  list-style-type: disc !important;
+                  list-style-type: none !important;
                   display: list-item !important;
                   counter-reset: ql-ordered-counter !important;
+                }
+                .room-summary-desc li[data-list="bullet"]::marker {
+                  content: none !important;
+                  display: none !important;
                 }
                 .room-summary-desc li[data-list="ordered"] {
                   list-style-type: none !important;
@@ -835,6 +843,7 @@ export default function DetailPage() {
                 }
                 .room-summary-desc li[data-list="ordered"]::marker {
                   content: none !important;
+                  display: none !important;
                 }
                 .room-summary-desc li[data-list="ordered"]::before {
                   content: counter(ql-ordered-counter) ". " !important;
@@ -845,8 +854,12 @@ export default function DetailPage() {
                   margin-right: 0.3em !important;
                 }
                 .room-summary-desc li[data-list="bullet"]::before {
-                  content: none !important;
-                  display: none !important;
+                  content: "• " !important;
+                  display: inline !important;
+                  color: currentColor !important;
+                  font-size: 1.15em !important;
+                  line-height: inherit !important;
+                  margin-right: 0.3em !important;
                 }
                 .room-summary-desc li:not([data-list]) {
                   display: list-item !important;
@@ -927,10 +940,18 @@ export default function DetailPage() {
                 .ckeditor-content ol:has(li[data-list="ordered"]) {
                   list-style-type: none !important;
                 }
+                .ckeditor-content ol,
+                .ckeditor-content ul {
+                  display: flow-root !important;
+                }
                 .ckeditor-content li[data-list="bullet"] {
-                  list-style-type: disc !important;
+                  list-style-type: none !important;
                   display: list-item !important;
                   counter-reset: ql-ordered-counter !important;
+                }
+                .ckeditor-content li[data-list="bullet"]::marker {
+                  content: none !important;
+                  display: none !important;
                 }
                 .ckeditor-content li[data-list="ordered"] {
                   list-style-type: none !important;
@@ -939,6 +960,7 @@ export default function DetailPage() {
                 }
                 .ckeditor-content li[data-list="ordered"]::marker {
                   content: none !important;
+                  display: none !important;
                 }
                 .ckeditor-content li[data-list="ordered"]::before {
                   content: counter(ql-ordered-counter) ". " !important;
@@ -949,8 +971,12 @@ export default function DetailPage() {
                   margin-right: 0.3em !important;
                 }
                 .ckeditor-content li[data-list="bullet"]::before {
-                  content: none !important;
-                  display: none !important;
+                  content: "• " !important;
+                  display: inline !important;
+                  color: currentColor !important;
+                  font-size: 1.15em !important;
+                  line-height: inherit !important;
+                  margin-right: 0.3em !important;
                 }
                 .ckeditor-content ul ul,
                 .ckeditor-content ol ul {
