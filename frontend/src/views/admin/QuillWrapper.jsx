@@ -95,6 +95,8 @@ if (typeof window !== "undefined" && Quill) {
         'attributors/style/font': FontStyle
       }, true);
     }
+
+
   } catch (err) { /* ignore */ }
 }
 const COLORS = [
@@ -485,92 +487,6 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
               return false;
             }
             return true;
-          }
-        },
-        listSpaceIndent: {
-          key: ' ',
-          collapsed: true,
-          format: ['list'],
-          handler(range, context) {
-            const [line, offset] = this.quill.getLine(range.index);
-            if (!line) return true;
-            const lineStartIndex = range.index - offset;
-            const textBefore = this.quill.getText(lineStartIndex, offset);
-            // If cursor is at start of list item or only whitespace typed before cursor:
-            if (offset === 0 || textBefore.trim() === '') {
-              if (textBefore.length > 0) {
-                this.quill.deleteText(lineStartIndex, textBefore.length, 'user');
-              }
-              const curIndent = parseInt(context.format.indent || 0, 10);
-              const newIndent = Math.min(curIndent + 1, 8);
-              this.quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
-              syncListCounters(this.quill.root);
-              try {
-                this.quill.setSelection(lineStartIndex, 0, 'silent');
-              } catch { /* ignore */ }
-              return false; // Prevent inserting space character into list item!
-            }
-            return true;
-          }
-        },
-        'list autofill': {
-          key: ' ',
-          shiftKey: null,
-          collapsed: true,
-          format: {
-            'code-block': false,
-            blockquote: false,
-            table: false
-          },
-          prefix: /^\s*?(\d+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/,
-          handler(range, context) {
-            if (this.quill.scroll.query('list') == null) return true;
-            const { length } = context.prefix;
-            const [line, offset] = this.quill.getLine(range.index);
-            if (offset > length) return true;
-
-            const match = context.prefix.match(/^(\s*)(\d+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
-            const leadingWs = match ? match[1] : '';
-            const rawMarker = match ? match[2] : context.prefix.trim();
-
-            let value = 'ordered';
-            if (rawMarker === '[]' || rawMarker === '[ ]') {
-              value = 'unchecked';
-            } else if (rawMarker === '[x]') {
-              value = 'checked';
-            } else if (rawMarker === '-' || rawMarker === '*' || rawMarker === '+' || rawMarker === '.' || rawMarker === '•') {
-              value = 'bullet';
-            } else {
-              value = 'ordered';
-            }
-
-            const currentFmt = line.formats ? line.formats() : {};
-            let indentLevel = parseInt(currentFmt.indent || 0, 10);
-            if (leadingWs.length > 0) {
-              const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
-              const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
-              indentLevel = Math.max(indentLevel, wsIndent);
-            } else if (indentLevel === 0) {
-              const prevLine = line.prev;
-              if (prevLine && prevLine.formats) {
-                const prevFmt = prevLine.formats();
-                if (prevFmt.list) {
-                  const prevIndent = parseInt(prevFmt.indent || 0, 10);
-                  if (prevFmt.list !== value && prevIndent === 0) {
-                    indentLevel = 1;
-                  } else if (prevIndent > 0) {
-                    indentLevel = prevIndent;
-                  }
-                }
-              }
-            }
-
-            const lineStartIndex = range.index - offset;
-            this.quill.deleteText(lineStartIndex, length, 'user');
-            applyListAndIndent(this.quill, lineStartIndex, value, indentLevel, 'user');
-            this.quill.setSelection(lineStartIndex, 0, 'user');
-            syncListCounters(this.quill.root);
-            return false;
           }
         },
         backspaceAfterImage: {
@@ -3624,8 +3540,9 @@ const QuillWrapper = forwardRef(({
                   listType = 'bullet';
                 }
 
-                const effectiveSpaces = spaces.replace(/\t/g, '  ').length;
-                const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+                const numTabs = (spaces.match(/\t/g) || []).length;
+                const numSpaces = spaces.replace(/\t/g, '').length;
+                const wsIndent = Math.min(Math.max(1, numTabs + Math.floor(numSpaces / 2)), 8);
 
                 quill.deleteText(lineStartIndex, lineLength - 1, 'user');
                 if (restText.length > 0) {
@@ -3638,7 +3555,7 @@ const QuillWrapper = forwardRef(({
               }
 
               // Markdown list trigger: User typed marker followed by Space (e.g. "1. ", "- ", "* ")
-              const listAutoMatch = textBeforeCursor.match(/^(\s*)([0-9]+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
+              const listAutoMatch = textBeforeCursor.match(/^([\t ]*)([0-9]+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
               if (listAutoMatch) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -3658,8 +3575,9 @@ const QuillWrapper = forwardRef(({
 
                 let indentLevel = 0;
                 if (leadingWs.length > 0) {
-                  const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
-                  indentLevel = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+                  const numTabs = (leadingWs.match(/\t/g) || []).length;
+                  const numSpaces = leadingWs.replace(/\t/g, '').length;
+                  indentLevel = Math.min(Math.max(1, numTabs + Math.floor(numSpaces / 2)), 8);
                 }
 
                 quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
