@@ -820,7 +820,7 @@ if (typeof window !== "undefined" && Quill) {
 
 const FORMATS = [
   "header", "font", "size", "bold", "italic", "underline", "strike",
-  "color", "background", "list", "align", "link", "image", "wrap",
+  "color", "background", "list", "indent", "align", "link", "image", "wrap",
   "alt", "title", "caption", "borderRadius", "width", "lineHeight", "lineHeightMobile",
   "translateY", "translateYMobile", "fontSizeDesktop", "fontSizeMobile", "colorMobile", "whiteSpace", "overflowWrap"
 ];
@@ -3418,66 +3418,73 @@ const QuillWrapper = forwardRef(({
     };
 
     const handleKeydownCapture = (e) => {
-      // 1. Handle Tab and Shift+Tab key for Lists and general tab indent
+      // 1. Handle Tab and Shift+Tab key for Lists and general indentation
       if ((e.key === 'Tab' || e.keyCode === 9) && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const sel = getActiveSelection();
         if (sel && typeof sel.index === 'number') {
-          const [currentLine] = quill.getLine(sel.index);
+          const [currentLine, offset] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-          if (lineFormats.list) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-
+          
+          if (!lineFormats.table) {
             const lineStartIndex = quill.getIndex(currentLine);
             const lineLength = currentLine.length();
-            const lineText = quill.getText(lineStartIndex, lineLength);
-            const leadingWsMatch = lineText.match(/^([\t ]+)/);
-            let cleanedOffset = 0;
-            if (leadingWsMatch) {
-              cleanedOffset = leadingWsMatch[1].length;
-              quill.deleteText(lineStartIndex, cleanedOffset, 'user');
-            }
+            const textBeforeCursor = quill.getText(lineStartIndex, offset);
 
-            const curIndent = parseInt(lineFormats.indent || 0, 10);
-            if (e.shiftKey) {
-              // Shift + Tab: Outdent
-              if (curIndent > 0) {
-                quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-              } else {
-                applyListAndIndent(quill, lineStartIndex, false, 0, 'user');
+            // If at the beginning of the line (or empty line / whitespace before cursor) or on a list item:
+            // Tab INDENTS the entire line (matching Google Docs / Word), Shift+Tab OUTDENTS!
+            if (lineFormats.list || offset === 0 || textBeforeCursor.trim() === '') {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+
+              const lineText = quill.getText(lineStartIndex, lineLength);
+              const leadingWsMatch = lineText.match(/^([^\S\r\n]+)/);
+              let cleanedOffset = 0;
+              if (leadingWsMatch) {
+                cleanedOffset = leadingWsMatch[1].length;
+                quill.deleteText(lineStartIndex, cleanedOffset, 'user');
               }
-            } else {
-              // Tab: Indent (+1 level, max 8)
-              const newIndent = Math.min(curIndent + 1, 8);
-              quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
-            }
-            syncListCounters(quill.root);
-            try {
-              const targetPos = Math.max(lineStartIndex, sel.index - cleanedOffset);
-              quill.setSelection(targetPos, 0, 'silent');
-            } catch { /* ignore */ }
-            return;
-          }
 
-          if (!e.shiftKey && !lineFormats.table) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            quill.insertText(sel.index, '\t', 'user');
-            quill.setSelection(sel.index + 1, 0, 'user');
-            return;
+              const curIndent = parseInt(lineFormats.indent || 0, 10);
+              if (e.shiftKey) {
+                // Shift + Tab: Outdent
+                if (curIndent > 0) {
+                  quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+                } else if (lineFormats.list) {
+                  applyListAndIndent(quill, lineStartIndex, false, 0, 'user');
+                }
+              } else {
+                // Tab: Indent (+1 level, max 8)
+                const newIndent = Math.min(curIndent + 1, 8);
+                quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
+              }
+              syncListCounters(quill.root);
+              try {
+                quill.setSelection(lineStartIndex, 0, 'silent');
+              } catch { /* ignore */ }
+              return;
+            }
+
+            // If in the middle of text: insert 4 spaces (never raw \t which breaks HTML layouts)
+            if (!e.shiftKey) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              quill.insertText(sel.index, '    ', 'user');
+              quill.setSelection(sel.index + 4, 0, 'user');
+              return;
+            }
           }
         }
       }
 
-      // 1b. Handle Backspace at start of list line (outdent / remove list)
+      // 1b. Handle Backspace at start of list line or indented line (outdent / remove list)
       if ((e.key === 'Backspace' || e.keyCode === 8) && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const sel = getActiveSelection();
         if (sel && typeof sel.index === 'number' && sel.length === 0) {
           const [currentLine, offset] = quill.getLine(sel.index);
           const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-          if (lineFormats.list) {
+          if (lineFormats.list || lineFormats.indent) {
             const lineStartIndex = sel.index - offset;
             const textBeforeCursor = quill.getText(lineStartIndex, offset);
             if (offset === 0 || textBeforeCursor.trim() === '') {
@@ -3493,7 +3500,7 @@ const QuillWrapper = forwardRef(({
               if (curIndent > 0) {
                 // Outdent by 1 level
                 quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-              } else {
+              } else if (lineFormats.list) {
                 // At level 0: remove list
                 applyListAndIndent(quill, lineStartIndex, false, 0, 'user');
               }
@@ -5713,6 +5720,8 @@ const QuillWrapper = forwardRef(({
               } else {
                 const isSwitchingFormatOnSameItem = Boolean(currentFmt.list && currentFmt.list !== value);
                 if (isSwitchingFormatOnSameItem) {
+                  finalIndent = parseInt(currentFmt.indent || 0, 10);
+                } else if (currentFmt.indent) {
                   finalIndent = parseInt(currentFmt.indent || 0, 10);
                 } else if (currentFmt.list) {
                   finalIndent = parseInt(currentFmt.indent || 0, 10);
