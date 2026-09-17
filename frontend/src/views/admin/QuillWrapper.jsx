@@ -146,8 +146,8 @@ const RESPONSIVE_CONTROL_CALLBACK_KEYS = {
 };
 
 const IMAGE_WRAP_DISPLAY = {
-  left: { float: 'left', display: 'inline', clear: 'both' },
-  right: { float: 'right', display: 'inline', clear: 'both' },
+  left: { float: 'left', display: 'inline-block', clear: 'both' },
+  right: { float: 'right', display: 'inline-block', clear: 'both' },
   none: { float: 'none', display: 'block', clear: 'none' },
 };
 
@@ -178,14 +178,14 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   const wrapMode = normalizeImageWrapMode(mode);
   const target = node?.tagName === 'IMG' ? node : node?.querySelector?.('img');
   if (!target) return wrapMode;
-  const wrapper = target.closest?.('.image-wrapper');
+  const wrapper = target.closest?.('.image-wrapper') || (node?.classList?.contains('image-wrapper') ? node : null);
   target.setAttribute('data-wrap', wrapMode);
   wrapper?.setAttribute('data-wrap', wrapMode);
   wrapper?.classList.remove('image-wrap-left', 'image-wrap-right');
   if (wrapMode === 'left' || wrapMode === 'right') {
     wrapper?.classList.add(`image-wrap-${wrapMode}`);
   }
-  const widthAttr = target.getAttribute('width') || target.style.width;
+  const widthAttr = target.getAttribute('width') || target.style.width || wrapper?.getAttribute('width') || wrapper?.style.width;
   const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
   const hasCaption = Boolean(
     wrapper?.querySelector(':scope > .image-caption')?.textContent?.trim() ||
@@ -193,25 +193,32 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   );
   const bottomMargin = wrapMode === 'none' ? '20px' : (hasCaption ? '16px' : '4px');
 
-  setImportantStyles(node, {
-    ...IMAGE_WRAP_DISPLAY[wrapMode],
-    'width': widthVal || '',
-    'max-width': '100%',
-    'margin-top': wrapMode === 'none' ? '20px' : '0',
-    'margin-bottom': bottomMargin,
-    'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
-    'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
-  });
-  if (wrapper && wrapper !== node) {
+  if (wrapper) {
     setImportantStyles(wrapper, {
       ...IMAGE_WRAP_DISPLAY[wrapMode],
-      'width': widthVal || (wrapMode === 'none' ? 'auto' : 'min-content'),
+      'width': widthVal || (wrapMode === 'none' ? 'auto' : 'fit-content'),
       'max-width': '100%',
       'margin-top': wrapMode === 'none' ? '20px' : '0',
       'margin-bottom': bottomMargin,
       'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
       'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
     });
+    if (widthVal) {
+      wrapper.setAttribute('width', widthVal);
+    }
+  }
+  setImportantStyles(target, {
+    'display': 'block',
+    'width': widthVal || '100%',
+    'max-width': '100%',
+    'height': 'auto',
+    'margin-top': '0',
+    'margin-bottom': '0',
+    'margin-left': wrapMode === 'none' ? 'auto' : '0',
+    'margin-right': wrapMode === 'none' ? 'auto' : '0',
+  });
+  if (widthVal) {
+    target.setAttribute('width', widthVal);
   }
   return wrapMode;
 };
@@ -551,8 +558,11 @@ if (typeof window !== "undefined" && Quill) {
         if (value.title) img.setAttribute("title", value.title);
         if (value.caption) img.setAttribute("data-caption", value.caption);
         if (value.width) {
-          img.setAttribute("width", value.width);
-          img.style.width = value.width.includes('%') || value.width.includes('px') ? value.width : `${value.width}px`;
+          const widthCss = value.width.includes('%') || value.width.includes('px') ? value.width : `${value.width}px`;
+          img.setAttribute("width", widthCss);
+          img.style.width = widthCss;
+          node.setAttribute("width", widthCss);
+          node.style.width = widthCss;
         }
         if (value.borderRadius) {
           img.style.borderRadius = value.borderRadius;
@@ -567,10 +577,7 @@ if (typeof window !== "undefined" && Quill) {
       const img = node.tagName === "IMG" ? node : node.querySelector("img");
       if (!img) return {};
 
-      let width = img.getAttribute("width");
-      if (!width && img.style.width) {
-        width = img.style.width;
-      }
+      let width = img.getAttribute("width") || img.style.width || node.getAttribute("width") || node.style.width;
       let wrap = img.getAttribute("data-wrap") || node.getAttribute("data-wrap");
       if (!wrap) {
         if (node.style.float === 'left' || img.style.float === 'left') wrap = 'left';
@@ -593,7 +600,7 @@ if (typeof window !== "undefined" && Quill) {
         alt: img.getAttribute("alt") || "",
         title: img.getAttribute("title") || "",
         caption: img.getAttribute("data-caption") || "",
-        width: img.getAttribute("width") || img.style.width || "",
+        width: img.getAttribute("width") || img.style.width || node.getAttribute("width") || node.style.width || "",
         borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || "",
         wrap: img.getAttribute("data-wrap") || node.getAttribute("data-wrap") || "none"
       };
@@ -606,8 +613,18 @@ if (typeof window !== "undefined" && Quill) {
       }
 
       if (name === "width") {
-        img.setAttribute("width", value);
-        img.style.width = value;
+        const widthCss = value ? (value.includes('%') || value.includes('px') ? value : `${value}px`) : '';
+        if (widthCss) {
+          img.setAttribute("width", widthCss);
+          img.style.width = widthCss;
+          this.domNode.setAttribute("width", widthCss);
+          this.domNode.style.width = widthCss;
+        } else {
+          img.removeAttribute("width");
+          img.style.removeProperty("width");
+          this.domNode.removeAttribute("width");
+          this.domNode.style.removeProperty("width");
+        }
       } else if (name === "alt") {
         if (value) {
           img.setAttribute("alt", value);
@@ -1246,18 +1263,23 @@ const normalizeImageWrappersForEdit = (html) => {
     wrapper.setAttribute('data-wrap', wrap);
     wrapper.classList.remove('image-wrap-left', 'image-wrap-right');
     if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
-    const widthAttr = img.getAttribute('width') || img.style.width;
+    const widthAttr = img.getAttribute('width') || img.style.width || wrapper.getAttribute('width') || wrapper.style.width;
     const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
     const hasCaption = Boolean(caption);
     setImportantStyles(wrapper, {
       ...IMAGE_WRAP_DISPLAY[wrap],
-      'width': widthVal || (wrap === 'none' ? 'auto' : 'min-content'),
+      'width': widthVal || (wrap === 'none' ? 'auto' : 'fit-content'),
       'max-width': '100%',
       'margin-top': wrap === 'none' ? '12px' : '0',
       'margin-bottom': wrap === 'none' ? '10px' : (hasCaption ? '10px' : '4px'),
       'margin-left': wrap === 'right' ? '20px' : wrap === 'none' ? 'auto' : '0',
       'margin-right': wrap === 'left' ? '20px' : wrap === 'none' ? 'auto' : '0',
     });
+    if (widthVal) {
+      wrapper.setAttribute('width', widthVal);
+      img.setAttribute('width', widthVal);
+      img.style.setProperty('width', widthVal, 'important');
+    }
   });
 
   root.querySelectorAll('img').forEach((img) => {
@@ -2455,6 +2477,9 @@ const QuillWrapper = forwardRef(({
     if (wrapMode === 'left' || wrapMode === 'right') {
       wrapper?.classList.add(`image-wrap-${wrapMode}`);
     }
+    const widthAttr = img.getAttribute('width') || img.style.width || wrapper?.getAttribute('width') || wrapper?.style.width;
+    const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : (img.clientWidth ? `${img.clientWidth}px` : '');
+
     const styleTarget = wrapper || img;
     styleTarget.style.setProperty('float', wrapMode === 'left' ? 'left' : wrapMode === 'right' ? 'right' : 'none', 'important');
     styleTarget.style.setProperty('clear', wrapMode === 'none' ? 'none' : 'both', 'important');
@@ -2467,8 +2492,15 @@ const QuillWrapper = forwardRef(({
     styleTarget.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '0', 'important');
     styleTarget.style.setProperty('margin-bottom', bottomMargin, 'important');
     styleTarget.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
+    styleTarget.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
     const maxWrapWidth = (wrapMode === 'left' || wrapMode === 'right') ? 'min(72%, calc(100% - 160px))' : '100%';
     styleTarget.style.setProperty('max-width', maxWrapWidth, 'important');
+    if (widthVal) {
+      styleTarget.style.setProperty('width', widthVal, 'important');
+      img.style.setProperty('width', widthVal, 'important');
+      img.setAttribute('width', widthVal);
+      if (wrapper) wrapper.setAttribute('width', widthVal);
+    }
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('margin-top', '0', 'important');
     img.style.setProperty('margin-bottom', '0', 'important');
@@ -6519,6 +6551,7 @@ const QuillWrapper = forwardRef(({
     resizeDragRef.current = true;
     enterImageEditMode(startImg, quill);
 
+    const startRect = startImg.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
     const editorAvailableWidth = editor.clientWidth || editorRect.width || startRect.width || 1;
     const minWidth = Math.min(24, Math.max(1, editorAvailableWidth));
@@ -6582,6 +6615,12 @@ const QuillWrapper = forwardRef(({
       img.style.setProperty('height', 'auto', 'important');
       img.style.setProperty('max-width', maxWrapWidth, 'important');
       img.setAttribute('width', value);
+      const wrapper = img.closest?.('.image-wrapper');
+      if (wrapper) {
+        wrapper.style.setProperty('width', value, 'important');
+        wrapper.style.setProperty('max-width', maxWrapWidth, 'important');
+        wrapper.setAttribute('width', value);
+      }
       liveResizeImage = img;
     };
 
@@ -6627,6 +6666,7 @@ const QuillWrapper = forwardRef(({
       if (wrapper) {
         wrapper.style.setProperty('width', widthValue, 'important');
         wrapper.style.setProperty('max-width', maxWrapWidth, 'important');
+        wrapper.setAttribute('width', widthValue);
       }
       liveResizeImage = img;
 
@@ -6708,19 +6748,16 @@ const QuillWrapper = forwardRef(({
 
 
     imageResizeSessionRef.current = { cleanup };
-    if (typeof pointerId === 'number') {
-      document.addEventListener('pointermove', onMove, true);
-      document.addEventListener('pointerup', onEnd, true);
-      document.addEventListener('pointercancel', onCancel, true);
-      window.addEventListener('pointermove', onMove, true);
-      window.addEventListener('pointerup', onEnd, true);
-      window.addEventListener('pointercancel', onCancel, true);
-    } else {
-      document.addEventListener('mousemove', onMove, true);
-      document.addEventListener('mouseup', onEnd, true);
-      window.addEventListener('mousemove', onMove, true);
-      window.addEventListener('mouseup', onEnd, true);
-    }
+    document.addEventListener('pointermove', onMove, true);
+    document.addEventListener('pointerup', onEnd, true);
+    document.addEventListener('pointercancel', onCancel, true);
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onEnd, true);
+    window.addEventListener('pointercancel', onCancel, true);
+    document.addEventListener('mousemove', onMove, true);
+    document.addEventListener('mouseup', onEnd, true);
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onEnd, true);
   }, [
     enterImageEditMode,
     getActiveImage,
