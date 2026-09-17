@@ -681,21 +681,12 @@
 }
 
 .rich-text-renderer,
-.rich-text-renderer *:not(li) {
+.rich-text-renderer * {
   max-width: 100% !important;
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
   word-break: normal !important;
   white-space: normal !important;
-}
-
-/* li cần pre-wrap để text align đầu dòng khi có indent */
-.rich-text-renderer li {
-  max-width: 100% !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
-  word-break: normal !important;
-  white-space: pre-wrap !important;
 }
 
 .rich-text-renderer {
@@ -766,9 +757,8 @@
 .rich-text-renderer li {
   display: list-item !important;
   line-height: inherit;
-  list-style-position: outside !important;
+  list-style-type: none !important;
   padding-left: 0 !important;
-  white-space: pre-wrap !important;
 }
 
 .rich-text-renderer li:not([class*="ql-indent-"]) {
@@ -800,8 +790,20 @@
 }
 
 .rich-text-renderer li[data-list="bullet"] {
-  list-style-type: disc !important;
+  list-style-type: none !important;
   counter-reset: ql-ordered-counter !important;
+}
+
+.rich-text-renderer li[data-list="bullet"]::marker {
+  content: none !important;
+}
+
+.rich-text-renderer li[data-list="bullet"]::before {
+  content: "\2022  " !important;
+  display: inline !important;
+  color: currentColor !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
 }
 
 
@@ -828,10 +830,7 @@
   margin-right: 0.3em !important;
 }
 
-.rich-text-renderer li[data-list="bullet"]::before {
-  content: none !important;
-  display: none !important;
-}
+
 
 .rich-text-renderer li::marker {
   color: currentColor;
@@ -853,8 +852,13 @@
   }
 }
 
-.rich-text-renderer .ql-ui,
-.rich-text-renderer li::before {
+.rich-text-renderer .ql-ui {
+  content: none !important;
+  display: none !important;
+}
+
+/* Ẩn ::before mặc định của li NGOẠI TRỪ bullet và ordered (chúng có rule riêng) */
+.rich-text-renderer li:not([data-list])::before {
   content: none !important;
   display: none !important;
 }
