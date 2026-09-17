@@ -8382,7 +8382,7 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor li,
         .room-desc-editor.quill-wrapper-container .ql-editor li,
         .blog-desc-editor.quill-wrapper-container .ql-editor li {
-          display: block !important;
+          display: flow-root !important;
           position: relative !important;
           box-sizing: border-box !important;
           list-style: none !important;
