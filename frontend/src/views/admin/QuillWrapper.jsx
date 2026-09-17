@@ -2467,14 +2467,14 @@ const QuillWrapper = forwardRef(({
     styleTarget.style.setProperty('margin-top', wrapMode === 'none' ? '20px' : '0', 'important');
     styleTarget.style.setProperty('margin-bottom', bottomMargin, 'important');
     styleTarget.style.setProperty('margin-left', wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
-    styleTarget.style.setProperty('margin-right', wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0', 'important');
-    styleTarget.style.setProperty('max-width', '100%', 'important');
+    const maxWrapWidth = (wrapMode === 'left' || wrapMode === 'right') ? 'min(72%, calc(100% - 160px))' : '100%';
+    styleTarget.style.setProperty('max-width', maxWrapWidth, 'important');
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('margin-top', '0', 'important');
     img.style.setProperty('margin-bottom', '0', 'important');
     img.style.setProperty('margin-left', wrapMode === 'none' ? 'auto' : '0', 'important');
     img.style.setProperty('margin-right', wrapMode === 'none' ? 'auto' : '0', 'important');
-    img.style.setProperty('max-width', '100%', 'important');
+    img.style.setProperty('max-width', maxWrapWidth, 'important');
     img.style.setProperty('height', 'auto', 'important');
     ensureImageCaptionNode(wrapper, img.getAttribute('data-caption') || '');
     return wrapMode;
@@ -6519,10 +6519,14 @@ const QuillWrapper = forwardRef(({
     resizeDragRef.current = true;
     enterImageEditMode(startImg, quill);
 
-    const startRect = startImg.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
-    const minWidth = Math.min(24, Math.max(1, editorRect.width || startRect.width || 1));
-    const maxWidth = Math.max(minWidth, editor.clientWidth || editorRect.width || startRect.width || minWidth);
+    const editorAvailableWidth = editor.clientWidth || editorRect.width || startRect.width || 1;
+    const minWidth = Math.min(24, Math.max(1, editorAvailableWidth));
+    const wrapMode = startImg.getAttribute('data-wrap') || startImg.closest?.('.image-wrapper')?.getAttribute('data-wrap') || 'none';
+    const isWrap = wrapMode === 'left' || wrapMode === 'right';
+    const maxWidth = isWrap
+      ? Math.max(minWidth, Math.min(editorAvailableWidth * 0.72, editorAvailableWidth - 160))
+      : Math.max(minWidth, editorAvailableWidth);
     const startWidth = Math.max(minWidth, Math.min(startRect.width || startImg.clientWidth || minWidth, maxWidth));
     const startHeight = Math.max(1, startRect.height || startImg.clientHeight || 1);
     const aspectRatio = startWidth / startHeight;
@@ -6573,9 +6577,10 @@ const QuillWrapper = forwardRef(({
       const value = unit === '%' ? `${width}%` : `${Math.round(width)}px`;
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
+      const maxWrapWidth = isWrap ? 'min(72%, calc(100% - 160px))' : '100%';
       img.style.setProperty('width', value, 'important');
       img.style.setProperty('height', 'auto', 'important');
-      img.style.setProperty('max-width', '100%', 'important');
+      img.style.setProperty('max-width', maxWrapWidth, 'important');
       img.setAttribute('width', value);
       liveResizeImage = img;
     };
@@ -6613,14 +6618,15 @@ const QuillWrapper = forwardRef(({
       const widthValue = `${Math.round(currentWidth)}px`;
       const img = getResizeImage();
       if (!img || !img.isConnected) return;
+      const maxWrapWidth = isWrap ? 'min(72%, calc(100% - 160px))' : '100%';
       img.style.setProperty('width', widthValue, 'important');
       img.style.setProperty('height', 'auto', 'important');
-      img.style.setProperty('max-width', '100%', 'important');
+      img.style.setProperty('max-width', maxWrapWidth, 'important');
       img.setAttribute('width', widthValue);
       const wrapper = img.closest('.image-wrapper');
       if (wrapper) {
         wrapper.style.setProperty('width', widthValue, 'important');
-        wrapper.style.setProperty('max-width', '100%', 'important');
+        wrapper.style.setProperty('max-width', maxWrapWidth, 'important');
       }
       liveResizeImage = img;
 
@@ -8380,6 +8386,9 @@ const QuillWrapper = forwardRef(({
           padding-left: 0 !important;
           margin: 0 0 1rem 0 !important;
           display: flow-root !important;
+          min-width: 140px !important;
+          overflow-wrap: break-word !important;
+          word-break: normal !important;
         }
         .quill-wrapper-container .ql-editor li,
         .quill-wrapper-container.is-blog-editor .ql-editor li,
@@ -9202,7 +9211,7 @@ const QuillWrapper = forwardRef(({
           margin-left: 0 !important;
           display: inline-block !important;
           position: relative !important;
-          max-width: 100% !important;
+          max-width: min(72%, calc(100% - 160px)) !important;
           box-sizing: border-box !important;
         }
         .ql-editor .image-wrap-right,
@@ -9215,7 +9224,7 @@ const QuillWrapper = forwardRef(({
           margin-right: 0 !important;
           display: inline-block !important;
           position: relative !important;
-          max-width: 100% !important;
+          max-width: min(72%, calc(100% - 160px)) !important;
           box-sizing: border-box !important;
         }
         .ql-editor .image-wrapper img {

@@ -826,6 +826,9 @@ export default function DetailPage() {
                 .room-summary-desc ol,
                 .room-summary-desc ul {
                   display: flow-root !important;
+                  min-width: 140px !important;
+                  overflow-wrap: break-word !important;
+                  word-break: normal !important;
                 }
                 .room-summary-desc li[data-list="bullet"] {
                   list-style-type: none !important;
@@ -943,6 +946,9 @@ export default function DetailPage() {
                 .ckeditor-content ol,
                 .ckeditor-content ul {
                   display: flow-root !important;
+                  min-width: 140px !important;
+                  overflow-wrap: break-word !important;
+                  word-break: normal !important;
                 }
                 .ckeditor-content li[data-list="bullet"] {
                   list-style-type: none !important;

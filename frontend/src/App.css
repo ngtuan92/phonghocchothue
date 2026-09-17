@@ -941,7 +941,8 @@
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
-  max-width: 100% !important;
+  max-width: min(72%, calc(100% - 160px)) !important;
+  box-sizing: border-box !important;
 }
 
 .quill-wrapper-container .ql-editor .image-wrap-right,
@@ -954,7 +955,8 @@
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
-  max-width: 100% !important;
+  max-width: min(72%, calc(100% - 160px)) !important;
+  box-sizing: border-box !important;
 }
 
 .quill-wrapper-container .ql-editor .image-wrap-left img,
@@ -1612,6 +1614,9 @@
 .room-summary-desc ul,
 .ckeditor-content ul {
   display: flow-root !important;
+  min-width: 140px !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
 }
 
 .blog-content ol:not(:has(li[data-list])) {
