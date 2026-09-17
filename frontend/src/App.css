@@ -758,13 +758,64 @@
   display: list-item !important;
   line-height: inherit;
   list-style-position: outside !important;
-  margin-left: 0 !important;
   padding-left: 0 !important;
+}
+
+.rich-text-renderer li:not([class*="ql-indent-"]) {
+  margin-left: 0 !important;
+}
+.rich-text-renderer li.ql-indent-1 {
+  margin-left: 2rem !important;
+}
+.rich-text-renderer li.ql-indent-2 {
+  margin-left: 4rem !important;
+}
+.rich-text-renderer li.ql-indent-3 {
+  margin-left: 6rem !important;
+}
+.rich-text-renderer li.ql-indent-4 {
+  margin-left: 8rem !important;
+}
+.rich-text-renderer li.ql-indent-5 {
+  margin-left: 10rem !important;
+}
+.rich-text-renderer li.ql-indent-6 {
+  margin-left: 12rem !important;
+}
+.rich-text-renderer li.ql-indent-7 {
+  margin-left: 14rem !important;
+}
+.rich-text-renderer li.ql-indent-8 {
+  margin-left: 16rem !important;
 }
 
 .rich-text-renderer li[data-list="bullet"] {
   list-style-type: disc !important;
   counter-reset: ql-ordered-counter !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-1 {
+  list-style-type: circle !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-2 {
+  list-style-type: square !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-3 {
+  list-style-type: disc !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-4 {
+  list-style-type: circle !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-5 {
+  list-style-type: square !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-6 {
+  list-style-type: disc !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-7 {
+  list-style-type: circle !important;
+}
+.rich-text-renderer li[data-list="bullet"].ql-indent-8 {
+  list-style-type: square !important;
 }
 
 .rich-text-renderer ol > li[data-list="ordered"]:first-child,
@@ -1585,28 +1636,66 @@
   list-style-type: decimal !important;
 }
 
-.blog-content li[data-list="bullet"] {
+.blog-content li[data-list="bullet"],
+.room-summary-desc li[data-list="bullet"] {
   list-style-type: disc !important;
   display: list-item !important;
   counter-reset: ql-ordered-counter !important;
 }
+.blog-content li[data-list="bullet"].ql-indent-1,
+.room-summary-desc li[data-list="bullet"].ql-indent-1 {
+  list-style-type: circle !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-2,
+.room-summary-desc li[data-list="bullet"].ql-indent-2 {
+  list-style-type: square !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-3,
+.room-summary-desc li[data-list="bullet"].ql-indent-3 {
+  list-style-type: disc !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-4,
+.room-summary-desc li[data-list="bullet"].ql-indent-4 {
+  list-style-type: circle !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-5,
+.room-summary-desc li[data-list="bullet"].ql-indent-5 {
+  list-style-type: square !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-6,
+.room-summary-desc li[data-list="bullet"].ql-indent-6 {
+  list-style-type: disc !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-7,
+.room-summary-desc li[data-list="bullet"].ql-indent-7 {
+  list-style-type: circle !important;
+}
+.blog-content li[data-list="bullet"].ql-indent-8,
+.room-summary-desc li[data-list="bullet"].ql-indent-8 {
+  list-style-type: square !important;
+}
 
 .blog-content ol > li[data-list="ordered"]:first-child,
-.blog-content li[data-list="bullet"] + li[data-list="ordered"] {
+.blog-content li[data-list="bullet"] + li[data-list="ordered"],
+.room-summary-desc ol > li[data-list="ordered"]:first-child,
+.room-summary-desc li[data-list="bullet"] + li[data-list="ordered"] {
   counter-reset: ql-ordered-counter !important;
 }
 
-.blog-content li[data-list="ordered"] {
+.blog-content li[data-list="ordered"],
+.room-summary-desc li[data-list="ordered"] {
   list-style-type: none !important;
   display: list-item !important;
   counter-increment: ql-ordered-counter !important;
 }
 
-.blog-content li[data-list="ordered"]::marker {
+.blog-content li[data-list="ordered"]::marker,
+.room-summary-desc li[data-list="ordered"]::marker {
   content: none !important;
 }
 
-.blog-content li[data-list="ordered"]::before {
+.blog-content li[data-list="ordered"]::before,
+.room-summary-desc li[data-list="ordered"]::before {
   content: counter(ql-ordered-counter) ". " !important;
   display: inline !important;
   color: currentColor !important;
@@ -1615,12 +1704,14 @@
   margin-right: 0.3em !important;
 }
 
-.blog-content li[data-list="bullet"]::before {
+.blog-content li[data-list="bullet"]::before,
+.room-summary-desc li[data-list="bullet"]::before {
   content: none !important;
   display: none !important;
 }
 
-.blog-content li::marker {
+.blog-content li::marker,
+.room-summary-desc li::marker {
   color: currentColor;
   font-size: 1em;
   line-height: inherit;
@@ -1630,8 +1721,53 @@
 .ckeditor-content li,
 .room-summary-desc li {
   list-style-position: outside !important;
-  margin-left: 0 !important;
   padding-left: 0 !important;
+}
+
+.blog-content li:not([class*="ql-indent-"]),
+.ckeditor-content li:not([class*="ql-indent-"]),
+.room-summary-desc li:not([class*="ql-indent-"]) {
+  margin-left: 0 !important;
+}
+.blog-content li.ql-indent-1,
+.ckeditor-content li.ql-indent-1,
+.room-summary-desc li.ql-indent-1 {
+  margin-left: 2rem !important;
+}
+.blog-content li.ql-indent-2,
+.ckeditor-content li.ql-indent-2,
+.room-summary-desc li.ql-indent-2 {
+  margin-left: 4rem !important;
+}
+.blog-content li.ql-indent-3,
+.ckeditor-content li.ql-indent-3,
+.room-summary-desc li.ql-indent-3 {
+  margin-left: 6rem !important;
+}
+.blog-content li.ql-indent-4,
+.ckeditor-content li.ql-indent-4,
+.room-summary-desc li.ql-indent-4 {
+  margin-left: 8rem !important;
+}
+.blog-content li.ql-indent-5,
+.ckeditor-content li.ql-indent-5,
+.room-summary-desc li.ql-indent-5 {
+  margin-left: 10rem !important;
+}
+.blog-content li.ql-indent-6,
+.ckeditor-content li.ql-indent-6,
+.room-summary-desc li.ql-indent-6 {
+  margin-left: 12rem !important;
+}
+.blog-content li.ql-indent-7,
+.ckeditor-content li.ql-indent-7,
+.room-summary-desc li.ql-indent-7 {
+  margin-left: 14rem !important;
+}
+.blog-content li.ql-indent-8,
+.ckeditor-content li.ql-indent-8,
+.room-summary-desc li.ql-indent-8 {
+  margin-left: 16rem !important;
 }
 
 @media (min-width: 768px) {

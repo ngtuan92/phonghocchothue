@@ -828,6 +828,30 @@ export default function DetailPage() {
                   display: list-item !important;
                   counter-reset: ql-ordered-counter !important;
                 }
+                .room-summary-desc li[data-list="bullet"].ql-indent-1 {
+                  list-style-type: circle !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-2 {
+                  list-style-type: square !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-3 {
+                  list-style-type: disc !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-4 {
+                  list-style-type: circle !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-5 {
+                  list-style-type: square !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-6 {
+                  list-style-type: disc !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-7 {
+                  list-style-type: circle !important;
+                }
+                .room-summary-desc li[data-list="bullet"].ql-indent-8 {
+                  list-style-type: square !important;
+                }
                 .room-summary-desc ol > li[data-list="ordered"]:first-child,
                 .room-summary-desc li[data-list="bullet"] + li[data-list="ordered"] {
                   counter-reset: ql-ordered-counter !important;
@@ -860,6 +884,33 @@ export default function DetailPage() {
                   line-height: 1.6 !important;
                   list-style-position: outside !important;
                   padding-left: 0 !important;
+                }
+                .room-summary-desc li:not([class*="ql-indent-"]) {
+                  margin-left: 0 !important;
+                }
+                .room-summary-desc li.ql-indent-1 {
+                  margin-left: 2rem !important;
+                }
+                .room-summary-desc li.ql-indent-2 {
+                  margin-left: 4rem !important;
+                }
+                .room-summary-desc li.ql-indent-3 {
+                  margin-left: 6rem !important;
+                }
+                .room-summary-desc li.ql-indent-4 {
+                  margin-left: 8rem !important;
+                }
+                .room-summary-desc li.ql-indent-5 {
+                  margin-left: 10rem !important;
+                }
+                .room-summary-desc li.ql-indent-6 {
+                  margin-left: 12rem !important;
+                }
+                .room-summary-desc li.ql-indent-7 {
+                  margin-left: 14rem !important;
+                }
+                .room-summary-desc li.ql-indent-8 {
+                  margin-left: 16rem !important;
                 }
                 .room-summary-desc .rich-text-renderer li {
                   margin-top: 0 !important;
@@ -909,6 +960,30 @@ export default function DetailPage() {
                   display: list-item !important;
                   counter-reset: ql-ordered-counter !important;
                 }
+                .ckeditor-content li[data-list="bullet"].ql-indent-1 {
+                  list-style-type: circle !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-2 {
+                  list-style-type: square !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-3 {
+                  list-style-type: disc !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-4 {
+                  list-style-type: circle !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-5 {
+                  list-style-type: square !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-6 {
+                  list-style-type: disc !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-7 {
+                  list-style-type: circle !important;
+                }
+                .ckeditor-content li[data-list="bullet"].ql-indent-8 {
+                  list-style-type: square !important;
+                }
                 .ckeditor-content ol > li[data-list="ordered"]:first-child,
                 .ckeditor-content li[data-list="bullet"] + li[data-list="ordered"] {
                   counter-reset: ql-ordered-counter !important;
@@ -951,6 +1026,33 @@ export default function DetailPage() {
                   display: list-item !important;
                   list-style-position: outside !important;
                   padding-left: 0 !important;
+                }
+                .ckeditor-content li:not([class*="ql-indent-"]) {
+                  margin-left: 0 !important;
+                }
+                .ckeditor-content li.ql-indent-1 {
+                  margin-left: 2rem !important;
+                }
+                .ckeditor-content li.ql-indent-2 {
+                  margin-left: 4rem !important;
+                }
+                .ckeditor-content li.ql-indent-3 {
+                  margin-left: 6rem !important;
+                }
+                .ckeditor-content li.ql-indent-4 {
+                  margin-left: 8rem !important;
+                }
+                .ckeditor-content li.ql-indent-5 {
+                  margin-left: 10rem !important;
+                }
+                .ckeditor-content li.ql-indent-6 {
+                  margin-left: 12rem !important;
+                }
+                .ckeditor-content li.ql-indent-7 {
+                  margin-left: 14rem !important;
+                }
+                .ckeditor-content li.ql-indent-8 {
+                  margin-left: 16rem !important;
                 }
                 .ckeditor-content li::marker {
                   color: currentColor;

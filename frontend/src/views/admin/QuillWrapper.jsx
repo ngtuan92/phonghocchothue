@@ -1101,19 +1101,6 @@ const syncListCounters = (root) => {
     let prevIndent = 0;
 
     items.forEach((li) => {
-      // Clean up accidental leading tabs/spaces inside <li> DOM text nodes so bullet is attached to text
-      if (li.firstChild && li.firstChild.nodeType === 3) {
-        const textVal = li.firstChild.nodeValue || '';
-        const leadMatch = textVal.match(/^[\t ]+/);
-        if (leadMatch) {
-          li.firstChild.nodeValue = textVal.slice(leadMatch[0].length);
-          if (!li.className.includes('ql-indent-')) {
-            li.classList.add('ql-indent-1');
-            changedCount += 1;
-          }
-        }
-      }
-
       const type = li.getAttribute('data-list');
       const match = li.className.match(/ql-indent-(\d+)/);
       const indent = match ? parseInt(match[1], 10) : 0;
@@ -3650,28 +3637,7 @@ const QuillWrapper = forwardRef(({
                 return;
               }
 
-              // Case A: Cursor is at beginning of an existing list item (or only whitespace before cursor)
-              if (lineFormats.list && textBeforeCursor.trim() === '') {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-
-                // Delete any accidental spaces already typed before cursor on this list item
-                if (textBeforeCursor.length > 0) {
-                  quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
-                }
-
-                const curIndent = parseInt(lineFormats.indent || 0, 10);
-                const newIndent = Math.min(curIndent + 1, 8);
-                quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
-                syncListCounters(quill.root);
-                try {
-                  quill.setSelection(lineStartIndex, 0, 'silent');
-                } catch { /* ignore */ }
-                return;
-              }
-
-              // Case B: User typed leading spaces/tabs + marker (e.g. "      .", "   1.", "   -", "   1,")
+              // Markdown list trigger: User typed marker followed by Space (e.g. "1. ", "- ", "* ")
               const listAutoMatch = textBeforeCursor.match(/^(\s*)([0-9]+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
               if (listAutoMatch) {
                 e.preventDefault();
@@ -3690,24 +3656,10 @@ const QuillWrapper = forwardRef(({
                   listType = 'checked';
                 }
 
-                let indentLevel = parseInt(lineFormats.indent || 0, 10);
+                let indentLevel = 0;
                 if (leadingWs.length > 0) {
                   const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
-                  const wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
-                  indentLevel = wsIndent;
-                } else {
-                  const prevLine = currentLine.prev;
-                  if (prevLine && prevLine.formats) {
-                    const prevFmt = prevLine.formats();
-                    if (prevFmt.list) {
-                      const prevIndent = parseInt(prevFmt.indent || 0, 10);
-                      if (prevFmt.list !== listType && prevIndent === 0) {
-                        indentLevel = 1;
-                      } else {
-                        indentLevel = prevIndent;
-                      }
-                    }
-                  }
+                  indentLevel = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
                 }
 
                 quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
