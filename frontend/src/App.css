@@ -765,28 +765,28 @@
   margin-left: 0 !important;
 }
 .rich-text-renderer li.ql-indent-1 {
-  margin-left: 2rem !important;
+  margin-left: 1.5rem !important;
 }
 .rich-text-renderer li.ql-indent-2 {
-  margin-left: 4rem !important;
+  margin-left: 3rem !important;
 }
 .rich-text-renderer li.ql-indent-3 {
-  margin-left: 6rem !important;
+  margin-left: 4.5rem !important;
 }
 .rich-text-renderer li.ql-indent-4 {
-  margin-left: 8rem !important;
+  margin-left: 6rem !important;
 }
 .rich-text-renderer li.ql-indent-5 {
-  margin-left: 10rem !important;
+  margin-left: 7.5rem !important;
 }
 .rich-text-renderer li.ql-indent-6 {
-  margin-left: 12rem !important;
+  margin-left: 9rem !important;
 }
 .rich-text-renderer li.ql-indent-7 {
-  margin-left: 14rem !important;
+  margin-left: 10.5rem !important;
 }
 .rich-text-renderer li.ql-indent-8 {
-  margin-left: 16rem !important;
+  margin-left: 12rem !important;
 }
 
 .rich-text-renderer li[data-list="bullet"] {
@@ -2479,14 +2479,14 @@ footer .rich-text-renderer * {
 
 /* Quill stores indentation as ql-indent-* classes. The public renderer does
    not load Quill's editor stylesheet, so mirror the relevant rules here. */
-.rich-text-renderer .ql-indent-1 { padding-left: 3em; }
-.rich-text-renderer .ql-indent-2 { padding-left: 6em; }
-.rich-text-renderer .ql-indent-3 { padding-left: 9em; }
-.rich-text-renderer .ql-indent-4 { padding-left: 12em; }
-.rich-text-renderer .ql-indent-5 { padding-left: 15em; }
-.rich-text-renderer .ql-indent-6 { padding-left: 18em; }
-.rich-text-renderer .ql-indent-7 { padding-left: 21em; }
-.rich-text-renderer .ql-indent-8 { padding-left: 24em; }
+.rich-text-renderer .ql-indent-1:not(li) { padding-left: 1.5rem; }
+.rich-text-renderer .ql-indent-2:not(li) { padding-left: 3rem; }
+.rich-text-renderer .ql-indent-3:not(li) { padding-left: 4.5rem; }
+.rich-text-renderer .ql-indent-4:not(li) { padding-left: 6rem; }
+.rich-text-renderer .ql-indent-5:not(li) { padding-left: 7.5rem; }
+.rich-text-renderer .ql-indent-6:not(li) { padding-left: 9rem; }
+.rich-text-renderer .ql-indent-7:not(li) { padding-left: 10.5rem; }
+.rich-text-renderer .ql-indent-8:not(li) { padding-left: 12rem; }
 
 .rich-text-renderer [dir="rtl"].ql-indent-1 { padding-left: 0; padding-right: 3em; }
 .rich-text-renderer [dir="rtl"].ql-indent-2 { padding-left: 0; padding-right: 6em; }

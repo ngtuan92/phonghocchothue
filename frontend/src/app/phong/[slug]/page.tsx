@@ -885,28 +885,28 @@ export default function DetailPage() {
                   margin-left: 0 !important;
                 }
                 .room-summary-desc li.ql-indent-1 {
-                  margin-left: 2rem !important;
+                  margin-left: 1.5rem !important;
                 }
                 .room-summary-desc li.ql-indent-2 {
-                  margin-left: 4rem !important;
+                  margin-left: 3rem !important;
                 }
                 .room-summary-desc li.ql-indent-3 {
-                  margin-left: 6rem !important;
+                  margin-left: 4.5rem !important;
                 }
                 .room-summary-desc li.ql-indent-4 {
-                  margin-left: 8rem !important;
+                  margin-left: 6rem !important;
                 }
                 .room-summary-desc li.ql-indent-5 {
-                  margin-left: 10rem !important;
+                  margin-left: 7.5rem !important;
                 }
                 .room-summary-desc li.ql-indent-6 {
-                  margin-left: 12rem !important;
+                  margin-left: 9rem !important;
                 }
                 .room-summary-desc li.ql-indent-7 {
-                  margin-left: 14rem !important;
+                  margin-left: 10.5rem !important;
                 }
                 .room-summary-desc li.ql-indent-8 {
-                  margin-left: 16rem !important;
+                  margin-left: 12rem !important;
                 }
                 .room-summary-desc .rich-text-renderer li {
                   margin-top: 0 !important;
@@ -1023,28 +1023,28 @@ export default function DetailPage() {
                   margin-left: 0 !important;
                 }
                 .ckeditor-content li.ql-indent-1 {
-                  margin-left: 2rem !important;
+                  margin-left: 1.5rem !important;
                 }
                 .ckeditor-content li.ql-indent-2 {
-                  margin-left: 4rem !important;
+                  margin-left: 3rem !important;
                 }
                 .ckeditor-content li.ql-indent-3 {
-                  margin-left: 6rem !important;
+                  margin-left: 4.5rem !important;
                 }
                 .ckeditor-content li.ql-indent-4 {
-                  margin-left: 8rem !important;
+                  margin-left: 6rem !important;
                 }
                 .ckeditor-content li.ql-indent-5 {
-                  margin-left: 10rem !important;
+                  margin-left: 7.5rem !important;
                 }
                 .ckeditor-content li.ql-indent-6 {
-                  margin-left: 12rem !important;
+                  margin-left: 9rem !important;
                 }
                 .ckeditor-content li.ql-indent-7 {
-                  margin-left: 14rem !important;
+                  margin-left: 10.5rem !important;
                 }
                 .ckeditor-content li.ql-indent-8 {
-                  margin-left: 16rem !important;
+                  margin-left: 12rem !important;
                 }
                 .ckeditor-content li::marker {
                   color: currentColor;

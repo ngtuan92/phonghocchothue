@@ -8507,7 +8507,49 @@ const QuillWrapper = forwardRef(({
           content: counter(ql-ordered-counter) "." !important;
         }
 
-        /* Hierarchical Indentation (Google Docs / Word style: 2rem = 32px per level) */
+        /* Standardized Indentation: 1.5rem (24px) per level, matching Google Docs and Word */
+        .quill-wrapper-container .ql-editor .ql-indent-1:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-1:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-1:not(li):not(.ql-direction-rtl) {
+          padding-left: 1.5rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-2:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-2:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-2:not(li):not(.ql-direction-rtl) {
+          padding-left: 3rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-3:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-3:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-3:not(li):not(.ql-direction-rtl) {
+          padding-left: 4.5rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-4:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-4:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-4:not(li):not(.ql-direction-rtl) {
+          padding-left: 6rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-5:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-5:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-5:not(li):not(.ql-direction-rtl) {
+          padding-left: 7.5rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-6:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-6:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-6:not(li):not(.ql-direction-rtl) {
+          padding-left: 9rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-7:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-7:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-7:not(li):not(.ql-direction-rtl) {
+          padding-left: 10.5rem !important;
+        }
+        .quill-wrapper-container .ql-editor .ql-indent-8:not(li):not(.ql-direction-rtl),
+        .room-desc-editor.quill-wrapper-container .ql-editor .ql-indent-8:not(li):not(.ql-direction-rtl),
+        .blog-desc-editor.quill-wrapper-container .ql-editor .ql-indent-8:not(li):not(.ql-direction-rtl) {
+          padding-left: 12rem !important;
+        }
+
+        /* List item indentation via margin-left (keeping padding-left: 28px for marker slot) */
         .quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]),
         .room-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]),
         .blog-desc-editor.quill-wrapper-container .ql-editor li:not([class*="ql-indent-"]) {
@@ -8516,42 +8558,50 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container .ql-editor li.ql-indent-1,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-1 {
-          margin-left: 2rem !important;
+          margin-left: 1.5rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-2,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-2 {
-          margin-left: 4rem !important;
+          margin-left: 3rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-3,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-3 {
-          margin-left: 6rem !important;
+          margin-left: 4.5rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-4,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-4 {
-          margin-left: 8rem !important;
+          margin-left: 6rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-5,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-5 {
-          margin-left: 10rem !important;
+          margin-left: 7.5rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-6,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-6 {
-          margin-left: 12rem !important;
+          margin-left: 9rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-7,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-7 {
-          margin-left: 14rem !important;
+          margin-left: 10.5rem !important;
+          padding-left: 28px !important;
         }
         .quill-wrapper-container .ql-editor li.ql-indent-8,
         .room-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8,
         .blog-desc-editor.quill-wrapper-container .ql-editor li.ql-indent-8 {
-          margin-left: 16rem !important;
+          margin-left: 12rem !important;
+          padding-left: 28px !important;
         }
 
         @media (max-width: 640px) {
