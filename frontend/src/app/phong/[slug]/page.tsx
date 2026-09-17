@@ -852,14 +852,10 @@ export default function DetailPage() {
                 .room-summary-desc li[data-list="bullet"].ql-indent-8 {
                   list-style-type: square !important;
                 }
-                .room-summary-desc ol > li[data-list="ordered"]:first-child,
-                .room-summary-desc li[data-list="bullet"] + li[data-list="ordered"] {
-                  counter-reset: ql-ordered-counter !important;
-                }
                 .room-summary-desc li[data-list="ordered"] {
                   list-style-type: none !important;
                   display: list-item !important;
-                  counter-increment: ql-ordered-counter !important;
+                  counter-increment: none !important;
                 }
                 .room-summary-desc li[data-list="ordered"]::marker {
                   content: none !important;
@@ -984,14 +980,10 @@ export default function DetailPage() {
                 .ckeditor-content li[data-list="bullet"].ql-indent-8 {
                   list-style-type: square !important;
                 }
-                .ckeditor-content ol > li[data-list="ordered"]:first-child,
-                .ckeditor-content li[data-list="bullet"] + li[data-list="ordered"] {
-                  counter-reset: ql-ordered-counter !important;
-                }
                 .ckeditor-content li[data-list="ordered"] {
                   list-style-type: none !important;
                   display: list-item !important;
-                  counter-increment: ql-ordered-counter !important;
+                  counter-increment: none !important;
                 }
                 .ckeditor-content li[data-list="ordered"]::marker {
                   content: none !important;
