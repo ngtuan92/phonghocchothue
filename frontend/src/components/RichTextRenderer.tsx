@@ -1134,47 +1134,47 @@ const RICH_TEXT_RENDERER_STYLES = `
           content: counter(ql-ordered-counter) "." !important;
         }
 
-        /* Hierarchical Indentation: 1.5rem (24px) per level, matching Google Docs and Word */
+        /* Hierarchical Indentation: 1rem (16px) per level, matching standard tab-size */
         .rich-text-renderer li:not([class*="ql-indent-"]) {
           margin-left: 0 !important;
         }
         .rich-text-renderer li.ql-indent-1 {
-          margin-left: 1.5rem !important;
+          margin-left: 1rem !important;
         }
         .rich-text-renderer li.ql-indent-2 {
-          margin-left: 3rem !important;
+          margin-left: 2rem !important;
         }
         .rich-text-renderer li.ql-indent-3 {
-          margin-left: 4.5rem !important;
+          margin-left: 3rem !important;
         }
         .rich-text-renderer li.ql-indent-4 {
-          margin-left: 6rem !important;
+          margin-left: 4rem !important;
         }
         .rich-text-renderer li.ql-indent-5 {
-          margin-left: 7.5rem !important;
+          margin-left: 5rem !important;
         }
         .rich-text-renderer li.ql-indent-6 {
-          margin-left: 9rem !important;
+          margin-left: 6rem !important;
         }
         .rich-text-renderer li.ql-indent-7 {
-          margin-left: 10.5rem !important;
+          margin-left: 7rem !important;
         }
         .rich-text-renderer li.ql-indent-8 {
-          margin-left: 12rem !important;
+          margin-left: 8rem !important;
         }
 
         @media (max-width: 640px) {
           .rich-text-renderer li.ql-indent-1 {
-            margin-left: 1.25rem !important;
+            margin-left: 0.75rem !important;
           }
           .rich-text-renderer li.ql-indent-2 {
-            margin-left: 2.5rem !important;
+            margin-left: 1.5rem !important;
           }
           .rich-text-renderer li.ql-indent-3 {
-            margin-left: 3.75rem !important;
+            margin-left: 2.25rem !important;
           }
           .rich-text-renderer li.ql-indent-4 {
-            margin-left: 5rem !important;
+            margin-left: 3rem !important;
           }
         }
         .rich-text-renderer .ql-ui {
