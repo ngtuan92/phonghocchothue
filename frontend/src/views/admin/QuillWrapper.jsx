@@ -3525,8 +3525,31 @@ const QuillWrapper = forwardRef(({
               const wholeLineText = quill.getText(lineStartIndex, Math.max(0, lineLength - 1));
               const textBeforeCursor = quill.getText(lineStartIndex, offset);
 
-              // Auto-fix manual spaced list lines like ".          text" or "   .   text"
-              const manualSpacedMatch = wholeLineText.match(/^(\s*)(\.|\-|\*|\+|\•|\d+[.,)]|[a-zA-Z][.,)])(\s{2,})(.*)$/);
+              // (A) If user is ALREADY on a list item and presses Space at the beginning of the line:
+              //     Pressing Space INDENTS the list item (moves bullet/number inward with user's space)!
+              if (lineFormats.list) {
+                if (offset === 0 || textBeforeCursor.trim() === '') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.stopImmediatePropagation();
+
+                  if (textBeforeCursor.length > 0) {
+                    quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
+                  }
+
+                  const curIndent = parseInt(lineFormats.indent || 0, 10);
+                  const newIndent = Math.min(curIndent + 1, 8);
+                  quill.formatLine(lineStartIndex, 1, 'indent', newIndent, 'user');
+                  syncListCounters(quill.root);
+                  try {
+                    quill.setSelection(lineStartIndex, 0, 'silent');
+                  } catch { /* ignore */ }
+                  return;
+                }
+              }
+
+              // (B) Auto-fix manual spaced list lines like ".          text" or "   .   text"
+              const manualSpacedMatch = wholeLineText.match(/^([^\S\r\n]*)(\.|\-|\*|\+|\•|\d+[.,)]|[a-zA-Z][.,)])([^\S\r\n]{2,})(.*)$/);
               if (manualSpacedMatch) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -3542,7 +3565,7 @@ const QuillWrapper = forwardRef(({
 
                 const numTabs = (spaces.match(/\t/g) || []).length;
                 const numSpaces = spaces.replace(/\t/g, '').length;
-                const wsIndent = Math.min(Math.max(1, numTabs + Math.floor(numSpaces / 2)), 8);
+                const wsIndent = Math.min(Math.max(1, numTabs + Math.floor((numSpaces + 1) / 2)), 8);
 
                 quill.deleteText(lineStartIndex, lineLength - 1, 'user');
                 if (restText.length > 0) {
@@ -3554,8 +3577,8 @@ const QuillWrapper = forwardRef(({
                 return;
               }
 
-              // Markdown list trigger: User typed marker followed by Space (e.g. "1. ", "- ", "* ")
-              const listAutoMatch = textBeforeCursor.match(/^([\t ]*)([0-9]+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
+              // (C) Markdown list trigger: User typed marker followed by Space (e.g. "1. ", "- ", "* ")
+              const listAutoMatch = textBeforeCursor.match(/^([^\S\r\n]*)([0-9]+[.,)]|[a-zA-Z][.,)]|-|\*|\+|\.|•|\[ ?\]|\[x\])$/);
               if (listAutoMatch) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -3577,7 +3600,7 @@ const QuillWrapper = forwardRef(({
                 if (leadingWs.length > 0) {
                   const numTabs = (leadingWs.match(/\t/g) || []).length;
                   const numSpaces = leadingWs.replace(/\t/g, '').length;
-                  indentLevel = Math.min(Math.max(1, numTabs + Math.floor(numSpaces / 2)), 8);
+                  indentLevel = Math.min(Math.max(1, numTabs + Math.floor((numSpaces + 1) / 2)), 8);
                 }
 
                 quill.deleteText(lineStartIndex, textBeforeCursor.length, 'user');
@@ -5631,22 +5654,40 @@ const QuillWrapper = forwardRef(({
           try {
             const [currentLine] = quill.getLine(range.index);
             const currentFmt = currentLine ? currentLine.formats() : (quill.getFormat(range) || {});
-            const prevLine = currentLine?.prev;
-            const prevFmt = prevLine ? prevLine.formats() : {};
+            
+            // Scan previous lines for list context (skipping blank lines)
+            let prevListLine = currentLine?.prev;
+            let prevFmt = prevListLine ? prevListLine.formats() : {};
+            let scanLimit = 3;
+            while (prevListLine && !prevFmt.list && prevListLine.length() <= 1 && scanLimit > 0) {
+              prevListLine = prevListLine.prev;
+              prevFmt = prevListLine ? prevListLine.formats() : {};
+              scanLimit--;
+            }
 
             const lineStartIndex = quill.getIndex(currentLine);
             const lineLength = currentLine.length();
             const lineText = quill.getText(lineStartIndex, lineLength);
 
-            // Check for leading tabs and spaces in the text
-            const leadingWsMatch = lineText.match(/^([\t ]+)/);
+            // Check for leading tabs and spaces in the text (including NBSP \u00a0 and unicode whitespace)
+            const leadingWsMatch = lineText.match(/^([^\S\r\n]+)/);
             let leadingWsLen = 0;
             let wsIndent = 0;
             if (leadingWsMatch) {
               const leadingWs = leadingWsMatch[1];
               leadingWsLen = leadingWs.length;
-              const effectiveSpaces = leadingWs.replace(/\t/g, '  ').length;
-              wsIndent = Math.min(Math.max(1, Math.floor(effectiveSpaces / 2)), 8);
+              const numTabs = (leadingWs.match(/\t/g) || []).length;
+              const nonTabSpaces = leadingWs.replace(/\t/g, '').length;
+              if (numTabs > 0) {
+                wsIndent = Math.min(8, numTabs + Math.floor(nonTabSpaces / 2));
+              } else if (nonTabSpaces > 0) {
+                // If line only contains whitespace (cursor moved out by spaces/tabs):
+                if (lineText.trim().length === 0) {
+                  wsIndent = Math.min(8, Math.max(1, Math.floor((nonTabSpaces + 1) / 2)));
+                } else {
+                  wsIndent = Math.min(8, Math.max(1, Math.floor(nonTabSpaces / 2)));
+                }
+              }
             }
 
             // 1. Toggling off active list (clicking same list icon to deactivate list)
@@ -5659,7 +5700,7 @@ const QuillWrapper = forwardRef(({
                 applyListAndIndent(quill, lineStartIndex, false, 0, 'user');
               }
             } else {
-              // Strip leading tabs/spaces from the text so bullet/number attaches directly next to text
+              // Strip leading tabs/spaces from the text so bullet/number attaches directly at the indent position
               if (leadingWsLen > 0) {
                 quill.deleteText(lineStartIndex, leadingWsLen, 'user');
               }
@@ -5667,13 +5708,12 @@ const QuillWrapper = forwardRef(({
               // Determine final indent level:
               let finalIndent = 0;
               if (wsIndent > 0) {
-                // User tabbed or spaced before selecting list
+                // User tabbed or spaced before selecting list -> position list at this indent!
                 finalIndent = wsIndent;
               } else {
                 const isSwitchingFormatOnSameItem = Boolean(currentFmt.list && currentFmt.list !== value);
                 if (isSwitchingFormatOnSameItem) {
-                  const baseIndent = parseInt(currentFmt.indent || 0, 10);
-                  finalIndent = baseIndent > 0 ? baseIndent : 1;
+                  finalIndent = parseInt(currentFmt.indent || 0, 10);
                 } else if (currentFmt.list) {
                   finalIndent = parseInt(currentFmt.indent || 0, 10);
                 } else if (prevFmt.list && lineText.trim().length === 0) {
@@ -5695,7 +5735,8 @@ const QuillWrapper = forwardRef(({
 
             syncListCounters(quill.root);
             try {
-              setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
+              const targetCursor = leadingWsLen > 0 ? lineStartIndex : range.index;
+              setSelectionWithoutScroll(quill, targetCursor, 0, 'silent');
             } catch { /* ignore */ }
 
             window.setTimeout(() => {
