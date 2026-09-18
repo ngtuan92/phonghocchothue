@@ -463,7 +463,7 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
     },
     keyboard: {
       bindings: {
-        listTab: {
+        tab: {
           key: 9, // Tab
           handler(range, context) {
             if (context.format.list) {
@@ -475,8 +475,6 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
               return false;
             }
 
-            // Normal paragraph: Do NOT indent the entire block with ql-indent!
-            // If the block currently has an indent (e.g. from previously pressing Tab), remove it.
             if (context.format.indent) {
               const [line, offset] = this.quill.getLine(range.index);
               const lineStartIndex = range.index - offset;
@@ -493,7 +491,13 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
             return false;
           }
         },
-        listShiftTab: {
+        listTab: {
+          key: 9,
+          handler() {
+            return false;
+          }
+        },
+        outdent: {
           key: 9, // Shift + Tab
           shiftKey: true,
           handler(range, context) {
@@ -531,6 +535,13 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
                 return false;
               }
             }
+            return false;
+          }
+        },
+        listShiftTab: {
+          key: 9,
+          shiftKey: true,
+          handler() {
             return false;
           }
         },
@@ -3499,27 +3510,18 @@ const QuillWrapper = forwardRef(({
             const lineLength = currentLine.length();
             const textBeforeCursor = quill.getText(lineStartIndex, offset);
 
-            // If at the beginning of the line (or empty line / whitespace before cursor) or on a list item:
-            // Tab INDENTS the entire line, Shift+Tab OUTDENTS!
-            if (lineFormats.list || offset === 0 || textBeforeCursor.trim() === '') {
+            // ONLY for list items: Tab / Shift+Tab changes list indentation level!
+            if (lineFormats.list) {
               e.preventDefault();
               e.stopPropagation();
               e.stopImmediatePropagation();
-
-              const lineText = quill.getText(lineStartIndex, lineLength);
-              const leadingWsMatch = lineText.match(/^([^\S\r\n]+)/);
-              let cleanedOffset = 0;
-              if (leadingWsMatch) {
-                cleanedOffset = leadingWsMatch[1].length;
-                quill.deleteText(lineStartIndex, cleanedOffset, 'user');
-              }
 
               const curIndent = parseInt(lineFormats.indent || 0, 10);
               if (e.shiftKey) {
                 // Shift + Tab: Outdent
                 if (curIndent > 0) {
                   quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
-                } else if (lineFormats.list) {
+                } else {
                   applyListAndIndent(quill, lineStartIndex, false, 0, 'user');
                 }
               } else {
@@ -3534,15 +3536,38 @@ const QuillWrapper = forwardRef(({
               return;
             }
 
-            // In the middle of text:
-            if (!e.shiftKey) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-              quill.insertText(sel.index, '    ', 'user');
-              quill.setSelection(sel.index + 4, 0, 'user');
+            // Normal paragraph / text (NOT a list):
+            // NEVER indent the entire block with ql-indent! Only indent at cursor!
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            // If the paragraph currently has ql-indent, remove it so the whole block is not indented
+            if (lineFormats.indent) {
+              quill.formatLine(lineStartIndex, 1, 'indent', false, 'user');
+            }
+
+            if (e.shiftKey) {
+              // Shift + Tab: remove up to 4 spaces/non-breaking spaces before cursor
+              if (offset > 0) {
+                const textBefore = quill.getText(lineStartIndex, offset);
+                const match = textBefore.match(/[\u00a0\t ]{1,4}$/);
+                if (match) {
+                  quill.deleteText(sel.index - match[0].length, match[0].length, 'user');
+                  quill.setSelection(sel.index - match[0].length, 0, 'silent');
+                }
+              }
               return;
             }
+
+            // Tab: delete selection if any, then insert 4 non-breaking spaces right at cursor
+            if (sel.length > 0) {
+              quill.deleteText(sel.index, sel.length, 'user');
+            }
+            const tabSpaces = '\u00a0\u00a0\u00a0\u00a0';
+            quill.insertText(sel.index, tabSpaces, 'user');
+            quill.setSelection(sel.index + tabSpaces.length, 0, 'silent');
+            return;
           }
         }
       }
