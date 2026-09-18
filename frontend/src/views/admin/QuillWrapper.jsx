@@ -474,7 +474,23 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
               syncListCounters(this.quill.root);
               return false;
             }
-            return true;
+
+            // Normal paragraph: Do NOT indent the entire block with ql-indent!
+            // If the block currently has an indent (e.g. from previously pressing Tab), remove it.
+            if (context.format.indent) {
+              const [line, offset] = this.quill.getLine(range.index);
+              const lineStartIndex = range.index - offset;
+              this.quill.formatLine(lineStartIndex, 1, 'indent', false, 'user');
+            }
+
+            if (range.length > 0) {
+              this.quill.deleteText(range.index, range.length, 'user');
+            }
+
+            const tabSpaces = '\u00a0\u00a0\u00a0\u00a0';
+            this.quill.insertText(range.index, tabSpaces, 'user');
+            this.quill.setSelection(range.index + tabSpaces.length, 0, 'silent');
+            return false;
           }
         },
         listShiftTab: {
@@ -493,7 +509,29 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
               syncListCounters(this.quill.root);
               return false;
             }
-            return true;
+
+            // Normal paragraph: remove block indent if present, or remove up to 4 leading spaces
+            const curIndent = parseInt(context.format.indent || 0, 10);
+            if (curIndent > 0) {
+              const [line, offset] = this.quill.getLine(range.index);
+              const lineStartIndex = range.index - offset;
+              this.quill.formatLine(lineStartIndex, 1, 'indent', curIndent - 1 === 0 ? false : curIndent - 1, 'user');
+              return false;
+            }
+
+            const [line, offset] = this.quill.getLine(range.index);
+            if (line && offset > 0) {
+              const lineStartIndex = range.index - offset;
+              const textBefore = this.quill.getText(lineStartIndex, offset);
+              const match = textBefore.match(/[\u00a0\t ]{1,4}$/);
+              if (match) {
+                const len = match[0].length;
+                this.quill.deleteText(range.index - len, len, 'user');
+                this.quill.setSelection(range.index - len, 0, 'silent');
+                return false;
+              }
+            }
+            return false;
           }
         },
         backspaceAfterImage: {
