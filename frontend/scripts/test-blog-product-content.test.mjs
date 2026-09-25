@@ -460,4 +460,41 @@ test('Edge case: block chứa nested tags phức tạp không bị mất content
   assert.ok(result.includes('<strong>') && result.includes('<em>'), 'Nested tags vẫn còn');
 });
 
+test('URL protection: raw URLs in text are wrapped with .rich-text-url to prevent break at hyphens', () => {
+  const URL_REGEX = /(https?:\/\/[^\s<>"']+[\w/])/gi;
+  const protectUrls = (doc, root) => {
+    const walk = (node) => {
+      if (node.nodeType === 3) {
+        const val = node.nodeValue || '';
+        if (URL_REGEX.test(val)) {
+          const parent = node.parentNode;
+          if (parent && (parent.nodeName === 'A' || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE')) return;
+          const span = doc.createElement('span');
+          span.innerHTML = val.replace(
+            URL_REGEX,
+            '<span class="rich-text-url">$1</span>'
+          );
+          parent?.replaceChild(span, node);
+          while (span.firstChild) {
+            parent?.insertBefore(span.firstChild, span);
+          }
+          parent?.removeChild(span);
+        }
+      } else if (node.nodeType === 1 && !['A', 'SCRIPT', 'STYLE', 'IMG', 'IFRAME'].includes(node.nodeName)) {
+        Array.from(node.childNodes).forEach(walk);
+      }
+    };
+    walk(root);
+  };
+
+  const testDom = new JSDOM('<div><p>Bonus my fen:&nbsp;&nbsp;&nbsp;https://youtu.be/-ypojoZ1oFE&nbsp;&nbsp;&nbsp;&nbsp;:))</p></div>');
+  const d = testDom.window.document;
+  protectUrls(d, d.body.firstElementChild);
+
+  const urlSpan = d.querySelector('.rich-text-url');
+  assert.ok(urlSpan, 'URL is wrapped in .rich-text-url span');
+  assert.equal(urlSpan.textContent, 'https://youtu.be/-ypojoZ1oFE', 'URL text is preserved exactly');
+});
+
 console.log('\n✅ test-blog-product-content.test.mjs loaded – running all tests...\n');
+

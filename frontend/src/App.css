@@ -695,6 +695,14 @@
   white-space: normal !important;
 }
 
+.rich-text-renderer a,
+.rich-text-renderer .rich-text-url {
+  display: inline-block !important;
+  max-width: 100% !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
 .rich-text-renderer {
   width: 100%;
   overflow: visible;

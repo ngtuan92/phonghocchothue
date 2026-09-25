@@ -817,6 +817,31 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         });
       });
 
+      // Auto-protect raw URLs in text nodes from breaking mid-URL at hyphens or slashes
+      const URL_REGEX = /(https?:\/\/[^\s<>"']+[\w/])/gi;
+      const protectUrls = (node: Node) => {
+        if (node.nodeType === 3) {
+          const val = node.nodeValue || '';
+          if (URL_REGEX.test(val)) {
+            const parent = node.parentNode;
+            if (parent && (parent.nodeName === 'A' || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE')) return;
+            const span = doc.createElement('span');
+            span.innerHTML = val.replace(
+              URL_REGEX,
+              '<span class="rich-text-url">$1</span>'
+            );
+            parent?.replaceChild(span, node);
+            while (span.firstChild) {
+              parent?.insertBefore(span.firstChild, span);
+            }
+            parent?.removeChild(span);
+          }
+        } else if (node.nodeType === 1 && !['A', 'SCRIPT', 'STYLE', 'IMG', 'IFRAME'].includes(node.nodeName)) {
+          Array.from(node.childNodes).forEach(protectUrls);
+        }
+      };
+      if (root) protectUrls(root);
+
       if (root) processedHtml = root.innerHTML;
     }
 
@@ -1828,7 +1853,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             white-space: normal !important;
             word-break: normal !important;
             overflow-wrap: break-word !important;
-            hyphens: manual !important;
+            hyphens: none !important;
           }
 
           /* Ensure buttons and explicitly nowrap rich text never wrap to multiple lines on mobile */
@@ -1872,12 +1897,18 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: block;
           width: 100%;
         }
-        .rich-text-renderer a {
+        .rich-text-renderer a,
+        .rich-text-renderer .rich-text-url {
           color: #3b82f6;
           text-decoration: underline;
           transition: color 0.2s;
+          display: inline-block !important;
+          max-width: 100% !important;
+          word-break: normal !important;
+          overflow-wrap: break-word !important;
         }
-        .rich-text-renderer a:hover {
+        .rich-text-renderer a:hover,
+        .rich-text-renderer .rich-text-url:hover {
           color: #2563eb;
           text-decoration: none;
         }
