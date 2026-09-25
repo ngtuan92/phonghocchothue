@@ -8286,6 +8286,19 @@ const QuillWrapper = forwardRef(({
         .product-dialog-quill--content .quill-wrapper-container .ql-editor > *:first-child {
           margin-top: 26px !important;
         }
+        /* Neu phan tu dau tien la anh (hoac anh wrap), khong ap dung margin-top: 26px de tranh text cao hon anh */
+        .room-desc-editor.quill-wrapper-container .ql-editor > .image-wrapper:first-child,
+        .blog-desc-editor.quill-wrapper-container .ql-editor > .image-wrapper:first-child,
+        .blog-content-area .quill-wrapper-container .ql-editor > .image-wrapper:first-child,
+        .product-dialog-quill--content .quill-wrapper-container .ql-editor > .image-wrapper:first-child,
+        .room-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-left:first-child,
+        .blog-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-left:first-child,
+        .blog-content-area .quill-wrapper-container .ql-editor > .image-wrap-left:first-child,
+        .room-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-right:first-child,
+        .blog-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-right:first-child,
+        .blog-content-area .quill-wrapper-container .ql-editor > .image-wrap-right:first-child {
+          margin-top: 0 !important;
+        }
         .room-desc-editor.quill-wrapper-container .ql-editor.ql-blank::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor.ql-blank::before,
         .blog-content-area .quill-wrapper-container .ql-editor.ql-blank::before,
@@ -9292,7 +9305,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrap-left,
         .ql-editor .image-wrapper.image-wrap-left {
           float: left !important;
-          clear: both !important;
+          clear: none !important;
           margin-right: 20px !important;
           margin-bottom: 10px !important;
           margin-top: 0 !important;
@@ -9305,7 +9318,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrap-right,
         .ql-editor .image-wrapper.image-wrap-right {
           float: right !important;
-          clear: both !important;
+          clear: none !important;
           margin-left: 20px !important;
           margin-bottom: 10px !important;
           margin-top: 0 !important;
@@ -9314,6 +9327,40 @@ const QuillWrapper = forwardRef(({
           position: relative !important;
           max-width: 100% !important;
           box-sizing: border-box !important;
+        }
+
+        /* Dong bo khoang cach tren cua doan text wrap canh anh */
+        .ql-editor .image-wrapper.image-wrap-left + p,
+        .ql-editor .image-wrapper.image-wrap-right + p,
+        .ql-editor .image-wrap-left + p,
+        .ql-editor .image-wrap-right + p,
+        .ql-editor .image-wrapper + p.editor-image-spacer-mobile-hide + p,
+        .ql-editor .image-wrapper + p:empty + p,
+        .ql-editor .image-wrapper + p:has(> br:only-child) + p {
+          margin-top: 0 !important;
+        }
+
+        /* An cac doan rong truc tiep truoc va sau anh wrap tren desktop de khong day lech anh va text */
+        .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
+        .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
+        .quill-wrapper-container .ql-editor p.editor-image-spacer-mobile-hide:has(+ .image-wrapper),
+        .quill-wrapper-container .ql-editor p.image-spacer-mobile-hide:has(+ .image-wrapper),
+        .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
+        .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
+        .quill-wrapper-container .ql-editor .image-wrapper + p.editor-image-spacer-mobile-hide,
+        .quill-wrapper-container .ql-editor .image-wrapper + p.image-spacer-mobile-hide,
+        .quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
+        .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
+        .quill-wrapper-container .ql-editor img + p:empty,
+        .quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
+          display: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          font-size: 0 !important;
+          border: none !important;
         }
         .ql-editor .image-wrapper img {
           display: block !important;

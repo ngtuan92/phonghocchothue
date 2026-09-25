@@ -276,6 +276,12 @@
   margin-top: 26px !important;
 }
 
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > .image-wrapper:first-child,
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > .image-wrap-left:first-child,
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > .image-wrap-right:first-child {
+  margin-top: 0 !important;
+}
+
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor {
   padding: 20px min(24px, var(--blog-editor-text-inset)) 16px !important;
 }
@@ -935,7 +941,7 @@
 .ql-editor .image-wrap-left,
 .rich-text-renderer .image-wrap-left {
   float: left !important;
-  clear: both !important;
+  clear: none !important;
   margin-right: 20px !important;
   margin-bottom: 10px !important;
   margin-top: 0 !important;
@@ -949,7 +955,7 @@
 .ql-editor .image-wrap-right,
 .rich-text-renderer .image-wrap-right {
   float: right !important;
-  clear: both !important;
+  clear: none !important;
   margin-left: 20px !important;
   margin-bottom: 10px !important;
   margin-top: 0 !important;
@@ -957,6 +963,42 @@
   position: relative !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+}
+
+/* Dong bo khoang cach tren cua doan text wrap canh anh */
+.quill-wrapper-container .ql-editor .image-wrapper.image-wrap-left + p,
+.quill-wrapper-container .ql-editor .image-wrapper.image-wrap-right + p,
+.ql-editor .image-wrapper.image-wrap-left + p,
+.ql-editor .image-wrapper.image-wrap-right + p,
+.ql-editor .image-wrap-left + p,
+.ql-editor .image-wrap-right + p,
+.ql-editor .image-wrapper + p.editor-image-spacer-mobile-hide + p,
+.ql-editor .image-wrapper + p:empty + p,
+.ql-editor .image-wrapper + p:has(> br:only-child) + p {
+  margin-top: 0 !important;
+}
+
+/* An cac doan rong truc tiep truoc va sau anh wrap tren desktop de khong day lech anh va text */
+.quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
+.quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
+.quill-wrapper-container .ql-editor p.editor-image-spacer-mobile-hide:has(+ .image-wrapper),
+.quill-wrapper-container .ql-editor p.image-spacer-mobile-hide:has(+ .image-wrapper),
+.quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
+.quill-wrapper-container .ql-editor .image-wrapper + p:empty,
+.quill-wrapper-container .ql-editor .image-wrapper + p.editor-image-spacer-mobile-hide,
+.quill-wrapper-container .ql-editor .image-wrapper + p.image-spacer-mobile-hide,
+.quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
+.quill-wrapper-container .ql-editor img + p:has(> br:only-child),
+.quill-wrapper-container .ql-editor img + p:empty,
+.quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  border: none !important;
 }
 
 .quill-wrapper-container .ql-editor .image-wrap-left img,
@@ -2822,6 +2864,14 @@ footer .rich-text-renderer * {
 .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child,
 .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
   margin-top: 26px !important;
+}
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > .image-wrapper:first-child,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > .image-wrapper:first-child,
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > .image-wrap-left:first-child,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > .image-wrap-left:first-child,
+.room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > .image-wrap-right:first-child,
+.blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor > .image-wrap-right:first-child {
+  margin-top: 0 !important;
 }
 .room-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
 .blog-desc-editor.quill-wrapper-container.is-blog-editor .ql-editor p,
