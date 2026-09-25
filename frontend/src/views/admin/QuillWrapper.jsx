@@ -9340,28 +9340,6 @@ const QuillWrapper = forwardRef(({
           margin-top: 0 !important;
         }
 
-        /* An cac doan rong truc tiep truoc va sau anh wrap tren desktop de khong day lech anh va text */
-        .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
-        .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
-        .quill-wrapper-container .ql-editor p.editor-image-spacer-mobile-hide:has(+ .image-wrapper),
-        .quill-wrapper-container .ql-editor p.image-spacer-mobile-hide:has(+ .image-wrapper),
-        .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
-        .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
-        .quill-wrapper-container .ql-editor .image-wrapper + p.editor-image-spacer-mobile-hide,
-        .quill-wrapper-container .ql-editor .image-wrapper + p.image-spacer-mobile-hide,
-        .quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
-        .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
-        .quill-wrapper-container .ql-editor img + p:empty,
-        .quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
-          display: none !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          height: 0 !important;
-          min-height: 0 !important;
-          line-height: 0 !important;
-          font-size: 0 !important;
-          border: none !important;
-        }
         .ql-editor .image-wrapper img {
           display: block !important;
           max-width: 100% !important;

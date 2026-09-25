@@ -569,20 +569,25 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const parent = wrapper.parentNode;
         if (!parent) return;
 
-        // 1. Consume/remove any leading spacer blocks directly between wrap image and wrapped text.
-        // In Quill, hitting Enter or placing the cursor next to a wrap image creates empty paragraphs (<p><br></p>).
-        // These are editor artifacts and must NOT create unwanted blank lines/spacers beside the image on user view.
+        // 1. Collect leading spacer blocks directly between wrap image and wrapped text.
+        // If author inserted whitespace spacers (Enter) in Admin to push text down beside the image,
+        // we PRESERVE them so User view is 100% synchronized with Admin Editor!
+        // On mobile, they have wrap-spacer-mobile-hide so they are hidden when stacked.
+        const intentionalLeadingSpacers: Element[] = [];
         let curr = wrapper.nextElementSibling;
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          const spacer = curr;
+          curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
+          if (!curr.innerHTML || curr.innerHTML.trim() === '') {
+            curr.innerHTML = '&nbsp;';
+          }
+          intentionalLeadingSpacers.push(curr);
           curr = curr.nextElementSibling;
-          spacer.remove();
         }
 
         // 2. Collect ALL consecutive content blocks belonging to this wrap section.
         // Stop when hitting an empty spacer (author hit Enter to end the wrap section),
         // another image, a heading, or a divider.
-        const textSiblings: Element[] = [];
+        const textSiblings: Element[] = [...intentionalLeadingSpacers];
         while (
           curr &&
           !isWhitespaceSpacerBlock(curr) &&
