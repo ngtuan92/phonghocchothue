@@ -243,24 +243,14 @@ function processWrapGroups(html) {
       curr = curr.nextElementSibling;
     }
 
-    // 3. Trailing spacers:
-    // In Quill, hitting Enter between sections creates spacer blocks to separate content.
-    // Instead of deleting ALL trailing spacers (which collapses sections together and causes "bị sát"),
-    // preserve up to 1 intentional spacer between sections, and remove only excessive duplicates.
-    let trailingSpacerCount = 0;
+    // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
+    // In Quill, hitting Enter at the end of wrapped text creates empty spacer blocks
+    // simply to advance the cursor below the floated image in the editor.
+    // .rich-text-wrap-group has margin-bottom: 1.5rem which provides natural section gap.
     while (curr && isWhitespaceSpacerBlock(curr)) {
-      trailingSpacerCount++;
-      if (trailingSpacerCount <= 1) {
-        curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
-        if (!curr.innerHTML || curr.innerHTML.trim() === '') {
-          curr.innerHTML = '&nbsp;';
-        }
-        curr = curr.nextElementSibling;
-      } else {
-        const extraSpacer = curr;
-        curr = curr.nextElementSibling;
-        extraSpacer.remove();
-      }
+      const exitSpacer = curr;
+      curr = curr.nextElementSibling;
+      exitSpacer.remove();
     }
 
     if (textSiblings.length > 0) {
@@ -311,10 +301,10 @@ test('Unit Test: Plane section groups all 3 wrapped paragraphs and separates the
   assert.ok(paragraphs[2].textContent.includes('Câu trả lời khá bất ngờ'));
   assert.ok(paragraphs[3].textContent.includes('Đơn giản là vì'));
 
-  // Verify intentional trailing spacer is preserved, followed by Đọc xong đoạn này
+  // All trailing exit spacers consumed; Đọc xong đoạn này follows directly with only margin-bottom gap
   const nextSibling = wrapGroup.nextElementSibling;
   assert.ok(nextSibling, 'Next content follows wrap group');
-  assert.ok(root.textContent.includes('Đọc xong đoạn này'), 'Đọc xong đoạn này follows wrap group');
+  assert.ok(nextSibling.textContent.includes('Đọc xong đoạn này'), 'Đọc xong đoạn này immediately follows wrap group');
 });
 
 test('Unit Test: Gold coins section preserves intentional leading whitespace on desktop', () => {
@@ -342,10 +332,10 @@ test('Unit Test: Gold coins section preserves intentional leading whitespace on 
   // Third child should be the text paragraph
   assert.ok(children[2].textContent.includes('Trong một thế giới'), 'Text paragraph follows intentional spacers');
 
-  // Verify excessive exit spacers are collapsed to at most 1 intentional spacer, followed by Nói đơn giản
+  // All trailing exit spacers consumed; Nói đơn giản follows directly with only margin-bottom gap
   const nextSibling = wrapGroup.nextElementSibling;
   assert.ok(nextSibling, 'Next sibling exists');
-  assert.ok(root.textContent.includes('Nói đơn giản'), 'Nói đơn giản follows wrap group');
+  assert.ok(nextSibling.textContent.includes('Nói đơn giản'), 'Nói đơn giản immediately follows wrap group');
 });
 
 test('Unit Test: Real blog HTML transforms correctly across all 5 images', () => {
@@ -402,7 +392,8 @@ test('Unit Test: Bare wrap-left image without caption is properly grouped and is
   assert.ok(pInside[0].classList.contains('wrap-spacer-mobile-hide'), 'Leading spacer is tagged with wrap-spacer-mobile-hide');
   assert.ok(pInside[1].textContent.includes('This is wrapped text'), 'Wrapped text is inside wrap group');
 
-  assert.ok(root.textContent.includes('Subsequent paragraph below'), 'Next paragraph is outside wrap group');
+  // All trailing spacers consumed; next paragraph follows directly
+  assert.ok(wrapGroup.nextElementSibling.textContent.includes('Subsequent paragraph below'), 'Next paragraph is outside wrap group without gap');
 });
 
 test('Unit Test: Bare wrap-right image without caption is properly grouped and isolated', () => {
@@ -420,7 +411,8 @@ test('Unit Test: Bare wrap-right image without caption is properly grouped and i
 
   const textContainer = wrapGroup.querySelector('.rich-text-wrap-text');
   assert.ok(textContainer.textContent.includes('Wrapped text right beside image'));
-  assert.ok(root.textContent.includes('Next section below'));
+  // The trailing spacer between Wrapped text and Next section is consumed; Next section follows directly
+  assert.ok(wrapGroup.nextElementSibling.textContent.includes('Next section below'), 'Next section follows directly after trailing spacer consumed');
 });
 
 test('Unit Test: Center image (no-wrap) is never grouped into rich-text-wrap-group', () => {
@@ -568,7 +560,7 @@ test('Unit Test: Inline wrap styles (float, margin-left 20px, !important) are st
   assert.ok(imgStyle.includes('width: 308px'), 'img width is preserved without !important');
 });
 
-test('Unit Test: Excessive trailing exit spacers after wrap text are collapsed so only 1 intentional spacer remains', () => {
+test('Unit Test: Multiple trailing exit spacers after wrap text are ALL consumed so no blank gaps exist before next content', () => {
   const inputHtml = `
     <div class="image-wrapper image-wrap-right" data-wrap="right">
       <img src="painting.jpg" data-wrap="right">
@@ -591,8 +583,13 @@ test('Unit Test: Excessive trailing exit spacers after wrap text are collapsed s
   assert.ok(wrapText, 'Wrap text container exists');
   assert.ok(wrapText.textContent.includes('To have to stoop'), 'Contains wrapped text');
 
-  // Verify that excessive trailing spacers are collapsed: exactly 1 intentional spacer remains
-  const remainingSpacers = root.querySelectorAll('.wrap-spacer-mobile-hide');
-  assert.equal(remainingSpacers.length, 1, 'Only 1 intentional trailing spacer is preserved; excessive 3 duplicates were eliminated');
-  assert.ok(root.textContent.includes('7. Câu tục ngữ gốc'), 'Next content follows properly');
+  // Verify that ALL trailing spacers are deleted; next real paragraph follows wrap group directly
+  const nextElement = wrapGroup.nextElementSibling;
+  assert.ok(nextElement, 'Has next sibling element');
+  assert.equal(nextElement.tagName, 'P', 'Next element is paragraph (no spacer in between)');
+  assert.ok(nextElement.textContent.includes('7. Câu tục ngữ gốc'), 'Next real paragraph follows directly without any spacer gaps');
+
+  // Verify there are NO trailing spacer paragraphs remaining at all
+  const allSpacers = root.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide');
+  assert.equal(allSpacers.length, 0, 'All 4 trailing exit spacers were consumed and eliminated');
 });

@@ -601,24 +601,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           curr = curr.nextElementSibling;
         }
 
-        // 3. Trailing spacers:
-        // In Quill, hitting Enter between sections creates spacer blocks to separate content.
-        // Instead of deleting ALL trailing spacers (which collapses sections together and causes "bị sát"),
-        // preserve up to 1 intentional spacer between sections, and remove only excessive duplicates.
-        let trailingSpacerCount = 0;
+        // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
+        // In Quill, hitting Enter at the end of wrapped text creates empty spacer blocks
+        // simply to advance the cursor below the floated image in the editor.
+        // On User view, .rich-text-wrap-group has margin-bottom: 1.5rem which already provides
+        // the natural section gap — no trailing spacer needs to be preserved.
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          trailingSpacerCount++;
-          if (trailingSpacerCount <= 1) {
-            curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
-            if (!curr.innerHTML || curr.innerHTML.trim() === '') {
-              curr.innerHTML = '&nbsp;';
-            }
-            curr = curr.nextElementSibling;
-          } else {
-            const extraSpacer = curr;
-            curr = curr.nextElementSibling;
-            extraSpacer.remove();
-          }
+          const exitSpacer = curr;
+          curr = curr.nextElementSibling;
+          exitSpacer.remove();
         }
 
         // Only group if there are real content siblings following this image
