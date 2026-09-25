@@ -942,8 +942,8 @@
 .rich-text-renderer .image-wrap-left {
   float: left !important;
   clear: none !important;
-  margin-right: 20px !important;
-  margin-bottom: 10px !important;
+  margin-right: 28px !important;
+  margin-bottom: 16px !important;
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
@@ -956,8 +956,8 @@
 .rich-text-renderer .image-wrap-right {
   float: right !important;
   clear: none !important;
-  margin-left: 20px !important;
-  margin-bottom: 10px !important;
+  margin-left: 28px !important;
+  margin-bottom: 16px !important;
   margin-top: 0 !important;
   display: inline-block !important;
   position: relative !important;
@@ -989,12 +989,12 @@
   margin-bottom: 0 !important;
 }
 
-.rich-text-renderer .image-wrapper:not(:has(.image-caption)),
-.rich-text-renderer .image-wrapper:has(.image-caption:empty),
-.quill-wrapper-container .ql-editor .image-wrapper:not(:has(.image-caption)),
-.quill-wrapper-container .ql-editor .image-wrapper:has(.image-caption:empty),
-.ql-editor .image-wrapper:not(:has(.image-caption)),
-.ql-editor .image-wrapper:has(.image-caption:empty) {
+.rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
+.rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty),
+.quill-wrapper-container .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
+.quill-wrapper-container .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty),
+.ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
+.ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty) {
   margin-bottom: 4px !important;
 }
 
@@ -2913,7 +2913,7 @@ footer .rich-text-renderer * {
   .rich-text-wrap-group {
     display: flow-root !important;
     width: 100% !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 1.5rem !important;
   }
   .rich-text-renderer .rich-text-wrap-text,
   .rich-text-wrap-text {

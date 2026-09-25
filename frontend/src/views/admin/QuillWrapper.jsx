@@ -191,7 +191,7 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
     wrapper?.querySelector(':scope > .image-caption')?.textContent?.trim() ||
     target.getAttribute('data-caption')?.trim()
   );
-  const bottomMargin = wrapMode === 'none' ? '20px' : (hasCaption ? '16px' : '4px');
+  const bottomMargin = wrapMode === 'none' ? '20px' : (hasCaption ? '16px' : '16px');
 
   if (wrapper) {
     setImportantStyles(wrapper, {
@@ -200,8 +200,8 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
       'max-width': '100%',
       'margin-top': wrapMode === 'none' ? '20px' : '0',
       'margin-bottom': bottomMargin,
-      'margin-left': wrapMode === 'right' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
-      'margin-right': wrapMode === 'left' ? '20px' : wrapMode === 'none' ? 'auto' : '0',
+      'margin-left': wrapMode === 'right' ? '28px' : wrapMode === 'none' ? 'auto' : '0',
+      'margin-right': wrapMode === 'left' ? '28px' : wrapMode === 'none' ? 'auto' : '0',
     });
     if (widthVal) {
       wrapper.setAttribute('width', widthVal);
@@ -9306,8 +9306,8 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrapper.image-wrap-left {
           float: left !important;
           clear: none !important;
-          margin-right: 20px !important;
-          margin-bottom: 10px !important;
+          margin-right: 28px !important;
+          margin-bottom: 16px !important;
           margin-top: 0 !important;
           margin-left: 0 !important;
           display: inline-block !important;
@@ -9319,8 +9319,8 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrapper.image-wrap-right {
           float: right !important;
           clear: none !important;
-          margin-left: 20px !important;
-          margin-bottom: 10px !important;
+          margin-left: 28px !important;
+          margin-bottom: 16px !important;
           margin-top: 0 !important;
           margin-right: 0 !important;
           display: inline-block !important;
@@ -9367,8 +9367,8 @@ const QuillWrapper = forwardRef(({
           margin-left: auto !important;
           margin-right: auto !important;
         }
-        .ql-editor .image-wrapper:not(:has(.image-caption)),
-        .ql-editor .image-wrapper:has(.image-caption:empty) {
+        .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
+        .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty) {
           margin-bottom: 4px !important;
         }
         .ql-editor .image-caption {

@@ -601,17 +601,24 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           curr = curr.nextElementSibling;
         }
 
-        // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
-        // In Quill, hitting Enter at the end of wrapped text creates empty spacer blocks
-        // (often tagged with editor-image-spacer-mobile-hide / image-spacer-mobile-hide)
-        // simply to advance the cursor below the floated image in the editor.
-        // Since rich-text-wrap-group (flow-root on desktop, flex-col on mobile) already isolates
-        // the float and starts subsequent content on a new line, all consecutive trailing exit spacers
-        // are non-intentional artifacts and cause unwanted blank gaps.
+        // 3. Trailing spacers:
+        // In Quill, hitting Enter between sections creates spacer blocks to separate content.
+        // Instead of deleting ALL trailing spacers (which collapses sections together and causes "bị sát"),
+        // preserve up to 1 intentional spacer between sections, and remove only excessive duplicates.
+        let trailingSpacerCount = 0;
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          const exitSpacer = curr;
-          curr = curr.nextElementSibling;
-          exitSpacer.remove();
+          trailingSpacerCount++;
+          if (trailingSpacerCount <= 1) {
+            curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
+            if (!curr.innerHTML || curr.innerHTML.trim() === '') {
+              curr.innerHTML = '&nbsp;';
+            }
+            curr = curr.nextElementSibling;
+          } else {
+            const extraSpacer = curr;
+            curr = curr.nextElementSibling;
+            extraSpacer.remove();
+          }
         }
 
         // Only group if there are real content siblings following this image
@@ -1454,9 +1461,9 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Image wrapper wrapping support */
         .rich-text-renderer .image-wrap-left {
           float: left !important;
-          clear: both !important;
-          margin-right: 20px !important;
-          margin-bottom: 10px !important;
+          clear: none !important;
+          margin-right: 28px !important;
+          margin-bottom: 16px !important;
           margin-top: 0 !important;
           display: inline-block !important;
           position: relative !important;
@@ -1465,9 +1472,9 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
-          clear: both !important;
-          margin-left: 20px !important;
-          margin-bottom: 10px !important;
+          clear: none !important;
+          margin-left: 28px !important;
+          margin-bottom: 16px !important;
           margin-top: 0 !important;
           display: inline-block !important;
           position: relative !important;
@@ -1481,8 +1488,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin: 0 !important;
           margin-bottom: 0 !important;
         }
-        .rich-text-renderer .image-wrapper:not(:has(.image-caption)),
-        .rich-text-renderer .image-wrapper:has(.image-caption:empty) {
+        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
+        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty) {
           margin-bottom: 4px !important;
         }
         /* Caption in floated wrappers: position static for natural document flow and no text overlap */
@@ -1559,7 +1566,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-wrap-group {
             display: flow-root !important;
             width: 100% !important;
-            margin-bottom: 0.5rem !important;
+            margin-bottom: 1.5rem !important;
           }
           .rich-text-renderer .rich-text-wrap-text,
           .rich-text-wrap-text {
