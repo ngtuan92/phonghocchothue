@@ -842,6 +842,62 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       };
       if (root) protectUrls(root);
 
+      // Auto-detect lines where user used excessive spaces (16+ spaces) to manually push short signatures/quotes to the right
+      // On desktop: keep the spaces so it looks as intended
+      // On mobile: align right, nowrap so it sits on 1 single line without breaking
+      root?.querySelectorAll('p').forEach((p) => {
+        const fullText = p.textContent || '';
+        const match = fullText.match(/^([\u00a0\s\t]{16,})(.*)$/);
+        if (match) {
+          const remainingText = match[2].trim();
+          if (remainingText.length > 0 && remainingText.length <= 80) {
+            p.classList.add('rich-text-auto-right-mobile');
+
+            // Walk text nodes and wrap all leading whitespace in spacer spans
+            const textNodes: Node[] = [];
+            const walk = (node: Node) => {
+              if (node.nodeType === 3) {
+                textNodes.push(node);
+              } else if (node.nodeType === 1) {
+                Array.from(node.childNodes).forEach(walk);
+              }
+            };
+            walk(p);
+
+            let leadingDone = false;
+            for (const node of textNodes) {
+              if (leadingDone) break;
+              const val = node.nodeValue || '';
+              if (!val) continue;
+
+              const m = val.match(/^([\u00a0\s\t]+)(.*)$/);
+              if (m) {
+                const leadingSpaces = m[1];
+                const rest = m[2];
+
+                const parent = node.parentNode;
+                const spacerSpan = doc.createElement('span');
+                spacerSpan.className = 'rich-text-pseudo-indent-spacer';
+                spacerSpan.textContent = leadingSpaces;
+
+                if (rest.length > 0) {
+                  // Reached first non-whitespace character
+                  const textAfter = doc.createTextNode(rest);
+                  parent?.replaceChild(textAfter, node);
+                  parent?.insertBefore(spacerSpan, textAfter);
+                  leadingDone = true;
+                } else {
+                  // Entire text node is whitespace
+                  parent?.replaceChild(spacerSpan, node);
+                }
+              } else {
+                leadingDone = true;
+              }
+            }
+          }
+        }
+      });
+
       if (root) processedHtml = root.innerHTML;
     }
 
@@ -1884,8 +1940,24 @@ const RICH_TEXT_RENDERER_STYLES = `
           .describe-h2-wrapper h3 {
             text-wrap: balance !important;
           }
+
+          /* Lines with excessive spaces used as pseudo-right-align signatures on mobile */
+          .rich-text-renderer .rich-text-auto-right-mobile {
+            text-align: right !important;
+            white-space: nowrap !important;
+          }
+          .rich-text-renderer .rich-text-auto-right-mobile * {
+            white-space: nowrap !important;
+          }
+          .rich-text-renderer .rich-text-pseudo-indent-spacer {
+            display: none !important;
+          }
         }
         
+        .rich-text-renderer .rich-text-pseudo-indent-spacer {
+          display: inline;
+        }
+
         .image-caption {
           text-align: center;
           color: #666;

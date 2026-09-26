@@ -496,5 +496,76 @@ test('URL protection: raw URLs in text are wrapped with .rich-text-url to preven
   assert.equal(urlSpan.textContent, 'https://youtu.be/-ypojoZ1oFE', 'URL text is preserved exactly');
 });
 
+test('Pseudo-indent spacer: lines with excessive leading spaces (signatures) get .rich-text-auto-right-mobile and .rich-text-pseudo-indent-spacer', () => {
+  const processPseudoIndent = (doc, root) => {
+    root?.querySelectorAll('p').forEach((p) => {
+      const fullText = p.textContent || '';
+      const match = fullText.match(/^([\u00a0\s\t]{16,})(.*)$/);
+      if (match) {
+        const remainingText = match[2].trim();
+        if (remainingText.length > 0 && remainingText.length <= 80) {
+          p.classList.add('rich-text-auto-right-mobile');
+
+          const textNodes = [];
+          const walk = (node) => {
+            if (node.nodeType === 3) {
+              textNodes.push(node);
+            } else if (node.nodeType === 1) {
+              Array.from(node.childNodes).forEach(walk);
+            }
+          };
+          walk(p);
+
+          let leadingDone = false;
+          for (const node of textNodes) {
+            if (leadingDone) break;
+            const val = node.nodeValue || '';
+            if (!val) continue;
+
+            const m = val.match(/^([\u00a0\s\t]+)(.*)$/);
+            if (m) {
+              const leadingSpaces = m[1];
+              const rest = m[2];
+
+              const parent = node.parentNode;
+              const spacerSpan = doc.createElement('span');
+              spacerSpan.className = 'rich-text-pseudo-indent-spacer';
+              spacerSpan.textContent = leadingSpaces;
+
+              if (rest.length > 0) {
+                const textAfter = doc.createTextNode(rest);
+                parent?.replaceChild(textAfter, node);
+                parent?.insertBefore(spacerSpan, textAfter);
+                leadingDone = true;
+              } else {
+                parent?.replaceChild(spacerSpan, node);
+              }
+            } else {
+              leadingDone = true;
+            }
+          }
+        }
+      }
+    });
+  };
+
+  // Test with signature line like Manchester
+  const testDom = new JSDOM('<div><p>                - William Manchester -</p><p>    Standard indent 4 spaces</p></div>');
+  const d = testDom.window.document;
+  processPseudoIndent(d, d.body.firstElementChild);
+
+  const signatureP = d.querySelectorAll('p')[0];
+  const standardP = d.querySelectorAll('p')[1];
+
+  assert.ok(signatureP.classList.contains('rich-text-auto-right-mobile'), 'Signature P has .rich-text-auto-right-mobile');
+  assert.ok(signatureP.querySelector('.rich-text-pseudo-indent-spacer'), 'Signature P has .rich-text-pseudo-indent-spacer');
+  assert.equal(signatureP.querySelector('.rich-text-pseudo-indent-spacer').textContent.length, 16, '16 spaces wrapped in spacer');
+  assert.ok(signatureP.textContent.includes('- William Manchester -'), 'Signature text is intact');
+
+  assert.ok(!standardP.classList.contains('rich-text-auto-right-mobile'), 'Standard 4-space indent is NOT touched');
+  assert.ok(!standardP.querySelector('.rich-text-pseudo-indent-spacer'), 'Standard indent has no spacer span');
+});
+
 console.log('\n✅ test-blog-product-content.test.mjs loaded – running all tests...\n');
+
 

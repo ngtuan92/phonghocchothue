@@ -3202,3 +3202,21 @@ footer .rich-text-renderer * {
   content: none !important;
   display: none !important;
 }
+
+/* Pseudo-indent spacer for lines with excessive spaces (signatures/attributions) */
+.rich-text-renderer .rich-text-pseudo-indent-spacer {
+  display: inline;
+}
+
+@media (max-width: 767px) {
+  .rich-text-renderer .rich-text-auto-right-mobile {
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  .rich-text-renderer .rich-text-auto-right-mobile * {
+    white-space: nowrap !important;
+  }
+  .rich-text-renderer .rich-text-pseudo-indent-spacer {
+    display: none !important;
+  }
+}
