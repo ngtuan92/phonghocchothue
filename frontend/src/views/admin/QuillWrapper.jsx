@@ -2970,27 +2970,6 @@ const QuillWrapper = forwardRef(({
       isSyncingImageCaptionsRef.current = false;
     }
   }, []);
-  const getVisibleImageRect = useCallback((imgRect, editorRect) => {
-    if (!editorRect) {
-      return {
-        top: imgRect.top,
-        left: imgRect.left,
-        width: imgRect.width,
-        height: imgRect.height
-      };
-    }
-
-    const top = Math.max(imgRect.top, editorRect.top);
-    const left = Math.max(imgRect.left, editorRect.left);
-    const right = Math.min(imgRect.right, editorRect.right);
-    const bottom = Math.min(imgRect.bottom, editorRect.bottom);
-    const width = Math.max(0, right - left);
-    const height = Math.max(0, bottom - top);
-
-    if (width <= 1 || height <= 1) return null;
-    return { top, left, width, height };
-  }, []);
-
   const positionResizerDirectly = useCallback(() => {
     const img = resolveImageElement(selectedImageRef.current);
     const resizer = resizerOverlayRef.current;
@@ -3009,14 +2988,9 @@ const QuillWrapper = forwardRef(({
         if (editor) {
           const editorRect = editor.getBoundingClientRect();
           const isOutside = imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom || width === 0 || height === 0;
-          const visibleRect = getVisibleImageRect(imgRect, editorRect);
-          if (isOutside || !visibleRect) {
+          if (isOutside) {
             resizer.style.display = 'none';
           } else {
-            resizer.style.top = `${visibleRect.top}px`;
-            resizer.style.left = `${visibleRect.left}px`;
-            resizer.style.width = `${visibleRect.width}px`;
-            resizer.style.height = `${visibleRect.height}px`;
             resizer.style.display = 'block';
           }
         } else {
@@ -3024,7 +2998,7 @@ const QuillWrapper = forwardRef(({
         }
       } catch { /* ignore */ }
     }
-  }, [getVisibleImageRect, resolveImageElement]);
+  }, [resolveImageElement]);
 
   const syncSelectedImageRect = useCallback(() => {
     let img = resolveImageElement(selectedImageRef.current);
@@ -3057,16 +3031,15 @@ const QuillWrapper = forwardRef(({
       const editor = container.querySelector('.ql-editor');
       const editorRect = editor?.getBoundingClientRect();
       const isOutside = editorRect && (imgRect.bottom < editorRect.top || imgRect.top > editorRect.bottom);
-      const visibleRect = getVisibleImageRect(imgRect, editorRect);
 
-      if (isOutside || !visibleRect || imgRect.width === 0 || imgRect.height === 0) {
+      if (isOutside || imgRect.width === 0 || imgRect.height === 0) {
         setResizerRect((prev) => (prev === null ? prev : null));
       } else {
         const nextRect = {
-          top: visibleRect.top,
-          left: visibleRect.left,
-          width: visibleRect.width,
-          height: visibleRect.height
+          top: imgRect.top,
+          left: imgRect.left,
+          width: imgRect.width,
+          height: imgRect.height
         };
         setResizerRect((prev) => (
           prev &&
@@ -3081,7 +3054,7 @@ const QuillWrapper = forwardRef(({
     } catch {
       setResizerRect((prev) => (prev === null ? prev : null));
     }
-  }, [getVisibleImageRect, resolveImageElement]);
+  }, [resolveImageElement]);
 
   const resolveFontFromDomNode = useCallback((node) => {
     if (!node) return null;
@@ -8317,6 +8290,15 @@ const QuillWrapper = forwardRef(({
           box-sizing: border-box !important;
           margin-left: auto !important;
           margin-right: auto !important;
+          display: flow-root !important;
+        }
+        .quill-wrapper-container .ql-editor {
+          display: flow-root !important;
+        }
+        .quill-wrapper-container .ql-editor::after {
+          content: "" !important;
+          display: table !important;
+          clear: both !important;
         }
         .blog-excerpt-editor.quill-wrapper-container .ql-editor,
         .quill-wrapper-container.blog-excerpt-editor .ql-editor {
@@ -10195,6 +10177,10 @@ const QuillWrapper = forwardRef(({
           className={`fixed editor-image-resizer-overlay ${isModalOpen ? 'hidden' : 'block'}`}
           draggable={false}
           style={{
+            top: `${resizerRect.top}px`,
+            left: `${resizerRect.left}px`,
+            width: `${resizerRect.width}px`,
+            height: `${resizerRect.height}px`,
             border: '2px solid #1A94FF',
             boxShadow: '0 0 10px rgba(26, 148, 255, 0.3)',
             zIndex: isModalOpen ? -1 : 40,

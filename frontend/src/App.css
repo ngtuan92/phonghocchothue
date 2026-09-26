@@ -284,6 +284,15 @@
 
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor {
   padding: 20px min(24px, var(--blog-editor-text-inset)) 16px !important;
+  display: flow-root !important;
+}
+.quill-wrapper-container .ql-editor {
+  display: flow-root !important;
+}
+.quill-wrapper-container .ql-editor::after {
+  content: "" !important;
+  display: table !important;
+  clear: both !important;
 }
 
 @media (min-width: 640px) and (max-width: 767px) {
