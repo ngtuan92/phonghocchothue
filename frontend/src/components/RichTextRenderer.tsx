@@ -852,6 +852,10 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           const remainingText = match[2].trim();
           if (remainingText.length > 0 && remainingText.length <= 80) {
             p.classList.add('rich-text-auto-right-mobile');
+            p.setAttribute('data-pseudo-align', 'right');
+            if (p.style && p.style.textAlign) {
+              p.style.textAlign = '';
+            }
 
             // Walk text nodes and wrap all leading whitespace in spacer spans
             const textNodes: Node[] = [];
@@ -1839,7 +1843,7 @@ const RICH_TEXT_RENDERER_STYLES = `
 
           /* Mobile: Force left alignment for all text in blog and room details,
              ensuring any admin-defined right/center alignments only apply on desktop */
-          .rich-text-renderer.blog-content p,
+          .rich-text-renderer.blog-content p:not(.rich-text-auto-right-mobile),
           .rich-text-renderer.blog-content h1,
           .rich-text-renderer.blog-content h2,
           .rich-text-renderer.blog-content h3,
@@ -1849,15 +1853,15 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer.blog-content li,
           .rich-text-renderer.blog-content blockquote,
           .rich-text-renderer.blog-content div:not(.image-wrapper):not(.image-caption),
-          .rich-text-renderer.blog-content .ql-align-right,
-          .rich-text-renderer.blog-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.blog-content .ql-align-right:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.blog-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
           .rich-text-renderer.blog-content .ql-align-center,
           .rich-text-renderer.blog-content .ql-align-center *:not(.image-caption):not(.image-caption *),
           .rich-text-renderer.blog-content .ql-align-justify,
           .rich-text-renderer.blog-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.blog-content [style*="text-align"],
-          .rich-text-renderer.blog-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.room-detail-content p,
+          .rich-text-renderer.blog-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.blog-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
+          .rich-text-renderer.room-detail-content p:not(.rich-text-auto-right-mobile),
           .rich-text-renderer.room-detail-content h1,
           .rich-text-renderer.room-detail-content h2,
           .rich-text-renderer.room-detail-content h3,
@@ -1867,20 +1871,20 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer.room-detail-content li,
           .rich-text-renderer.room-detail-content blockquote,
           .rich-text-renderer.room-detail-content div:not(.image-wrapper):not(.image-caption),
-          .rich-text-renderer.room-detail-content .ql-align-right,
-          .rich-text-renderer.room-detail-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+          .rich-text-renderer.room-detail-content .ql-align-right:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.room-detail-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
           .rich-text-renderer.room-detail-content .ql-align-center,
           .rich-text-renderer.room-detail-content .ql-align-center *:not(.image-caption):not(.image-caption *),
           .rich-text-renderer.room-detail-content .ql-align-justify,
           .rich-text-renderer.room-detail-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.room-detail-content [style*="text-align"],
-          .rich-text-renderer.room-detail-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.blog-content-area p,
-          .rich-text-renderer.blog-content-area [style*="text-align"],
-          .rich-text-renderer.ckeditor-content p,
-          .rich-text-renderer.ckeditor-content [style*="text-align"],
-          .rich-text-renderer.room-summary-desc p,
-          .rich-text-renderer.room-summary-desc [style*="text-align"] {
+          .rich-text-renderer.room-detail-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.room-detail-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
+          .rich-text-renderer.blog-content-area p:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.blog-content-area [style*="text-align"]:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.ckeditor-content p:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.ckeditor-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.room-summary-desc p:not(.rich-text-auto-right-mobile),
+          .rich-text-renderer.room-summary-desc [style*="text-align"]:not(.rich-text-auto-right-mobile) {
             text-align: left !important;
           }
 
@@ -1899,11 +1903,11 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
 
           /* Mobile: Natural line wrapping without artificial phrase compounds or rigid whitespace locks */
-          .rich-text-renderer p:not(.ql-whitespace-spacer),
+          .rich-text-renderer p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile),
           .rich-text-renderer div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
           .rich-text-renderer li,
           .rich-text-renderer blockquote,
-          .rich-text-renderer span:not(.ql-whitespace-spacer),
+          .rich-text-renderer span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *),
           .rich-text-renderer strong,
           .rich-text-renderer em {
             white-space: normal !important;
@@ -1942,14 +1946,36 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
 
           /* Lines with excessive spaces used as pseudo-right-align signatures on mobile */
-          .rich-text-renderer .rich-text-auto-right-mobile {
+          .rich-text-renderer.blog-content p.rich-text-auto-right-mobile,
+          .rich-text-renderer.blog-content .rich-text-auto-right-mobile,
+          .rich-text-renderer.room-detail-content p.rich-text-auto-right-mobile,
+          .rich-text-renderer.room-detail-content .rich-text-auto-right-mobile,
+          .rich-text-renderer p.rich-text-auto-right-mobile,
+          .rich-text-renderer .rich-text-auto-right-mobile,
+          .blog-content p.rich-text-auto-right-mobile,
+          .blog-content .rich-text-auto-right-mobile,
+          p.rich-text-auto-right-mobile {
             text-align: right !important;
             white-space: nowrap !important;
+            word-break: keep-all !important;
+            display: block !important;
+            width: 100% !important;
           }
-          .rich-text-renderer .rich-text-auto-right-mobile * {
+          .rich-text-renderer.blog-content p.rich-text-auto-right-mobile *,
+          .rich-text-renderer.blog-content .rich-text-auto-right-mobile *,
+          .rich-text-renderer.room-detail-content p.rich-text-auto-right-mobile *,
+          .rich-text-renderer.room-detail-content .rich-text-auto-right-mobile *,
+          .rich-text-renderer p.rich-text-auto-right-mobile *,
+          .rich-text-renderer .rich-text-auto-right-mobile *,
+          .blog-content p.rich-text-auto-right-mobile *,
+          .blog-content .rich-text-auto-right-mobile *,
+          p.rich-text-auto-right-mobile * {
             white-space: nowrap !important;
+            text-align: right !important;
+            word-break: keep-all !important;
           }
-          .rich-text-renderer .rich-text-pseudo-indent-spacer {
+          .rich-text-renderer .rich-text-pseudo-indent-spacer,
+          .blog-content .rich-text-pseudo-indent-spacer {
             display: none !important;
           }
         }

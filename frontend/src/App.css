@@ -1450,7 +1450,7 @@
 @media (max-width: 767px) {
   /* Mobile: Force left alignment for all text in blog and room details,
      ensuring any admin-defined right/center alignments only apply on desktop */
-  .blog-content p,
+  .blog-content p:not(.rich-text-auto-right-mobile),
   .blog-content h1,
   .blog-content h2,
   .blog-content h3,
@@ -1460,15 +1460,15 @@
   .blog-content li,
   .blog-content blockquote,
   .blog-content div:not(.image-wrapper):not(.image-caption),
-  .blog-content .ql-align-right,
-  .blog-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+  .blog-content .ql-align-right:not(.rich-text-auto-right-mobile),
+  .blog-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
   .blog-content .ql-align-center,
   .blog-content .ql-align-center *:not(.image-caption):not(.image-caption *),
   .blog-content .ql-align-justify,
   .blog-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-  .blog-content [style*="text-align"],
-  .blog-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
-  .blog-content-area p,
+  .blog-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+  .blog-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
+  .blog-content-area p:not(.rich-text-auto-right-mobile),
   .blog-content-area h1,
   .blog-content-area h2,
   .blog-content-area h3,
@@ -1478,15 +1478,15 @@
   .blog-content-area li,
   .blog-content-area blockquote,
   .blog-content-area div:not(.image-wrapper):not(.image-caption),
-  .blog-content-area .ql-align-right,
-  .blog-content-area .ql-align-right *:not(.image-caption):not(.image-caption *),
+  .blog-content-area .ql-align-right:not(.rich-text-auto-right-mobile),
+  .blog-content-area .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
   .blog-content-area .ql-align-center,
   .blog-content-area .ql-align-center *:not(.image-caption):not(.image-caption *),
   .blog-content-area .ql-align-justify,
   .blog-content-area .ql-align-justify *:not(.image-caption):not(.image-caption *),
-  .blog-content-area [style*="text-align"],
-  .blog-content-area [style*="text-align"] *:not(.image-caption):not(.image-caption *),
-  .room-detail-content p,
+  .blog-content-area [style*="text-align"]:not(.rich-text-auto-right-mobile),
+  .blog-content-area [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
+  .room-detail-content p:not(.rich-text-auto-right-mobile),
   .room-detail-content h1,
   .room-detail-content h2,
   .room-detail-content h3,
@@ -1496,15 +1496,15 @@
   .room-detail-content li,
   .room-detail-content blockquote,
   .room-detail-content div:not(.image-wrapper):not(.image-caption),
-  .room-detail-content .ql-align-right,
-  .room-detail-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+  .room-detail-content .ql-align-right:not(.rich-text-auto-right-mobile),
+  .room-detail-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
   .room-detail-content .ql-align-center,
   .room-detail-content .ql-align-center *:not(.image-caption):not(.image-caption *),
   .room-detail-content .ql-align-justify,
   .room-detail-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-  .room-detail-content [style*="text-align"],
-  .room-detail-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
-  .ckeditor-content p,
+  .room-detail-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+  .room-detail-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
+  .ckeditor-content p:not(.rich-text-auto-right-mobile),
   .ckeditor-content h1,
   .ckeditor-content h2,
   .ckeditor-content h3,
@@ -1514,15 +1514,15 @@
   .ckeditor-content li,
   .ckeditor-content blockquote,
   .ckeditor-content div:not(.image-wrapper):not(.image-caption),
-  .ckeditor-content .ql-align-right,
-  .ckeditor-content .ql-align-right *:not(.image-caption):not(.image-caption *),
+  .ckeditor-content .ql-align-right:not(.rich-text-auto-right-mobile),
+  .ckeditor-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
   .ckeditor-content .ql-align-center,
   .ckeditor-content .ql-align-center *:not(.image-caption):not(.image-caption *),
   .ckeditor-content .ql-align-justify,
   .ckeditor-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-  .ckeditor-content [style*="text-align"],
-  .ckeditor-content [style*="text-align"] *:not(.image-caption):not(.image-caption *),
-  .room-summary-desc p,
+  .ckeditor-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+  .ckeditor-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
+  .room-summary-desc p:not(.rich-text-auto-right-mobile),
   .room-summary-desc h1,
   .room-summary-desc h2,
   .room-summary-desc h3,
@@ -1533,7 +1533,7 @@
   .room-summary-desc .ql-align-right,
   .room-summary-desc .ql-align-center,
   .room-summary-desc .ql-align-justify,
-  .room-summary-desc [style*="text-align"] {
+  .room-summary-desc [style*="text-align"]:not(.rich-text-auto-right-mobile) {
     text-align: left !important;
   }
 
@@ -1556,25 +1556,25 @@
   }
 
   /* Mobile: Natural line wrapping without artificial phrase compounds or rigid whitespace locks */
-  .blog-content p:not(.ql-whitespace-spacer),
+  .blog-content p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile),
   .blog-content div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
   .blog-content li,
   .blog-content blockquote,
-  .blog-content span:not(.ql-whitespace-spacer),
+  .blog-content span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *),
   .blog-content strong,
   .blog-content em,
-  .room-detail-content p:not(.ql-whitespace-spacer),
+  .room-detail-content p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile),
   .room-detail-content div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
   .room-detail-content li,
   .room-detail-content blockquote,
-  .room-detail-content span:not(.ql-whitespace-spacer),
+  .room-detail-content span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *),
   .room-detail-content strong,
   .room-detail-content em,
-  .ckeditor-content p:not(.ql-whitespace-spacer),
+  .ckeditor-content p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile),
   .ckeditor-content div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
   .ckeditor-content li,
   .ckeditor-content blockquote,
-  .ckeditor-content span:not(.ql-whitespace-spacer),
+  .ckeditor-content span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *),
   .ckeditor-content strong,
   .ckeditor-content em {
     white-space: normal !important;
@@ -3204,19 +3204,43 @@ footer .rich-text-renderer * {
 }
 
 /* Pseudo-indent spacer for lines with excessive spaces (signatures/attributions) */
-.rich-text-renderer .rich-text-pseudo-indent-spacer {
+.rich-text-renderer .rich-text-pseudo-indent-spacer,
+.blog-content .rich-text-pseudo-indent-spacer {
   display: inline;
 }
 
 @media (max-width: 767px) {
-  .rich-text-renderer .rich-text-auto-right-mobile {
+  .rich-text-renderer.blog-content p.rich-text-auto-right-mobile,
+  .rich-text-renderer.blog-content .rich-text-auto-right-mobile,
+  .rich-text-renderer.room-detail-content p.rich-text-auto-right-mobile,
+  .rich-text-renderer.room-detail-content .rich-text-auto-right-mobile,
+  .rich-text-renderer p.rich-text-auto-right-mobile,
+  .rich-text-renderer .rich-text-auto-right-mobile,
+  .blog-content p.rich-text-auto-right-mobile,
+  .blog-content .rich-text-auto-right-mobile,
+  p.rich-text-auto-right-mobile {
     text-align: right !important;
     white-space: nowrap !important;
+    word-break: keep-all !important;
+    display: block !important;
+    width: 100% !important;
   }
-  .rich-text-renderer .rich-text-auto-right-mobile * {
+  .rich-text-renderer.blog-content p.rich-text-auto-right-mobile *,
+  .rich-text-renderer.blog-content .rich-text-auto-right-mobile *,
+  .rich-text-renderer.room-detail-content p.rich-text-auto-right-mobile *,
+  .rich-text-renderer.room-detail-content .rich-text-auto-right-mobile *,
+  .rich-text-renderer p.rich-text-auto-right-mobile *,
+  .rich-text-renderer .rich-text-auto-right-mobile *,
+  .blog-content p.rich-text-auto-right-mobile *,
+  .blog-content .rich-text-auto-right-mobile *,
+  p.rich-text-auto-right-mobile * {
     white-space: nowrap !important;
+    text-align: right !important;
+    word-break: keep-all !important;
   }
-  .rich-text-renderer .rich-text-pseudo-indent-spacer {
+  .rich-text-renderer .rich-text-pseudo-indent-spacer,
+  .blog-content .rich-text-pseudo-indent-spacer {
     display: none !important;
   }
 }
+
