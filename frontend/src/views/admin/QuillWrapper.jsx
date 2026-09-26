@@ -488,6 +488,7 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
             const tabSpaces = '\u00a0\u00a0\u00a0\u00a0';
             this.quill.insertText(range.index, tabSpaces, 'user');
             this.quill.setSelection(range.index + tabSpaces.length, 0, 'silent');
+            this.quill._lastTabOperation = { end: range.index + tabSpaces.length, length: tabSpaces.length };
             return false;
           }
         },
@@ -543,6 +544,33 @@ const createModules = (fontList, hasResponsiveFontSize, showSpacingAndTranslatio
           shiftKey: true,
           handler() {
             return false;
+          }
+        },
+        tabBackspace: {
+          key: 8, // Backspace
+          collapsed: true,
+          handler(range, context) {
+            const [line, offset] = this.quill.getLine(range.index);
+            if (offset >= 1) {
+              const lineStartIndex = range.index - offset;
+              const textBefore = this.quill.getText(lineStartIndex, offset);
+              const isJustTabbed = Boolean(
+                this.quill._lastTabOperation &&
+                this.quill._lastTabOperation.end === range.index &&
+                offset >= this.quill._lastTabOperation.length
+              );
+              const isTabSpaces = textBefore.endsWith('\u00a0\u00a0\u00a0\u00a0') || textBefore.endsWith('\t');
+              if (isJustTabbed || isTabSpaces) {
+                const deleteLen = isJustTabbed ? (this.quill._lastTabOperation?.length || 4) : (textBefore.endsWith('\t') ? 1 : 4);
+                if (deleteLen > 0 && offset >= deleteLen) {
+                  this.quill.deleteText(range.index - deleteLen, deleteLen, Quill.sources.USER);
+                  this.quill.setSelection(range.index - deleteLen, 0, Quill.sources.SILENT);
+                  this.quill._lastTabOperation = null;
+                  return false;
+                }
+              }
+            }
+            return true;
           }
         },
         backspaceAfterImage: {
@@ -3498,6 +3526,11 @@ const QuillWrapper = forwardRef(({
     };
 
     const handleKeydownCapture = (e) => {
+      // Clear lastTabOperation when any non-Tab, non-Backspace key is pressed (e.g. Space, letters, numbers)
+      if (e.key !== 'Tab' && e.key !== 'Backspace' && e.key !== 'Shift' && e.key !== 'Control' && e.key !== 'Alt' && e.key !== 'Meta') {
+        quill._lastTabOperation = null;
+      }
+
       // 1. Handle Tab and Shift+Tab key for Lists and general indentation
       if ((e.key === 'Tab' || e.keyCode === 9) && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const sel = getActiveSelection();
@@ -3567,6 +3600,7 @@ const QuillWrapper = forwardRef(({
             const tabSpaces = '\u00a0\u00a0\u00a0\u00a0';
             quill.insertText(sel.index, tabSpaces, 'user');
             quill.setSelection(sel.index + tabSpaces.length, 0, 'silent');
+            quill._lastTabOperation = { end: sel.index + tabSpaces.length, length: tabSpaces.length };
             return;
           }
         }
@@ -3603,6 +3637,33 @@ const QuillWrapper = forwardRef(({
                 quill.setSelection(lineStartIndex, 0, 'silent');
               } catch { /* ignore */ }
               return;
+            }
+          }
+
+          // Handle Backspace after a Tab at ANY position in text (deletes all 4 spaces of the tab):
+          if (offset >= 1) {
+            const lineStartIndex = sel.index - offset;
+            const textBefore = quill.getText(lineStartIndex, offset);
+
+            const isJustTabbed = Boolean(
+              quill._lastTabOperation &&
+              quill._lastTabOperation.end === sel.index &&
+              offset >= quill._lastTabOperation.length
+            );
+            const isTabSpaces = textBefore.endsWith('\u00a0\u00a0\u00a0\u00a0') || textBefore.endsWith('\t');
+
+            if (isJustTabbed || isTabSpaces) {
+              const deleteLen = isJustTabbed ? (quill._lastTabOperation?.length || 4) : (textBefore.endsWith('\t') ? 1 : 4);
+              if (deleteLen > 0 && offset >= deleteLen) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                quill.deleteText(sel.index - deleteLen, deleteLen, 'user');
+                quill.setSelection(sel.index - deleteLen, 0, 'silent');
+                quill._lastTabOperation = null;
+                return;
+              }
             }
           }
         }
