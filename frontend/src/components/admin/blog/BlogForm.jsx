@@ -89,8 +89,8 @@ const extractResponsiveControls = (html) => {
   if (!styled) return empty;
 
   return {
-    fontSize: stripCssUnit(styled.style.getPropertyValue("--fs-desktop")),
-    fontSizeMobile: stripCssUnit(styled.style.getPropertyValue("--fs-mobile")),
+    fontSize: stripCssUnit(styled.style.getPropertyValue("--fs-desktop")) || "16",
+    fontSizeMobile: stripCssUnit(styled.style.getPropertyValue("--fs-mobile")) || "13",
     lineHeight: stripCssUnit(styled.style.getPropertyValue("--custom-line-height")),
     lineHeightMobile: stripCssUnit(styled.style.getPropertyValue("--custom-line-height-mobile")),
     translateY: stripCssUnit(styled.style.getPropertyValue("--translate-y")),
@@ -377,8 +377,8 @@ export default function BlogForm({ data, onSave, onCancel, isPage = false }) {
     excerptLineHeightMobile: excerptControls.lineHeightMobile || data?.excerptLineHeightMobile || "",
     excerptTranslateY: excerptControls.translateY || data?.excerptTranslateY || "",
     excerptTranslateYMobile: excerptControls.translateYMobile || data?.excerptTranslateYMobile || "",
-    fontSize: data?.fontSize || contentControls.fontSize || "",
-    fontSizeMobile: data?.fontSizeMobile || contentControls.fontSizeMobile || "",
+    fontSize: data?.fontSize || contentControls.fontSize || "16",
+    fontSizeMobile: data?.fontSizeMobile || contentControls.fontSizeMobile || "13",
     lineHeight: data?.lineHeight || contentControls.lineHeight || "",
     lineHeightMobile: data?.lineHeightMobile || contentControls.lineHeightMobile || "",
     translateY: data?.translateY || contentControls.translateY || "",

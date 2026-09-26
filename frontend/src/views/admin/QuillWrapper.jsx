@@ -1577,15 +1577,34 @@ const QuillWrapper = forwardRef(({
   }, []);
   const getPopupInputValue = useCallback((key, value) => {
     if (Object.prototype.hasOwnProperty.call(popupInputValuesRef.current, key)) {
-      return popupInputValuesRef.current[key];
+      const stored = popupInputValuesRef.current[key];
+      if (stored !== undefined && stored !== null && stored !== "") {
+        return stored;
+      }
+      if (key === 'fontSize') return '16';
+      if (key === 'fontSizeMobile') return '13';
+      return stored;
     }
     if (Object.prototype.hasOwnProperty.call(selectionControlDraftsRef.current, key)) {
-      return normalizeUnsignedControlValue(key, selectionControlDraftsRef.current[key]);
+      const draft = normalizeUnsignedControlValue(key, selectionControlDraftsRef.current[key]);
+      if (draft) return draft;
+      if (key === 'fontSize') return '16';
+      if (key === 'fontSizeMobile') return '13';
+      return draft;
     }
     if (commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDraftsRef.current, key)) {
-      return normalizeUnsignedControlValue(key, controlDraftsRef.current[key]);
+      const draft = normalizeUnsignedControlValue(key, controlDraftsRef.current[key]);
+      if (draft) return draft;
+      if (key === 'fontSize') return '16';
+      if (key === 'fontSizeMobile') return '13';
+      return draft;
     }
-    return normalizeUnsignedControlValue(key, value);
+    const normalized = normalizeUnsignedControlValue(key, value);
+    if (!normalized) {
+      if (key === 'fontSize') return '16';
+      if (key === 'fontSizeMobile') return '13';
+    }
+    return normalized;
   }, [commitOnBlurOnly, normalizeUnsignedControlValue, popupValueVersion]);
 
   const clearPopupInputValues = useCallback(() => {
@@ -1985,18 +2004,38 @@ const QuillWrapper = forwardRef(({
     };
     const wasPasted = isPastedAtSelection();
 
-    const inlineDesktopSize = format.fontSizeDesktop;
+    let domDesktopSize = null;
+    let domMobileSize = null;
+    if (selection) {
+      try {
+        const [leaf] = quill.getLeaf(selection.index);
+        let el = leaf?.domNode?.nodeType === 3 ? leaf.domNode.parentElement : leaf?.domNode;
+        while (el && el !== quill.root) {
+          if (!domDesktopSize && el.style) {
+            const fsDesktop = el.style.getPropertyValue('--fs-desktop') || el.style.fontSize;
+            if (fsDesktop) domDesktopSize = fsDesktop;
+          }
+          if (!domMobileSize && el.style) {
+            const fsMobile = el.style.getPropertyValue('--fs-mobile');
+            if (fsMobile) domMobileSize = fsMobile;
+          }
+          el = el.parentElement;
+        }
+      } catch { /* ignore */ }
+    }
+
+    const defaultDesktopSize = String(fontSize || (isBlogEditor ? "16" : "16")).replace(/[^0-9]/g, '') || "16";
+    const defaultMobileSize = String(fontSizeMobile || (isBlogEditor ? "13" : "13")).replace(/[^0-9]/g, '') || "13";
+
+    const inlineDesktopSize = format.fontSizeDesktop || format.size || domDesktopSize;
     const desktopSize = inlineDesktopSize
       ? String(inlineDesktopSize).replace(/[^0-9]/g, '')
-      : wasPasted
-        ? ""
-        : String(fontSize || "").replace(/[^0-9]/g, '');
-    const inlineMobileSize = format.fontSizeMobile;
+      : defaultDesktopSize;
+
+    const inlineMobileSize = format.fontSizeMobile || domMobileSize;
     const mobileSize = inlineMobileSize
       ? String(inlineMobileSize).replace(/[^0-9]/g, '')
-      : wasPasted
-        ? ""
-        : String(fontSizeMobile || "").replace(/[^0-9]/g, '');
+      : defaultMobileSize;
     const lh = format.lineHeight
       ? String(format.lineHeight).replace('px', '')
       : String(lineHeight || "").replace('px', '');
@@ -2036,7 +2075,7 @@ const QuillWrapper = forwardRef(({
 
     const container = containerRef.current;
     if (container) {
-      const fontSizeInputs = container.querySelectorAll('.ql-font-size-popup input');
+      const fontSizeInputs = document.querySelectorAll('.ql-font-size-popup input');
       if (fontSizeInputs.length >= 2) {
         if (document.activeElement !== fontSizeInputs[0]) {
           fontSizeInputs[0].value = desktopSize;
@@ -7460,8 +7499,8 @@ const QuillWrapper = forwardRef(({
   const globalTranslateXMobile = getPreviewControlValue('translateXMobile', translateXMobile);
   const globalTranslateY = getPreviewControlValue('translateY', translateY);
   const globalTranslateYMobile = getPreviewControlValue('translateYMobile', translateYMobile);
-  const previewFontSizeDesktop = globalFontSize;
-  const previewFontSizeMobile = globalFontSizeMobile;
+  const previewFontSizeDesktop = globalFontSize || (isBlogEditor ? '16px' : '');
+  const previewFontSizeMobile = globalFontSizeMobile || (isBlogEditor ? '13px' : '');
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const activeViewportFontSize = toCssUnit(isMobileViewport ? previewFontSizeMobile || previewFontSizeDesktop : previewFontSizeDesktop || previewFontSizeMobile);
 

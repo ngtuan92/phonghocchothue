@@ -45,15 +45,15 @@ export const FontSizePopup = React.memo(function FontSizePopup({
   onClose,
 }) {
   const popupRef = useRef(null);
-  const [desktop, setDesktop] = useState(initialDesktop);
-  const [mobile, setMobile] = useState(initialMobile);
+  const [desktop, setDesktop] = useState(initialDesktop || '16');
+  const [mobile, setMobile] = useState(initialMobile || '13');
 
   useEffect(() => {
-    setDesktop(initialDesktop);
+    setDesktop(initialDesktop || '16');
   }, [initialDesktop]);
 
   useEffect(() => {
-    setMobile(initialMobile);
+    setMobile(initialMobile || '13');
   }, [initialMobile]);
 
   useClickOutside(popupRef, anchor, onClose, visible);
@@ -67,7 +67,7 @@ export const FontSizePopup = React.memo(function FontSizePopup({
       setDesktop(next);
       onStepDesktop?.(next);
     } else {
-      const current = parseInt(mobile) || 14;
+      const current = parseInt(mobile) || 13;
       const next = Math.max(1, current + delta).toString();
       setMobile(next);
       onStepMobile?.(next);
@@ -144,7 +144,7 @@ export const FontSizePopup = React.memo(function FontSizePopup({
                 onClick={(e) => e.stopPropagation()}
                 className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 style={{ fontSize: '16px' }}
-                placeholder=""
+                placeholder="16"
               />
             </div>
             <button
@@ -191,7 +191,7 @@ export const FontSizePopup = React.memo(function FontSizePopup({
                 onClick={(e) => e.stopPropagation()}
                 className="w-12 h-8 text-center bg-white border border-gray-200 rounded font-semibold text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 style={{ fontSize: '16px' }}
-                placeholder=""
+                placeholder="13"
               />
             </div>
             <button
