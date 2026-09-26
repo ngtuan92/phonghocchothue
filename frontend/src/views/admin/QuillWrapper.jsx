@@ -3144,22 +3144,90 @@ const QuillWrapper = forwardRef(({
             const lineStart = quill.getIndex(currentLine);
             const lineFmt = quill.getFormat(lineStart, Math.max(1, currentLine.length() - 1));
             if (!font && lineFmt?.font && lineFmt.font !== 'macdinh') {
-              font = lineFmt.font;
+              font = Array.isArray(lineFmt.font) ? lineFmt.font[0] : lineFmt.font;
             }
             if (!size && lineFmt?.size) {
-              size = lineFmt.size;
+              size = Array.isArray(lineFmt.size) ? lineFmt.size[0] : lineFmt.size;
+            }
+            if (!font && currentLine.domNode) {
+              const domFont = resolveFontFromDomNode(currentLine.domNode);
+              if (domFont && domFont !== 'macdinh') font = domFont;
+            }
+            if (!size && currentLine.domNode) {
+              const domStyles = resolveInlineStylesFromDomNode(currentLine.domNode);
+              if (domStyles?.size) size = domStyles.size;
             }
           } else {
-            const neighbor = currentLine.next || currentLine.prev;
-            if (neighbor && neighbor.length() > 1) {
-              const nStart = quill.getIndex(neighbor);
-              const nFmt = quill.getFormat(nStart, Math.max(1, neighbor.length() - 1));
-              if (!font && nFmt?.font && nFmt.font !== 'macdinh') font = nFmt.font;
-              if (!size && nFmt?.size) size = nFmt.size;
+            // Walk backward through preceding lines to find nearest formatted line
+            let prevLine = currentLine.prev;
+            while (prevLine && (!font || !size)) {
+              if (prevLine.length() > 1) {
+                const pStart = quill.getIndex(prevLine);
+                const pFmt = quill.getFormat(pStart, Math.max(1, prevLine.length() - 1));
+                if (!font && pFmt?.font && pFmt.font !== 'macdinh') {
+                  font = Array.isArray(pFmt.font) ? pFmt.font[0] : pFmt.font;
+                }
+                if (!font && prevLine.domNode) {
+                  const domFont = resolveFontFromDomNode(prevLine.domNode);
+                  if (domFont && domFont !== 'macdinh') font = domFont;
+                }
+                if (!size && pFmt?.size) {
+                  size = Array.isArray(pFmt.size) ? pFmt.size[0] : pFmt.size;
+                }
+                if (!size && prevLine.domNode) {
+                  const domStyles = resolveInlineStylesFromDomNode(prevLine.domNode);
+                  if (domStyles?.size) size = domStyles.size;
+                }
+                break;
+              }
+              prevLine = prevLine.prev;
+            }
+
+            // Walk forward through subsequent lines if still not found
+            let nextLine = currentLine.next;
+            while (nextLine && (!font || !size)) {
+              if (nextLine.length() > 1) {
+                const nStart = quill.getIndex(nextLine);
+                const nFmt = quill.getFormat(nStart, Math.max(1, nextLine.length() - 1));
+                if (!font && nFmt?.font && nFmt.font !== 'macdinh') {
+                  font = Array.isArray(nFmt.font) ? nFmt.font[0] : nFmt.font;
+                }
+                if (!font && nextLine.domNode) {
+                  const domFont = resolveFontFromDomNode(nextLine.domNode);
+                  if (domFont && domFont !== 'macdinh') font = domFont;
+                }
+                if (!size && nFmt?.size) {
+                  size = Array.isArray(nFmt.size) ? nFmt.size[0] : nFmt.size;
+                }
+                if (!size && nextLine.domNode) {
+                  const domStyles = resolveInlineStylesFromDomNode(nextLine.domNode);
+                  if (domStyles?.size) size = domStyles.size;
+                }
+                break;
+              }
+              nextLine = nextLine.next;
             }
           }
         }
       } catch { /* ignore */ }
+    }
+
+    if (!font && lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
+      font = lastActiveFormatsRef.current.font;
+    }
+    if (!size && lastActiveFormatsRef.current?.size) {
+      size = lastActiveFormatsRef.current.size;
+    }
+
+    if (!font) {
+      const editor = containerRef.current?.querySelector('.ql-editor');
+      if (editor) {
+        const span = editor.querySelector('span[style*="font-family"], [class*="ql-font-"]');
+        if (span) {
+          const domFont = resolveFontFromDomNode(span);
+          if (domFont && domFont !== 'macdinh') font = domFont;
+        }
+      }
     }
 
     if (disableImageWrap && !font) {
@@ -3179,6 +3247,9 @@ const QuillWrapper = forwardRef(({
     );
     if (hasActualUserSelection && fontVal && fontVal !== 'macdinh') {
       lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, font: fontVal };
+    }
+    if (hasActualUserSelection && size) {
+      lastActiveFormatsRef.current = { ...lastActiveFormatsRef.current, size };
     }
 
     const fontPickers = container.querySelectorAll('.ql-font.ql-picker');
@@ -3801,12 +3872,15 @@ const QuillWrapper = forwardRef(({
               const sNum = parseFloat(String(sVal).replace('px', ''));
               if (!isNaN(sNum) && sNum >= 32) sVal = null;
             }
-            return {
-              font: domFont && domFont !== 'macdinh' ? domFont : null,
-              size: sVal,
-              color: styles?.color || null,
-              lineHeight: styles?.lineHeight || null,
-            };
+            const fVal = domFont && domFont !== 'macdinh' ? domFont : null;
+            if (fVal || sVal || styles?.color || styles?.lineHeight) {
+              return {
+                font: fVal,
+                size: sVal,
+                color: styles?.color || null,
+                lineHeight: styles?.lineHeight || null,
+              };
+            }
           }
         } catch { /* ignore */ }
         return null;
@@ -3818,16 +3892,70 @@ const QuillWrapper = forwardRef(({
         if (current?.font || current?.size) return current;
 
         const isPrevImg = isImageBlotOrNode(currentLine.prev);
-        const isNextImg = isImageBlotOrNode(currentLine.next);
+        const shouldPrioritizeNext = prioritizeNext || isPrevImg;
 
-        const first = (prioritizeNext || isPrevImg) ? (!isNextImg ? currentLine.next : null) : (!isPrevImg ? currentLine.prev : null);
-        const second = (prioritizeNext || isPrevImg) ? (!isPrevImg ? currentLine.prev : null) : (!isNextImg ? currentLine.next : null);
+        let primaryFmt = null;
+        let secondaryFmt = null;
 
-        const firstFmt = getLineFormatting(first);
-        if (firstFmt?.font || firstFmt?.size) return firstFmt;
+        if (shouldPrioritizeNext) {
+          let n = currentLine.next;
+          while (n && !primaryFmt) {
+            if (!isImageBlotOrNode(n)) {
+              const fmt = getLineFormatting(n);
+              if (fmt?.font || fmt?.size) primaryFmt = fmt;
+            }
+            n = n.next;
+          }
+          let p = currentLine.prev;
+          while (p && !secondaryFmt) {
+            if (!isImageBlotOrNode(p)) {
+              const fmt = getLineFormatting(p);
+              if (fmt?.font || fmt?.size) secondaryFmt = fmt;
+            }
+            p = p.prev;
+          }
+        } else {
+          let p = currentLine.prev;
+          while (p && !primaryFmt) {
+            if (!isImageBlotOrNode(p)) {
+              const fmt = getLineFormatting(p);
+              if (fmt?.font || fmt?.size) primaryFmt = fmt;
+            }
+            p = p.prev;
+          }
+          let n = currentLine.next;
+          while (n && !secondaryFmt) {
+            if (!isImageBlotOrNode(n)) {
+              const fmt = getLineFormatting(n);
+              if (fmt?.font || fmt?.size) secondaryFmt = fmt;
+            }
+            n = n.next;
+          }
+        }
 
-        const secondFmt = getLineFormatting(second);
-        if (secondFmt?.font || secondFmt?.size) return secondFmt;
+        const candidate = primaryFmt || secondaryFmt;
+        if (candidate?.font || candidate?.size) return candidate;
+
+        // Fallback to lastActiveFormatsRef
+        if (lastActiveFormatsRef.current?.font && lastActiveFormatsRef.current.font !== 'macdinh') {
+          return {
+            font: lastActiveFormatsRef.current.font,
+            size: lastActiveFormatsRef.current?.size || null,
+            color: lastActiveFormatsRef.current?.color || null,
+            lineHeight: lastActiveFormatsRef.current?.lineHeight || null,
+          };
+        }
+
+        // Fallback to active toolbar picker
+        const pickerVal = containerRef.current?.querySelector('.ql-font .ql-picker-label')?.getAttribute('data-value');
+        if (pickerVal && pickerVal !== 'macdinh' && pickerVal !== 'inter') {
+          return {
+            font: pickerVal,
+            size: lastActiveFormatsRef.current?.size || null,
+            color: lastActiveFormatsRef.current?.color || null,
+            lineHeight: lastActiveFormatsRef.current?.lineHeight || null,
+          };
+        }
 
         return {};
       };
@@ -3900,27 +4028,33 @@ const QuillWrapper = forwardRef(({
                     const targetCursorPos = lineStartIndex + 1 + leadingWs.length;
                     quill.setSelection(targetCursorPos, 0, 'user');
 
-                    if (inheritedFont) {
+                    const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
+                    const sizeToFormat = inheritedSize || lastActiveFormatsRef.current?.size;
+                    const colorToFormat = inheritedColor || lastActiveFormatsRef.current?.color;
+                    const lineHeightToFormat = inheritedLineHeight || lastActiveFormatsRef.current?.lineHeight;
+
+                    if (fontToFormat) {
                       try {
-                        quill.formatText(lineStartIndex + 1, leadingWs.length, 'font', inheritedFont, 'user');
-                        quill.format('font', inheritedFont, 'user');
+                        quill.formatText(lineStartIndex + 1, leadingWs.length, 'font', fontToFormat, 'user');
+                        quill.format('font', fontToFormat, 'user');
                       } catch { /* ignore */ }
                     }
-                    if (inheritedSize) {
+                    if (sizeToFormat) {
                       try {
-                        quill.formatText(lineStartIndex + 1, leadingWs.length, 'size', inheritedSize, 'user');
-                        quill.format('size', inheritedSize, 'user');
+                        quill.formatText(lineStartIndex + 1, leadingWs.length, 'size', sizeToFormat, 'user');
+                        quill.format('size', sizeToFormat, 'user');
                       } catch { /* ignore */ }
                     }
-                    if (inheritedColor) {
-                      try { quill.format('color', inheritedColor, 'user'); } catch { /* ignore */ }
+                    if (colorToFormat) {
+                      try { quill.format('color', colorToFormat, 'user'); } catch { /* ignore */ }
                     }
 
                     lastActiveFormatsRef.current = {
-                      font: inheritedFont,
-                      size: inheritedSize,
-                      color: inheritedColor,
-                      lineHeight: inheritedLineHeight,
+                      ...lastActiveFormatsRef.current,
+                      ...(fontToFormat ? { font: fontToFormat } : {}),
+                      ...(sizeToFormat ? { size: sizeToFormat } : {}),
+                      ...(colorToFormat ? { color: colorToFormat } : {}),
+                      ...(lineHeightToFormat ? { lineHeight: lineHeightToFormat } : {}),
                     };
                     scheduleUpdateSizePickerLabel();
                     return;
@@ -3936,14 +4070,21 @@ const QuillWrapper = forwardRef(({
                     quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
                     quill.setSelection(lineStartIndex + 1, 0, 'user');
 
-                    if (inheritedFont) quill.format('font', inheritedFont, 'user');
-                    if (inheritedSize) quill.format('size', inheritedSize, 'user');
+                    const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
+                    const sizeToFormat = inheritedSize || lastActiveFormatsRef.current?.size;
+                    const colorToFormat = inheritedColor || lastActiveFormatsRef.current?.color;
+                    const lineHeightToFormat = inheritedLineHeight || lastActiveFormatsRef.current?.lineHeight;
+
+                    if (fontToFormat) quill.format('font', fontToFormat, 'user');
+                    if (sizeToFormat) quill.format('size', sizeToFormat, 'user');
+                    if (colorToFormat) quill.format('color', colorToFormat, 'user');
 
                     lastActiveFormatsRef.current = {
-                      font: inheritedFont,
-                      size: inheritedSize,
-                      color: inheritedColor,
-                      lineHeight: inheritedLineHeight,
+                      ...lastActiveFormatsRef.current,
+                      ...(fontToFormat ? { font: fontToFormat } : {}),
+                      ...(sizeToFormat ? { size: sizeToFormat } : {}),
+                      ...(colorToFormat ? { color: colorToFormat } : {}),
+                      ...(lineHeightToFormat ? { lineHeight: lineHeightToFormat } : {}),
                     };
                     scheduleUpdateSizePickerLabel();
                     return;
@@ -3959,20 +4100,26 @@ const QuillWrapper = forwardRef(({
                     quill.insertText(sel.index, '\n' + leadingWs, lineFormats, 'user');
                     quill.setSelection(sel.index + 1 + leadingWs.length, 0, 'user');
 
-                    if (inheritedFont) {
+                    const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
+                    const sizeToFormat = inheritedSize || lastActiveFormatsRef.current?.size;
+                    const colorToFormat = inheritedColor || lastActiveFormatsRef.current?.color;
+                    const lineHeightToFormat = inheritedLineHeight || lastActiveFormatsRef.current?.lineHeight;
+
+                    if (fontToFormat) {
                       try {
-                        quill.formatText(sel.index + 1, leadingWs.length, 'font', inheritedFont, 'user');
-                        quill.format('font', inheritedFont, 'user');
+                        quill.formatText(sel.index + 1, leadingWs.length, 'font', fontToFormat, 'user');
+                        quill.format('font', fontToFormat, 'user');
                       } catch { /* ignore */ }
                     }
-                    if (inheritedSize) quill.format('size', inheritedSize, 'user');
-                    if (inheritedColor) quill.format('color', inheritedColor, 'user');
+                    if (sizeToFormat) quill.format('size', sizeToFormat, 'user');
+                    if (colorToFormat) quill.format('color', colorToFormat, 'user');
 
                     lastActiveFormatsRef.current = {
-                      font: inheritedFont,
-                      size: inheritedSize,
-                      color: inheritedColor,
-                      lineHeight: inheritedLineHeight,
+                      ...lastActiveFormatsRef.current,
+                      ...(fontToFormat ? { font: fontToFormat } : {}),
+                      ...(sizeToFormat ? { size: sizeToFormat } : {}),
+                      ...(colorToFormat ? { color: colorToFormat } : {}),
+                      ...(lineHeightToFormat ? { lineHeight: lineHeightToFormat } : {}),
                     };
                     scheduleUpdateSizePickerLabel();
                     return;
@@ -3990,15 +4137,21 @@ const QuillWrapper = forwardRef(({
                   quill.insertText(sel.index, '\n', lineFormats, 'user');
                   quill.setSelection(sel.index + 1, 0, 'user');
 
-                  if (inheritedFont) quill.format('font', inheritedFont, 'user');
-                  if (inheritedSize) quill.format('size', inheritedSize, 'user');
-                  if (inheritedColor) quill.format('color', inheritedColor, 'user');
+                  const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
+                  const sizeToFormat = inheritedSize || lastActiveFormatsRef.current?.size;
+                  const colorToFormat = inheritedColor || lastActiveFormatsRef.current?.color;
+                  const lineHeightToFormat = inheritedLineHeight || lastActiveFormatsRef.current?.lineHeight;
+
+                  if (fontToFormat) quill.format('font', fontToFormat, 'user');
+                  if (sizeToFormat) quill.format('size', sizeToFormat, 'user');
+                  if (colorToFormat) quill.format('color', colorToFormat, 'user');
 
                   lastActiveFormatsRef.current = {
-                    font: inheritedFont,
-                    size: inheritedSize,
-                    color: inheritedColor,
-                    lineHeight: inheritedLineHeight,
+                    ...lastActiveFormatsRef.current,
+                    ...(fontToFormat ? { font: fontToFormat } : {}),
+                    ...(sizeToFormat ? { size: sizeToFormat } : {}),
+                    ...(colorToFormat ? { color: colorToFormat } : {}),
+                    ...(lineHeightToFormat ? { lineHeight: lineHeightToFormat } : {}),
                   };
                   scheduleUpdateSizePickerLabel();
                   return;
@@ -4053,8 +4206,12 @@ const QuillWrapper = forwardRef(({
           const hasSize = Boolean(currentFmt?.size);
 
           if (!hasFont || !hasSize) {
+            let prevNonEmptyLine = currentLine.prev;
+            while (prevNonEmptyLine && prevNonEmptyLine.length() <= 1) {
+              prevNonEmptyLine = prevNonEmptyLine.prev;
+            }
             const isPrevImg = isImageBlotOrNode(currentLine.prev);
-            const prioritizeNext = isPrevImg || Boolean(currentLine.next && currentLine.next.length() > 1 && (!currentLine.prev || currentLine.prev.length() <= 1));
+            const prioritizeNext = isPrevImg || Boolean(currentLine.next && currentLine.next.length() > 1 && (!prevNonEmptyLine || prevNonEmptyLine.length() <= 1));
             const inherited = getInheritedFormatForLine(currentLine, prioritizeNext);
 
             if (!hasFont && inherited.font) {
