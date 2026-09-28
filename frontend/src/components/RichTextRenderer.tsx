@@ -1495,7 +1495,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           max-width: 100% !important;
           margin-left: auto !important;
           margin-right: auto !important;
-          margin-top: 20px !important;
+          margin-top: 12px !important;
           margin-bottom: 16px !important;
         }
         .rich-text-renderer .image-wrapper img {
@@ -1537,7 +1537,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-bottom: 10px !important;
         }
         /* Image wrapper wrapping support */
-        .rich-text-renderer .image-wrap-left {
+        .rich-text-renderer .image-wrap-left,
+        .rich-text-renderer .image-wrapper.image-wrap-left {
           float: left !important;
           clear: right !important;
           margin-right: 28px !important;
@@ -1548,7 +1549,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           max-width: 100% !important;
           box-sizing: border-box !important;
         }
-        .rich-text-renderer .image-wrap-right {
+        .rich-text-renderer .image-wrap-right,
+        .rich-text-renderer .image-wrapper.image-wrap-right {
           float: right !important;
           clear: left !important;
           margin-left: 28px !important;
@@ -1572,7 +1574,9 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         /* Caption in floated wrappers: position static for natural document flow and no text overlap */
         .rich-text-renderer .image-wrap-left .image-caption,
-        .rich-text-renderer .image-wrap-right .image-caption {
+        .rich-text-renderer .image-wrap-right .image-caption,
+        .rich-text-renderer .image-wrapper .image-caption,
+        .rich-text-renderer .image-caption {
           position: static !important;
           text-align: center !important;
           color: #666666 !important;
@@ -1583,6 +1587,9 @@ const RICH_TEXT_RENDERER_STYLES = `
           margin-top: 4px !important;
           margin-bottom: 0 !important;
           display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
         .rich-text-renderer > p:empty,

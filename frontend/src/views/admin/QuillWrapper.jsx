@@ -10351,14 +10351,20 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
         .quill-wrapper-container[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
         .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
-        .quill-wrapper-container .ql-editor .image-wrapper .image-caption {
+        .quill-wrapper-container .ql-editor .image-wrapper .image-caption,
+        .ql-editor .image-wrapper .image-caption,
+        .ql-editor .image-caption {
           display: block !important;
           font-size: 13px !important;
           line-height: 1.35 !important;
           font-style: italic !important;
           text-align: center !important;
+          padding: 0 4px !important;
           margin-top: 4px !important;
           margin-bottom: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
 
         @media (max-width: 767px) {
@@ -10366,12 +10372,18 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
           .quill-wrapper-container[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
           .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
-          .quill-wrapper-container .ql-editor .image-wrapper .image-caption {
+          .quill-wrapper-container .ql-editor .image-wrapper .image-caption,
+          .ql-editor .image-wrapper .image-caption,
+          .ql-editor .image-caption {
             display: block !important;
             font-size: 11px !important;
             line-height: 1.35 !important;
+            padding: 0 4px !important;
             margin-top: 3px !important;
             margin-bottom: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
           }
         }
       `}} />

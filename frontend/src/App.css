@@ -894,7 +894,7 @@
   max-width: 100% !important;
   margin-left: auto !important;
   margin-right: auto !important;
-  margin-top: 20px !important;
+  margin-top: 12px !important;
   margin-bottom: 16px !important;
 }
 
@@ -955,8 +955,11 @@
 
 /* Image wrapper wrapping support */
 .quill-wrapper-container .ql-editor .image-wrap-left,
+.quill-wrapper-container .ql-editor .image-wrapper.image-wrap-left,
 .ql-editor .image-wrap-left,
-.rich-text-renderer .image-wrap-left {
+.ql-editor .image-wrapper.image-wrap-left,
+.rich-text-renderer .image-wrap-left,
+.rich-text-renderer .image-wrapper.image-wrap-left {
   float: left !important;
   clear: right !important;
   margin-right: 28px !important;
@@ -969,8 +972,11 @@
 }
 
 .quill-wrapper-container .ql-editor .image-wrap-right,
+.quill-wrapper-container .ql-editor .image-wrapper.image-wrap-right,
 .ql-editor .image-wrap-right,
-.rich-text-renderer .image-wrap-right {
+.ql-editor .image-wrapper.image-wrap-right,
+.rich-text-renderer .image-wrap-right,
+.rich-text-renderer .image-wrapper.image-wrap-right {
   float: right !important;
   clear: left !important;
   margin-left: 28px !important;
@@ -1017,15 +1023,18 @@
 
 /* Caption in floated wrappers: position static for natural document flow and no text overlap */
 .quill-wrapper-container .ql-editor .image-caption,
+.quill-wrapper-container .ql-editor .image-wrapper .image-caption,
 .ql-editor .image-caption,
+.ql-editor .image-wrapper .image-caption,
 .rich-text-renderer .image-caption,
+.rich-text-renderer .image-wrapper .image-caption,
 .rich-text-renderer .image-wrap-left .image-caption,
 .rich-text-renderer .image-wrap-right .image-caption {
   position: static !important;
   text-align: center !important;
   color: #666666 !important;
   font-style: italic !important;
-  font-size: inherit !important;
+  font-size: 13px !important;
   line-height: 1.35 !important;
   padding: 0 4px !important;
   margin-top: 4px !important;
@@ -1040,16 +1049,30 @@
 }
 
 @media (min-width: 768px) {
+  .rich-text-renderer[style*="--fs-desktop"] .image-caption,
+  .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
   .rich-text-renderer [style*="--fs-desktop"] .image-caption,
-  .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption {
-    font-size: var(--fs-desktop) !important;
+  .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption,
+  .rich-text-renderer .image-caption,
+  .rich-text-renderer .image-wrapper .image-caption {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
   }
 }
 
 @media (max-width: 767px) {
+  .rich-text-renderer[style*="--fs-mobile"] .image-caption,
+  .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
   .rich-text-renderer [style*="--fs-mobile"] .image-caption,
-  .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
-    font-size: var(--fs-mobile) !important;
+  .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption,
+  .rich-text-renderer .image-caption,
+  .rich-text-renderer .image-wrapper .image-caption {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
   }
 }
 
@@ -1147,15 +1170,16 @@
     margin-bottom: 12px !important;
   }
 
-  .rich-text-renderer .image-caption {
+  .rich-text-renderer .image-caption,
+  .rich-text-renderer .image-wrapper .image-caption {
     display: block !important;
     position: static !important;
     clear: both !important;
-    font-size: inherit !important;
-    margin-top: 8px !important;
+    font-size: 11px !important;
+    margin-top: 3px !important;
     margin-bottom: 0 !important;
-    padding: 0 8px !important;
-    line-height: 1.45 !important;
+    padding: 0 4px !important;
+    line-height: 1.35 !important;
     font-style: italic !important;
     text-align: center !important;
   }
@@ -1164,8 +1188,11 @@
   .rich-text-renderer .image-wrap-left .image-caption,
   .rich-text-renderer .image-wrap-right .image-caption {
     position: static !important;
-    margin-top: 8px !important;
+    font-size: 11px !important;
+    margin-top: 3px !important;
     margin-bottom: 0 !important;
+    padding: 0 4px !important;
+    line-height: 1.35 !important;
   }
 
   .rich-text-renderer .image-wrap-left img,
@@ -2869,11 +2896,15 @@ footer .rich-text-renderer * {
 @media (max-width: 767px) {
 
   .rich-text-renderer[style*="--fs-mobile"] .image-caption,
+  .rich-text-renderer .image-wrapper .image-caption,
   .rich-text-renderer .image-caption {
-    font-size: var(--fs-mobile, inherit) !important;
+    font-size: 11px !important;
     font-style: italic !important;
     text-align: center !important;
-    line-height: 1.45 !important;
+    line-height: 1.35 !important;
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
+    padding: 0 4px !important;
   }
 }
 
