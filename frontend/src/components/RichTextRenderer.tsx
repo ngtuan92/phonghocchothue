@@ -569,25 +569,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const parent = wrapper.parentNode;
         if (!parent) return;
 
-        // 1. Collect leading spacer blocks directly between wrap image and wrapped text.
-        // If author inserted whitespace spacers (Enter) in Admin to push text down beside the image,
-        // we PRESERVE them so User view is 100% synchronized with Admin Editor!
-        // On mobile, they have wrap-spacer-mobile-hide so they are hidden when stacked.
-        const intentionalLeadingSpacers: Element[] = [];
+        // 1. Remove unwanted editor-generated dummy spacer blocks directly between wrap image and wrapped text.
+        // Quill automatically generates spacer blocks (e.g. editor-image-spacer-mobile-hide / image-spacer-mobile-hide)
+        // when inserting wrap images. These must be removed so the text wraps directly beside the image.
         let curr = wrapper.nextElementSibling;
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
-          if (!curr.innerHTML || curr.innerHTML.trim() === '') {
-            curr.innerHTML = '&nbsp;';
-          }
-          intentionalLeadingSpacers.push(curr);
+          const unwantedSpacer = curr;
           curr = curr.nextElementSibling;
+          unwantedSpacer.remove();
         }
 
         // 2. Collect ALL consecutive content blocks belonging to this wrap section.
         // Stop when hitting an empty spacer (author hit Enter to end the wrap section),
         // another image, a heading, or a divider.
-        const textSiblings: Element[] = [...intentionalLeadingSpacers];
+        const textSiblings: Element[] = [];
         while (
           curr &&
           !isWhitespaceSpacerBlock(curr) &&
@@ -1544,7 +1539,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Image wrapper wrapping support */
         .rich-text-renderer .image-wrap-left {
           float: left !important;
-          clear: none !important;
+          clear: right !important;
           margin-right: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1555,7 +1550,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
-          clear: none !important;
+          clear: left !important;
           margin-left: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1654,6 +1649,16 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
           .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
             margin-top: 0 !important;
+          }
+          .rich-text-renderer .wrap-right .rich-text-wrap-text > *:first-child,
+          .rich-text-renderer .image-wrap-right + p,
+          .rich-text-renderer .image-wrap-right + * + p {
+            clear: left !important;
+          }
+          .rich-text-renderer .wrap-left .rich-text-wrap-text > *:first-child,
+          .rich-text-renderer .image-wrap-left + p,
+          .rich-text-renderer .image-wrap-left + * + p {
+            clear: right !important;
           }
         }
         

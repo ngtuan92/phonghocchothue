@@ -958,7 +958,7 @@
 .ql-editor .image-wrap-left,
 .rich-text-renderer .image-wrap-left {
   float: left !important;
-  clear: none !important;
+  clear: right !important;
   margin-right: 28px !important;
   margin-bottom: 16px !important;
   margin-top: 0 !important;
@@ -972,7 +972,7 @@
 .ql-editor .image-wrap-right,
 .rich-text-renderer .image-wrap-right {
   float: right !important;
-  clear: none !important;
+  clear: left !important;
   margin-left: 28px !important;
   margin-bottom: 16px !important;
   margin-top: 0 !important;
@@ -2969,6 +2969,20 @@ footer .rich-text-renderer * {
   .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
   .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
     margin-top: 0 !important;
+  }
+  .rich-text-renderer .wrap-right .rich-text-wrap-text > *:first-child,
+  .rich-text-renderer .image-wrap-right + p,
+  .rich-text-renderer .image-wrap-right + * + p,
+  .ql-editor .image-wrap-right + p,
+  .ql-editor .image-wrapper.image-wrap-right + p {
+    clear: left !important;
+  }
+  .rich-text-renderer .wrap-left .rich-text-wrap-text > *:first-child,
+  .rich-text-renderer .image-wrap-left + p,
+  .rich-text-renderer .image-wrap-left + * + p,
+  .ql-editor .image-wrap-left + p,
+  .ql-editor .image-wrapper.image-wrap-left + p {
+    clear: right !important;
   }
 }
 
