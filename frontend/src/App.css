@@ -256,9 +256,26 @@
 }
 
 /* Match both text edges and the center axis between admin and public blog pages.
-   The remaining value accounts for the admin layout, page and form paddings. */
+   The remaining value accounts for the admin layout, page and form paddings:
+   - AdminLayout p-2 (8px)
+   - EditBlogPage md:p-6 (24px)
+   - BlogForm card md:p-8 (32px)
+   - Card border & Quill border (2px)
+   Total outer fixed offset = 66px on desktop (42px on mobile/tablet).
+   Left distance from screen edge to text = 66px + var(--blog-editor-text-inset)
+   Target User View Left distance = var(--blog-detail-outer-gutter) + var(--site-gutter)
+   Therefore: --blog-editor-text-inset = calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - var(--admin-outer-offset))
+*/
 .blog-edit-page {
-  --blog-editor-text-inset: max(10px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px));
+  --admin-outer-offset: 42px;
+  --blog-editor-text-inset: max(0px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - var(--admin-outer-offset)));
+}
+
+@media (min-width: 768px) {
+  .blog-edit-page {
+    --admin-outer-offset: 66px;
+    --blog-editor-text-inset: max(0px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - var(--admin-outer-offset)));
+  }
 }
 
 .blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
@@ -269,7 +286,7 @@
 .blog-edit-page .blog-content-area {
   width: auto !important;
   margin-left: max(0px, calc(var(--blog-editor-text-inset) - 24px));
-  margin-right: max(0px, calc(var(--blog-editor-text-inset) - 24px));
+  margin-right: max(0px, calc(var(--blog-editor-text-inset) - 24px - var(--admin-scrollbar-width, 16px)));
 }
 
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
@@ -293,30 +310,6 @@
   content: "" !important;
   display: table !important;
   clear: both !important;
-}
-
-@media (min-width: 640px) and (max-width: 767px) {
-  .blog-edit-page {
-    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 40px);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .blog-edit-page {
-    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - 64px);
-  }
-}
-
-@media (min-width: 1024px) {
-  .blog-edit-page {
-    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) - 4px);
-  }
-}
-
-@media (min-width: 1440px) {
-  .blog-edit-page {
-    --blog-editor-text-inset: calc(var(--blog-detail-outer-gutter) + 16px);
-  }
 }
 
 

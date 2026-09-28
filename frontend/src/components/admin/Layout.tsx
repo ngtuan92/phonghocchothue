@@ -303,8 +303,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [currentRoute, setCurrentRoute] = React.useState("Dashboard");
 
   React.useEffect(() => {
-    const handleResize = () =>
+    const handleResize = () => {
       window.innerWidth < 1200 ? setOpen(false) : setOpen(true);
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.setProperty('--admin-scrollbar-width', scrollbarWidth + 'px');
+    };
 
     if (typeof window !== "undefined") {
       handleResize();
