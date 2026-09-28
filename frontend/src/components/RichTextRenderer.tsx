@@ -1544,7 +1544,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Image wrapper wrapping support */
         .rich-text-renderer .image-wrap-left {
           float: left !important;
-          clear: none !important;
+          clear: both !important;
           margin-right: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1555,7 +1555,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
-          clear: none !important;
+          clear: both !important;
           margin-left: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;

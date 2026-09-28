@@ -958,7 +958,7 @@
 .ql-editor .image-wrap-left,
 .rich-text-renderer .image-wrap-left {
   float: left !important;
-  clear: none !important;
+  clear: both !important;
   margin-right: 28px !important;
   margin-bottom: 16px !important;
   margin-top: 0 !important;
@@ -972,7 +972,7 @@
 .ql-editor .image-wrap-right,
 .rich-text-renderer .image-wrap-right {
   float: right !important;
-  clear: none !important;
+  clear: both !important;
   margin-left: 28px !important;
   margin-bottom: 16px !important;
   margin-top: 0 !important;

@@ -9544,7 +9544,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrap-left,
         .ql-editor .image-wrapper.image-wrap-left {
           float: left !important;
-          clear: none !important;
+          clear: both !important;
           margin-right: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -9557,7 +9557,7 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrap-right,
         .ql-editor .image-wrapper.image-wrap-right {
           float: right !important;
-          clear: none !important;
+          clear: both !important;
           margin-left: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
