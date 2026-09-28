@@ -1515,7 +1515,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Text wrapping: float left */
         .rich-text-renderer img[data-wrap="left"] {
           float: left !important;
-          clear: both !important;
+          clear: none !important;
           margin-right: 20px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1525,7 +1525,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Text wrapping: float right */
         .rich-text-renderer img[data-wrap="right"] {
           float: right !important;
-          clear: both !important;
+          clear: none !important;
           margin-left: 20px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1544,7 +1544,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         /* Image wrapper wrapping support */
         .rich-text-renderer .image-wrap-left {
           float: left !important;
-          clear: both !important;
+          clear: none !important;
           margin-right: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1555,7 +1555,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer .image-wrap-right {
           float: right !important;
-          clear: both !important;
+          clear: none !important;
           margin-left: 28px !important;
           margin-bottom: 16px !important;
           margin-top: 0 !important;
@@ -1644,13 +1644,9 @@ const RICH_TEXT_RENDERER_STYLES = `
             padding-bottom: 0.75rem !important;
           }
 
-          /* Desktop: flow-root wrap grouping for native float text wrap and clean boundary */
+          /* Desktop: transparent wrap grouping for 100% native float text wrap */
           .rich-text-renderer .rich-text-wrap-group,
-          .rich-text-wrap-group {
-            display: flow-root !important;
-            width: 100% !important;
-            margin-bottom: 1.5rem !important;
-          }
+          .rich-text-wrap-group,
           .rich-text-renderer .rich-text-wrap-text,
           .rich-text-wrap-text {
             display: contents !important;
