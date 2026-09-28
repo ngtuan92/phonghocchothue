@@ -606,17 +606,20 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         // simply to advance the cursor below the floated image in the editor.
         // On User view, .rich-text-wrap-group has margin-bottom: 1.5rem which already provides
         // the natural section gap — no trailing spacer needs to be preserved.
+        let trailingSpacersCount = 0;
         while (curr && isWhitespaceSpacerBlock(curr)) {
           const exitSpacer = curr;
           curr = curr.nextElementSibling;
           exitSpacer.remove();
+          trailingSpacersCount++;
         }
 
         // Only group if there are real content siblings following this image
         const hasRealContent = textSiblings.some((s) => !isWhitespaceSpacerBlock(s));
         if (textSiblings.length > 0 && hasRealContent) {
           const group = doc.createElement('div');
-          group.className = `rich-text-wrap-group wrap-${wrapMode}`;
+          const trailingClass = trailingSpacersCount > 0 ? ' has-trailing-spacer' : '';
+          group.className = `rich-text-wrap-group wrap-${wrapMode}${trailingClass}`;
 
           const textContainer = doc.createElement('div');
           textContainer.className = 'rich-text-wrap-text';
@@ -1077,6 +1080,10 @@ const RICH_TEXT_RENDERER_STYLES = `
           overflow-wrap: break-word !important;
           tab-size: 4 !important;
           -moz-tab-size: 4 !important;
+        }
+        .rich-text-renderer.blog-content p,
+        .blog-content p {
+          line-height: 1.6;
         }
         .rich-text-renderer img {
           display: block;

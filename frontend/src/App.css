@@ -1594,6 +1594,7 @@
 
   .blog-content p {
     margin-bottom: 0.5rem !important;
+    line-height: 1.6;
   }
 
   .blog-content img {
@@ -1784,6 +1785,7 @@
   .blog-content p {
     margin: 0 0 0.5rem 0 !important;
     font-weight: 400;
+    line-height: 1.6;
   }
 
   .blog-content ul {
@@ -2930,6 +2932,10 @@ footer .rich-text-renderer * {
   .rich-text-wrap-group {
     display: flow-root !important;
     width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group.has-trailing-spacer,
+  .rich-text-wrap-group.has-trailing-spacer {
     margin-bottom: 1.5rem !important;
   }
   .rich-text-renderer .rich-text-wrap-text,
