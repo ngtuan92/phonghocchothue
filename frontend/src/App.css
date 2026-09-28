@@ -4,11 +4,24 @@
   /* Fluid Gutter for Mobile/Tablet */
   --site-gutter: clamp(1rem, 5vw, 2.5rem);
   --blog-detail-outer-gutter: 34px;
+  --blog-main-padding: var(--site-gutter);
 }
 
 @media (min-width: 640px) {
   :root {
     --blog-detail-outer-gutter: 70px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --blog-main-padding: 60px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --blog-main-padding: 80px;
   }
 }
 
@@ -30,23 +43,9 @@
 }
 
 .main-container {
-  padding-left: var(--site-gutter) !important;
-  padding-right: var(--site-gutter) !important;
+  padding-left: var(--blog-main-padding) !important;
+  padding-right: var(--blog-main-padding) !important;
   width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .main-container {
-    padding-left: 60px !important;
-    padding-right: 60px !important;
-  }
-}
-
-@media (min-width: 1440px) {
-  .main-container {
-    padding-left: 80px !important;
-    padding-right: 80px !important;
-  }
 }
 
 #root {
@@ -263,18 +262,18 @@
    - Card border & Quill border (2px)
    Total outer fixed offset = 66px on desktop (42px on mobile/tablet).
    Left distance from screen edge to text = 66px + var(--blog-editor-text-inset)
-   Target User View Left distance = var(--blog-detail-outer-gutter) + var(--site-gutter)
-   Therefore: --blog-editor-text-inset = calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - var(--admin-outer-offset))
+   Target User View Left distance = var(--blog-detail-outer-gutter) + var(--blog-main-padding)
+   Therefore: --blog-editor-text-inset = calc(var(--blog-detail-outer-gutter) + var(--blog-main-padding) - var(--admin-outer-offset))
 */
 .blog-edit-page {
   --admin-outer-offset: 42px;
-  --blog-editor-text-inset: max(0px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - var(--admin-outer-offset)));
+  --blog-editor-text-inset: max(0px, calc(var(--blog-detail-outer-gutter) + var(--blog-main-padding) - var(--admin-outer-offset)));
 }
 
 @media (min-width: 768px) {
   .blog-edit-page {
     --admin-outer-offset: 66px;
-    --blog-editor-text-inset: max(0px, calc(var(--blog-detail-outer-gutter) + var(--site-gutter) - var(--admin-outer-offset)));
+    --blog-editor-text-inset: max(0px, calc(var(--blog-detail-outer-gutter) + var(--blog-main-padding) - var(--admin-outer-offset)));
   }
 }
 
