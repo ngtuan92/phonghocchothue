@@ -1985,6 +1985,27 @@ const RICH_TEXT_RENDERER_STYLES = `
           .blog-content .rich-text-pseudo-indent-spacer {
             display: none !important;
           }
+
+          /* Mobile blog detail title default center alignment */
+          .blog-detail-title,
+          .blog-detail-title .inline-rich-text,
+          .blog-detail-title .inline-rich-text > *,
+          .blog-detail-title .inline-rich-text p,
+          .blog-detail-title .inline-rich-text span,
+          .blog-detail-title .inline-rich-text strong {
+            text-align: center !important;
+          }
+          .blog-detail-title,
+          .blog-detail-title * {
+            max-width: 100% !important;
+          }
+          .blog-detail-title .inline-rich-text p,
+          .blog-detail-title .inline-rich-text [data-rich-text-controls="true"] {
+            width: 100% !important;
+            display: inline-block !important;
+            text-align: center !important;
+            margin-inline: auto !important;
+          }
         }
         
         .rich-text-renderer .rich-text-pseudo-indent-spacer {
