@@ -1029,7 +1029,7 @@
   line-height: 1.35 !important;
   padding: 0 4px !important;
   margin-top: 4px !important;
-  margin-bottom: 4px !important;
+  margin-bottom: 0 !important;
   display: block !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -1153,7 +1153,7 @@
     clear: both !important;
     font-size: inherit !important;
     margin-top: 8px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 0 !important;
     padding: 0 8px !important;
     line-height: 1.45 !important;
     font-style: italic !important;
@@ -1165,7 +1165,7 @@
   .rich-text-renderer .image-wrap-right .image-caption {
     position: static !important;
     margin-top: 8px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 0 !important;
   }
 
   .rich-text-renderer .image-wrap-left img,
@@ -3039,7 +3039,7 @@ footer .rich-text-renderer * {
     clear: both !important;
     font-size: 11px !important;
     margin-top: 3px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 0 !important;
     padding: 0 8px !important;
     line-height: 1.35 !important;
     font-style: italic !important;
@@ -3084,7 +3084,7 @@ footer .rich-text-renderer * {
     display: block !important;
     font-size: 11px !important;
     margin-top: 3px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 0 !important;
     padding: 0 8px !important;
     line-height: 1.35 !important;
     font-style: italic !important;
@@ -3096,7 +3096,7 @@ footer .rich-text-renderer * {
     font-size: 11px !important;
     line-height: 1.35 !important;
     margin-top: 3px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 0 !important;
     padding: 0 6px !important;
   }
 

@@ -1393,7 +1393,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           font-size: 13px !important;
           line-height: 1.35 !important;
           margin-top: 4px !important;
-          margin-bottom: 8px !important;
+          margin-bottom: 0 !important;
           font-style: italic !important;
           color: #666666 !important;
           text-align: center !important;
@@ -1405,7 +1405,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             font-size: 13px !important;
             line-height: 1.35 !important;
             margin-top: 4px !important;
-            margin-bottom: 8px !important;
+            margin-bottom: 0 !important;
           }
         }
         @media (max-width: 767px) {
@@ -1415,7 +1415,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             font-size: 11px !important;
             line-height: 1.35 !important;
             margin-top: 3px !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 0 !important;
           }
           .rich-text-renderer li[style*="--fs-mobile"]::marker {
             font-size: var(--fs-mobile) !important;
@@ -1581,7 +1581,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           line-height: 1.35 !important;
           padding: 0 4px !important;
           margin-top: 4px !important;
-          margin-bottom: 6px !important;
+          margin-bottom: 0 !important;
           display: block !important;
         }
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
@@ -1727,7 +1727,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             clear: both !important;
             font-size: 11px !important;
             margin-top: 3px !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 0 !important;
             padding: 0 8px !important;
             line-height: 1.35 !important;
             font-style: italic !important;
@@ -1780,7 +1780,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             clear: both !important;
             font-size: 11px !important;
             margin-top: 3px !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 0 !important;
             padding: 0 8px !important;
             line-height: 1.35 !important;
             font-style: italic !important;
@@ -1791,7 +1791,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .image-wrap-right .image-caption {
             position: static !important;
             margin-top: 3px !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 0 !important;
             font-size: 11px !important;
           }
           .rich-text-renderer .image-wrap-left img,
@@ -2018,7 +2018,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           color: #666;
           font-size: 13px;
           margin-top: 4px;
-          margin-bottom: 8px;
+          margin-bottom: 0;
           font-style: italic;
           line-height: 1.35;
           display: block;

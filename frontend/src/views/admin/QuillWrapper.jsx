@@ -9539,7 +9539,7 @@ const QuillWrapper = forwardRef(({
           margin-left: auto !important;
           margin-right: auto !important;
           margin-top: 12px !important;
-          margin-bottom: 10px !important;
+          margin-bottom: 16px !important;
         }
         .ql-editor .image-wrap-left,
         .ql-editor .image-wrapper.image-wrap-left {
@@ -9632,7 +9632,7 @@ const QuillWrapper = forwardRef(({
           box-sizing: border-box !important;
           padding: 0 4px !important;
           margin-top: 4px !important;
-          margin-bottom: 4px !important;
+          margin-bottom: 0 !important;
           white-space: normal !important;
           overflow-wrap: break-word !important;
           word-break: normal !important;
@@ -9682,7 +9682,7 @@ const QuillWrapper = forwardRef(({
             line-height: 1.35 !important;
             padding: 0 8px !important;
             margin-top: 3px !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 0 !important;
           }
           .editor-inline-image-caption {
             display: none !important;
@@ -10358,7 +10358,7 @@ const QuillWrapper = forwardRef(({
           font-style: italic !important;
           text-align: center !important;
           margin-top: 4px !important;
-          margin-bottom: 4px !important;
+          margin-bottom: 0 !important;
         }
 
         @media (max-width: 767px) {
@@ -10371,7 +10371,7 @@ const QuillWrapper = forwardRef(({
             font-size: 11px !important;
             line-height: 1.35 !important;
             margin-top: 3px !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 0 !important;
           }
         }
       `}} />
