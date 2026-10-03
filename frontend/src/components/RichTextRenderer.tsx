@@ -101,7 +101,11 @@ const normalizeWhitespaceSpacers = (html: string) => {
 
     block.classList.add('ql-whitespace-spacer');
     block.setAttribute('aria-hidden', 'true');
-    block.textContent = hasOnlyWhitespaceText ? text : ' ';
+    if (hasOnlyBreaks || (hasOnlyWhitespaceText && !text.trim())) {
+      block.innerHTML = '<br>';
+    } else {
+      block.textContent = text;
+    }
   });
 
   return root?.innerHTML || html;

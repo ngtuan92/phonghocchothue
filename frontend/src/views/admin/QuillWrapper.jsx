@@ -1266,8 +1266,8 @@ const normalizeWhitespaceOnlyBlocksForQuill = (html) => {
     block.style.whiteSpace = "break-spaces";
     block.style.overflowWrap = "break-word";
 
-    if (hasOnlyBreaks) {
-      block.textContent = " ";
+    if (hasOnlyBreaks || hasOnlyWhitespaceText) {
+      block.innerHTML = "<br>";
     } else {
       normalizeTextNodes(block);
     }
