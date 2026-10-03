@@ -1578,26 +1578,24 @@ const QuillWrapper = forwardRef(({
   const getPopupInputValue = useCallback((key, value) => {
     if (Object.prototype.hasOwnProperty.call(popupInputValuesRef.current, key)) {
       const stored = popupInputValuesRef.current[key];
-      if (stored !== undefined && stored !== null && stored !== "") {
+      if (stored !== undefined && stored !== null) {
         return stored;
       }
-      if (key === 'fontSize') return '16';
-      if (key === 'fontSizeMobile') return '13';
-      return stored;
+      return "";
     }
     if (Object.prototype.hasOwnProperty.call(selectionControlDraftsRef.current, key)) {
-      const draft = normalizeUnsignedControlValue(key, selectionControlDraftsRef.current[key]);
-      if (draft) return draft;
-      if (key === 'fontSize') return '16';
-      if (key === 'fontSizeMobile') return '13';
-      return draft;
+      const draft = selectionControlDraftsRef.current[key];
+      if (draft !== undefined && draft !== null) {
+        return draft;
+      }
+      return "";
     }
     if (commitOnBlurOnly && Object.prototype.hasOwnProperty.call(controlDraftsRef.current, key)) {
-      const draft = normalizeUnsignedControlValue(key, controlDraftsRef.current[key]);
-      if (draft) return draft;
-      if (key === 'fontSize') return '16';
-      if (key === 'fontSizeMobile') return '13';
-      return draft;
+      const draft = controlDraftsRef.current[key];
+      if (draft !== undefined && draft !== null) {
+        return draft;
+      }
+      return "";
     }
     const normalized = normalizeUnsignedControlValue(key, value);
     if (!normalized) {
@@ -2148,6 +2146,7 @@ const QuillWrapper = forwardRef(({
   }, []);
 
   const updateControlDraftValue = useCallback((key, value, signed = false, inputElement = null) => {
+    activeControlInputKeyRef.current = key;
     if (!isValidControlInput(value, signed)) return;
 
     const nextValue = normalizeUnsignedControlValue(key, value);

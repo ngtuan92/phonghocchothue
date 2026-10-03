@@ -45,16 +45,29 @@ export const FontSizePopup = React.memo(function FontSizePopup({
   onClose,
 }) {
   const popupRef = useRef(null);
+  const isDesktopFocusedRef = useRef(false);
+  const isMobileFocusedRef = useRef(false);
   const [desktop, setDesktop] = useState(initialDesktop || '16');
   const [mobile, setMobile] = useState(initialMobile || '13');
 
   useEffect(() => {
-    setDesktop(initialDesktop || '16');
-  }, [initialDesktop]);
+    if (!isDesktopFocusedRef.current) {
+      setDesktop(initialDesktop !== undefined && initialDesktop !== null && initialDesktop !== '' ? initialDesktop : (visible ? '16' : ''));
+    }
+  }, [initialDesktop, visible]);
 
   useEffect(() => {
-    setMobile(initialMobile || '13');
-  }, [initialMobile]);
+    if (!isMobileFocusedRef.current) {
+      setMobile(initialMobile !== undefined && initialMobile !== null && initialMobile !== '' ? initialMobile : (visible ? '13' : ''));
+    }
+  }, [initialMobile, visible]);
+
+  useEffect(() => {
+    if (!visible) {
+      isDesktopFocusedRef.current = false;
+      isMobileFocusedRef.current = false;
+    }
+  }, [visible]);
 
   useClickOutside(popupRef, anchor, onClose, visible);
 
@@ -130,6 +143,17 @@ export const FontSizePopup = React.memo(function FontSizePopup({
                 type="text"
                 inputMode="numeric"
                 value={desktop}
+                onFocus={() => {
+                  isDesktopFocusedRef.current = true;
+                }}
+                onBlur={(e) => {
+                  isDesktopFocusedRef.current = false;
+                  const trimmed = e.target.value.trim();
+                  if (!trimmed) {
+                    setDesktop('16');
+                    onChangeDesktop?.('16');
+                  }
+                }}
                 onChange={(e) => {
                   setDesktop(e.target.value);
                   onChangeDesktop?.(e.target.value);
@@ -177,6 +201,17 @@ export const FontSizePopup = React.memo(function FontSizePopup({
                 type="text"
                 inputMode="numeric"
                 value={mobile}
+                onFocus={() => {
+                  isMobileFocusedRef.current = true;
+                }}
+                onBlur={(e) => {
+                  isMobileFocusedRef.current = false;
+                  const trimmed = e.target.value.trim();
+                  if (!trimmed) {
+                    setMobile('13');
+                    onChangeMobile?.('13');
+                  }
+                }}
                 onChange={(e) => {
                   setMobile(e.target.value);
                   onChangeMobile?.(e.target.value);
