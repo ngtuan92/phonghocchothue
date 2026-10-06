@@ -128,32 +128,32 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl px-3 py-2 mb-0 shadow-sm transition-all duration-300">
+    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl px-3 py-1 sm:py-2 mb-0 shadow-sm transition-all duration-300">
       {/* Header bar */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between cursor-pointer select-none"
       >
-        <span className="text-[#563c39] font-bold text-[13px] sm:text-sm raleway">
+        <span className="text-[#563c39] font-bold text-[9px] sm:text-sm raleway">
           Nội dung bài viết
         </span>
         <button
           aria-label="Toggle table of contents"
           type="button"
-          className="border border-gray-200 bg-white rounded-lg p-1.5 flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors shadow-sm"
+          className="border border-gray-200 bg-white rounded-md sm:rounded-lg p-1 sm:p-1.5 flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors shadow-sm"
         >
-          <FaList size={12} className="text-[#563c39]" />
+          <FaList size={10} className="sm:w-3 sm:h-3 text-[#563c39]" />
           {isOpen ? (
-            <FaChevronUp size={9} className="text-gray-400" />
+            <FaChevronUp size={8} className="sm:w-[9px] sm:h-[9px] text-gray-400" />
           ) : (
-            <FaChevronDown size={9} className="text-gray-400" />
+            <FaChevronDown size={8} className="sm:w-[9px] sm:h-[9px] text-gray-400" />
           )}
         </button>
       </div>
 
       {/* Content list */}
       {isOpen && (
-        <div className="mt-3 pt-3 border-t border-gray-200/50 flex flex-col gap-2">
+        <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-gray-200/50 flex flex-col gap-1.5 sm:gap-2">
           {items.map((item) => (
             <div
               key={item.id}
@@ -163,8 +163,8 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
               }}
               className={`cursor-pointer transition-colors duration-200 ${
                 item.isSub
-                  ? "pl-5 sm:pl-7 text-[13px] sm:text-[14px] text-gray-600 hover:text-[#e57f7f]"
-                  : "text-[14px] sm:text-base text-[#563c39] font-medium hover:text-[#e57f7f]"
+                  ? "pl-4 sm:pl-7 text-[10px] sm:text-[14px] text-gray-600 hover:text-[#e57f7f]"
+                  : "text-[11px] sm:text-base text-[#563c39] font-medium hover:text-[#e57f7f]"
               }`}
             >
               {item.displayName}

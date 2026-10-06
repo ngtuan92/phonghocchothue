@@ -277,7 +277,7 @@ export default function BlogDetail() {
                 </div>
               </div>
 
-              <div className="order-2 w-full text-left mb-2">
+              <div className="order-2 w-full text-left mb-[18px] sm:mb-2">
                 <TableOfContents html={blog.content} />
               </div>
 
