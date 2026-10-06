@@ -128,7 +128,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-xl px-3 py-1 sm:py-2 mb-0 shadow-sm transition-all duration-300">
+    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-md sm:rounded-lg px-3 py-1 sm:py-2 mb-0 shadow-sm transition-all duration-300">
       {/* Header bar */}
       <div
         onClick={() => setIsOpen(!isOpen)}
@@ -140,7 +140,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
         <button
           aria-label="Toggle table of contents"
           type="button"
-          className="border border-gray-200 bg-white rounded-md sm:rounded-lg p-1 sm:p-1.5 flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors shadow-sm"
+          className="border border-gray-200 bg-white rounded sm:rounded-md p-1 sm:p-1.5 flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors shadow-sm"
         >
           <FaList size={10} className="sm:w-3 sm:h-3 text-[#563c39]" />
           {isOpen ? (
