@@ -128,7 +128,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-md sm:rounded-lg px-3 py-1 sm:py-2 mb-0 shadow-sm transition-all duration-300">
+    <div className="bg-[#f8f9fa] border border-[#799f851a] rounded-md sm:rounded-lg px-2 py-0.5 sm:px-3 sm:py-2 mb-0 shadow-sm transition-all duration-300">
       {/* Header bar */}
       <div
         onClick={() => setIsOpen(!isOpen)}
@@ -140,13 +140,13 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ html }) => {
         <button
           aria-label="Toggle table of contents"
           type="button"
-          className="border border-gray-200 bg-white rounded sm:rounded-md p-1 sm:p-1.5 flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors shadow-sm"
+          className="border border-gray-200 bg-white rounded sm:rounded-md px-1 py-0.5 sm:p-1.5 flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors shadow-sm"
         >
-          <FaList size={10} className="sm:w-3 sm:h-3 text-[#563c39]" />
+          <FaList size={9} className="sm:w-3 sm:h-3 text-[#563c39]" />
           {isOpen ? (
-            <FaChevronUp size={8} className="sm:w-[9px] sm:h-[9px] text-gray-400" />
+            <FaChevronUp size={7} className="sm:w-[9px] sm:h-[9px] text-gray-400" />
           ) : (
-            <FaChevronDown size={8} className="sm:w-[9px] sm:h-[9px] text-gray-400" />
+            <FaChevronDown size={7} className="sm:w-[9px] sm:h-[9px] text-gray-400" />
           )}
         </button>
       </div>
