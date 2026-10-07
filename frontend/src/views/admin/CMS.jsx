@@ -1361,8 +1361,19 @@ export default function CMS() {
                       onChangeFontSizeMobile={(val) => updateFAQ(index, "qFontSizeMobile", val)}
                       onChangeTranslateY={(val) => updateFAQ(index, "qTranslateY", val)}
                       onChangeTranslateYMobile={(val) => updateFAQ(index, "qTranslateYMobile", val)}
+                      onControlDraftChange={(key, val) => {
+                        const map = {
+                          lineHeight: "qLineHeight",
+                          lineHeightMobile: "qLineHeightMobile",
+                          fontSize: "qFontSize",
+                          fontSizeMobile: "qFontSizeMobile",
+                          translateY: "qTranslateY",
+                          translateYMobile: "qTranslateYMobile",
+                        };
+                        if (map[key]) updateFAQ(index, map[key], val, { commit: false });
+                      }}
                       hasResponsiveFontSize={true}
-                      inlineSelectionControls={true}
+                      inlineSelectionControls={false}
                       commitOnBlurOnly={true}
                     />
                   </div>
@@ -1393,8 +1404,19 @@ export default function CMS() {
                       onChangeFontSizeMobile={(val) => updateFAQ(index, "aFontSizeMobile", val)}
                       onChangeTranslateY={(val) => updateFAQ(index, "aTranslateY", val)}
                       onChangeTranslateYMobile={(val) => updateFAQ(index, "aTranslateYMobile", val)}
+                      onControlDraftChange={(key, val) => {
+                        const map = {
+                          lineHeight: "aLineHeight",
+                          lineHeightMobile: "aLineHeightMobile",
+                          fontSize: "aFontSize",
+                          fontSizeMobile: "aFontSizeMobile",
+                          translateY: "aTranslateY",
+                          translateYMobile: "aTranslateYMobile",
+                        };
+                        if (map[key]) updateFAQ(index, map[key], val, { commit: false });
+                      }}
                       hasResponsiveFontSize={true}
-                      inlineSelectionControls={true}
+                      inlineSelectionControls={false}
                       commitOnBlurOnly={true}
                     />
                   </div>

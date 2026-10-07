@@ -797,10 +797,10 @@ if (typeof window !== "undefined" && Quill) {
       scope: Parchment.Scope.INLINE
     });
     const lineHeightAttributor = new CssVariableAttributor("lineHeight", "--custom-line-height", {
-      scope: Parchment.Scope.INLINE
+      scope: Parchment.Scope.BLOCK
     });
     const lineHeightMobileAttributor = new CssVariableAttributor("lineHeightMobile", "--custom-line-height-mobile", {
-      scope: Parchment.Scope.INLINE
+      scope: Parchment.Scope.BLOCK
     });
     const whiteSpaceAttributor = new StyleAttributor("whiteSpace", "white-space", {
       scope: Parchment.Scope.BLOCK
@@ -1905,22 +1905,14 @@ const QuillWrapper = forwardRef(({
   }, [preserveAdminScrollDuring]);
 
   const getCurrentControlSelection = useCallback((rangeOverride = null) => {
+    if (rangeOverride) return { ...rangeOverride };
     const quill = getQuillEditor();
-    const preferred = rangeOverride || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current || quill?.getSelection?.();
+    const liveSelection = quill?.getSelection?.();
+    if (liveSelection) return { ...liveSelection };
+
+    const preferred = controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
     if (!preferred) return null;
-    if (preferred.length > 0) return { ...preferred };
-
-    const fallback = controlSelectionRef.current?.length > 0
-      ? controlSelectionRef.current
-      : lastHighlightSelectionRef.current?.length > 0
-        ? lastHighlightSelectionRef.current
-        : savedSelectionRef.current?.length > 0
-          ? savedSelectionRef.current
-          : typingSelectionRef.current?.length > 0
-            ? typingSelectionRef.current
-            : null;
-
-    return fallback ? { ...fallback } : { ...preferred };
+    return { ...preferred };
   }, [getQuillEditor]);
 
   const applyInlineControlToSelection = useCallback((key, value, options = {}) => {
@@ -2132,8 +2124,11 @@ const QuillWrapper = forwardRef(({
     const cssVar = RESPONSIVE_CONTROL_CSS_VAR[key];
     if (!cssVar) return;
 
+    const editorEl = root.querySelector('.ql-editor');
+
     if (value === "" || value == null) {
       root.style.removeProperty(cssVar);
+      editorEl?.style.removeProperty(cssVar);
       return;
     }
 
@@ -2142,6 +2137,7 @@ const QuillWrapper = forwardRef(({
       : toCssUnit(value, key.includes('translateY') || key.includes('translateX'));
     if (cssValue) {
       root.style.setProperty(cssVar, cssValue);
+      editorEl?.style.setProperty(cssVar, cssValue);
     }
   }, []);
 
@@ -2156,7 +2152,9 @@ const QuillWrapper = forwardRef(({
       const isInline =
         canUseInlineSelectionControls &&
         selection &&
-        selection.length > 0;
+        selection.length > 0 &&
+        key !== 'lineHeight' &&
+        key !== 'lineHeightMobile';
 
       if (isInline) {
         selectionControlDraftsRef.current = {
@@ -2189,7 +2187,9 @@ const QuillWrapper = forwardRef(({
       const isInline =
         canUseInlineSelectionControls &&
         selection &&
-        selection.length > 0;
+        selection.length > 0 &&
+        key !== 'lineHeight' &&
+        key !== 'lineHeightMobile';
 
       if (isInline) {
         selectionControlDraftsRef.current = {
@@ -8001,7 +8001,21 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h4,
         .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h5,
         .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h6,
-        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor li {
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor li,
+        .ql-editor[style*="--custom-line-height:"],
+        .ql-editor[style*="--custom-line-height:"] *,
+        .ql-editor[style*="--custom-line-height:"] p,
+        .ql-editor[style*="--custom-line-height:"] h1,
+        .ql-editor[style*="--custom-line-height:"] h2,
+        .ql-editor[style*="--custom-line-height:"] h3,
+        .ql-editor[style*="--custom-line-height:"] h4,
+        .ql-editor[style*="--custom-line-height:"] h5,
+        .ql-editor[style*="--custom-line-height:"] h6,
+        .ql-editor[style*="--custom-line-height:"] li,
+        .faq-quill-question .ql-editor[style*="--custom-line-height:"],
+        .faq-quill-question .ql-editor[style*="--custom-line-height:"] *,
+        .faq-quill-answer .ql-editor[style*="--custom-line-height:"],
+        .faq-quill-answer .ql-editor[style*="--custom-line-height:"] * {
           line-height: var(--custom-line-height) !important;
         }
         @media (min-width: 768px) {
@@ -8020,7 +8034,21 @@ const QuillWrapper = forwardRef(({
           .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h4,
           .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h5,
           .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h6,
-          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor li {
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor li,
+          .ql-editor[style*="--custom-line-height-mobile:"],
+          .ql-editor[style*="--custom-line-height-mobile:"] *,
+          .ql-editor[style*="--custom-line-height-mobile:"] p,
+          .ql-editor[style*="--custom-line-height-mobile:"] h1,
+          .ql-editor[style*="--custom-line-height-mobile:"] h2,
+          .ql-editor[style*="--custom-line-height-mobile:"] h3,
+          .ql-editor[style*="--custom-line-height-mobile:"] h4,
+          .ql-editor[style*="--custom-line-height-mobile:"] h5,
+          .ql-editor[style*="--custom-line-height-mobile:"] h6,
+          .ql-editor[style*="--custom-line-height-mobile:"] li,
+          .faq-quill-question .ql-editor[style*="--custom-line-height-mobile:"],
+          .faq-quill-question .ql-editor[style*="--custom-line-height-mobile:"] *,
+          .faq-quill-answer .ql-editor[style*="--custom-line-height-mobile:"],
+          .faq-quill-answer .ql-editor[style*="--custom-line-height-mobile:"] * {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .quill-wrapper-container[style*="--custom-line-height-mobile:"][style*="--fs-mobile"] .ql-editor.hero-phone-text,

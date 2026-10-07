@@ -141,7 +141,7 @@ const normalizeNaturalTextWrapping = (html: string, keepLeadingWhitespace = fals
 const normalizeCustomLineHeightUnits = (html: string) => {
   if (!html) return html;
 
-  return html.replace(/style=(["'])(.*?)\1/gi, (_match: string, quote: string, styleContent: string) => {
+  const normalized = html.replace(/style=(["'])(.*?)\1/gi, (_match: string, quote: string, styleContent: string) => {
     const normalizedStyle = styleContent.replace(
       /(^|;)\s*(--custom-line-height(?:-mobile)?)\s*:\s*((?:\d+(?:\.\d+)?|\.\d+))\s*(?=;|$)/gi,
       (_styleMatch: string, prefix: string, property: string, value: string) =>
@@ -150,6 +150,31 @@ const normalizeCustomLineHeightUnits = (html: string) => {
 
     return `style=${quote}${normalizedStyle}${quote}`;
   });
+
+  if (typeof DOMParser === "undefined") return normalized;
+  try {
+    const doc = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
+    const root = doc.body.firstElementChild;
+    if (!root) return normalized;
+
+    root.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li").forEach((block) => {
+      const childWithLh = block.querySelector('[style*="--custom-line-height"]');
+      if (childWithLh && childWithLh instanceof HTMLElement) {
+        const desktopLh = childWithLh.style.getPropertyValue("--custom-line-height");
+        const mobileLh = childWithLh.style.getPropertyValue("--custom-line-height-mobile");
+        if (desktopLh && !(block as HTMLElement).style.getPropertyValue("--custom-line-height")) {
+          (block as HTMLElement).style.setProperty("--custom-line-height", desktopLh);
+        }
+        if (mobileLh && !(block as HTMLElement).style.getPropertyValue("--custom-line-height-mobile")) {
+          (block as HTMLElement).style.setProperty("--custom-line-height-mobile", mobileLh);
+        }
+      }
+    });
+
+    return root.innerHTML;
+  } catch {
+    return normalized;
+  }
 };
 
 const normalizeWordSeparators = (html: string) => {

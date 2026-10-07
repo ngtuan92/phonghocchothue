@@ -35,6 +35,21 @@ export const normalizeResponsiveLineHeightStyles = (html) => {
     if (!node.getAttribute("style")) node.removeAttribute("style");
   });
 
+  // Ensure parent blocks (p, h1..h6, li) receive --custom-line-height from any styled children
+  root.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li").forEach((block) => {
+    const childWithLh = block.querySelector('[style*="--custom-line-height"]');
+    if (childWithLh) {
+      const desktopLineHeight = childWithLh.style.getPropertyValue("--custom-line-height").trim();
+      const mobileLineHeight = childWithLh.style.getPropertyValue("--custom-line-height-mobile").trim();
+      if (desktopLineHeight && !block.style.getPropertyValue("--custom-line-height")) {
+        block.style.setProperty("--custom-line-height", desktopLineHeight);
+      }
+      if (mobileLineHeight && !block.style.getPropertyValue("--custom-line-height-mobile")) {
+        block.style.setProperty("--custom-line-height-mobile", mobileLineHeight);
+      }
+    }
+  });
+
   return root.innerHTML;
 };
 
