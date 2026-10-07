@@ -1748,6 +1748,15 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-wrap-text {
             display: contents !important;
           }
+          .rich-text-renderer .rich-text-wrap-group + *,
+          .rich-text-wrap-group + * {
+            clear: both !important;
+          }
+          .rich-text-renderer .rich-text-wrap-group.has-trailing-spacer + *,
+          .rich-text-wrap-group.has-trailing-spacer + * {
+            clear: both !important;
+            margin-top: 1rem !important;
+          }
           .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
           .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
             margin-top: 0 !important;
