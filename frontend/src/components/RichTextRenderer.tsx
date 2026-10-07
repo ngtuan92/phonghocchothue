@@ -1736,20 +1736,12 @@ const RICH_TEXT_RENDERER_STYLES = `
             padding-bottom: 0.75rem !important;
           }
 
-          /* Desktop: isolate float wrap group so subsequent sections start cleanly below the float */
+          /* Desktop: transparent wrap grouping for 100% native float text wrap */
           .rich-text-renderer .rich-text-wrap-group,
-          .rich-text-wrap-group {
-            display: flow-root !important;
-            width: 100% !important;
-            margin-bottom: 0.5rem !important;
-          }
+          .rich-text-wrap-group,
           .rich-text-renderer .rich-text-wrap-text,
           .rich-text-wrap-text {
             display: contents !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group + *,
-          .rich-text-wrap-group + * {
-            clear: both !important;
           }
           .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
           .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {

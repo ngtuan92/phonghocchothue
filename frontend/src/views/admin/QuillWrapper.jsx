@@ -9587,21 +9587,6 @@ const QuillWrapper = forwardRef(({
           clear: right !important;
         }
 
-        /* Clear float on trailing spacers and subsequent content after wrapped text */
-        .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p.ql-whitespace-preserve,
-        .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p.editor-image-spacer-mobile-hide,
-        .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p.image-spacer-mobile-hide,
-        .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p:empty,
-        .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p:has(> br:only-child),
-        .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve,
-        .ql-editor p.editor-image-spacer-mobile-hide + p.editor-image-spacer-mobile-hide,
-        .ql-editor p.image-spacer-mobile-hide + p.image-spacer-mobile-hide,
-        .ql-editor p.ql-whitespace-preserve + p:not(.ql-whitespace-preserve),
-        .ql-editor p.editor-image-spacer-mobile-hide + p:not(.editor-image-spacer-mobile-hide),
-        .ql-editor p.image-spacer-mobile-hide + p:not(.image-spacer-mobile-hide) {
-          clear: both !important;
-        }
-
         .ql-editor .image-wrapper img {
           display: block !important;
           max-width: 100% !important;
