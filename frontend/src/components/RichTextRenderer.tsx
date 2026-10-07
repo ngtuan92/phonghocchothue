@@ -1433,6 +1433,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
         }
         .rich-text-renderer[style*="--custom-line-height:"],
+        .rich-text-renderer[style*="--custom-line-height:"] *,
         .rich-text-renderer [style*="--custom-line-height:"],
         .rich-text-renderer [style*="--custom-line-height:"] *,
         .rich-text-renderer:has([style*="--custom-line-height:"]),
@@ -1467,6 +1468,7 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         @media (max-width: 767px) {
           .rich-text-renderer[style*="--custom-line-height-mobile:"],
+          .rich-text-renderer[style*="--custom-line-height-mobile:"] *,
           .rich-text-renderer [style*="--custom-line-height-mobile:"],
           .rich-text-renderer [style*="--custom-line-height-mobile:"] *,
           .rich-text-renderer:has([style*="--custom-line-height-mobile:"]),
@@ -2095,12 +2097,12 @@ const RICH_TEXT_RENDERER_STYLES = `
           display: inline !important;
         }
 
-        .rich-text-renderer[style*="--custom-line-height:"] > * {
+        .rich-text-renderer[style*="--custom-line-height:"] * {
           line-height: var(--custom-line-height) !important;
         }
 
         @media (max-width: 767px) {
-          .rich-text-renderer[style*="--custom-line-height-mobile:"] > * {
+          .rich-text-renderer[style*="--custom-line-height-mobile:"] * {
             line-height: var(--custom-line-height-mobile) !important;
           }
         }

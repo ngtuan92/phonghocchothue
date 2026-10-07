@@ -7992,7 +7992,16 @@ const QuillWrapper = forwardRef(({
           min-height: calc(var(--quill-editor-min-height, 120px) + 28px) !important;
         }
 
-        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor {
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor *,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor p,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h1,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h2,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h3,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h4,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h5,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor h6,
+        .quill-wrapper-container[style*="--custom-line-height:"] .ql-editor li {
           line-height: var(--custom-line-height) !important;
         }
         @media (min-width: 768px) {
@@ -8002,7 +8011,16 @@ const QuillWrapper = forwardRef(({
           }
         }
         @media (max-width: 767px) {
-          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor {
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor *,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor p,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h1,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h2,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h3,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h4,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h5,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor h6,
+          .quill-wrapper-container[style*="--custom-line-height-mobile:"] .ql-editor li {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .quill-wrapper-container[style*="--custom-line-height-mobile:"][style*="--fs-mobile"] .ql-editor.hero-phone-text,
@@ -8520,10 +8538,17 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container.is-blog-editor .ql-editor h5,
         .quill-wrapper-container.is-blog-editor .ql-editor h6 {
           color: #563c39 !important;
-          line-height: 1.4 !important;
           margin-top: 0 !important;
           margin-bottom: 1.0rem !important;
           font-weight: 400 !important;
+        }
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor h1:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])),
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor h2:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])),
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor h3:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])),
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor h4:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])),
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor h5:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])),
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor h6:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])) {
+          line-height: 1.4 !important;
         }
         /* Khoang cach tren 26px chi ap dung cho o noi dung chi tiet (phong/blog) */
         .room-desc-editor.quill-wrapper-container .ql-editor > *:first-child,
@@ -8570,8 +8595,10 @@ const QuillWrapper = forwardRef(({
         }
         .quill-wrapper-container.is-blog-editor .ql-editor li {
           margin: 0.5rem 0 !important;
-          line-height: 1.6 !important;
           list-style-position: outside !important;
+        }
+        .quill-wrapper-container.is-blog-editor:not([style*="--custom-line-height"]) .ql-editor li:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])) {
+          line-height: 1.6 !important;
         }
         .quill-wrapper-container.is-blog-editor .ql-editor li::before {
           color: currentColor;
@@ -8750,6 +8777,8 @@ const QuillWrapper = forwardRef(({
           margin-left: 0 !important;
           margin-top: 0.25rem !important;
           margin-bottom: 0.25rem !important;
+        }
+        .quill-wrapper-container:not([style*="--custom-line-height"]) .ql-editor li:not([style*="--custom-line-height"]):not(:has([style*="--custom-line-height"])) {
           line-height: 1.6 !important;
         }
         .quill-wrapper-container .ql-editor li::marker,

@@ -2502,6 +2502,7 @@ footer .rich-text-renderer * {
 
 /* Custom line-height scaling in RichTextRenderer */
 .rich-text-renderer[style*="--custom-line-height:"],
+.rich-text-renderer[style*="--custom-line-height:"] *,
 .rich-text-renderer [style*="--custom-line-height:"],
 .rich-text-renderer [style*="--custom-line-height:"] *,
 .rich-text-renderer:has([style*="--custom-line-height:"]),
@@ -2512,6 +2513,7 @@ footer .rich-text-renderer * {
 
 @media (max-width: 767px) {
   .rich-text-renderer[style*="--custom-line-height-mobile:"],
+  .rich-text-renderer[style*="--custom-line-height-mobile:"] *,
   .rich-text-renderer [style*="--custom-line-height-mobile:"],
   .rich-text-renderer [style*="--custom-line-height-mobile:"] *,
   .rich-text-renderer:has([style*="--custom-line-height-mobile:"]),
