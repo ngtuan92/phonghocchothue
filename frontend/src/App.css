@@ -5,7 +5,6 @@
   --site-gutter: clamp(1rem, 5vw, 2.5rem);
   --blog-detail-outer-gutter: 34px;
   --blog-main-padding: var(--site-gutter);
-  --blog-reading-canvas-max-width: 1140px;
 }
 
 @media (min-width: 640px) {
@@ -278,15 +277,8 @@
   }
 }
 
-.blog-edit-page .quill-wrapper-container.is-blog-editor .ql-editor {
-  padding-left: var(--blog-editor-text-inset) !important;
-  padding-right: var(--blog-editor-text-inset) !important;
-}
-
 .blog-edit-page .blog-content-area {
-  width: auto !important;
-  margin-left: max(0px, calc(var(--blog-editor-text-inset) - 24px));
-  margin-right: max(0px, calc(var(--blog-editor-text-inset) - 24px - var(--admin-scrollbar-width, 16px)));
+  width: 100% !important;
 }
 
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > *:first-child {
@@ -300,7 +292,10 @@
 }
 
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor {
-  padding: 20px min(24px, var(--blog-editor-text-inset)) 16px !important;
+  padding-top: 20px !important;
+  padding-bottom: 16px !important;
+  padding-left: var(--blog-editor-text-inset) !important;
+  padding-right: var(--blog-editor-text-inset) !important;
   display: flow-root !important;
 }
 .quill-wrapper-container .ql-editor {
@@ -310,35 +305,6 @@
   content: "" !important;
   display: table !important;
   clear: both !important;
-}
-
-/* ========================================================
-   Phương án 1: Chuẩn hóa Reading Canvas Max-Width trên Desktop
-   Đồng bộ 100% độ rộng đọc bài (1140px) giữa Mac, Win 11, màn 4K và giữa Admin / User view.
-   - User View: #blog-detail-scroll-container & .blog-content-area được giới hạn chuẩn 1140px căn giữa.
-   - Admin Editor: .blog-edit-page .blog-content-area được giới hạn 1188px (1140px text + 48px padding) căn giữa.
-   - Nhờ đó, số dòng ngắt cạnh ảnh wrap float luôn luôn đồng nhất trên mọi màn hình, triệt tiêu lỗi hút dòng.
-   ======================================================== */
-@media (min-width: 1024px) {
-  #blog-detail-scroll-container {
-    max-width: calc(var(--blog-reading-canvas-max-width) + 2 * var(--blog-main-padding)) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-
-  .blog-content-area {
-    max-width: var(--blog-reading-canvas-max-width) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    width: 100% !important;
-  }
-
-  .blog-edit-page .blog-content-area {
-    max-width: calc(var(--blog-reading-canvas-max-width) + 48px) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    width: 100% !important;
-  }
 }
 
 
