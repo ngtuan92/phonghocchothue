@@ -2981,13 +2981,21 @@ footer .rich-text-renderer * {
   padding: 0 4px !important;
 }
 
-/* Desktop: transparent wrap grouping for 100% native float text wrap */
+/* Desktop: isolate float wrap group so subsequent sections start cleanly below the float */
 @media (min-width: 768px) {
   .rich-text-renderer .rich-text-wrap-group,
-  .rich-text-wrap-group,
+  .rich-text-wrap-group {
+    display: flow-root !important;
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+  }
   .rich-text-renderer .rich-text-wrap-text,
   .rich-text-wrap-text {
     display: contents !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group + *,
+  .rich-text-wrap-group + * {
+    clear: both !important;
   }
   .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
   .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
@@ -3006,6 +3014,21 @@ footer .rich-text-renderer * {
   .ql-editor .image-wrap-left + p,
   .ql-editor .image-wrapper.image-wrap-left + p {
     clear: right !important;
+  }
+
+  /* Clear float on trailing spacers and subsequent content after wrapped text */
+  .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p.ql-whitespace-preserve,
+  .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p.editor-image-spacer-mobile-hide,
+  .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p.image-spacer-mobile-hide,
+  .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p:empty,
+  .ql-editor p:not(.ql-whitespace-preserve):not(:empty):not(:has(> br:only-child)) + p:has(> br:only-child),
+  .ql-editor p.ql-whitespace-preserve + p.ql-whitespace-preserve,
+  .ql-editor p.editor-image-spacer-mobile-hide + p.editor-image-spacer-mobile-hide,
+  .ql-editor p.image-spacer-mobile-hide + p.image-spacer-mobile-hide,
+  .ql-editor p.ql-whitespace-preserve + p:not(.ql-whitespace-preserve),
+  .ql-editor p.editor-image-spacer-mobile-hide + p:not(.editor-image-spacer-mobile-hide),
+  .ql-editor p.image-spacer-mobile-hide + p:not(.image-spacer-mobile-hide) {
+    clear: both !important;
   }
 }
 
