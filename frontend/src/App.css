@@ -2501,18 +2501,29 @@ footer .rich-text-renderer * {
 }
 
 /* Custom line-height scaling in RichTextRenderer */
-.rich-text-renderer[style*="--custom-line-height:"] {
+.rich-text-renderer[style*="--custom-line-height:"],
+.rich-text-renderer [style*="--custom-line-height:"],
+.rich-text-renderer [style*="--custom-line-height:"] *,
+.rich-text-renderer:has([style*="--custom-line-height:"]),
+.rich-text-renderer *:has(> [style*="--custom-line-height:"]),
+.rich-text-renderer *:has([style*="--custom-line-height:"]) {
   line-height: var(--custom-line-height) !important;
 }
 
-.rich-text-renderer[style*="--custom-line-height:"] * {
-  line-height: inherit !important;
-}
-
 @media (max-width: 767px) {
-  .rich-text-renderer[style*="--custom-line-height-mobile:"] {
+  .rich-text-renderer[style*="--custom-line-height-mobile:"],
+  .rich-text-renderer [style*="--custom-line-height-mobile:"],
+  .rich-text-renderer [style*="--custom-line-height-mobile:"] *,
+  .rich-text-renderer:has([style*="--custom-line-height-mobile:"]),
+  .rich-text-renderer *:has(> [style*="--custom-line-height-mobile:"]),
+  .rich-text-renderer *:has([style*="--custom-line-height-mobile:"]) {
     line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
   }
+}
+
+.rich-text-renderer span[style*="--custom-line-height"],
+.rich-text-renderer span[style*="--custom-line-height-mobile"] {
+  display: inline !important;
 }
 
 @media (min-width: 768px) {

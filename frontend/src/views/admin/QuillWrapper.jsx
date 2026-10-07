@@ -8134,8 +8134,14 @@ const QuillWrapper = forwardRef(({
           }
         }
         .quill-wrapper-container .ql-editor [style*="--custom-line-height:"],
-        .quill-wrapper-container .ql-editor [style*="--custom-line-height:"] * {
+        .quill-wrapper-container .ql-editor [style*="--custom-line-height:"] *,
+        .quill-wrapper-container .ql-editor *:has(> [style*="--custom-line-height:"]),
+        .quill-wrapper-container .ql-editor *:has([style*="--custom-line-height:"]) {
           line-height: var(--custom-line-height) !important;
+        }
+        .quill-wrapper-container .ql-editor span[style*="--custom-line-height"],
+        .quill-wrapper-container .ql-editor span[style*="--custom-line-height-mobile"] {
+          display: inline !important;
         }
         .quill-wrapper-container .ql-editor [style*="--translate-y"] {
           transform: translateY(var(--translate-y)) !important;
@@ -8148,7 +8154,9 @@ const QuillWrapper = forwardRef(({
             color: var(--color-mobile) !important;
           }
           .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile:"],
-          .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile:"] * {
+          .quill-wrapper-container .ql-editor [style*="--custom-line-height-mobile:"] *,
+          .quill-wrapper-container .ql-editor *:has(> [style*="--custom-line-height-mobile:"]),
+          .quill-wrapper-container .ql-editor *:has([style*="--custom-line-height-mobile:"]) {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .quill-wrapper-container .ql-editor [style*="--translate-y-mobile"] {
@@ -8242,9 +8250,9 @@ const QuillWrapper = forwardRef(({
           line-height: inherit !important;
         }
         /* For H1/H2/H3: use flex to center text inside highlight box */
-        .quill-wrapper-container .ql-editor h1 span[style*="background-color"],
-        .quill-wrapper-container .ql-editor h2 span[style*="background-color"],
-        .quill-wrapper-container .ql-editor h3 span[style*="background-color"] {
+        .quill-wrapper-container .ql-editor h1 span[style*="background-color"]:not([style*="background-color: transparent"]):not([style*="background-color:transparent"]):not([style*="background-color: rgba(0, 0, 0, 0)"]):not([style*="background-color: rgba(0,0,0,0)"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .quill-wrapper-container .ql-editor h2 span[style*="background-color"]:not([style*="background-color: transparent"]):not([style*="background-color:transparent"]):not([style*="background-color: rgba(0, 0, 0, 0)"]):not([style*="background-color: rgba(0,0,0,0)"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .quill-wrapper-container .ql-editor h3 span[style*="background-color"]:not([style*="background-color: transparent"]):not([style*="background-color:transparent"]):not([style*="background-color: rgba(0, 0, 0, 0)"]):not([style*="background-color: rgba(0,0,0,0)"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]) {
           display: inline-flex !important;
           align-items: center !important;
           vertical-align: middle !important;

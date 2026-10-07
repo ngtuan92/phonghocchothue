@@ -72,7 +72,7 @@ const FAQ = () => {
                 className="list-none cursor-pointer flex justify-between items-center font-semibold text-base sm:text-lg text-[#563c39] hover:text-[#e57f7f] transition-colors duration-300 py-2"
                 onClick={handleToggle(index)}
               >
-                <div className="pr-4 leading-relaxed font-bold raleway w-full">
+                <div className="pr-4 font-bold raleway w-full">
                   <RichTextRenderer 
                     html={item.question} 
                     lineHeight={item.qLineHeight}
@@ -89,7 +89,7 @@ const FAQ = () => {
               </summary>
 
               <div
-                className="mt-4 text-[#323232] leading-relaxed relative pl-4 border-l-2 border-[#e57f7f]"
+                className="mt-4 text-[#323232] relative pl-4 border-l-2 border-[#e57f7f]"
               >
                 <div className="raleway">
                   <RichTextRenderer 

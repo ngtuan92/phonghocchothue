@@ -1432,8 +1432,17 @@ const RICH_TEXT_RENDERER_STYLES = `
             font-size: var(--fs-mobile) !important;
           }
         }
-        .rich-text-renderer [style*="--custom-line-height:"] {
+        .rich-text-renderer[style*="--custom-line-height:"],
+        .rich-text-renderer [style*="--custom-line-height:"],
+        .rich-text-renderer [style*="--custom-line-height:"] *,
+        .rich-text-renderer:has([style*="--custom-line-height:"]),
+        .rich-text-renderer *:has(> [style*="--custom-line-height:"]),
+        .rich-text-renderer *:has([style*="--custom-line-height:"]) {
           line-height: var(--custom-line-height) !important;
+        }
+        .rich-text-renderer span[style*="--custom-line-height"],
+        .rich-text-renderer span[style*="--custom-line-height-mobile"] {
+          display: inline !important;
         }
         .rich-text-renderer[style*="--translate-x"],
         .rich-text-renderer[style*="--translate-y"],
@@ -1457,7 +1466,12 @@ const RICH_TEXT_RENDERER_STYLES = `
           transform: none !important;
         }
         @media (max-width: 767px) {
-          .rich-text-renderer [style*="--custom-line-height-mobile:"] {
+          .rich-text-renderer[style*="--custom-line-height-mobile:"],
+          .rich-text-renderer [style*="--custom-line-height-mobile:"],
+          .rich-text-renderer [style*="--custom-line-height-mobile:"] *,
+          .rich-text-renderer:has([style*="--custom-line-height-mobile:"]),
+          .rich-text-renderer *:has(> [style*="--custom-line-height-mobile:"]),
+          .rich-text-renderer *:has([style*="--custom-line-height-mobile:"]) {
             line-height: var(--custom-line-height-mobile, var(--custom-line-height)) !important;
           }
           .rich-text-renderer[style*="--translate-x"],
@@ -2173,12 +2187,12 @@ const RICH_TEXT_RENDERER_STYLES = `
           -webkit-box-decoration-break: clone !important;
         }
         /* H1/H2/H3 highlight spans: use flex to center text vertically like Word */
-        .rich-text-renderer h1 span[style*="background:"],
-        .rich-text-renderer h1 span[style*="background-color"],
-        .rich-text-renderer h2 span[style*="background:"],
-        .rich-text-renderer h2 span[style*="background-color"],
-        .rich-text-renderer h3 span[style*="background:"],
-        .rich-text-renderer h3 span[style*="background-color"] {
+        .rich-text-renderer h1 span[style*="background:"]:not([style*="background: transparent"]):not([style*="background:transparent"]):not([style*="background:none"]):not([style*="background: none"]):not([style*="background: rgba(0, 0, 0, 0)"]):not([style*="background: rgba(0,0,0,0)"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .rich-text-renderer h1 span[style*="background-color"]:not([style*="background-color: transparent"]):not([style*="background-color:transparent"]):not([style*="background-color: rgba(0, 0, 0, 0)"]):not([style*="background-color: rgba(0,0,0,0)"]):not([style*="background-color: inherit"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .rich-text-renderer h2 span[style*="background:"]:not([style*="background: transparent"]):not([style*="background:transparent"]):not([style*="background:none"]):not([style*="background: none"]):not([style*="background: rgba(0, 0, 0, 0)"]):not([style*="background: rgba(0,0,0,0)"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .rich-text-renderer h2 span[style*="background-color"]:not([style*="background-color: transparent"]):not([style*="background-color:transparent"]):not([style*="background-color: rgba(0, 0, 0, 0)"]):not([style*="background-color: rgba(0,0,0,0)"]):not([style*="background-color: inherit"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .rich-text-renderer h3 span[style*="background:"]:not([style*="background: transparent"]):not([style*="background:transparent"]):not([style*="background:none"]):not([style*="background: none"]):not([style*="background: rgba(0, 0, 0, 0)"]):not([style*="background: rgba(0,0,0,0)"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]),
+        .rich-text-renderer h3 span[style*="background-color"]:not([style*="background-color: transparent"]):not([style*="background-color:transparent"]):not([style*="background-color: rgba(0, 0, 0, 0)"]):not([style*="background-color: rgba(0,0,0,0)"]):not([style*="background-color: inherit"]):not([style*="--custom-line-height"]):not([style*="--custom-line-height-mobile"]) {
           display: inline-flex !important;
           align-items: center !important;
           vertical-align: middle !important;
