@@ -558,69 +558,6 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         return false;
       };
 
-      // Estimate the desktop rendered height of a wrap image (image + caption + margin)
-      const estimateDesktopImageHeight = (wrapper: Element): { width: number; height: number } => {
-        const img = wrapper.querySelector('img');
-        let width = 0;
-        let height = 0;
-
-        const widthMatch = (wrapper.getAttribute('style') || '').match(/width:\s*(\d+)px/i) ||
-          (img?.getAttribute('style') || '').match(/width:\s*(\d+)px/i);
-        if (widthMatch) {
-          width = parseInt(widthMatch[1], 10);
-        } else if (wrapper.getAttribute('width')) {
-          width = parseInt(wrapper.getAttribute('width') || '0', 10);
-        } else if (img?.getAttribute('width')) {
-          width = parseInt(img.getAttribute('width') || '0', 10);
-        }
-
-        const heightMatch = (wrapper.getAttribute('style') || '').match(/height:\s*(\d+)px/i) ||
-          (img?.getAttribute('style') || '').match(/height:\s*(\d+)px/i);
-        if (heightMatch) {
-          height = parseInt(heightMatch[1], 10);
-        } else if (img?.getAttribute('height')) {
-          height = parseInt(img.getAttribute('height') || '0', 10);
-        }
-
-        if (!height && width > 0) {
-          let aspectRatio = 0;
-          const arAttr = img?.getAttribute('data-aspect-ratio') || wrapper.getAttribute('data-aspect-ratio');
-          if (arAttr) aspectRatio = parseFloat(arAttr);
-          if (!aspectRatio && img?.getAttribute('src')) {
-            const dimMatch = img.getAttribute('src')!.match(/[_-](\d{3,4})x(\d{3,4})[_-]/i);
-            if (dimMatch) {
-              const srcW = parseInt(dimMatch[1], 10);
-              const srcH = parseInt(dimMatch[2], 10);
-              if (srcW > 0 && srcH > 0) aspectRatio = srcW / srcH;
-            }
-          }
-          if (!aspectRatio || isNaN(aspectRatio) || aspectRatio <= 0) {
-            aspectRatio = 1.77;
-          }
-          height = Math.round(width / aspectRatio);
-        }
-
-        if (!height || height <= 0) height = 250;
-
-        const hasCaption = !!wrapper.querySelector('.image-caption') ||
-          !!img?.getAttribute('data-caption') ||
-          (!!img?.getAttribute('title') && img.getAttribute('title')!.trim() !== '');
-        const captionHeight = hasCaption ? 28 : 0;
-
-        return {
-          width: width || 400,
-          height: height + captionHeight + 16
-        };
-      };
-
-      const estimateDesktopParagraphHeight = (p: Element, textColumnWidth: number): number => {
-        const text = (p.textContent || '').replace(/\s+/g, ' ').trim();
-        if (!text) return 0;
-        const charsPerLine = Math.max(30, Math.floor(textColumnWidth / 8.2));
-        const numLines = Math.max(1, Math.ceil(text.length / charsPerLine));
-        return (numLines * 26.5) + 8;
-      };
-
       // Group wrap-left / wrap-right images with their following text siblings
       // so on mobile we can display text first (order: 1), and image second (order: 2),
       // while on desktop display: contents preserves 100% native float wrapping!
@@ -651,14 +588,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           curr = curr.nextElementSibling;
         }
 
-        const { width: imgW, height: imgH } = estimateDesktopImageHeight(wrapper);
-        const textColumnWidth = Math.max(280, 1218 - imgW - 28);
-
-        // 2. Collect consecutive content blocks belonging to this wrap section.
-        // Stop when hitting an empty spacer, another image, a heading, or when
-        // the accumulated text height clears the bottom of the floated image on desktop!
+        // 2. Collect ALL consecutive content blocks belonging to this wrap section.
+        // Stop when hitting an empty spacer, another image, a heading, or a structural element.
+        // In Quill, authors delimit wrapped text sections naturally by pressing Enter (creating a spacer block)
+        // or starting a new heading / section.
         const textSiblings: Element[] = [...intentionalLeadingSpacers];
-        let accumulatedTextHeight = intentionalLeadingSpacers.length * 28;
 
         while (
           curr &&
@@ -669,26 +603,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           !/^(HR|H1|H2|H3|H4|H5|H6|TABLE|FIGURE|IFRAME)$/i.test(curr.tagName) &&
           !isHeadingOrSectionTitle(curr)
         ) {
-          const pH = estimateDesktopParagraphHeight(curr, textColumnWidth);
-
-          // Always include at least the immediate paragraph
-          if (textSiblings.length === intentionalLeadingSpacers.length) {
-            textSiblings.push(curr);
-            accumulatedTextHeight += pH;
-            curr = curr.nextElementSibling;
-            continue;
-          }
-
-          // If adding this paragraph still fits within the desktop image height
-          if (accumulatedTextHeight + (pH * 0.4) <= imgH) {
-            textSiblings.push(curr);
-            accumulatedTextHeight += pH;
-            curr = curr.nextElementSibling;
-          } else {
-            // Text has cleared the bottom of the float on desktop!
-            // Stop grouping so this paragraph and subsequent paragraphs stay BELOW the image on mobile.
-            break;
-          }
+          textSiblings.push(curr);
+          curr = curr.nextElementSibling;
         }
 
         // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
