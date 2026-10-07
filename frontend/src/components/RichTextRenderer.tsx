@@ -636,14 +636,19 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const parent = wrapper.parentNode;
         if (!parent) return;
 
-        // 1. Remove unwanted editor-generated dummy spacer blocks directly between wrap image and wrapped text.
-        // Quill automatically generates spacer blocks (e.g. editor-image-spacer-mobile-hide / image-spacer-mobile-hide)
-        // when inserting wrap images. These must be removed so the text wraps directly beside the image.
+        // 1. Collect leading spacer blocks directly between wrap image and wrapped text.
+        // If author inserted whitespace spacers (Enter) in Admin to push text down beside the image (căn giữa),
+        // we PRESERVE them so User view is 100% synchronized with Admin Editor!
+        // On mobile, they have wrap-spacer-mobile-hide so they are hidden when stacked.
+        const intentionalLeadingSpacers: Element[] = [];
         let curr = wrapper.nextElementSibling;
         while (curr && isWhitespaceSpacerBlock(curr)) {
-          const unwantedSpacer = curr;
+          curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
+          if (!curr.innerHTML || curr.innerHTML.trim() === '') {
+            curr.innerHTML = '&nbsp;';
+          }
+          intentionalLeadingSpacers.push(curr);
           curr = curr.nextElementSibling;
-          unwantedSpacer.remove();
         }
 
         const { width: imgW, height: imgH } = estimateDesktopImageHeight(wrapper);
@@ -652,8 +657,8 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         // 2. Collect consecutive content blocks belonging to this wrap section.
         // Stop when hitting an empty spacer, another image, a heading, or when
         // the accumulated text height clears the bottom of the floated image on desktop!
-        const textSiblings: Element[] = [];
-        let accumulatedTextHeight = 0;
+        const textSiblings: Element[] = [...intentionalLeadingSpacers];
+        let accumulatedTextHeight = intentionalLeadingSpacers.length * 28;
 
         while (
           curr &&
@@ -667,7 +672,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           const pH = estimateDesktopParagraphHeight(curr, textColumnWidth);
 
           // Always include at least the immediate paragraph
-          if (textSiblings.length === 0) {
+          if (textSiblings.length === intentionalLeadingSpacers.length) {
             textSiblings.push(curr);
             accumulatedTextHeight += pH;
             curr = curr.nextElementSibling;
