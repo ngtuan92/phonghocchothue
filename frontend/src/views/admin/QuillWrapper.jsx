@@ -2963,15 +2963,15 @@ const QuillWrapper = forwardRef(({
         return text === '';
       };
 
-      editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
-        el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+      editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .editor-wrap-trailing-spacer, .editor-wrap-exit-content').forEach((el) => {
+        el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'editor-wrap-trailing-spacer', 'editor-wrap-exit-content');
       });
 
       // Strip ql-whitespace-preserve and mobile-hide from ANY block containing non-empty text
-      editor.querySelectorAll('.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide').forEach((el) => {
+      editor.querySelectorAll('.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide, .editor-wrap-trailing-spacer').forEach((el) => {
         const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
         if (text !== '') {
-          el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
+          el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide', 'editor-wrap-trailing-spacer');
         }
       });
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
@@ -3009,9 +3009,14 @@ const QuillWrapper = forwardRef(({
           }
 
           // Hide whitespace spacers immediately following the wrapped text (the Enter pressed on desktop wraptext!)
+          let hasTrailingSpacer = false;
           while (next && isWhitespaceOnlyBlock(next)) {
-            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'editor-wrap-trailing-spacer');
+            hasTrailingSpacer = true;
             next = next.nextElementSibling;
+          }
+          if (hasTrailingSpacer && next) {
+            next.classList.add('editor-wrap-exit-content');
           }
         } else {
           let next = target.nextElementSibling;
@@ -3589,7 +3594,15 @@ const QuillWrapper = forwardRef(({
         scheduleListSizeSync();
       }
 
-      if (!hasStyleDelta && !hasListDelta && !hasImageDelta) return;
+      const hasWrapImages = (() => {
+        try {
+          return !!quill.root.querySelector('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right, img[data-wrap="left"], img[data-wrap="right"]');
+        } catch {
+          return false;
+        }
+      })();
+
+      if (!hasStyleDelta && !hasListDelta && !hasImageDelta && !hasWrapImages) return;
 
       if (idleContentCleanupRef.current) {
         cancelIdleWork(idleContentCleanupRef.current);
@@ -3597,6 +3610,9 @@ const QuillWrapper = forwardRef(({
       idleContentCleanupRef.current = scheduleIdleWork(() => {
         idleContentCleanupRef.current = 0;
         try {
+          if (hasWrapImages) {
+            syncImageCaptionBlots();
+          }
           syncCustomFontSizes();
           if (hasListDelta) {
             syncListItemFontSizeFromChildren(quill.root);
@@ -9669,6 +9685,23 @@ const QuillWrapper = forwardRef(({
         .ql-editor .image-wrapper.image-wrap-left + p,
         .ql-editor .image-wrap-left + p {
           clear: right !important;
+        }
+
+        /* Dong bo khoang cach ngay duoi wraptext giua Admin va User */
+        .ql-editor .editor-wrap-trailing-spacer,
+        .ql-editor p.editor-wrap-trailing-spacer {
+          display: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          font-size: 0 !important;
+          border: none !important;
+        }
+        .ql-editor .editor-wrap-exit-content {
+          clear: both !important;
+          margin-top: 0 !important;
         }
 
         .ql-editor .image-wrapper img {

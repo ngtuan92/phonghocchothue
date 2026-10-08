@@ -3038,6 +3038,23 @@ footer .rich-text-renderer * {
   .ql-editor .image-wrapper.image-wrap-left + p {
     clear: right !important;
   }
+
+  /* Dong bo khoang cach ngay duoi wraptext giua Admin va User */
+  .ql-editor .editor-wrap-trailing-spacer,
+  .ql-editor p.editor-wrap-trailing-spacer {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+    border: none !important;
+  }
+  .ql-editor .editor-wrap-exit-content {
+    clear: both !important;
+    margin-top: 0 !important;
+  }
 }
 
 @media (max-width: 767px) {
