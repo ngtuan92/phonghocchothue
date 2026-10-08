@@ -1100,8 +1100,11 @@ export default function DetailPage() {
                 }
                 .room-summary-desc .image-wrapper:not(.image-wrap-left):not(.image-wrap-right),
                 .ckeditor-content .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
-                  width: auto !important;
                   max-width: 100% !important;
+                }
+                .room-summary-desc .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]),
+                .ckeditor-content .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]) {
+                  width: fit-content !important;
                 }
                 .room-summary-desc .image-wrapper[data-wrap="none"] img,
                 .ckeditor-content .image-wrapper[data-wrap="none"] img {

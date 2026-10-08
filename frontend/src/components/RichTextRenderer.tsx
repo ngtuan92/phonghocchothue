@@ -362,17 +362,24 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       let inlineWidth = "";
       if (widthMatch) {
         const wVal = widthMatch[1].trim();
-        inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
-      } else if (styleMatch) {
-        const styleStr = styleMatch[1];
-        const widthStyle = styleStr.match(/width:\s*([^;]+)/i);
-        if (widthStyle) {
-          const wVal = widthStyle[1].trim();
+        if (wVal && wVal !== 'null' && wVal !== 'undefined' && wVal !== 'auto' && wVal !== '100%') {
           inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
         }
       }
+      if (!inlineWidth && styleMatch) {
+        const styleStr = styleMatch[1];
+        const widthStyle = styleStr.match(/(?:^|[^-])\bwidth:\s*([^;!]+)/i);
+        if (widthStyle) {
+          const wVal = widthStyle[1].trim();
+          if (wVal && wVal !== 'null' && wVal !== 'undefined' && wVal !== 'auto' && wVal !== '100%') {
+            inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
+          }
+        }
+      }
 
-      const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
+      const wrapperStyle = inlineWidth
+        ? ` style="width: ${inlineWidth}; max-width: 100%;"`
+        : (wrapMode === 'left' || wrapMode === 'right' ? ' style="width: fit-content; max-width: min(100%, 500px);"' : ' style="width: fit-content; max-width: 100%;"');
       const captionHtml = captionText ? `<div class="image-caption">${captionText}</div>` : '';
       return `<div class="image-wrapper${wrapClass}" data-wrap="${wrapMode}"${wrapperStyle}><img${cleanAttrs}>${captionHtml}</div>`;
     });
@@ -463,34 +470,82 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
             wrapperEl.classList.add(`image-wrap-${wrapMode}`);
           }
 
+          const getCandidateWidth = (val: any): string => {
+            if (!val) return '';
+            const s = String(val).trim();
+            if (!s || s === 'null' || s === 'undefined' || s === 'auto' || s === '100%') return '';
+            if (/^\d+(?:\.\d+)?$/.test(s)) return `${s}px`;
+            if (/^\d+(?:\.\d+)?(?:px|rem|em|vw)$/i.test(s)) return s;
+            if (/^\d+(?:\.\d+)?%$/.test(s) && s !== '100%') return s;
+            const match = s.match(/(?:^|[^-])\bwidth\s*:\s*([^;!]+)/i);
+            if (match) {
+              const m = match[1].trim();
+              if (m && m !== 'null' && m !== 'undefined' && m !== 'auto' && m !== '100%') {
+                return /^\d+(?:\.\d+)?$/.test(m) ? `${m}px` : m;
+              }
+            }
+            return '';
+          };
+
+          const targetWidth =
+            getCandidateWidth(imgEl?.getAttribute('width')) ||
+            getCandidateWidth(wrapperEl?.getAttribute('width')) ||
+            getCandidateWidth(imgEl?.getAttribute('style')) ||
+            getCandidateWidth(wrapperEl?.getAttribute('style'));
+
           const currentWrapperStyle = wrapperEl.getAttribute('style');
           const cleanedWrapperStyle = cleanImageInlineStyle(currentWrapperStyle);
-          if (cleanedWrapperStyle) {
-            wrapperEl.setAttribute('style', cleanedWrapperStyle);
+          const wrapperStyleWithoutWidth = cleanedWrapperStyle
+            .split(';')
+            .map((p) => p.trim())
+            .filter((p) => p && !/^(?:max-|min-)?width\s*:/i.test(p))
+            .join('; ');
+
+          if (targetWidth) {
+            wrapperEl.setAttribute('width', targetWidth);
+            wrapperEl.setAttribute(
+              'style',
+              wrapperStyleWithoutWidth
+                ? `${wrapperStyleWithoutWidth}; width: ${targetWidth}; max-width: 100%;`
+                : `width: ${targetWidth}; max-width: 100%;`
+            );
           } else {
-            wrapperEl.removeAttribute('style');
+            wrapperEl.removeAttribute('width');
+            const unconstrainedWrapStyle = (wrapMode === 'left' || wrapMode === 'right')
+              ? 'width: fit-content; max-width: min(100%, 500px);'
+              : 'width: fit-content; max-width: 100%;';
+            wrapperEl.setAttribute(
+              'style',
+              wrapperStyleWithoutWidth
+                ? `${wrapperStyleWithoutWidth}; ${unconstrainedWrapStyle}`
+                : unconstrainedWrapStyle
+            );
           }
 
           if (imgEl) {
             const currentImgStyle = imgEl.getAttribute('style');
             const cleanedImgStyle = cleanImageInlineStyle(currentImgStyle);
-            if (cleanedImgStyle) {
-              imgEl.setAttribute('style', cleanedImgStyle);
-            } else {
-              imgEl.removeAttribute('style');
-            }
-          }
+            const imgStyleWithoutWidth = cleanedImgStyle
+              .split(';')
+              .map((p) => p.trim())
+              .filter((p) => p && !/^(?:max-|min-)?width\s*:/i.test(p) && !/^(?:max-|min-)?height\s*:/i.test(p))
+              .join('; ');
 
-          const finalWrapperStyle = wrapperEl.getAttribute('style') || '';
-          if (!/width\s*:/i.test(finalWrapperStyle)) {
-            const imageWidth = (imgEl && (imgEl.getAttribute('width') || imgEl.style?.width)) || '';
-            const normalizedWidth = /^\d+$/.test(String(imageWidth).trim()) ? `${String(imageWidth).trim()}px` : String(imageWidth).trim();
-            if (normalizedWidth) {
-              wrapperEl.setAttribute(
+            if (targetWidth) {
+              imgEl.setAttribute('width', targetWidth);
+              imgEl.setAttribute(
                 'style',
-                finalWrapperStyle
-                  ? `${finalWrapperStyle}; width: ${normalizedWidth}; max-width: 100%;`
-                  : `width: ${normalizedWidth}; max-width: 100%;`
+                imgStyleWithoutWidth
+                  ? `${imgStyleWithoutWidth}; width: ${targetWidth}; max-width: 100%; height: auto;`
+                  : `width: ${targetWidth}; max-width: 100%; height: auto;`
+              );
+            } else {
+              imgEl.removeAttribute('width');
+              imgEl.setAttribute(
+                'style',
+                imgStyleWithoutWidth
+                  ? `${imgStyleWithoutWidth}; max-width: 100%; height: auto;`
+                  : `max-width: 100%; height: auto;`
               );
             }
           }
@@ -1543,12 +1598,17 @@ const RICH_TEXT_RENDERER_STYLES = `
         .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
           float: none !important;
           display: block !important;
-          width: auto !important;
           max-width: 100% !important;
           margin-left: auto !important;
           margin-right: auto !important;
           margin-top: 12px !important;
           margin-bottom: 16px !important;
+        }
+        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]) {
+          width: fit-content !important;
+        }
+        .rich-text-renderer .image-wrapper[data-wrap="none"]:not([style*="width"]):not([width]) {
+          width: fit-content !important;
         }
         .rich-text-renderer .image-wrapper img {
           max-width: 100% !important;
@@ -1770,23 +1830,29 @@ const RICH_TEXT_RENDERER_STYLES = `
             display: block !important;
             order: 2 !important;
             float: none !important;
-            width: 100% !important;
             max-width: 100% !important;
             margin-left: auto !important;
             margin-right: auto !important;
             margin-top: 10px !important;
             margin-bottom: 0px !important;
           }
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]),
+          .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) {
+            width: 100% !important;
+          }
           .rich-text-renderer .rich-text-wrap-group > .image-wrapper img,
           .rich-text-wrap-group > .image-wrapper img {
             float: none !important;
             display: block !important;
-            width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
             margin-left: auto !important;
             margin-right: auto !important;
             margin-bottom: 0px !important;
+          }
+          .rich-text-renderer .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) img,
+          .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) img {
+            width: 100% !important;
           }
           .rich-text-renderer .rich-text-wrap-group > .image-wrapper .image-caption,
           .rich-text-wrap-group > .image-wrapper .image-caption {
@@ -1806,7 +1872,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer img[data-wrap="right"] {
             float: none !important;
             display: block !important;
-            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
             margin-left: auto !important;
             margin-right: auto !important;
             margin-top: 6px !important;
@@ -1816,11 +1883,15 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer .image-wrapper.image-wrap-right {
             float: none !important;
             display: block !important;
-            width: 100% !important;
+            max-width: 100% !important;
             margin-left: auto !important;
             margin-right: auto !important;
             margin-top: 6px !important;
             margin-bottom: 12px !important;
+          }
+          .rich-text-renderer .image-wrapper.image-wrap-left:not([style*="width"]):not([width]),
+          .rich-text-renderer .image-wrapper.image-wrap-right:not([style*="width"]):not([width]) {
+            width: 100% !important;
           }
           /* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 and order: 2 */
           .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-left,
@@ -1833,14 +1904,17 @@ const RICH_TEXT_RENDERER_STYLES = `
           /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
           .rich-text-renderer img[data-wrap="none"],
           .rich-text-renderer img:not([data-wrap]) {
-            width: 100% !important;
+            max-width: 100% !important;
             height: auto !important;
             margin-bottom: 0px !important;
           }
           .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
-            width: 100% !important;
+            max-width: 100% !important;
             margin-top: 6px !important;
             margin-bottom: 12px !important;
+          }
+          .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]) {
+            width: 100% !important;
           }
           .rich-text-renderer .image-caption {
             display: block !important;

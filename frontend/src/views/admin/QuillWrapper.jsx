@@ -186,7 +186,10 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
     wrapper?.classList.add(`image-wrap-${wrapMode}`);
   }
   const widthAttr = target.getAttribute('width') || target.style.width || wrapper?.getAttribute('width') || wrapper?.style.width;
-  const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
+  let widthVal = '';
+  if (widthAttr && widthAttr !== 'null' && widthAttr !== 'undefined' && widthAttr !== 'auto' && widthAttr !== '100%') {
+    widthVal = /^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr;
+  }
   const hasCaption = Boolean(
     wrapper?.querySelector(':scope > .image-caption')?.textContent?.trim() ||
     target.getAttribute('data-caption')?.trim()
@@ -205,6 +208,8 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
     });
     if (widthVal) {
       wrapper.setAttribute('width', widthVal);
+    } else {
+      wrapper.removeAttribute('width');
     }
   }
   setImportantStyles(target, {
@@ -219,6 +224,8 @@ const applyImageWrapDisplay = (node, mode = 'none') => {
   });
   if (widthVal) {
     target.setAttribute('width', widthVal);
+  } else {
+    target.removeAttribute('width');
   }
   return wrapMode;
 };
@@ -634,12 +641,17 @@ if (typeof window !== "undefined" && Quill) {
         if (value.alt) img.setAttribute("alt", value.alt);
         if (value.title) img.setAttribute("title", value.title);
         if (value.caption) img.setAttribute("data-caption", value.caption);
-        if (value.width) {
+        if (value.width && value.width !== 'null' && value.width !== 'undefined' && value.width !== 'auto' && value.width !== '100%') {
           const widthCss = value.width.includes('%') || value.width.includes('px') ? value.width : `${value.width}px`;
           img.setAttribute("width", widthCss);
           img.style.width = widthCss;
           node.setAttribute("width", widthCss);
           node.style.width = widthCss;
+        } else {
+          img.removeAttribute("width");
+          img.style.removeProperty("width");
+          node.removeAttribute("width");
+          node.style.removeProperty("width");
         }
         if (value.borderRadius) {
           img.style.borderRadius = value.borderRadius;
@@ -655,6 +667,7 @@ if (typeof window !== "undefined" && Quill) {
       if (!img) return {};
 
       let width = img.getAttribute("width") || img.style.width || node.getAttribute("width") || node.style.width;
+      if (width === 'null' || width === 'undefined' || width === 'auto') width = '';
       let wrap = img.getAttribute("data-wrap") || node.getAttribute("data-wrap");
       if (!wrap) {
         if (node.style.float === 'left' || img.style.float === 'left') wrap = 'left';
@@ -677,7 +690,7 @@ if (typeof window !== "undefined" && Quill) {
         alt: img.getAttribute("alt") || "",
         title: img.getAttribute("title") || "",
         caption: img.getAttribute("data-caption") || "",
-        width: img.getAttribute("width") || img.style.width || node.getAttribute("width") || node.style.width || "",
+        width: (img.getAttribute("width") || img.style.width || node.getAttribute("width") || node.style.width || "").replace(/^(?:null|undefined|auto)$/, ""),
         borderRadius: img.style.borderRadius || img.getAttribute("data-border-radius") || "",
         wrap: img.getAttribute("data-wrap") || node.getAttribute("data-wrap") || "none"
       };
@@ -1341,7 +1354,10 @@ const normalizeImageWrappersForEdit = (html) => {
     wrapper.classList.remove('image-wrap-left', 'image-wrap-right');
     if (wrap === 'left' || wrap === 'right') wrapper.classList.add(`image-wrap-${wrap}`);
     const widthAttr = img.getAttribute('width') || img.style.width || wrapper.getAttribute('width') || wrapper.style.width;
-    const widthVal = widthAttr ? (/^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr) : '';
+    let widthVal = '';
+    if (widthAttr && widthAttr !== 'null' && widthAttr !== 'undefined' && widthAttr !== 'auto' && widthAttr !== '100%') {
+      widthVal = /^\d+$/.test(widthAttr) ? `${widthAttr}px` : widthAttr;
+    }
     const hasCaption = Boolean(caption);
     setImportantStyles(wrapper, {
       ...IMAGE_WRAP_DISPLAY[wrap],
@@ -1356,6 +1372,9 @@ const normalizeImageWrappersForEdit = (html) => {
       wrapper.setAttribute('width', widthVal);
       img.setAttribute('width', widthVal);
       img.style.setProperty('width', widthVal, 'important');
+    } else {
+      wrapper.removeAttribute('width');
+      img.removeAttribute('width');
     }
   });
 

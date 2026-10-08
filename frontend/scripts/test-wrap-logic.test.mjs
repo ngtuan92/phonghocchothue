@@ -43,17 +43,24 @@ function processWrapGroups(html) {
     let inlineWidth = "";
     if (widthMatch) {
       const wVal = widthMatch[1].trim();
-      inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
-    } else if (styleMatch) {
-      const styleStr = styleMatch[1];
-      const widthStyle = styleStr.match(/width:\s*([^;]+)/i);
-      if (widthStyle) {
-        const wVal = widthStyle[1].trim();
+      if (wVal && wVal !== 'null' && wVal !== 'undefined' && wVal !== 'auto' && wVal !== '100%') {
         inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
       }
     }
+    if (!inlineWidth && styleMatch) {
+      const styleStr = styleMatch[1];
+      const widthStyle = styleStr.match(/(?:^|[^-])\bwidth:\s*([^;!]+)/i);
+      if (widthStyle) {
+        const wVal = widthStyle[1].trim();
+        if (wVal && wVal !== 'null' && wVal !== 'undefined' && wVal !== 'auto' && wVal !== '100%') {
+          inlineWidth = /^\d+$/.test(wVal) ? `${wVal}px` : wVal;
+        }
+      }
+    }
 
-    const wrapperStyle = inlineWidth ? ` style="width: ${inlineWidth}; max-width: 100%;"` : '';
+    const wrapperStyle = inlineWidth
+      ? ` style="width: ${inlineWidth}; max-width: 100%;"`
+      : (wrapMode === 'left' || wrapMode === 'right' ? ' style="width: fit-content; max-width: min(100%, 500px);"' : ' style="width: fit-content; max-width: 100%;"');
     const captionHtml = captionText ? `<div class="image-caption">${captionText}</div>` : '';
     return `<div class="image-wrapper${wrapClass}" data-wrap="${wrapMode}"${wrapperStyle}><img${cleanAttrs}>${captionHtml}</div>`;
   });
@@ -140,34 +147,82 @@ function processWrapGroups(html) {
         wrapperEl.classList.add(`image-wrap-${wrapMode}`);
       }
 
+      const getCandidateWidth = (val) => {
+        if (!val) return '';
+        const s = String(val).trim();
+        if (!s || s === 'null' || s === 'undefined' || s === 'auto' || s === '100%') return '';
+        if (/^\d+(?:\.\d+)?$/.test(s)) return `${s}px`;
+        if (/^\d+(?:\.\d+)?(?:px|rem|em|vw)$/i.test(s)) return s;
+        if (/^\d+(?:\.\d+)?%$/.test(s) && s !== '100%') return s;
+        const match = s.match(/(?:^|[^-])\bwidth\s*:\s*([^;!]+)/i);
+        if (match) {
+          const m = match[1].trim();
+          if (m && m !== 'null' && m !== 'undefined' && m !== 'auto' && m !== '100%') {
+            return /^\d+(?:\.\d+)?$/.test(m) ? `${m}px` : m;
+          }
+        }
+        return '';
+      };
+
+      const targetWidth =
+        getCandidateWidth(imgEl?.getAttribute('width')) ||
+        getCandidateWidth(wrapperEl?.getAttribute('width')) ||
+        getCandidateWidth(imgEl?.getAttribute('style')) ||
+        getCandidateWidth(wrapperEl?.getAttribute('style'));
+
       const currentWrapperStyle = wrapperEl.getAttribute('style');
       const cleanedWrapperStyle = cleanImageInlineStyle(currentWrapperStyle);
-      if (cleanedWrapperStyle) {
-        wrapperEl.setAttribute('style', cleanedWrapperStyle);
+      const wrapperStyleWithoutWidth = cleanedWrapperStyle
+        .split(';')
+        .map((p) => p.trim())
+        .filter((p) => p && !/^(?:max-|min-)?width\s*:/i.test(p))
+        .join('; ');
+
+      if (targetWidth) {
+        wrapperEl.setAttribute('width', targetWidth);
+        wrapperEl.setAttribute(
+          'style',
+          wrapperStyleWithoutWidth
+            ? `${wrapperStyleWithoutWidth}; width: ${targetWidth}; max-width: 100%;`
+            : `width: ${targetWidth}; max-width: 100%;`
+        );
       } else {
-        wrapperEl.removeAttribute('style');
+        wrapperEl.removeAttribute('width');
+        const unconstrainedWrapStyle = (wrapMode === 'left' || wrapMode === 'right')
+          ? 'width: fit-content; max-width: min(100%, 500px);'
+          : 'width: fit-content; max-width: 100%;';
+        wrapperEl.setAttribute(
+          'style',
+          wrapperStyleWithoutWidth
+            ? `${wrapperStyleWithoutWidth}; ${unconstrainedWrapStyle}`
+            : unconstrainedWrapStyle
+        );
       }
 
       if (imgEl) {
         const currentImgStyle = imgEl.getAttribute('style');
         const cleanedImgStyle = cleanImageInlineStyle(currentImgStyle);
-        if (cleanedImgStyle) {
-          imgEl.setAttribute('style', cleanedImgStyle);
-        } else {
-          imgEl.removeAttribute('style');
-        }
-      }
+        const imgStyleWithoutWidth = cleanedImgStyle
+          .split(';')
+          .map((p) => p.trim())
+          .filter((p) => p && !/^(?:max-|min-)?width\s*:/i.test(p) && !/^(?:max-|min-)?height\s*:/i.test(p))
+          .join('; ');
 
-      const finalWrapperStyle = wrapperEl.getAttribute('style') || '';
-      if (!/width\s*:/i.test(finalWrapperStyle)) {
-        const imageWidth = (imgEl && (imgEl.getAttribute('width') || imgEl.style?.width)) || '';
-        const normalizedWidth = /^\d+$/.test(String(imageWidth).trim()) ? `${String(imageWidth).trim()}px` : String(imageWidth).trim();
-        if (normalizedWidth) {
-          wrapperEl.setAttribute(
+        if (targetWidth) {
+          imgEl.setAttribute('width', targetWidth);
+          imgEl.setAttribute(
             'style',
-            finalWrapperStyle
-              ? `${finalWrapperStyle}; width: ${normalizedWidth}; max-width: 100%;`
-              : `width: ${normalizedWidth}; max-width: 100%;`
+            imgStyleWithoutWidth
+              ? `${imgStyleWithoutWidth}; width: ${targetWidth}; max-width: 100%; height: auto;`
+              : `width: ${targetWidth}; max-width: 100%; height: auto;`
+          );
+        } else {
+          imgEl.removeAttribute('width');
+          imgEl.setAttribute(
+            'style',
+            imgStyleWithoutWidth
+              ? `${imgStyleWithoutWidth}; max-width: 100%; height: auto;`
+              : `max-width: 100%; height: auto;`
           );
         }
       }
@@ -593,3 +648,62 @@ test('Unit Test: Multiple trailing exit spacers after wrap text are ALL consumed
   const allSpacers = root.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide');
   assert.equal(allSpacers.length, 0, 'All 4 trailing exit spacers were consumed and eliminated');
 });
+
+test('Unit Test: Explicit image dimensions are preserved and unconstrained images get fit-content without stretching', () => {
+  const inputHtml = `
+    <!-- Case 1: Non-wrap image with explicit width -->
+    <div class="image-wrapper" data-wrap="none" style="max-width: 100%; width: 350px" width="350px">
+      <img src="center-350.jpg" data-wrap="none" width="350px" style="display: block; width: 350px; max-width: 100%; height: auto;">
+      <div class="image-caption">Ảnh trung tâm 350px</div>
+    </div>
+
+    <!-- Case 2: Non-wrap image without explicit width (unresized upload) -->
+    <div class="image-wrapper" data-wrap="none" style="max-width: 100%">
+      <img src="center-unconstrained.jpg" data-wrap="none">
+    </div>
+
+    <!-- Case 3: Wrap image without explicit width -->
+    <div class="image-wrapper image-wrap-left" data-wrap="left" style="max-width: 100%">
+      <img src="wrap-unconstrained.jpg" data-wrap="left">
+    </div>
+    <p>Chữ bọc bên cạnh ảnh wrap không có kích thước.</p>
+
+    <!-- Case 4: Image with invalid width="null" -->
+    <div class="image-wrapper" data-wrap="none" style="max-width: 100%" width="null">
+      <img src="null-width.jpg" data-wrap="none" width="null">
+    </div>
+  `;
+
+  const root = processWrapGroups(inputHtml);
+  const wrappers = root.querySelectorAll('.image-wrapper');
+  assert.equal(wrappers.length, 4, 'All 4 wrappers exist');
+
+  // Case 1: Resized non-wrap image
+  const w1 = wrappers[0];
+  assert.equal(w1.getAttribute('width'), '350px', 'Case 1: wrapper has width 350px attribute');
+  assert.ok((w1.getAttribute('style') || '').includes('width: 350px'), 'Case 1: wrapper style has width 350px');
+  const img1 = w1.querySelector('img');
+  assert.equal(img1.getAttribute('width'), '350px', 'Case 1: img has width 350px attribute');
+  assert.ok((img1.getAttribute('style') || '').includes('width: 350px'), 'Case 1: img style has width 350px');
+
+  // Case 2: Unconstrained non-wrap image gets fit-content
+  const w2 = wrappers[1];
+  assert.equal(w2.getAttribute('width'), null, 'Case 2: wrapper has no width attribute');
+  assert.ok((w2.getAttribute('style') || '').includes('width: fit-content'), 'Case 2: wrapper has width: fit-content');
+  const img2 = w2.querySelector('img');
+  assert.equal(img2.getAttribute('width'), null, 'Case 2: img has no width attribute');
+
+  // Case 3: Unconstrained wrap image gets max-width: min(100%, 500px)
+  const w3 = wrappers[2];
+  assert.equal(w3.getAttribute('width'), null, 'Case 3: wrapper has no width attribute');
+  assert.ok((w3.getAttribute('style') || '').includes('max-width: min(100%, 500px)'), 'Case 3: wrapper has capped max-width for wrap');
+
+  // Case 4: Invalid width="null" cleaned
+  const w4 = wrappers[3];
+  assert.notEqual(w4.getAttribute('width'), 'null', 'Case 4: wrapper width="null" was cleaned');
+  assert.equal(w4.getAttribute('width'), null, 'Case 4: wrapper width attribute is null/unset');
+  const img4 = w4.querySelector('img');
+  assert.notEqual(img4.getAttribute('width'), 'null', 'Case 4: img width="null" was cleaned');
+  assert.equal(img4.getAttribute('width'), null, 'Case 4: img width attribute is null/unset');
+});
+
