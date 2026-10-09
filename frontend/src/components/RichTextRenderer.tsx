@@ -1132,7 +1132,21 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
   const responsiveIndentClassName = resetLeadingIndentOnMobile ? "rich-text-mobile-reset-indent" : "";
   const rendererClassName = `rich-text-renderer ${configClassName} ${responsiveIndentClassName} ${className}`.replace(/\s+/g, " ").trim();
 
-  if (!html) return fallback ? <Component className={rendererClassName} style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word", ...customStyles }}>{fallback}</Component> : null;
+  const isExplicitNowrap = rendererClassName.includes("whitespace-nowrap");
+
+  if (!html) return fallback ? (
+    <Component
+      className={rendererClassName}
+      style={{
+        whiteSpace: isExplicitNowrap ? "nowrap" : "pre-wrap",
+        overflowWrap: isExplicitNowrap ? "normal" : "break-word",
+        wordBreak: isExplicitNowrap ? "keep-all" : undefined,
+        ...customStyles,
+      }}
+    >
+      {fallback}
+    </Component>
+  ) : null;
 
   return (
     <>
@@ -1140,8 +1154,9 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
       <Component
         className={rendererClassName}
         style={{
-          whiteSpace: "pre-wrap",
-          overflowWrap: "break-word",
+          whiteSpace: isExplicitNowrap ? "nowrap" : "pre-wrap",
+          overflowWrap: isExplicitNowrap ? "normal" : "break-word",
+          wordBreak: isExplicitNowrap ? "keep-all" : undefined,
           ...customStyles,
         }}
         dangerouslySetInnerHTML={{ __html: cleanHtml }}
