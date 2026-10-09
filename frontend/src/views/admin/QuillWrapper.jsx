@@ -4152,40 +4152,6 @@ const QuillWrapper = forwardRef(({
                     return;
                   }
 
-                  // Case 3: Cursor is at the END of an indented line
-                  const isAtEndOfLine = offset >= lineText.replace(/\n$/, '').length;
-                  if (isIndented && isAtEndOfLine) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-
-                    quill.insertText(sel.index, '\n' + leadingWs, newLineBlockFormats, 'user');
-                    quill.setSelection(sel.index + 1 + leadingWs.length, 0, 'user');
-
-                    const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
-                    const sizeToFormat = inheritedSize || lastActiveFormatsRef.current?.size;
-                    const colorToFormat = inheritedColor || lastActiveFormatsRef.current?.color;
-                    const lineHeightToFormat = inheritedLineHeight || lastActiveFormatsRef.current?.lineHeight;
-
-                    if (fontToFormat) {
-                      try {
-                        quill.formatText(sel.index + 1, leadingWs.length, 'font', fontToFormat, 'user');
-                        quill.format('font', fontToFormat, 'user');
-                      } catch { /* ignore */ }
-                    }
-                    if (sizeToFormat) quill.format('size', sizeToFormat, 'user');
-                    if (colorToFormat) quill.format('color', colorToFormat, 'user');
-
-                    lastActiveFormatsRef.current = {
-                      ...lastActiveFormatsRef.current,
-                      ...(fontToFormat ? { font: fontToFormat } : {}),
-                      ...(sizeToFormat ? { size: sizeToFormat } : {}),
-                      ...(colorToFormat ? { color: colorToFormat } : {}),
-                      ...(lineHeightToFormat ? { lineHeight: lineHeightToFormat } : {}),
-                    };
-                    scheduleUpdateSizePickerLabel();
-                    return;
-                  }
 
                   // Case 4: General Enter
                   e.preventDefault();
