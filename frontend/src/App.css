@@ -2297,9 +2297,6 @@
 }
 
 /* Auto-clear floats for centered elements or signature/cursive fonts to prevent overlapping with floated images */
-.rich-text-renderer .ql-align-center,
-.rich-text-renderer [style*="text-align: center"],
-.rich-text-renderer [style*="text-align:center"],
 .rich-text-renderer p:has([style*="font-family: alex-brush"]),
 .rich-text-renderer p:has([style*="font-family:alex-brush"]),
 .rich-text-renderer p:has([style*="font-family: 'alex-brush'"]),

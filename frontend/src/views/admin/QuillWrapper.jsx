@@ -9432,9 +9432,6 @@ const QuillWrapper = forwardRef(({
         .ql-editor h3 {
           clear: both !important;
         }
-        .ql-editor .ql-align-center,
-        .ql-editor [style*="text-align: center"],
-        .ql-editor [style*="text-align:center"],
         .ql-editor p:has([style*="font-family: alex-brush"]),
         .ql-editor p:has([style*="font-family:alex-brush"]),
         .ql-editor p:has([style*="font-family: 'alex-brush'"]),
