@@ -2053,13 +2053,13 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
 
           /* Mobile: Natural line wrapping without artificial phrase compounds or rigid whitespace locks */
-          .rich-text-renderer p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile),
-          .rich-text-renderer div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer),
-          .rich-text-renderer li,
-          .rich-text-renderer blockquote,
-          .rich-text-renderer span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *),
-          .rich-text-renderer strong,
-          .rich-text-renderer em {
+          .rich-text-renderer:not(.whitespace-nowrap) p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile):not(.whitespace-nowrap):not(.whitespace-nowrap *),
+          .rich-text-renderer:not(.whitespace-nowrap) div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer):not(.whitespace-nowrap):not(.whitespace-nowrap *),
+          .rich-text-renderer:not(.whitespace-nowrap) li:not(.whitespace-nowrap):not(.whitespace-nowrap *),
+          .rich-text-renderer:not(.whitespace-nowrap) blockquote:not(.whitespace-nowrap):not(.whitespace-nowrap *),
+          .rich-text-renderer:not(.whitespace-nowrap) span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *):not(.whitespace-nowrap):not(.whitespace-nowrap *),
+          .rich-text-renderer:not(.whitespace-nowrap) strong:not(.whitespace-nowrap):not(.whitespace-nowrap *),
+          .rich-text-renderer:not(.whitespace-nowrap) em:not(.whitespace-nowrap):not(.whitespace-nowrap *) {
             white-space: normal !important;
             word-break: normal !important;
             overflow-wrap: break-word !important;
@@ -2071,14 +2071,32 @@ const RICH_TEXT_RENDERER_STYLES = `
           .rich-text-renderer.notification-button-rich-text *,
           .rich-text-renderer.whitespace-nowrap,
           .rich-text-renderer.whitespace-nowrap *,
+          .rich-text-renderer.whitespace-nowrap p,
+          .rich-text-renderer.whitespace-nowrap span,
+          .rich-text-renderer.whitespace-nowrap div,
           .rich-text-renderer .whitespace-nowrap,
           .rich-text-renderer .whitespace-nowrap *,
-          .rich-text-renderer .inline-rich-text,
-          .rich-text-renderer .inline-rich-text *,
+          .rich-text-renderer .whitespace-nowrap p,
+          .rich-text-renderer .whitespace-nowrap span,
+          .rich-text-renderer.inline-rich-text.whitespace-nowrap,
+          .rich-text-renderer.inline-rich-text.whitespace-nowrap *,
+          .whitespace-nowrap,
+          .whitespace-nowrap *,
+          .whitespace-nowrap p,
+          .whitespace-nowrap span,
+          .whitespace-nowrap div,
           .notification-button-rich-text,
           .notification-button-rich-text *,
           .notification-link-button,
-          .notification-link-button * {
+          .notification-link-button *,
+          footer .fa-phone + div,
+          footer .fa-phone + div *,
+          footer .fa-phone + div p,
+          footer .fa-phone + div span,
+          footer [data-icon="phone"] + div,
+          footer [data-icon="phone"] + div *,
+          footer .svg-inline--fa.fa-phone + div,
+          footer .svg-inline--fa.fa-phone + div * {
             white-space: nowrap !important;
             word-break: keep-all !important;
             overflow-wrap: normal !important;

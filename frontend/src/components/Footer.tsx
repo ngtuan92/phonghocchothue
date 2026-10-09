@@ -45,8 +45,8 @@ const Footer = () => {
           {phone && (
             <div className="flex items-center mb-2">
               <FontAwesomeIcon icon={faPhone} className="mr-3 text-center flex-shrink-0" />
-              <div className="flex flex-wrap items-center gap-1">
-                <RichTextRenderer html={phone} configKey="phone" as="span" className="inline-rich-text" />
+              <div className="flex flex-nowrap items-center whitespace-nowrap">
+                <RichTextRenderer html={phone} configKey="phone" as="span" className="inline-rich-text whitespace-nowrap" />
               </div>
             </div>
           )}

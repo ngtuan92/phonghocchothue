@@ -2513,6 +2513,21 @@ footer .rich-text-renderer * {
   color: inherit;
 }
 
+/* Ensure phone in footer never wraps to multiple lines on any device */
+footer .fa-phone + div,
+footer .fa-phone + div *,
+footer [data-icon="phone"] + div,
+footer [data-icon="phone"] + div *,
+footer .svg-inline--fa.fa-phone + div,
+footer .svg-inline--fa.fa-phone + div *,
+footer .rich-text-renderer.whitespace-nowrap,
+footer .rich-text-renderer.whitespace-nowrap * {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  flex-shrink: 0 !important;
+}
+
 /* Custom line-height scaling in RichTextRenderer */
 .rich-text-renderer[style*="--custom-line-height:"],
 .rich-text-renderer[style*="--custom-line-height:"] *,
