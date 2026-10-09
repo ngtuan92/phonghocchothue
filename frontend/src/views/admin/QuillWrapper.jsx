@@ -2671,6 +2671,8 @@ const QuillWrapper = forwardRef(({
     const current = resolveImageElement(selectedImageRef.current);
     if (current && editor?.contains(current) && current.isConnected) return current;
 
+    if (!selectedImageRef.current) return null;
+
     const src = selectedImageSrcRef.current;
     if (src && editor) {
       const bySrc = Array.from(editor.querySelectorAll('img')).find((img) => img.getAttribute('src') === src);
@@ -2963,15 +2965,15 @@ const QuillWrapper = forwardRef(({
         return text === '';
       };
 
-      editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .editor-wrap-trailing-spacer, .editor-wrap-exit-content').forEach((el) => {
-        el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'editor-wrap-trailing-spacer', 'editor-wrap-exit-content');
+      editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
+        el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
       });
 
       // Strip ql-whitespace-preserve and mobile-hide from ANY block containing non-empty text
-      editor.querySelectorAll('.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide, .editor-wrap-trailing-spacer').forEach((el) => {
+      editor.querySelectorAll('.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide').forEach((el) => {
         const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
         if (text !== '') {
-          el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide', 'editor-wrap-trailing-spacer');
+          el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
         }
       });
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
@@ -3008,15 +3010,10 @@ const QuillWrapper = forwardRef(({
             next = next.nextElementSibling;
           }
 
-          // Hide whitespace spacers immediately following the wrapped text (the Enter pressed on desktop wraptext!)
-          let hasTrailingSpacer = false;
+          // Hide whitespace spacers immediately following the wrapped text on mobile
           while (next && isWhitespaceOnlyBlock(next)) {
-            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'editor-wrap-trailing-spacer');
-            hasTrailingSpacer = true;
+            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
             next = next.nextElementSibling;
-          }
-          if (hasTrailingSpacer && next) {
-            next.classList.add('editor-wrap-exit-content');
           }
         } else {
           let next = target.nextElementSibling;
@@ -3594,15 +3591,7 @@ const QuillWrapper = forwardRef(({
         scheduleListSizeSync();
       }
 
-      const hasWrapImages = (() => {
-        try {
-          return !!quill.root.querySelector('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right, img[data-wrap="left"], img[data-wrap="right"]');
-        } catch {
-          return false;
-        }
-      })();
-
-      if (!hasStyleDelta && !hasListDelta && !hasImageDelta && !hasWrapImages) return;
+      if (!hasStyleDelta && !hasListDelta && !hasImageDelta) return;
 
       if (idleContentCleanupRef.current) {
         cancelIdleWork(idleContentCleanupRef.current);
@@ -3610,7 +3599,7 @@ const QuillWrapper = forwardRef(({
       idleContentCleanupRef.current = scheduleIdleWork(() => {
         idleContentCleanupRef.current = 0;
         try {
-          if (hasWrapImages) {
+          if (hasImageDelta) {
             syncImageCaptionBlots();
           }
           syncCustomFontSizes();
@@ -4042,22 +4031,22 @@ const QuillWrapper = forwardRef(({
             // Only intercept plain Enter without modifiers
             if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
               const [currentLine, offset] = quill.getLine(sel.index);
-              const lineFormats = currentLine ? currentLine.formats() : (quill.getFormat(sel) || {});
-              if (lineFormats.list) {
+              const activeLineFmt = currentLine ? (currentLine.formats ? currentLine.formats() : {}) : (quill.getFormat(sel) || {});
+              if (activeLineFmt.list) {
                 if (currentLine) {
                   const lineStartIndex = sel.index - offset;
                   const lineLength = currentLine.length();
                   const lineText = quill.getText(lineStartIndex, lineLength).replace(/\n$/, '');
                   // Empty list item: Enter outdents or exits list (Google Docs / Word style)
                   if (lineText.trim().length === 0) {
-                    const curIndent = parseInt(lineFormats.indent || 0, 10);
+                    const curIndent = parseInt(activeLineFmt.indent || 0, 10);
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
                     if (curIndent > 0) {
                       const newIndent = curIndent - 1;
-                      applyListAndIndent(quill, sel.index, lineFormats.list, newIndent, 'user');
+                      applyListAndIndent(quill, sel.index, activeLineFmt.list, newIndent, 'user');
                     } else {
                       applyListAndIndent(quill, sel.index, false, 0, 'user');
                     }
@@ -4065,7 +4054,7 @@ const QuillWrapper = forwardRef(({
                     return;
                   }
                 }
-              } else if (!lineFormats['code-block'] && !lineFormats.table) {
+              } else if (!activeLineFmt['code-block'] && !activeLineFmt.table) {
                 const [currentLine, offset] = quill.getLine(sel.index);
                 if (currentLine) {
                   const lineStartIndex = sel.index - offset;
@@ -4083,9 +4072,9 @@ const QuillWrapper = forwardRef(({
                   const inheritedColor = inherited.color || null;
                   const inheritedLineHeight = inherited.lineHeight || null;
 
-                  const lineFormats = {};
-                  if (currentFormats.align) lineFormats.align = currentFormats.align;
-                  if (currentFormats.direction) lineFormats.direction = currentFormats.direction;
+                  const newLineBlockFormats = {};
+                  if (activeLineFmt.align) newLineBlockFormats.align = activeLineFmt.align;
+                  if (activeLineFmt.direction) newLineBlockFormats.direction = activeLineFmt.direction;
 
                   // Case 1: Cursor is at or before first visible character of indented line
                   if (isAtOrBeforeIndent) {
@@ -4097,7 +4086,7 @@ const QuillWrapper = forwardRef(({
                       quill.deleteText(sel.index, sel.length, 'silent');
                     }
 
-                    quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
+                    quill.insertText(lineStartIndex, '\n', newLineBlockFormats, 'user');
                     const targetCursorPos = lineStartIndex + 1 + leadingWs.length;
                     quill.setSelection(targetCursorPos, 0, 'user');
 
@@ -4140,7 +4129,7 @@ const QuillWrapper = forwardRef(({
                     e.stopImmediatePropagation();
 
                     quill.deleteText(lineStartIndex, leadingWs.length, 'user');
-                    quill.insertText(lineStartIndex, '\n', lineFormats, 'user');
+                    quill.insertText(lineStartIndex, '\n', newLineBlockFormats, 'user');
                     quill.setSelection(lineStartIndex + 1, 0, 'user');
 
                     const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
@@ -4170,7 +4159,7 @@ const QuillWrapper = forwardRef(({
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
-                    quill.insertText(sel.index, '\n' + leadingWs, lineFormats, 'user');
+                    quill.insertText(sel.index, '\n' + leadingWs, newLineBlockFormats, 'user');
                     quill.setSelection(sel.index + 1 + leadingWs.length, 0, 'user');
 
                     const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
@@ -4207,7 +4196,7 @@ const QuillWrapper = forwardRef(({
                     quill.deleteText(sel.index, sel.length, 'silent');
                   }
 
-                  quill.insertText(sel.index, '\n', lineFormats, 'user');
+                  quill.insertText(sel.index, '\n', newLineBlockFormats, 'user');
                   quill.setSelection(sel.index + 1, 0, 'user');
 
                   const fontToFormat = inheritedFont || (lastActiveFormatsRef.current?.font !== 'macdinh' ? lastActiveFormatsRef.current?.font : null);
@@ -4270,6 +4259,10 @@ const QuillWrapper = forwardRef(({
     });
 
     const handleSelectionChange = (range) => {
+      if (range && selectedImageRef.current) {
+        rememberSelectedImage(null);
+        setResizerRect(null);
+      }
       if (!range || range.length !== 0) return;
       try {
         const [currentLine] = quill.getLine(range.index);
@@ -6335,7 +6328,10 @@ const QuillWrapper = forwardRef(({
         },
         align: function (value) {
           const quill = this.quill;
-          const currentImg = getActiveImage();
+          const range = quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
+
+          // Only treat as image alignment if user has an image ACTIVELY selected (resizer is active) AND has NO text selection
+          const currentImg = (!range && resizerRect && selectedImageRef.current) ? getActiveImage() : null;
 
           if (currentImg && quill?.root?.contains(currentImg)) {
             const mode = value === 'right' ? 'right' : value === 'center' ? 'none' : 'left';
@@ -6351,7 +6347,12 @@ const QuillWrapper = forwardRef(({
             return;
           }
 
-          const range = quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
+          // User is formatting text: clear any stale image selection
+          if (selectedImageRef.current) {
+            rememberSelectedImage(null);
+            setResizerRect(null);
+          }
+
           const alignValue = (!value || value === 'left') ? false : value;
           if (range) {
             try {
@@ -6364,15 +6365,17 @@ const QuillWrapper = forwardRef(({
           try {
             const sel = range || quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
             if (sel) {
-              const [line] = quill.getLine(sel.index);
-              if (line?.domNode) {
-                if (alignValue) {
-                  line.domNode.style.textAlign = alignValue;
-                } else {
-                  line.domNode.style.removeProperty('text-align');
-                  line.domNode.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+              const lines = quill.getLines(sel.index, Math.max(sel.length, 1)) || [];
+              lines.forEach((line) => {
+                if (line?.domNode) {
+                  if (alignValue) {
+                    line.domNode.style.textAlign = alignValue;
+                  } else {
+                    line.domNode.style.removeProperty('text-align');
+                    line.domNode.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+                  }
                 }
-              }
+              });
             }
           } catch { /* ignore */ }
 
@@ -9687,22 +9690,6 @@ const QuillWrapper = forwardRef(({
           clear: right !important;
         }
 
-        /* Dong bo khoang cach ngay duoi wraptext giua Admin va User */
-        .ql-editor .editor-wrap-trailing-spacer,
-        .ql-editor p.editor-wrap-trailing-spacer {
-          display: none !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          height: 0 !important;
-          min-height: 0 !important;
-          line-height: 0 !important;
-          font-size: 0 !important;
-          border: none !important;
-        }
-        .ql-editor .editor-wrap-exit-content {
-          clear: both !important;
-          margin-top: 0 !important;
-        }
 
         .ql-editor .image-wrapper img {
           display: block !important;
