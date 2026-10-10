@@ -3450,16 +3450,9 @@ const QuillWrapper = forwardRef(({
           updateSizePickerLabel(sel);
         }
         if (hasOpenControlPopup() && !isCustomControlTarget(e.target)) {
-          if (isPickerTarget) {
-            // Quill opens its picker from the label's native mousedown. Commit
-            // and unmount the custom popup only after that handler has run.
-            window.setTimeout(closeControlPopups, 0);
-          } else {
-            closeControlPopups();
-          }
+          closeControlPopups();
         }
-        if (isPickerTarget) return;
-        // Prevent editor from losing focus when clicking toolbar.
+        // Prevent editor from losing focus when clicking toolbar (including pickers).
         e.preventDefault();
       }
     };
@@ -5846,10 +5839,11 @@ const QuillWrapper = forwardRef(({
         };
         preserveEditorScrollDuring(apply);
         const html = quill.root.innerHTML;
+        const relativeContent = normalizeContentForSave(html);
         localEditorHtmlRef.current = html;
         if (commitOnBlurOnly) {
-          lastRelativeContentRef.current = html;
-          onDraftChangeRef.current?.(html);
+          lastRelativeContentRef.current = relativeContent;
+          onDraftChangeRef.current?.(relativeContent);
         } else {
           window.setTimeout(() => {
             toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
@@ -6110,10 +6104,11 @@ const QuillWrapper = forwardRef(({
             lastActiveFormatsRef.current = {};
           }
           const html = quill.root.innerHTML;
+          const relativeContent = normalizeContentForSave(html);
           localEditorHtmlRef.current = html;
           if (commitOnBlurOnly) {
-            lastRelativeContentRef.current = html;
-            onDraftChangeRef.current?.(html);
+            lastRelativeContentRef.current = relativeContent;
+            onDraftChangeRef.current?.(relativeContent);
           }
           window.setTimeout(updateSizePickerLabel, 0);
 
@@ -6366,6 +6361,21 @@ const QuillWrapper = forwardRef(({
                     dom.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
                       el.style.removeProperty('text-align');
                     });
+                    if (alignValue === 'center' || alignValue === 'right') {
+                      const firstChild = dom.firstChild;
+                      if (firstChild) {
+                        if (firstChild.nodeType === 3) {
+                          firstChild.textContent = firstChild.textContent.replace(/^[\s\u00a0]+/, '');
+                        } else if (firstChild.nodeType === 1) {
+                          const inner = firstChild.firstChild;
+                          if (inner && inner.nodeType === 3) {
+                            inner.textContent = inner.textContent.replace(/^[\s\u00a0]+/, '');
+                          } else if (typeof firstChild.innerHTML === 'string') {
+                            firstChild.innerHTML = firstChild.innerHTML.replace(/^(&nbsp;|\s)+/, '');
+                          }
+                        }
+                      }
+                    }
                   } else {
                     dom.style.removeProperty('text-align');
                     dom.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
@@ -6379,18 +6389,19 @@ const QuillWrapper = forwardRef(({
           } catch { /* ignore */ }
 
           const html = quill.root.innerHTML;
+          const relativeContent = normalizeContentForSave(html);
           localEditorHtmlRef.current = html;
+          lastRelativeContentRef.current = relativeContent;
 
           if (commitOnBlurOnly) {
-            lastRelativeContentRef.current = html;
-            onDraftChangeRef.current?.(html);
+            onDraftChangeRef.current?.(relativeContent);
+          } else {
+            props.onChange?.(relativeContent);
           }
 
           window.setTimeout(() => {
             try {
-              localEditorHtmlRef.current = quill.root.innerHTML;
-              toolbarHandlerRefs.current.handleOnChange?.(quill.root.innerHTML, quill.getContents(), 'user', quill);
-              updateSizePickerLabel();
+              updateSizePickerLabel(sel);
             } catch { /* ignore */ }
           }, 0);
         },
@@ -6398,10 +6409,11 @@ const QuillWrapper = forwardRef(({
           const quill = this.quill;
           const syncColorContent = () => {
             const html = quill.root.innerHTML;
+            const relativeContent = normalizeContentForSave(html);
             localEditorHtmlRef.current = html;
             if (commitOnBlurOnly) {
-              lastRelativeContentRef.current = html;
-              onDraftChangeRef.current?.(html);
+              lastRelativeContentRef.current = relativeContent;
+              onDraftChangeRef.current?.(relativeContent);
               return;
             }
             window.setTimeout(() => {
@@ -6560,10 +6572,11 @@ const QuillWrapper = forwardRef(({
 
           const syncContent = () => {
             const html = quill.root.innerHTML;
+            const relativeContent = normalizeContentForSave(html);
             localEditorHtmlRef.current = html;
             if (commitOnBlurOnly) {
-              lastRelativeContentRef.current = html;
-              onDraftChangeRef.current?.(html);
+              lastRelativeContentRef.current = relativeContent;
+              onDraftChangeRef.current?.(relativeContent);
               return;
             }
             window.setTimeout(() => {
@@ -6636,10 +6649,11 @@ const QuillWrapper = forwardRef(({
           const quill = this.quill;
           const syncBackgroundContent = () => {
             const html = quill.root.innerHTML;
+            const relativeContent = normalizeContentForSave(html);
             localEditorHtmlRef.current = html;
             if (commitOnBlurOnly) {
-              lastRelativeContentRef.current = html;
-              onDraftChangeRef.current?.(html);
+              lastRelativeContentRef.current = relativeContent;
+              onDraftChangeRef.current?.(relativeContent);
               return;
             }
             window.setTimeout(() => {
@@ -7375,7 +7389,19 @@ const QuillWrapper = forwardRef(({
       : val;
   }, [props.value, hasResponsive, isSimpleTextField, preserveInlineWhitespace, preserveWhitespaceOnlyBlocks, shouldNormalizeExcessiveIndent]);
 
-  const handleBlur = useCallback(() => {
+  const handleBlur = useCallback((e) => {
+    const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+    const relatedEl = e?.relatedTarget;
+    const container = containerRef.current;
+    if (
+      (container && (container.contains(activeEl) || container.contains(relatedEl))) ||
+      activeEl?.closest?.('.ql-toolbar, .ql-picker, .ql-picker-options, .wrap-toolbar, .ql-control-popup') ||
+      relatedEl?.closest?.('.ql-toolbar, .ql-picker, .ql-picker-options, .wrap-toolbar, .ql-control-popup') ||
+      container?.querySelector('.ql-picker.ql-expanded')
+    ) {
+      return;
+    }
+
     let blurContent = lastRelativeContentRef.current;
     if (commitOnBlurOnly && blurContent != null) {
       const quill = getQuillEditor();
@@ -7408,8 +7434,14 @@ const QuillWrapper = forwardRef(({
     } catch {
       isFocused = false;
     }
+    const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+    const isInteracting = isFocused ||
+      isUserEditingRef.current ||
+      localEditorHtmlRef.current != null ||
+      (containerRef.current && (containerRef.current.contains(activeEl) || activeEl?.closest?.('.ql-toolbar, .ql-picker, .ql-picker-options, .wrap-toolbar, .ql-control-popup'))) ||
+      containerRef.current?.querySelector('.ql-picker.ql-expanded');
 
-    if (!isFocused && props.value !== lastRelativeContentRef.current) {
+    if (!isInteracting && props.value !== lastRelativeContentRef.current) {
       isUserEditingRef.current = false;
       localEditorHtmlRef.current = null;
       lastRelativeContentRef.current = props.value || "";
@@ -7463,7 +7495,15 @@ const QuillWrapper = forwardRef(({
         hasFocus = false;
       }
 
-      if (hasFocus || isUserEditingRef.current || selectedImageRef.current) {
+      const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+      const isInteractingWithEditor = hasFocus ||
+        isUserEditingRef.current ||
+        selectedImageRef.current ||
+        localEditorHtmlRef.current != null ||
+        (containerRef.current && (containerRef.current.contains(activeEl) || activeEl?.closest?.('.ql-toolbar, .ql-picker, .ql-picker-options, .wrap-toolbar, .ql-control-popup'))) ||
+        containerRef.current?.querySelector('.ql-picker.ql-expanded');
+
+      if (isInteractingWithEditor) {
         return;
       }
 
