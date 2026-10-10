@@ -6336,9 +6336,15 @@ const QuillWrapper = forwardRef(({
                 if (line?.domNode) {
                   if (alignValue) {
                     line.domNode.style.textAlign = alignValue;
+                    line.domNode.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
+                      el.style.removeProperty('text-align');
+                    });
                   } else {
                     line.domNode.style.removeProperty('text-align');
                     line.domNode.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+                    line.domNode.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
+                      el.style.removeProperty('text-align');
+                    });
                   }
                 }
               });

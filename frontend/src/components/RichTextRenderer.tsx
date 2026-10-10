@@ -1407,7 +1407,19 @@ const RICH_TEXT_RENDERER_STYLES = `
         }
         .rich-text-renderer .ql-align-center,
         .rich-text-renderer [style*="text-align: center"],
-        .rich-text-renderer [style*="text-align:center"],
+        .rich-text-renderer [style*="text-align:center"] {
+          text-align: center !important;
+        }
+        .rich-text-renderer .ql-align-right,
+        .rich-text-renderer [style*="text-align: right"],
+        .rich-text-renderer [style*="text-align:right"] {
+          text-align: right !important;
+        }
+        .rich-text-renderer .ql-align-justify,
+        .rich-text-renderer [style*="text-align: justify"],
+        .rich-text-renderer [style*="text-align:justify"] {
+          text-align: justify !important;
+        }
         .rich-text-renderer p:has([style*="font-family: alex-brush"]),
         .rich-text-renderer p:has([style*="font-family:alex-brush"]),
         .rich-text-renderer p:has([style*="font-family: 'alex-brush'"]),
