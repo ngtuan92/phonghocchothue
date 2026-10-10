@@ -3377,7 +3377,7 @@ const QuillWrapper = forwardRef(({
       const alignPicker = container.querySelector('.ql-picker.ql-align');
       if (alignPicker) {
         let currentAlign = 'left';
-        const effectiveSelection = selection || quill.getSelection() || savedSelectionRef.current || typingSelectionRef.current;
+        const effectiveSelection = selection || quill.getSelection() || controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
         if (effectiveSelection && typeof effectiveSelection.index === 'number') {
           const [currentLine] = quill.getLine(effectiveSelection.index);
           if (currentLine?.domNode) {
@@ -6294,7 +6294,7 @@ const QuillWrapper = forwardRef(({
         },
         align: function (value) {
           const quill = this.quill;
-          const range = quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
+          const range = quill.getSelection() || controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
 
           // Only treat as image alignment if user has an image ACTIVELY selected (resizer is active) AND has NO text selection
           const currentImg = (!range && resizerRect && selectedImageRef.current) ? getActiveImage() : null;
@@ -6320,29 +6320,56 @@ const QuillWrapper = forwardRef(({
           }
 
           const alignValue = (!value || value === 'left') ? false : value;
-          if (range) {
+          const sel = range || quill.getSelection() || controlSelectionRef.current || lastHighlightSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
+
+          isUserEditingRef.current = true;
+
+          if (sel) {
             try {
-              setSelectionWithoutScroll(quill, range.index, range.length, 'silent');
-              quill.formatLine(range.index, Math.max(range.length, 1), 'align', alignValue, 'user');
+              if (!isMobileAdminViewport()) {
+                focusWithoutScroll(quill);
+              }
+              setSelectionWithoutScroll(quill, sel.index, sel.length, 'silent');
+              savedSelectionRef.current = { ...sel };
+              if (sel.length > 0) {
+                lastHighlightSelectionRef.current = { ...sel };
+              }
+            } catch { /* ignore */ }
+
+            try {
+              quill.formatLine(sel.index, Math.max(sel.length, 1), 'align', alignValue, 'user');
             } catch { /* ignore */ }
           }
           quill.format('align', alignValue, 'user');
 
           try {
-            const sel = range || quill.getSelection() || controlSelectionRef.current || savedSelectionRef.current || typingSelectionRef.current;
             if (sel) {
-              const lines = quill.getLines(sel.index, Math.max(sel.length, 1)) || [];
-              lines.forEach((line) => {
+              const targetLines = [];
+              if (typeof quill.getLines === 'function') {
+                const qLines = quill.getLines(sel.index, Math.max(sel.length || 0, 1));
+                if (Array.isArray(qLines) && qLines.length > 0) {
+                  targetLines.push(...qLines);
+                }
+              }
+              const [singleLine] = (typeof quill.getLine === 'function' ? quill.getLine(sel.index) : []) || [];
+              if (singleLine && !targetLines.includes(singleLine)) {
+                targetLines.unshift(singleLine);
+              }
+
+              targetLines.forEach((line) => {
                 if (line?.domNode) {
+                  const dom = line.domNode;
                   if (alignValue) {
-                    line.domNode.style.textAlign = alignValue;
-                    line.domNode.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
+                    dom.style.textAlign = alignValue;
+                    dom.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+                    dom.classList.add(`ql-align-${alignValue}`);
+                    dom.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
                       el.style.removeProperty('text-align');
                     });
                   } else {
-                    line.domNode.style.removeProperty('text-align');
-                    line.domNode.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
-                    line.domNode.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
+                    dom.style.removeProperty('text-align');
+                    dom.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+                    dom.querySelectorAll?.('[style*="text-align"]').forEach((el) => {
                       el.style.removeProperty('text-align');
                     });
                   }
@@ -6350,6 +6377,14 @@ const QuillWrapper = forwardRef(({
               });
             }
           } catch { /* ignore */ }
+
+          const html = quill.root.innerHTML;
+          localEditorHtmlRef.current = html;
+
+          if (commitOnBlurOnly) {
+            lastRelativeContentRef.current = html;
+            onDraftChangeRef.current?.(html);
+          }
 
           window.setTimeout(() => {
             try {
@@ -9437,6 +9472,38 @@ const QuillWrapper = forwardRef(({
         .ql-editor h2,
         .ql-editor h3 {
           clear: both !important;
+        }
+        .ql-editor .ql-align-center,
+        .ql-editor [style*="text-align: center"],
+        .ql-editor [style*="text-align:center"] {
+          text-align: center !important;
+        }
+        .ql-editor .ql-align-right,
+        .ql-editor [style*="text-align: right"],
+        .ql-editor [style*="text-align:right"] {
+          text-align: right !important;
+        }
+        .ql-editor .ql-align-justify,
+        .ql-editor [style*="text-align: justify"],
+        .ql-editor [style*="text-align:justify"] {
+          text-align: justify !important;
+        }
+
+        /* Dong bo khoang cach ngay duoi wraptext giua Admin va User */
+        .ql-editor .editor-wrap-trailing-spacer,
+        .ql-editor p.editor-wrap-trailing-spacer {
+          display: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          font-size: 0 !important;
+          border: none !important;
+        }
+        .ql-editor .editor-wrap-exit-content {
+          clear: both !important;
+          margin-top: 0 !important;
         }
         .ql-editor p:has([style*="font-family: alex-brush"]),
         .ql-editor p:has([style*="font-family:alex-brush"]),
