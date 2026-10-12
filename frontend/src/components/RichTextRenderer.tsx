@@ -652,6 +652,11 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const wrapMode = isWrapLeft ? 'left' : 'right';
         const parent = wrapper.parentNode;
         if (!parent) return;
+        // Ensure preceding content block (paragraph) has a class for consistent spacing above wrap image
+        const prevSibling = wrapper.previousElementSibling;
+        if (prevSibling && !isWhitespaceSpacerBlock(prevSibling)) {
+          prevSibling.classList.add('has-following-wrap-image');
+        }
 
         // 1. Collect leading spacer blocks directly between wrap image and wrapped text.
         // If author inserted whitespace spacers (Enter) in Admin to push text down beside the image (căn giữa),
@@ -1785,6 +1790,18 @@ const RICH_TEXT_RENDERER_STYLES = `
             padding-bottom: 0.75rem !important;
           }
 
+          /* Spacing above wrap images / wrap groups from preceding content paragraphs */
+          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+          .rich-text-renderer .has-following-wrap-image,
+          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+          .blog-content .has-following-wrap-image {
+            margin-bottom: 1rem !important;
+          }
+
           /* Desktop: transparent wrap grouping for 100% native float text wrap */
           .rich-text-renderer .rich-text-wrap-group,
           .rich-text-wrap-group,
@@ -1830,6 +1847,17 @@ const RICH_TEXT_RENDERER_STYLES = `
             line-height: 1.2 !important;
             margin-top: 0 !important;
             margin-bottom: 0.5rem !important;
+          }
+
+          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+          .rich-text-renderer .has-following-wrap-image,
+          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+          .blog-content .has-following-wrap-image {
+            margin-bottom: 0.75rem !important;
           }
 
           /* Wrap text grouping: text first (order: 1), image second (order: 2) */

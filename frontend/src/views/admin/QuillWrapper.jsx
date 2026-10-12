@@ -9746,6 +9746,14 @@ const QuillWrapper = forwardRef(({
           box-sizing: border-box !important;
         }
 
+        /* Dong bo khoang cach tu doan van phia tren xuong wrap image */
+        .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+        .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+        .quill-wrapper-container .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+        .quill-wrapper-container .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]) {
+          margin-bottom: 1rem !important;
+        }
+
         /* Dong bo khoang cach tren cua doan text wrap canh anh */
         .ql-editor .image-wrapper.image-wrap-left + p,
         .ql-editor .image-wrapper.image-wrap-right + p,

@@ -981,6 +981,22 @@
   box-sizing: border-box !important;
 }
 
+/* Dong bo khoang cach tu doan van phia tren xuong wrap image */
+.quill-wrapper-container .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+.quill-wrapper-container .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+.ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.rich-text-renderer .has-following-wrap-image,
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.blog-content .has-following-wrap-image {
+  margin-bottom: 1rem !important;
+}
+
 /* Dong bo khoang cach tren cua doan text wrap canh anh */
 .quill-wrapper-container .ql-editor .image-wrapper.image-wrap-left + p,
 .quill-wrapper-container .ql-editor .image-wrapper.image-wrap-right + p,
