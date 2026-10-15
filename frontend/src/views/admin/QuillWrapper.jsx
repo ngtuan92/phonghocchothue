@@ -10,6 +10,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
+import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle } from "@/utils/richTextWrap.mjs";
 import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 import {
   RICH_TEXT_DELTA_MIME,
@@ -2918,25 +2919,7 @@ const QuillWrapper = forwardRef(({
       editor.querySelectorAll('.image-wrapper').forEach((wrapper) => {
         const currentStyle = wrapper.getAttribute('style') || '';
         if (currentStyle) {
-          const cleaned = currentStyle
-            .split(';')
-            .map((part) => part.trim())
-            .filter((part) => {
-              if (!part) return false;
-              const lower = part.toLowerCase();
-              return !(
-                lower.startsWith('float:') ||
-                lower.startsWith('clear:') ||
-                lower.startsWith('display:') ||
-                lower.startsWith('margin:') ||
-                lower.startsWith('margin-left:') ||
-                lower.startsWith('margin-right:') ||
-                lower.startsWith('margin-top:') ||
-                lower.startsWith('margin-bottom:')
-              );
-            })
-            .map((part) => part.replace(/\s*!important/gi, '').trim())
-            .join('; ');
+          const cleaned = cleanImageInlineStyle(currentStyle);
           if (cleaned) {
             wrapper.setAttribute('style', cleaned);
           } else {
@@ -2958,12 +2941,7 @@ const QuillWrapper = forwardRef(({
         }
       });
 
-      const isWhitespaceOnlyBlock = (el) => {
-        if (!el || el.tagName !== 'P') return false;
-        if (el.querySelector('img, video, iframe, svg, canvas, table, audio')) return false;
-        const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
-        return text === '';
-      };
+
 
       editor.querySelectorAll('.editor-image-spacer-mobile-hide, .image-spacer-mobile-hide').forEach((el) => {
         el.classList.remove('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
@@ -2988,36 +2966,28 @@ const QuillWrapper = forwardRef(({
         if (isWrap) {
           // Hide whitespace spacers immediately preceding the wrap image
           let prev = target.previousElementSibling;
-          while (prev && isWhitespaceOnlyBlock(prev)) {
+          while (prev && isWhitespaceSpacerBlock(prev)) {
             prev.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
             prev = prev.previousElementSibling;
           }
 
           // Hide whitespace spacers between wrap image and text
           let next = target.nextElementSibling;
-          while (next && isWhitespaceOnlyBlock(next)) {
+          while (next && isWhitespaceSpacerBlock(next)) {
             next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
             next = next.nextElementSibling;
           }
 
-          // Walk through wrapped content paragraph(s) until we hit the Enter spacer
-          while (
-            next &&
-            !isWhitespaceOnlyBlock(next) &&
-            !next.classList.contains('image-wrapper') &&
-            !next.querySelector?.('.image-wrapper, img, video, iframe, table')
-          ) {
-            next = next.nextElementSibling;
-          }
-
-          // Hide whitespace spacers immediately following the wrapped text on mobile
-          while (next && isWhitespaceOnlyBlock(next)) {
-            next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
-            next = next.nextElementSibling;
-          }
+          // Use the same section boundaries as the public renderer. Blank lines
+          // remain desktop content and only receive mobile spacer metadata.
+          collectWrapTextSiblings(target).forEach((block) => {
+            if (isWhitespaceSpacerBlock(block)) {
+              block.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
+            }
+          });
         } else {
           let next = target.nextElementSibling;
-          while (next && isWhitespaceOnlyBlock(next)) {
+          while (next && isWhitespaceSpacerBlock(next)) {
             if (!next.classList.contains('editor-image-spacer-mobile-hide')) {
               next.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');
             }
@@ -5963,7 +5933,7 @@ const QuillWrapper = forwardRef(({
           try {
             const [currentLine] = quill.getLine(range.index);
             const currentFmt = currentLine ? currentLine.formats() : (quill.getFormat(range) || {});
-            
+
             // Scan previous lines for list context (skipping blank lines)
             let prevListLine = currentLine?.prev;
             let prevFmt = prevListLine ? prevListLine.formats() : {};
@@ -8671,18 +8641,7 @@ const QuillWrapper = forwardRef(({
           margin-top: 26px !important;
         }
         /* Neu phan tu dau tien la anh (hoac anh wrap), khong ap dung margin-top: 26px de tranh text cao hon anh */
-        .room-desc-editor.quill-wrapper-container .ql-editor > .image-wrapper:first-child,
-        .blog-desc-editor.quill-wrapper-container .ql-editor > .image-wrapper:first-child,
-        .blog-content-area .quill-wrapper-container .ql-editor > .image-wrapper:first-child,
-        .product-dialog-quill--content .quill-wrapper-container .ql-editor > .image-wrapper:first-child,
-        .room-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-left:first-child,
-        .blog-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-left:first-child,
-        .blog-content-area .quill-wrapper-container .ql-editor > .image-wrap-left:first-child,
-        .room-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-right:first-child,
-        .blog-desc-editor.quill-wrapper-container .ql-editor > .image-wrap-right:first-child,
-        .blog-content-area .quill-wrapper-container .ql-editor > .image-wrap-right:first-child {
-          margin-top: 0 !important;
-        }
+
         .room-desc-editor.quill-wrapper-container .ql-editor.ql-blank::before,
         .blog-desc-editor.quill-wrapper-container .ql-editor.ql-blank::before,
         .blog-content-area .quill-wrapper-container .ql-editor.ql-blank::before,
@@ -9165,7 +9124,7 @@ const QuillWrapper = forwardRef(({
         .quill-wrapper-container:has(.ql-expanded) {
           z-index: 25 !important;
         }
-        
+
         /* Default toolbar options behavior (desktop, width > 900px) */
         .ql-toolbar.ql-snow .ql-formats .ql-more {
           display: none !important;
@@ -9431,7 +9390,7 @@ const QuillWrapper = forwardRef(({
           font-family: 'Inter', sans-serif !important;
         }
         .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="macdinh"]::before,
-        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="macdinh"]::before { 
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="macdinh"]::before {
           content: 'Inter' !important;
           font-family: 'Inter', sans-serif !important;
         }
@@ -9479,13 +9438,13 @@ const QuillWrapper = forwardRef(({
             font-family: '${escapeCssString(font.family)}', '${escapeCssString(font.slug)}', sans-serif !important;
           }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before { 
-            content: '${escapeCssString(font.name)}' !important; 
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="${font.slug}"]::before {
+            content: '${escapeCssString(font.name)}' !important;
             font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
             font-size: 13px !important;
           }
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before { 
-            content: '${escapeCssString(font.name)}' !important; 
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="${font.slug}"]::before {
+            content: '${escapeCssString(font.name)}' !important;
             font-family: '${escapeCssString(font.family)}', '${escapeCssString(font.slug)}', sans-serif !important;
           }
         `).join('\n')}
@@ -9657,33 +9616,10 @@ const QuillWrapper = forwardRef(({
           height: 18px;
         }
         /* Text wrapping styles in editor */
-        .ql-editor img[data-wrap="left"] {
-          float: left !important;
-          margin-right: 20px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          margin-left: 0 !important;
-          display: inline !important;
-        }
-        .ql-editor img[data-wrap="right"] {
-          float: right !important;
-          margin-left: 20px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          margin-right: 0 !important;
-          display: inline !important;
-        }
-        .ql-editor img[data-wrap="none"] {
-          float: none !important;
-          display: block !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          margin-top: 20px !important;
-        }
-        .ql-editor img[data-wrap="left"] + br,
-        .ql-editor img[data-wrap="right"] + br {
-          clear: both !important;
-        }
+
+
+
+
 
 
         @media (min-width: 768px) {
@@ -9702,49 +9638,10 @@ const QuillWrapper = forwardRef(({
           }
         }
         /* Image Caption styling in editor */
-        .ql-editor .image-wrapper {
-          margin-left: auto !important;
-          margin-right: auto !important;
-          display: block;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-          clear: none !important;
-        }
-        .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
-          float: none !important;
-          display: block !important;
-          max-width: 100% !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          margin-top: 12px !important;
-          margin-bottom: 16px !important;
-        }
-        .ql-editor .image-wrap-left,
-        .ql-editor .image-wrapper.image-wrap-left {
-          float: left !important;
-          clear: right !important;
-          margin-right: 28px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          margin-left: 0 !important;
-          display: inline-block !important;
-          position: relative !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
-        .ql-editor .image-wrap-right,
-        .ql-editor .image-wrapper.image-wrap-right {
-          float: right !important;
-          clear: left !important;
-          margin-left: 28px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          margin-right: 0 !important;
-          display: inline-block !important;
-          position: relative !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
+
+
+
+
 
         /* Dong bo khoang cach tu doan van phia tren xuong wrap image */
         .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
@@ -9755,76 +9652,24 @@ const QuillWrapper = forwardRef(({
         }
 
         /* Dong bo khoang cach tren cua doan text wrap canh anh */
-        .ql-editor .image-wrapper.image-wrap-left + p,
-        .ql-editor .image-wrapper.image-wrap-right + p,
-        .ql-editor .image-wrap-left + p,
-        .ql-editor .image-wrap-right + p,
-        .ql-editor .image-wrapper + p.editor-image-spacer-mobile-hide + p,
         .ql-editor .image-wrapper + p:empty + p,
-        .ql-editor .image-wrapper + p:has(> br:only-child) + p {
+.ql-editor .image-wrapper + p:has(> br:only-child) + p {
           margin-top: 0 !important;
         }
 
-        .ql-editor .image-wrapper.image-wrap-right + p,
-        .ql-editor .image-wrap-right + p {
-          clear: left !important;
-        }
-        .ql-editor .image-wrapper.image-wrap-left + p,
-        .ql-editor .image-wrap-left + p {
-          clear: right !important;
-        }
 
 
-        .ql-editor .image-wrapper img {
-          display: block !important;
-          max-width: 100% !important;
-          height: auto !important;
-          margin: 0 !important;
-        }
-        .ql-editor .image-wrap-left img,
-        .ql-editor .image-wrap-right img {
-          display: block !important;
-          float: none !important;
-          margin: 0 !important;
-          margin-bottom: 0 !important;
-        }
-        .ql-editor .image-wrapper[data-wrap="none"] {
-          float: none !important;
-          display: block !important;
-          width: auto !important;
-          max-width: 100% !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          clear: both !important;
-          box-sizing: border-box !important;
-        }
-        .ql-editor .image-wrapper[data-wrap="none"] img {
-          margin-left: auto !important;
-          margin-right: auto !important;
-        }
+
+
+
+
+
+
         .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
         .ql-editor .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty) {
           margin-bottom: 4px !important;
         }
-        .ql-editor .image-caption {
-          display: block !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          text-align: center !important;
-          color: #666666 !important;
-          font-style: italic !important;
-          font-size: 13px !important;
-          line-height: 1.35 !important;
-          pointer-events: none !important;
-          box-sizing: border-box !important;
-          padding: 0 4px !important;
-          margin-top: 4px !important;
-          margin-bottom: 0 !important;
-          white-space: normal !important;
-          overflow-wrap: break-word !important;
-          word-break: normal !important;
-          overflow: visible !important;
-        }
+
         .editor-inline-image-caption {
           display: none !important;
         }
@@ -9844,16 +9689,7 @@ const QuillWrapper = forwardRef(({
             display: none !important;
           }
           /* Force editor images to display as full-width block elements on mobile, matching frontend */
-          .quill-wrapper-container .ql-editor .image-wrapper {
-            float: none !important;
-            display: block !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-top: 6px !important;
-            margin-bottom: 10px !important;
-          }
+
           .quill-wrapper-container .ql-editor img {
             float: none !important;
             display: block !important;
@@ -9863,14 +9699,7 @@ const QuillWrapper = forwardRef(({
             margin-left: auto !important;
             margin-right: auto !important;
           }
-          .ql-editor .image-caption {
-            display: block !important;
-            font-size: 11px !important;
-            line-height: 1.35 !important;
-            padding: 0 8px !important;
-            margin-top: 3px !important;
-            margin-bottom: 0 !important;
-          }
+
           .editor-inline-image-caption {
             display: none !important;
           }
@@ -9917,13 +9746,12 @@ const QuillWrapper = forwardRef(({
 
           /* 3. Empty whitespace blocks directly preceding or following wrap image */
           .quill-wrapper-container .ql-editor p:has(> br:only-child):has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor .image-wrapper + p:empty,
-          .quill-wrapper-container .ql-editor .image-wrapper + .wrap-spacer-mobile-hide,
-          .quill-wrapper-container .ql-editor img + p:has(> br:only-child),
-          .quill-wrapper-container .ql-editor img + p:empty,
-          .quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
+.quill-wrapper-container .ql-editor p:empty:has(+ .image-wrapper),
+.quill-wrapper-container .ql-editor .image-wrapper + p:has(> br:only-child),
+.quill-wrapper-container .ql-editor .image-wrapper + p:empty,
+.quill-wrapper-container .ql-editor img + p:has(> br:only-child),
+.quill-wrapper-container .ql-editor img + p:empty,
+.quill-wrapper-container .ql-editor img + .wrap-spacer-mobile-hide {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -9961,7 +9789,7 @@ const QuillWrapper = forwardRef(({
             max-width: 100% !important;
             box-sizing: border-box !important;
           }
-          
+
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-formats {
             display: inline-flex !important;
             align-items: center !important;
@@ -10165,7 +9993,7 @@ const QuillWrapper = forwardRef(({
             padding: 0 !important;
             box-sizing: border-box !important;
           }
-          
+
           .quill-wrapper-container .ql-toolbar.ql-snow .ql-more-formats-group {
             position: relative !important;
             overflow: visible !important;
@@ -10534,44 +10362,10 @@ const QuillWrapper = forwardRef(({
           }
         }
 
-        .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
-        .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
-        .quill-wrapper-container[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
-        .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
-        .quill-wrapper-container .ql-editor .image-wrapper .image-caption,
-        .ql-editor .image-wrapper .image-caption,
-        .ql-editor .image-caption {
-          display: block !important;
-          font-size: 13px !important;
-          line-height: 1.35 !important;
-          font-style: italic !important;
-          text-align: center !important;
-          padding: 0 4px !important;
-          margin-top: 4px !important;
-          margin-bottom: 0 !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
+
 
         @media (max-width: 767px) {
-          .quill-wrapper-container.is-blog-editor[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
-          .quill-wrapper-container.is-blog-editor[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
-          .quill-wrapper-container[style*="--fs-desktop"] .ql-editor .image-wrapper .image-caption,
-          .quill-wrapper-container[style*="--fs-mobile"] .ql-editor .image-wrapper .image-caption,
-          .quill-wrapper-container .ql-editor .image-wrapper .image-caption,
-          .ql-editor .image-wrapper .image-caption,
-          .ql-editor .image-caption {
-            display: block !important;
-            font-size: 11px !important;
-            line-height: 1.35 !important;
-            padding: 0 4px !important;
-            margin-top: 3px !important;
-            margin-bottom: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-          }
+
         }
       `}} />
 

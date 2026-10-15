@@ -6,6 +6,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
+import { collectWrapTextSiblings, isWhitespaceSpacerBlock, isHeadingOrSectionTitle, cleanImageInlineStyle } from "@/utils/richTextWrap.mjs";
 import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 
 const getDOMPurify = () => {
@@ -432,38 +433,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         const wrapperEl = (typeof HTMLElement !== 'undefined' && wrapper instanceof HTMLElement) ? wrapper : (wrapper as any);
         const imgEl = (typeof HTMLElement !== 'undefined' && img instanceof HTMLElement) ? img : (img as any);
 
-        const cleanImageInlineStyle = (styleStr: string | null) => {
-          if (!styleStr) return '';
-          return styleStr
-            .split(';')
-            .map((part) => part.trim())
-            .filter((part) => {
-              if (!part) return false;
-              const lower = part.toLowerCase();
-              if (
-                lower.startsWith('float:') ||
-                lower.startsWith('clear:') ||
-                lower.startsWith('display:') ||
-                lower.startsWith('margin:') ||
-                lower.startsWith('margin-left:') ||
-                lower.startsWith('margin-right:') ||
-                lower.startsWith('margin-top:') ||
-                lower.startsWith('margin-bottom:')
-              ) {
-                return false;
-              }
-              return true;
-            })
-            .map((part) => {
-              if (/^(?:max-|min-)?(?:width|height)\s*:/i.test(part)) {
-                return part.replace(/\s*!important/gi, '').trim();
-              }
-              return part;
-            })
-            .join('; ');
-        };
-
-        if (wrapperEl) {
+if (wrapperEl) {
           wrapperEl.setAttribute('data-wrap', wrapMode);
           wrapperEl.classList.remove('image-wrap-left', 'image-wrap-right');
           if (wrapMode === 'left' || wrapMode === 'right') {
@@ -567,16 +537,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
-      const isWhitespaceSpacerBlock = (el: Element | null): boolean => {
-        if (!el) return false;
-        if (el.querySelector('img, video, iframe, svg, canvas, table, audio')) return false;
-        const text = (el.textContent || '').replace(/[\u00a0\s]/g, '');
-        if (text !== '') return false;
-        const html = el.innerHTML || '';
-        return /^(?:\s|<br\s*\/?>|&nbsp;|\u00a0)*$/i.test(html) || el.classList.contains('ql-whitespace-preserve');
-      };
-
-      // Clean spacer classes from ANY element that has actual text or media so real content is never hidden on mobile
+// Clean spacer classes from ANY element that has actual text or media so real content is never hidden on mobile
       root?.querySelectorAll(
         '.ql-whitespace-preserve, .editor-image-spacer-mobile-hide, .image-spacer-mobile-hide, .wrap-spacer-mobile-hide, [class*="spacer-mobile-hide"]'
       ).forEach((el) => {
@@ -601,44 +562,7 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
         }
       });
 
-      const isHeadingOrSectionTitle = (el: Element | null): boolean => {
-        if (!el) return false;
-        const tag = el.tagName.toUpperCase();
-        if (/^(H1|H2|H3|H4|H5|H6)$/.test(tag)) return true;
-        if (el.querySelector('h1, h2, h3, h4, h5, h6')) return true;
-
-        const text = (el.textContent || '').trim();
-        if (!text) return false;
-
-        // Numbered section prefix: e.g. "1. ", "2. ", "1.1 ", "I. ", "A. " followed by letter/number
-        const hasNumberedPrefix = /^\s*(?:\d+[\.\)]|[IVXLCDM]+[\.\)]|\d+\.\d+(?:\.\d+)?[\.\)]?)\s+[A-ZÀ-Ỹ0-9]/u.test(text);
-
-        const hasBold =
-          el.classList.toString().includes('bold') ||
-          !!el.querySelector('[class*="bold"], strong, b') ||
-          /font-weight\s*:\s*(?:bold|[6-9]00)/i.test(el.getAttribute('style') || '');
-
-        const fullHtml = el.outerHTML || '';
-        const fsMatch = fullHtml.match(/--fs-desktop:\s*(\d+)px/i) || fullHtml.match(/font-size:\s*(\d+)px/i);
-        const isLargeFont = fsMatch ? parseInt(fsMatch[1], 10) >= 19 : false;
-
-        if (hasNumberedPrefix && text.length < 200) return true;
-        if (hasBold && isLargeFont && text.length < 200) return true;
-
-        // Check if this block immediately precedes another image-wrapper (skipping empty spacers)
-        let probe = el.nextElementSibling;
-        while (probe && isWhitespaceSpacerBlock(probe)) {
-          probe = probe.nextElementSibling;
-        }
-        if (probe && (probe.classList.contains('image-wrapper') || probe.querySelector('.image-wrapper, img'))) {
-          if (hasBold && text.length < 150) return true;
-          if (isLargeFont && text.length < 150) return true;
-        }
-
-        return false;
-      };
-
-      // Group wrap-left / wrap-right images with their following text siblings
+// Group wrap-left / wrap-right images with their following text siblings
       // so on mobile we can display text first (order: 1), and image second (order: 2),
       // while on desktop display: contents preserves 100% native float wrapping!
       const wrapWrappers = Array.from(
@@ -658,59 +582,15 @@ const RichTextRenderer: React.FC<RichTextRendererProps> = ({
           prevSibling.classList.add('has-following-wrap-image');
         }
 
-        // 1. Collect leading spacer blocks directly between wrap image and wrapped text.
-        // If author inserted whitespace spacers (Enter) in Admin to push text down beside the image (căn giữa),
-        // we PRESERVE them so User view is 100% synchronized with Admin Editor!
-        // On mobile, they have wrap-spacer-mobile-hide so they are hidden when stacked.
-        const intentionalLeadingSpacers: Element[] = [];
-        let curr = wrapper.nextElementSibling;
-        while (curr && isWhitespaceSpacerBlock(curr)) {
-          curr.classList.add('ql-whitespace-preserve', 'wrap-spacer-mobile-hide');
-          if (!curr.innerHTML || curr.innerHTML.trim() === '') {
-            curr.innerHTML = '&nbsp;';
-          }
-          intentionalLeadingSpacers.push(curr);
-          curr = curr.nextElementSibling;
-        }
-
-        // 2. Collect ALL consecutive content blocks belonging to this wrap section.
-        // Stop when hitting an empty spacer, another image, a heading, or a structural element.
-        // In Quill, authors delimit wrapped text sections naturally by pressing Enter (creating a spacer block)
-        // or starting a new heading / section.
-        const textSiblings: Element[] = [...intentionalLeadingSpacers];
-
-        while (
-          curr &&
-          !isWhitespaceSpacerBlock(curr) &&
-          !curr.classList.contains('image-wrapper') &&
-          !curr.classList.contains('rich-text-wrap-group') &&
-          !curr.querySelector('.image-wrapper, img, video, iframe, table') &&
-          !/^(HR|H1|H2|H3|H4|H5|H6|TABLE|FIGURE|IFRAME)$/i.test(curr.tagName) &&
-          !isHeadingOrSectionTitle(curr)
-        ) {
-          textSiblings.push(curr);
-          curr = curr.nextElementSibling;
-        }
-
-        // 3. Consume ALL trailing whitespace spacers directly following the wrapped text.
-        // In Quill, hitting Enter at the end of wrapped text creates empty spacer blocks
-        // simply to advance the cursor below the floated image in the editor.
-        // On User view, .rich-text-wrap-group has margin-bottom: 1.5rem which already provides
-        // the natural section gap — no trailing spacer needs to be preserved.
-        let trailingSpacersCount = 0;
-        while (curr && isWhitespaceSpacerBlock(curr)) {
-          const exitSpacer = curr;
-          curr = curr.nextElementSibling;
-          exitSpacer.remove();
-          trailingSpacersCount++;
-        }
+        // Keep author-entered blank paragraphs in the same native float flow.
+        // Grouping is only for mobile ordering; Enter must not clear the image.
+        const textSiblings = collectWrapTextSiblings(wrapper, isHeadingOrSectionTitle);
 
         // Only group if there are real content siblings following this image
         const hasRealContent = textSiblings.some((s) => !isWhitespaceSpacerBlock(s));
         if (textSiblings.length > 0 && hasRealContent) {
           const group = doc.createElement('div');
-          const trailingClass = trailingSpacersCount > 0 ? ' has-trailing-spacer' : '';
-          group.className = `rich-text-wrap-group wrap-${wrapMode}${trailingClass}`;
+          group.className = `rich-text-wrap-group wrap-${wrapMode}`;
 
           const textContainer = doc.createElement('div');
           textContainer.className = 'rich-text-wrap-text';
@@ -1455,23 +1335,8 @@ const RICH_TEXT_RENDERER_STYLES = `
           clear: both !important;
         }
         .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h1,
-        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2,
-        .rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h3,
-        .rich-text-renderer > img[data-wrap="left"] + h1,
-        .rich-text-renderer > img[data-wrap="left"] + h2,
-        .rich-text-renderer > img[data-wrap="left"] + h3,
-        .rich-text-renderer > img[data-wrap="right"] + h1,
-        .rich-text-renderer > img[data-wrap="right"] + h2,
-        .rich-text-renderer > img[data-wrap="right"] + h3,
-        .rich-text-renderer > .image-wrap-left + h1,
-        .rich-text-renderer > .image-wrap-left + h2,
-        .rich-text-renderer > .image-wrap-left + h3,
-        .rich-text-renderer > .image-wrap-right + h1,
-        .rich-text-renderer > .image-wrap-right + h2,
-        .rich-text-renderer > .image-wrap-right + h3,
-        .rich-text-renderer > .image-wrapper + h1,
-        .rich-text-renderer > .image-wrapper + h2,
-        .rich-text-renderer > .image-wrapper + h3 {
+.rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h2,
+.rich-text-renderer > *:has(img[data-wrap="left"], img[data-wrap="right"]) + h3 {
           clear: none !important;
         }
         @media (min-width: 768px) {
@@ -1492,8 +1357,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
         }
         @media (min-width: 768px) {
-          .rich-text-renderer [style*="--fs-desktop"],
-          .rich-text-renderer [style*="--fs-desktop"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+          .rich-text-renderer [style*="--fs-desktop"] {
             font-size: var(--fs-desktop) !important;
           }
           .rich-text-renderer li[style*="--fs-desktop"]::marker {
@@ -1501,45 +1365,16 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
         }
         @media (max-width: 767px) {
-          .rich-text-renderer [style*="--fs-mobile"],
-          .rich-text-renderer [style*="--fs-mobile"] *:not(.image-caption):not([style*="font-size"]):not([style*="--fs-desktop"]):not([style*="--fs-mobile"]) {
+          .rich-text-renderer [style*="--fs-mobile"] {
             font-size: var(--fs-mobile) !important;
           }
           .rich-text-renderer li[style*="--fs-mobile"]::marker {
             font-size: var(--fs-mobile) !important;
           }
         }
-        .rich-text-renderer[style*="--fs-desktop"] .image-wrapper .image-caption,
-        .rich-text-renderer[style*="--fs-mobile"] .image-wrapper .image-caption,
-        .rich-text-renderer .image-wrapper .image-caption,
-        .rich-text-renderer .image-caption {
-          font-size: 13px !important;
-          line-height: 1.35 !important;
-          margin-top: 4px !important;
-          margin-bottom: 0 !important;
-          font-style: italic !important;
-          color: #666666 !important;
-          text-align: center !important;
-        }
-        @media (min-width: 768px) {
-          .rich-text-renderer .image-caption,
-          .rich-text-renderer [style*="--fs-desktop"] .image-caption,
-          .rich-text-renderer .image-wrapper[style*="--fs-desktop"] .image-caption {
-            font-size: 13px !important;
-            line-height: 1.35 !important;
-            margin-top: 4px !important;
-            margin-bottom: 0 !important;
-          }
-        }
-        @media (max-width: 767px) {
-          .rich-text-renderer .image-caption,
-          .rich-text-renderer [style*="--fs-mobile"] .image-caption,
-          .rich-text-renderer .image-wrapper[style*="--fs-mobile"] .image-caption {
-            font-size: 11px !important;
-            line-height: 1.35 !important;
-            margin-top: 3px !important;
-            margin-bottom: 0 !important;
-          }
+
+@media (max-width: 767px) {
+
           .rich-text-renderer li[style*="--fs-mobile"]::marker {
             font-size: var(--fs-mobile) !important;
           }
@@ -1621,120 +1456,21 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
         }
         /* Style for image wrappers */
-        .rich-text-renderer .image-wrapper {
-          margin-left: auto !important;
-          margin-right: auto !important;
-          display: block;
-          max-width: 100% !important;
-        }
-        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
-          float: none !important;
-          display: block !important;
-          max-width: 100% !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          margin-top: 12px !important;
-          margin-bottom: 16px !important;
-        }
-        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]) {
-          width: fit-content !important;
-        }
-        .rich-text-renderer .image-wrapper[data-wrap="none"]:not([style*="width"]):not([width]) {
-          width: fit-content !important;
-        }
-        .rich-text-renderer .image-wrapper img {
-          max-width: 100% !important;
-          display: block !important;
-          margin: 0 !important;
-        }
-        .rich-text-renderer .image-wrapper[data-wrap="none"] img {
-          margin-left: auto !important;
-          margin-right: auto !important;
-        }
-        /* Text wrapping: float left */
-        .rich-text-renderer img[data-wrap="left"] {
-          float: left !important;
-          clear: none !important;
-          margin-right: 20px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          margin-left: 0 !important;
-          display: inline !important;
-        }
+
+/* Text wrapping: float left */
+
         /* Text wrapping: float right */
-        .rich-text-renderer img[data-wrap="right"] {
-          float: right !important;
-          clear: none !important;
-          margin-left: 20px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          margin-right: 0 !important;
-          display: inline !important;
-        }
+
         /* Text wrapping: center/none */
-        .rich-text-renderer img[data-wrap="none"] {
-          float: none !important;
-          display: block !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          margin-top: 20px !important;
-          margin-bottom: 10px !important;
-        }
+
         /* Image wrapper wrapping support */
-        .rich-text-renderer .image-wrap-left,
-        .rich-text-renderer .image-wrapper.image-wrap-left {
-          float: left !important;
-          clear: right !important;
-          margin-right: 28px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          display: inline-block !important;
-          position: relative !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
-        .rich-text-renderer .image-wrap-right,
-        .rich-text-renderer .image-wrapper.image-wrap-right {
-          float: right !important;
-          clear: left !important;
-          margin-left: 28px !important;
-          margin-bottom: 16px !important;
-          margin-top: 0 !important;
-          display: inline-block !important;
-          position: relative !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
-        .rich-text-renderer .image-wrap-left img,
-        .rich-text-renderer .image-wrap-right img {
-          display: block !important;
-          float: none !important;
-          margin: 0 !important;
-          margin-bottom: 0 !important;
-        }
-        .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
+
+.rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not(:has(.image-caption)),
         .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):has(.image-caption:empty) {
           margin-bottom: 4px !important;
         }
         /* Caption in floated wrappers: position static for natural document flow and no text overlap */
-        .rich-text-renderer .image-wrap-left .image-caption,
-        .rich-text-renderer .image-wrap-right .image-caption,
-        .rich-text-renderer .image-wrapper .image-caption,
-        .rich-text-renderer .image-caption {
-          position: static !important;
-          text-align: center !important;
-          color: #666666 !important;
-          font-style: italic !important;
-          font-size: 13px !important;
-          line-height: 1.35 !important;
-          padding: 0 4px !important;
-          margin-top: 4px !important;
-          margin-bottom: 0 !important;
-          display: block !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
+
         /* Collapse the parent block or preceding empty block of a floated image/wrapper */
         .rich-text-renderer > p:empty,
         .rich-text-renderer > h1:empty,
@@ -1752,10 +1488,7 @@ const RICH_TEXT_RENDERER_STYLES = `
           border: none !important;
         }
         /* Reset margin-top of text block adjacent to floated images */
-        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) + *,
-        .rich-text-renderer > .image-wrap-left + *,
-        .rich-text-renderer > .image-wrap-right + *,
-        .rich-text-renderer > .image-wrapper + * {
+        .rich-text-renderer > *:not(.image-wrapper):not(.image-wrap-left):not(.image-wrap-right):has(img[data-wrap="left"], img[data-wrap="right"], .image-wrap-left, .image-wrap-right) + * {
           margin-top: 0 !important;
         }
         /* Clearfix for content after floated images */
@@ -1779,11 +1512,9 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-bottom: 0.5rem !important;
           }
           .rich-text-renderer .ql-whitespace-preserve:has(+ .image-wrapper),
-          .rich-text-renderer .ql-whitespace-preserve:has(+ .rich-text-wrap-group),
-          .rich-text-renderer .ql-whitespace-preserve:has(+ [class*="image-wrap"]),
-          .rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
-          .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group),
-          .rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
+.rich-text-renderer .ql-whitespace-preserve:has(+ [class*="image-wrap"]),
+.rich-text-renderer p:has(> br:only-child):has(+ .image-wrapper),
+.rich-text-renderer p:has(> br:only-child):has(+ [class*="image-wrap"]) {
             display: block !important;
             min-height: 1.5em !important;
             line-height: 1.5 !important;
@@ -1792,48 +1523,18 @@ const RICH_TEXT_RENDERER_STYLES = `
 
           /* Spacing above wrap images / wrap groups from preceding content paragraphs */
           .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
-          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-          .rich-text-renderer .has-following-wrap-image,
-          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
-          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-          .blog-content .has-following-wrap-image {
+.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.rich-text-renderer .has-following-wrap-image,
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.blog-content .has-following-wrap-image {
             margin-bottom: 1rem !important;
           }
 
           /* Desktop: transparent wrap grouping for 100% native float text wrap */
-          .rich-text-renderer .rich-text-wrap-group,
-          .rich-text-wrap-group,
-          .rich-text-renderer .rich-text-wrap-text,
-          .rich-text-wrap-text {
-            display: contents !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group + *,
-          .rich-text-wrap-group + * {
-            clear: both !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group.has-trailing-spacer + *,
-          .rich-text-wrap-group.has-trailing-spacer + * {
-            clear: both !important;
-            margin-top: 1rem !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
-          .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
-            margin-top: 0 !important;
-          }
-          .rich-text-renderer .wrap-right .rich-text-wrap-text > *:first-child,
-          .rich-text-renderer .image-wrap-right + p,
-          .rich-text-renderer .image-wrap-right + * + p {
-            clear: left !important;
-          }
-          .rich-text-renderer .wrap-left .rich-text-wrap-text > *:first-child,
-          .rich-text-renderer .image-wrap-left + p,
-          .rich-text-renderer .image-wrap-left + * + p {
-            clear: right !important;
-          }
-        }
-        
+
+}
+
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
           /* On mobile: preserve intentional line breaks (cách dòng) */
@@ -1850,178 +1551,37 @@ const RICH_TEXT_RENDERER_STYLES = `
           }
 
           .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
-          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-          .rich-text-renderer .has-following-wrap-image,
-          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
-          .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-          .blog-content .has-following-wrap-image {
+.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.rich-text-renderer .has-following-wrap-image,
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
+.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
+.blog-content .has-following-wrap-image {
             margin-bottom: 0.75rem !important;
           }
 
           /* Wrap text grouping: text first (order: 1), image second (order: 2) */
-          .rich-text-renderer .rich-text-wrap-group,
-          .rich-text-wrap-group {
-            display: flex !important;
-            flex-direction: column !important;
-            width: 100% !important;
-            margin-bottom: 12px !important;
-          }
-          .rich-text-renderer .rich-text-wrap-text,
-          .rich-text-wrap-text {
-            display: block !important;
-            order: 1 !important;
-            width: 100% !important;
-          }
-          .rich-text-renderer .rich-text-wrap-text > *:first-child {
-            margin-top: 0 !important;
-          }
-          .rich-text-renderer .rich-text-wrap-text > *:last-child {
-            margin-bottom: 0 !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper,
-          .rich-text-wrap-group > .image-wrapper {
-            display: block !important;
-            order: 2 !important;
-            float: none !important;
-            max-width: 100% !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-top: 10px !important;
-            margin-bottom: 0px !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]),
-          .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) {
-            width: 100% !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper img,
-          .rich-text-wrap-group > .image-wrapper img {
-            float: none !important;
-            display: block !important;
-            max-width: 100% !important;
-            height: auto !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-bottom: 0px !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) img,
-          .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) img {
-            width: 100% !important;
-          }
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper .image-caption,
-          .rich-text-wrap-group > .image-wrapper .image-caption {
-            display: block !important;
-            position: static !important;
-            clear: both !important;
-            font-size: 11px !important;
-            margin-top: 3px !important;
-            margin-bottom: 0 !important;
-            padding: 0 8px !important;
-            line-height: 1.35 !important;
-            font-style: italic !important;
-            text-align: center !important;
-          }
 
-          .rich-text-renderer img[data-wrap="left"],
-          .rich-text-renderer img[data-wrap="right"] {
-            float: none !important;
-            display: block !important;
-            max-width: 100% !important;
-            height: auto !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-top: 6px !important;
-            margin-bottom: 0px !important;
-          }
-          .rich-text-renderer .image-wrapper.image-wrap-left,
-          .rich-text-renderer .image-wrapper.image-wrap-right {
-            float: none !important;
-            display: block !important;
-            max-width: 100% !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-top: 6px !important;
-            margin-bottom: 12px !important;
-          }
-          .rich-text-renderer .image-wrapper.image-wrap-left:not([style*="width"]):not([width]),
-          .rich-text-renderer .image-wrapper.image-wrap-right:not([style*="width"]):not([width]) {
-            width: 100% !important;
-          }
-          /* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 and order: 2 */
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-left,
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-right,
-          .rich-text-renderer .rich-text-wrap-group > .image-wrapper {
-            order: 2 !important;
-            margin-bottom: 0 !important;
-            margin-top: 10px !important;
-          }
+/* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 and order: 2 */
+
           /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
-          .rich-text-renderer img[data-wrap="none"],
           .rich-text-renderer img:not([data-wrap]) {
             max-width: 100% !important;
             height: auto !important;
             margin-bottom: 0px !important;
           }
-          .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
-            max-width: 100% !important;
-            margin-top: 6px !important;
-            margin-bottom: 12px !important;
-          }
-          .rich-text-renderer .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]) {
-            width: 100% !important;
-          }
-          .rich-text-renderer .image-caption {
-            display: block !important;
-            position: static !important;
-            clear: both !important;
-            font-size: 11px !important;
-            margin-top: 3px !important;
-            margin-bottom: 0 !important;
-            padding: 0 8px !important;
-            line-height: 1.35 !important;
-            font-style: italic !important;
-            text-align: center !important;
-          }
-          /* On mobile, reset caption back to static (no float, no absolute) */
-          .rich-text-renderer .image-wrap-left .image-caption,
-          .rich-text-renderer .image-wrap-right .image-caption {
-            position: static !important;
-            margin-top: 3px !important;
-            margin-bottom: 0 !important;
-            font-size: 11px !important;
-          }
-          .rich-text-renderer .image-wrap-left img,
-          .rich-text-renderer .image-wrap-right img {
-            margin-bottom: 0 !important;
-          }
 
-          /* Hide whitespace spacer paragraphs placed directly inside wrap text or associated with images on mobile */
+/* On mobile, reset caption back to static (no float, no absolute) */
+
+/* Hide whitespace spacer paragraphs placed directly inside wrap text or associated with images on mobile */
           .rich-text-renderer .wrap-spacer-mobile-hide,
-          .rich-text-renderer .editor-image-spacer-mobile-hide,
-          .rich-text-renderer .image-spacer-mobile-hide,
-          .rich-text-renderer [class*="wrap-spacer-mobile-hide"],
-          .rich-text-renderer [class*="image-spacer-mobile-hide"],
-          .rich-text-renderer [class*="editor-image-spacer-mobile-hide"],
-          .rich-text-renderer .rich-text-wrap-text .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-text .editor-image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-text .image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-text p:empty,
-          .rich-text-renderer .rich-text-wrap-text p:has(> br:only-child),
-          .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group ~ .editor-image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + .editor-image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + .image-spacer-mobile-hide,
-          .rich-text-renderer .rich-text-wrap-group + p:has(> br:only-child),
-          .rich-text-renderer .rich-text-wrap-group + p:empty,
-          .rich-text-renderer .image-wrapper + .wrap-spacer-mobile-hide,
-          .rich-text-renderer .image-wrapper + .editor-image-spacer-mobile-hide,
-          .rich-text-renderer .image-wrapper + .image-spacer-mobile-hide,
-          .rich-text-renderer img + .wrap-spacer-mobile-hide,
-          .rich-text-renderer img + .editor-image-spacer-mobile-hide,
-          .rich-text-renderer img + .image-spacer-mobile-hide {
+.rich-text-renderer .editor-image-spacer-mobile-hide,
+.rich-text-renderer .image-spacer-mobile-hide,
+.rich-text-renderer [class*="wrap-spacer-mobile-hide"],
+.rich-text-renderer [class*="image-spacer-mobile-hide"],
+.rich-text-renderer [class*="editor-image-spacer-mobile-hide"],
+.rich-text-renderer img + .wrap-spacer-mobile-hide,
+.rich-text-renderer img + .editor-image-spacer-mobile-hide,
+.rich-text-renderer img + .image-spacer-mobile-hide {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -2031,7 +1591,6 @@ const RICH_TEXT_RENDERER_STYLES = `
             font-size: 0 !important;
             border: none !important;
           }
-
           /* Collapse consecutive empty whitespace paragraphs on mobile so 5-6 Enter hits don't create blank voids */
           .rich-text-renderer p:has(> br:only-child) + p:has(> br:only-child),
           .rich-text-renderer p:empty + p:empty,
@@ -2049,72 +1608,55 @@ const RICH_TEXT_RENDERER_STYLES = `
           /* Mobile: Force left alignment for all text in blog and room details,
              ensuring any admin-defined right/center alignments only apply on desktop */
           .rich-text-renderer.blog-content p:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.blog-content h1,
-          .rich-text-renderer.blog-content h2,
-          .rich-text-renderer.blog-content h3,
-          .rich-text-renderer.blog-content h4,
-          .rich-text-renderer.blog-content h5,
-          .rich-text-renderer.blog-content h6,
-          .rich-text-renderer.blog-content li,
-          .rich-text-renderer.blog-content blockquote,
-          .rich-text-renderer.blog-content div:not(.image-wrapper):not(.image-caption),
-          .rich-text-renderer.blog-content .ql-align-right:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.blog-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
-          .rich-text-renderer.blog-content .ql-align-center,
-          .rich-text-renderer.blog-content .ql-align-center *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.blog-content .ql-align-justify,
-          .rich-text-renderer.blog-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.blog-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.blog-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
-          .rich-text-renderer.room-detail-content p:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.room-detail-content h1,
-          .rich-text-renderer.room-detail-content h2,
-          .rich-text-renderer.room-detail-content h3,
-          .rich-text-renderer.room-detail-content h4,
-          .rich-text-renderer.room-detail-content h5,
-          .rich-text-renderer.room-detail-content h6,
-          .rich-text-renderer.room-detail-content li,
-          .rich-text-renderer.room-detail-content blockquote,
-          .rich-text-renderer.room-detail-content div:not(.image-wrapper):not(.image-caption),
-          .rich-text-renderer.room-detail-content .ql-align-right:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.room-detail-content .ql-align-right *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
-          .rich-text-renderer.room-detail-content .ql-align-center,
-          .rich-text-renderer.room-detail-content .ql-align-center *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.room-detail-content .ql-align-justify,
-          .rich-text-renderer.room-detail-content .ql-align-justify *:not(.image-caption):not(.image-caption *),
-          .rich-text-renderer.room-detail-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.room-detail-content [style*="text-align"] *:not(.image-caption):not(.image-caption *):not(.rich-text-auto-right-mobile *),
-          .rich-text-renderer.blog-content-area p:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.blog-content-area [style*="text-align"]:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.ckeditor-content p:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.ckeditor-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.room-summary-desc p:not(.rich-text-auto-right-mobile),
-          .rich-text-renderer.room-summary-desc [style*="text-align"]:not(.rich-text-auto-right-mobile) {
+.rich-text-renderer.blog-content h1,
+.rich-text-renderer.blog-content h2,
+.rich-text-renderer.blog-content h3,
+.rich-text-renderer.blog-content h4,
+.rich-text-renderer.blog-content h5,
+.rich-text-renderer.blog-content h6,
+.rich-text-renderer.blog-content li,
+.rich-text-renderer.blog-content blockquote,
+.rich-text-renderer.blog-content .ql-align-right:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.blog-content .ql-align-center,
+.rich-text-renderer.blog-content .ql-align-justify,
+.rich-text-renderer.blog-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.room-detail-content p:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.room-detail-content h1,
+.rich-text-renderer.room-detail-content h2,
+.rich-text-renderer.room-detail-content h3,
+.rich-text-renderer.room-detail-content h4,
+.rich-text-renderer.room-detail-content h5,
+.rich-text-renderer.room-detail-content h6,
+.rich-text-renderer.room-detail-content li,
+.rich-text-renderer.room-detail-content blockquote,
+.rich-text-renderer.room-detail-content .ql-align-right:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.room-detail-content .ql-align-center,
+.rich-text-renderer.room-detail-content .ql-align-justify,
+.rich-text-renderer.room-detail-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.blog-content-area p:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.blog-content-area [style*="text-align"]:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.ckeditor-content p:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.ckeditor-content [style*="text-align"]:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.room-summary-desc p:not(.rich-text-auto-right-mobile),
+.rich-text-renderer.room-summary-desc [style*="text-align"]:not(.rich-text-auto-right-mobile) {
             text-align: left !important;
           }
 
           /* Ensure image captions remain centered on mobile */
-          .rich-text-renderer.blog-content .image-caption,
-          .rich-text-renderer.blog-content .image-caption *,
           .rich-text-renderer.blog-content figcaption,
-          .rich-text-renderer.blog-content figcaption *,
-          .rich-text-renderer.room-detail-content .image-caption,
-          .rich-text-renderer.room-detail-content .image-caption *,
-          .rich-text-renderer.room-detail-content figcaption,
-          .rich-text-renderer.room-detail-content figcaption *,
-          .rich-text-renderer.ckeditor-content .image-caption,
-          .rich-text-renderer.ckeditor-content .image-caption * {
+.rich-text-renderer.blog-content figcaption *,
+.rich-text-renderer.room-detail-content figcaption,
+.rich-text-renderer.room-detail-content figcaption * {
             text-align: center !important;
           }
 
           /* Mobile: Natural line wrapping without artificial phrase compounds or rigid whitespace locks */
           .rich-text-renderer:not(.whitespace-nowrap) p:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile):not(.whitespace-nowrap):not(.whitespace-nowrap *),
-          .rich-text-renderer:not(.whitespace-nowrap) div:not(.image-wrapper):not(.image-caption):not(.ql-whitespace-spacer):not(.whitespace-nowrap):not(.whitespace-nowrap *),
-          .rich-text-renderer:not(.whitespace-nowrap) li:not(.whitespace-nowrap):not(.whitespace-nowrap *),
-          .rich-text-renderer:not(.whitespace-nowrap) blockquote:not(.whitespace-nowrap):not(.whitespace-nowrap *),
-          .rich-text-renderer:not(.whitespace-nowrap) span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *):not(.whitespace-nowrap):not(.whitespace-nowrap *),
-          .rich-text-renderer:not(.whitespace-nowrap) strong:not(.whitespace-nowrap):not(.whitespace-nowrap *),
-          .rich-text-renderer:not(.whitespace-nowrap) em:not(.whitespace-nowrap):not(.whitespace-nowrap *) {
+.rich-text-renderer:not(.whitespace-nowrap) li:not(.whitespace-nowrap):not(.whitespace-nowrap *),
+.rich-text-renderer:not(.whitespace-nowrap) blockquote:not(.whitespace-nowrap):not(.whitespace-nowrap *),
+.rich-text-renderer:not(.whitespace-nowrap) span:not(.ql-whitespace-spacer):not(.rich-text-auto-right-mobile *):not(.whitespace-nowrap):not(.whitespace-nowrap *),
+.rich-text-renderer:not(.whitespace-nowrap) strong:not(.whitespace-nowrap):not(.whitespace-nowrap *),
+.rich-text-renderer:not(.whitespace-nowrap) em:not(.whitespace-nowrap):not(.whitespace-nowrap *) {
             white-space: normal !important;
             word-break: normal !important;
             overflow-wrap: break-word !important;
@@ -2223,23 +1765,12 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-inline: auto !important;
           }
         }
-        
+
         .rich-text-renderer .rich-text-pseudo-indent-spacer {
           display: inline;
         }
 
-        .image-caption {
-          text-align: center;
-          color: #666;
-          font-size: 13px;
-          margin-top: 4px;
-          margin-bottom: 0;
-          font-style: italic;
-          line-height: 1.35;
-          display: block;
-          width: 100%;
-        }
-        .rich-text-renderer a,
+.rich-text-renderer a,
         .rich-text-renderer .rich-text-url {
           color: #3b82f6;
           text-decoration: underline;

@@ -1,0 +1,304 @@
+/* Shared image layout for Quill and public rich text. */
+.blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > :is(.image-wrapper, .image-wrap-left, .image-wrap-right):first-child {
+  margin-top: 0 !important;
+}
+@media (min-width: 768px) {
+  :is(.ql-editor, .rich-text-renderer) .image-wrap-right + p {
+    clear: left !important;
+  }
+  :is(.ql-editor, .rich-text-renderer) .image-wrap-left + p {
+    clear: right !important;
+  }
+}
+:is(.ql-editor, .rich-text-renderer) > img[data-wrap="left"] + h1,
+:is(.ql-editor, .rich-text-renderer) > img[data-wrap="left"] + h2,
+:is(.ql-editor, .rich-text-renderer) > img[data-wrap="left"] + h3,
+:is(.ql-editor, .rich-text-renderer) > img[data-wrap="right"] + h1,
+:is(.ql-editor, .rich-text-renderer) > img[data-wrap="right"] + h2,
+:is(.ql-editor, .rich-text-renderer) > img[data-wrap="right"] + h3,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-left + h1,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-left + h2,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-left + h3,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-right + h1,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-right + h2,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-right + h3,
+:is(.ql-editor, .rich-text-renderer) > .image-wrapper + h1,
+:is(.ql-editor, .rich-text-renderer) > .image-wrapper + h2,
+:is(.ql-editor, .rich-text-renderer) > .image-wrapper + h3 {
+  clear: none !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrapper {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block;
+  max-width: 100% !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrapper:not(.image-wrap-left):not(.image-wrap-right) {
+  float: none !important;
+  display: block !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 12px !important;
+  margin-bottom: 16px !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrapper:not(.image-wrap-left):not(.image-wrap-right):not([style*="width"]):not([width]) {
+  width: fit-content !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrapper[data-wrap="none"]:not([style*="width"]):not([width]) {
+  width: fit-content !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrapper img {
+  max-width: 100% !important;
+  display: block !important;
+  margin: 0 !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrapper[data-wrap="none"] img {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+:is(.ql-editor, .rich-text-renderer) img[data-wrap="left"] {
+  float: left !important;
+  clear: none !important;
+  margin-right: 20px !important;
+  margin-bottom: 16px !important;
+  margin-top: 0 !important;
+  margin-left: 0 !important;
+  display: inline !important;
+}
+:is(.ql-editor, .rich-text-renderer) img[data-wrap="right"] {
+  float: right !important;
+  clear: none !important;
+  margin-left: 20px !important;
+  margin-bottom: 16px !important;
+  margin-top: 0 !important;
+  margin-right: 0 !important;
+  display: inline !important;
+}
+:is(.ql-editor, .rich-text-renderer) img[data-wrap="none"] {
+  float: none !important;
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrap-left,
+:is(.ql-editor, .rich-text-renderer) .image-wrapper.image-wrap-left {
+  float: left !important;
+  clear: right !important;
+  margin-right: 28px !important;
+  margin-bottom: 16px !important;
+  margin-top: 0 !important;
+  display: inline-block !important;
+  position: relative !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrap-right,
+:is(.ql-editor, .rich-text-renderer) .image-wrapper.image-wrap-right {
+  float: right !important;
+  clear: left !important;
+  margin-left: 28px !important;
+  margin-bottom: 16px !important;
+  margin-top: 0 !important;
+  display: inline-block !important;
+  position: relative !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrap-left img,
+:is(.ql-editor, .rich-text-renderer) .image-wrap-right img {
+  display: block !important;
+  float: none !important;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+}
+:is(.ql-editor, .rich-text-renderer) .image-wrap-left .image-caption,
+:is(.ql-editor, .rich-text-renderer) .image-wrap-right .image-caption,
+:is(.ql-editor, .rich-text-renderer) .image-wrapper .image-caption,
+:is(.ql-editor, .rich-text-renderer) .image-caption {
+  position: static !important;
+  text-align: center !important;
+  color: #666666 !important;
+  font-style: italic !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  padding: 0 4px !important;
+  margin-top: 4px !important;
+  margin-bottom: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-left + *,
+:is(.ql-editor, .rich-text-renderer) > .image-wrap-right + *,
+:is(.ql-editor, .rich-text-renderer) > .image-wrapper + * {
+  margin-top: 0 !important;
+}
+/* Both surfaces use the same image dimensions and margins when stacked. */
+@media (max-width: 767px) {
+  :is(.ql-editor, .rich-text-renderer) .image-wrapper,
+  :is(.ql-editor, .rich-text-renderer) .image-wrapper.image-wrap-left,
+  :is(.ql-editor, .rich-text-renderer) .image-wrapper.image-wrap-right {
+    float: none !important;
+    display: block !important;
+    clear: both !important;
+    max-width: 100% !important;
+    margin: 6px auto 12px !important;
+  }
+  :is(.ql-editor, .rich-text-renderer) .image-wrapper:not([style*="width"]):not([width]) {
+    width: 100% !important;
+  }
+  :is(.ql-editor, .rich-text-renderer) .image-wrapper img,
+  :is(.ql-editor, .rich-text-renderer) img[data-wrap] {
+    float: none !important;
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;
+  }
+  :is(.ql-editor, .rich-text-renderer) .image-wrapper .image-caption,
+  :is(.ql-editor, .rich-text-renderer) .image-caption {
+    clear: both !important;
+    font-size: 11px !important;
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
+    padding: 0 8px !important;
+  }
+}
+/* Editing behavior belongs to Quill only. */
+.ql-editor .image-caption {
+  pointer-events: none !important;
+}
+/* Public mobile ordering; desktop groups remain transparent to floats. */
+@media (min-width: 768px) {
+  .rich-text-renderer .ql-whitespace-preserve:has(+ .rich-text-wrap-group),
+  .rich-text-renderer p:has(> br:only-child):has(+ .rich-text-wrap-group) {
+    display: block !important;
+    min-height: 1.5em !important;
+    line-height: 1.5 !important;
+    padding-bottom: 0.75rem !important;
+  }
+  .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+  .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group) {
+    margin-bottom: 1rem !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group,
+  .rich-text-wrap-group,
+  .rich-text-renderer .rich-text-wrap-text,
+  .rich-text-wrap-text {
+    display: contents !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group + *,
+  .rich-text-wrap-group + * {
+    clear: both !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve),
+  .rich-text-wrap-group > .rich-text-wrap-text > *:first-child:not(.ql-whitespace-preserve) {
+    margin-top: 0 !important;
+  }
+  .rich-text-renderer .wrap-right .rich-text-wrap-text > *:first-child {
+    clear: left !important;
+  }
+  .rich-text-renderer .wrap-left .rich-text-wrap-text > *:first-child {
+    clear: right !important;
+  }
+}
+@media (max-width: 767px) {
+  .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
+  .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group) {
+    margin-bottom: 0.75rem !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group,
+  .rich-text-wrap-group {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+  }
+  .rich-text-renderer .rich-text-wrap-text,
+  .rich-text-wrap-text {
+    display: block !important;
+    order: 1 !important;
+    width: 100% !important;
+  }
+  .rich-text-renderer .rich-text-wrap-text > *:first-child {
+    margin-top: 0 !important;
+  }
+  .rich-text-renderer .rich-text-wrap-text > *:last-child {
+    margin-bottom: 0 !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper,
+  .rich-text-wrap-group > .image-wrapper {
+    display: block !important;
+    order: 2 !important;
+    float: none !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 10px !important;
+    margin-bottom: 0px !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]),
+  .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) {
+    width: 100% !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper img,
+  .rich-text-wrap-group > .image-wrapper img {
+    float: none !important;
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 0px !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) img,
+  .rich-text-wrap-group > .image-wrapper:not([style*="width"]):not([width]) img {
+    width: 100% !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper .image-caption,
+  .rich-text-wrap-group > .image-wrapper .image-caption {
+    display: block !important;
+    position: static !important;
+    clear: both !important;
+    font-size: 11px !important;
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
+    padding: 0 8px !important;
+    line-height: 1.35 !important;
+    font-style: italic !important;
+    text-align: center !important;
+  }
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-left,
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper.image-wrap-right,
+  .rich-text-renderer .rich-text-wrap-group > .image-wrapper {
+    order: 2 !important;
+    margin-bottom: 0 !important;
+    margin-top: 10px !important;
+  }
+  .rich-text-renderer .rich-text-wrap-text .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-text .editor-image-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-text .image-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-text p:empty,
+  .rich-text-renderer .rich-text-wrap-text p:has(> br:only-child),
+  .rich-text-renderer .rich-text-wrap-group > .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group ~ .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group ~ .editor-image-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group + .wrap-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group + .editor-image-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group + .image-spacer-mobile-hide,
+  .rich-text-renderer .rich-text-wrap-group + p:has(> br:only-child),
+  .rich-text-renderer .rich-text-wrap-group + p:empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+    border: none !important;
+  }
+}

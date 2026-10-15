@@ -6,6 +6,7 @@ import { ConfigProvider } from "@/context/ConfigProvider";
 import { Toaster } from "react-hot-toast";
 import "../index.css";
 import "../App.css";
+import "../styles/richTextImages.css";
 import "react-slideshow-image/dist/styles.css";
 import MantineProviderWrapper from "./MantineProviderWrapper";
 import GoogleVerificationMeta from "@/components/GoogleVerificationMeta";

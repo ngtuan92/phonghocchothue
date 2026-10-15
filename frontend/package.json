@@ -8,7 +8,8 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "test:rich-text-clipboard": "node --test scripts/test-rich-text-clipboard.mjs",
-    "test:wrap": "node --test scripts/test-wrap-logic.test.mjs"
+    "test:wrap": "node --test scripts/test-wrap-logic.test.mjs",
+    "test:wrap-flow": "node scripts/test-rich-text-wrap-flow.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -74,6 +75,8 @@
     "eslint-config-next": "^15.1.0",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.62.1",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
