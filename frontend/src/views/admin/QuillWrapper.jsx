@@ -10,7 +10,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
-import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle } from "@/utils/richTextWrap.mjs";
+import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle, markParagraphsBeforeImages } from "@/utils/richTextWrap.mjs";
 import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 import {
   RICH_TEXT_DELTA_MIME,
@@ -2954,6 +2954,7 @@ const QuillWrapper = forwardRef(({
           el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
         }
       });
+      markParagraphsBeforeImages(editor);
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
         if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
@@ -9637,19 +9638,7 @@ const QuillWrapper = forwardRef(({
             margin-top: 0 !important;
           }
         }
-        /* Image Caption styling in editor */
 
-
-
-
-
-        /* Dong bo khoang cach tu doan van phia tren xuong wrap image */
-        .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-        .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-        .quill-wrapper-container .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-        .quill-wrapper-container .ql-editor p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]) {
-          margin-bottom: 1rem !important;
-        }
 
         /* Dong bo khoang cach tren cua doan text wrap canh anh */
         .ql-editor .image-wrapper + p:empty + p,

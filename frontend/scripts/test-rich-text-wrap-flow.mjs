@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import ts from 'typescript';
-import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle } from '../src/utils/richTextWrap.mjs';
+import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle, markParagraphsBeforeImages, groupWrapImages } from '../src/utils/richTextWrap.mjs';
 
 function editorStyles() {
   const source = readFileSync(new URL('../src/views/admin/QuillWrapper.jsx', import.meta.url), 'utf8');
@@ -28,18 +28,10 @@ function fixture(side = 'right') {
     <p>Third paragraph.</p><p><br></p><h2>Next section</h2><p>Outside wrap.</p>`;
 }
 
-function group(html, side = 'right') {
+function group(html) {
   const doc = new JSDOM(`<div id="content">${html}</div>`).window.document;
   const root = doc.querySelector('#content');
-  const image = root.querySelector('.image-wrapper');
-  const siblings = collectWrapTextSiblings(image, () => false);
-  const group = doc.createElement('div');
-  group.className = `rich-text-wrap-group wrap-${side}`;
-  const text = doc.createElement('div');
-  text.className = 'rich-text-wrap-text';
-  image.before(group);
-  group.append(image, text);
-  siblings.forEach(element => text.append(element));
+  groupWrapImages(root);
   return root;
 }
 
@@ -81,7 +73,7 @@ test('desktop Enter keeps text beside floats; mobile keeps text before image', a
     const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
     for (const side of ['left', 'right']) {
       const html = fixture(side);
-      await page.setContent(`<style>${globalCss}\n${css}\n${adminCss}\n${imageCss}\nbody{margin:0}.rich-text-renderer,.ql-editor{width:100%;max-width:1000px;font-size:20px;line-height:1.5}</style><div class="rich-text-renderer">${group(html, side).innerHTML}</div><div class="quill-wrapper-container"><div class="ql-editor">${html}</div></div>`);
+      await page.setContent(`<style>${globalCss}\n${css}\n${adminCss}\n${imageCss}\nbody{margin:0}.rich-text-renderer,.ql-editor{width:100%;max-width:1000px;font-size:20px;line-height:1.5}</style><div class="rich-text-renderer">${group(html).innerHTML}</div><div class="quill-wrapper-container"><div class="ql-editor">${html}</div></div>`);
       const imageStyle = selector => page.locator(selector).evaluate(el => {
         const style = getComputedStyle(el);
         return ['float', 'display', 'width', 'marginLeft', 'marginRight', 'marginTop', 'marginBottom'].map(key => style[key]);
@@ -109,3 +101,68 @@ test('desktop Enter keeps text beside floats; mobile keeps text before image', a
     await browser.close();
   }
 });
+
+
+test('spacing markers survive grouping and are recomputed after image edits', () => {
+  const root = group('<div class="image-wrapper image-wrap-right"><img></div><p>First text</p><p id="last">No pain no gain</p><div class="image-wrapper image-wrap-left"><img></div><p>Next text</p>');
+  const paragraph = root.querySelector('#last');
+  assert.ok(paragraph.classList.contains('has-following-wrap-image'));
+  assert.equal(root.querySelectorAll('.rich-text-wrap-group.has-following-wrap-image').length, 0);
+  groupWrapImages(root);
+  assert.equal(root.querySelectorAll('.rich-text-wrap-group').length, 2, 'Repeated normalization is idempotent');
+  assert.ok(paragraph.classList.contains('has-following-wrap-image'));
+  root.querySelector('.wrap-left').remove();
+  markParagraphsBeforeImages(root);
+  assert.equal(paragraph.classList.contains('has-following-wrap-image'), false, 'Deleting image removes stale spacing');
+  for (const count of [1, 3]) {
+    const spaced = group(`<p id="before">Text</p>${'<p><br></p>'.repeat(count)}<div class="image-wrapper image-wrap-left"><img></div><p>Wrapped text</p>`);
+    assert.equal(spaced.querySelectorAll('p').length, count + 2);
+    assert.equal(spaced.querySelector('#before').classList.contains('has-following-wrap-image'), false, 'Explicit blank lines supply their own spacing');
+  }
+});
+
+for (const engine of [chromium, webkit]) {
+  test(`${engine.name()}: natural paragraph gap before the next float matches admin, including without :has()`, async () => {
+    const source = readFileSync(new URL('../src/components/RichTextRenderer.tsx', import.meta.url), 'utf8');
+    const css = source.match(/const RICH_TEXT_RENDERER_STYLES = `([\s\S]*?)`;/)[1];
+    const globalCss = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8');
+    const imageCss = readFileSync(new URL('../src/styles/richTextImages.css', import.meta.url), 'utf8');
+    const browser = await engine.launch();
+    try {
+      const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+      for (const side of ['left', 'right']) {
+        const image = direction => `<div class="image-wrapper image-wrap-${direction}" style="width:140px;height:60px"><img width="140" height="60"></div>`;
+        const html = image(side) + '<p>' + 'Text beside the first image. '.repeat(35) + '</p><p id="last">No pain no gain. ' + 'Last paragraph before the next image. '.repeat(8) + '</p>' + image(side === 'left' ? 'right' : 'left') + '<p>Text beside the second image.</p>';
+        const admin = new JSDOM(`<div>${html}</div>`).window.document.querySelector('div');
+        markParagraphsBeforeImages(admin);
+        await page.setContent(`<style>${globalCss}\n${css}\n${editorStyles()}\n${imageCss}\nbody{margin:0}.rich-text-renderer,.ql-editor{width:900px;font-size:17px;line-height:1.5}</style><div class="rich-text-renderer blog-content">${group(html).innerHTML}</div><div class="quill-wrapper-container is-blog-editor"><div class="ql-editor">${admin.innerHTML}</div></div>`);
+        const metrics = selector => page.locator(selector).evaluate(root => {
+          const paragraph = root.querySelector('#last');
+          const image = root.querySelectorAll('.image-wrapper')[1];
+          return { margin: getComputedStyle(paragraph).marginBottom, gap: image.getBoundingClientRect().top - paragraph.getBoundingClientRect().bottom };
+        });
+        for (const hasSupport of [true, false]) {
+          if (!hasSupport) {
+            // Simulate legacy selector parsing: an unsupported :has invalidates the whole rule list.
+            await page.evaluate(() => {
+              const strip = sheet => {
+                for (let i = sheet.cssRules.length - 1; i >= 0; i--) {
+                  const rule = sheet.cssRules[i];
+                  if (rule.selectorText?.includes(':has(')) sheet.deleteRule(i);
+                  else if (rule.cssRules) strip(rule);
+                }
+              };
+              [...document.styleSheets].forEach(strip);
+            });
+          }
+          const publicLayout = await metrics('.rich-text-renderer');
+          const adminLayout = await metrics('.ql-editor');
+          assert.equal(publicLayout.margin, '16px', 'Margin belongs to the paragraph, not display:contents');
+          assert.equal(publicLayout.margin, adminLayout.margin);
+          assert.ok(publicLayout.gap >= 15.5, `Natural gap above next image: ${JSON.stringify(publicLayout)}`);
+          assert.ok(Math.abs(publicLayout.gap - adminLayout.gap) < 1, `Same visual gap: ${JSON.stringify({publicLayout, adminLayout, hasSupport})}`);
+        }
+      }
+    } finally { await browser.close(); }
+  });
+}

@@ -102,3 +102,41 @@ export function cleanImageInlineStyle(styleStr) {
     })
     .join('; ');
 }
+
+/** Mark the actual paragraph, before mobile grouping changes sibling relationships.
+ * Recompute on editor changes so moving/deleting an image never leaves stale spacing.
+ * @param {Element} root
+ */
+export function markParagraphsBeforeImages(root) {
+  root.querySelectorAll('.has-following-wrap-image').forEach(el => el.classList.remove('has-following-wrap-image'));
+  root.querySelectorAll('.image-wrapper').forEach(image => {
+    const block = image.parentElement?.classList.contains('rich-text-wrap-group') ? image.parentElement : image;
+    let previous = block.previousElementSibling;
+    if (previous?.classList.contains('rich-text-wrap-group')) {
+      previous = previous.querySelector('.rich-text-wrap-text')?.lastElementChild || null;
+    }
+    if (previous?.tagName === 'P' && !isWhitespaceSpacerBlock(previous)) {
+      previous.classList.add('has-following-wrap-image');
+    }
+  });
+}
+
+/** Group only for mobile ordering; desktop keeps native floats and author spacers.
+ * @param {Element} root
+ */
+export function groupWrapImages(root) {
+  markParagraphsBeforeImages(root);
+  const doc = root.ownerDocument;
+  root.querySelectorAll('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right').forEach(wrapper => {
+    if (wrapper.parentElement?.classList.contains('rich-text-wrap-group')) return;
+    const siblings = collectWrapTextSiblings(wrapper);
+    if (!siblings.some(element => !isWhitespaceSpacerBlock(element))) return;
+    const group = doc.createElement('div');
+    group.className = `rich-text-wrap-group wrap-${wrapper.classList.contains('image-wrap-left') ? 'left' : 'right'}`;
+    const text = doc.createElement('div');
+    text.className = 'rich-text-wrap-text';
+    wrapper.before(group);
+    group.append(wrapper, text);
+    siblings.forEach(element => text.append(element));
+  });
+}

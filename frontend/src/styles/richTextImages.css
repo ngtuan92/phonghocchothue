@@ -1,3 +1,15 @@
+/* The marker stays on the paragraph when public mobile groups are introduced.
+   Keep this shared rule independent of :has() and display:contents containers. */
+.ql-editor p.has-following-wrap-image,
+.quill-wrapper-container.is-blog-editor .ql-editor p.has-following-wrap-image,
+.rich-text-renderer p.has-following-wrap-image {
+  margin-bottom: 1rem !important;
+}
+@media (max-width: 767px) {
+  .rich-text-renderer p.has-following-wrap-image {
+    margin-bottom: 0.75rem !important;
+  }
+}
 /* Shared image layout for Quill and public rich text. */
 .blog-edit-page .blog-content-area .quill-wrapper-container.is-blog-editor .ql-editor > :is(.image-wrapper, .image-wrap-left, .image-wrap-right):first-child {
   margin-top: 0 !important;
@@ -181,10 +193,7 @@
     line-height: 1.5 !important;
     padding-bottom: 0.75rem !important;
   }
-  .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
-  .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group) {
-    margin-bottom: 1rem !important;
-  }
+
   .rich-text-renderer .rich-text-wrap-group,
   .rich-text-wrap-group,
   .rich-text-renderer .rich-text-wrap-text,
@@ -207,10 +216,7 @@
   }
 }
 @media (max-width: 767px) {
-  .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group),
-  .blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .rich-text-wrap-group) {
-    margin-bottom: 0.75rem !important;
-  }
+
   .rich-text-renderer .rich-text-wrap-group,
   .rich-text-wrap-group {
     display: flex !important;

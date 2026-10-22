@@ -6,7 +6,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
-import { collectWrapTextSiblings, isWhitespaceSpacerBlock, isHeadingOrSectionTitle, cleanImageInlineStyle } from "@/utils/richTextWrap.mjs";
+import { groupWrapImages, cleanImageInlineStyle } from "@/utils/richTextWrap.mjs";
 import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 
 const getDOMPurify = () => {
@@ -562,49 +562,7 @@ if (wrapperEl) {
         }
       });
 
-// Group wrap-left / wrap-right images with their following text siblings
-      // so on mobile we can display text first (order: 1), and image second (order: 2),
-      // while on desktop display: contents preserves 100% native float wrapping!
-      const wrapWrappers = Array.from(
-        root?.querySelectorAll('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right') || []
-      );
-
-      wrapWrappers.forEach((wrapper) => {
-        if (wrapper.parentElement?.classList.contains('rich-text-wrap-group')) return;
-
-        const isWrapLeft = wrapper.classList.contains('image-wrap-left');
-        const wrapMode = isWrapLeft ? 'left' : 'right';
-        const parent = wrapper.parentNode;
-        if (!parent) return;
-        // Ensure preceding content block (paragraph) has a class for consistent spacing above wrap image
-        const prevSibling = wrapper.previousElementSibling;
-        if (prevSibling && !isWhitespaceSpacerBlock(prevSibling)) {
-          prevSibling.classList.add('has-following-wrap-image');
-        }
-
-        // Keep author-entered blank paragraphs in the same native float flow.
-        // Grouping is only for mobile ordering; Enter must not clear the image.
-        const textSiblings = collectWrapTextSiblings(wrapper, isHeadingOrSectionTitle);
-
-        // Only group if there are real content siblings following this image
-        const hasRealContent = textSiblings.some((s) => !isWhitespaceSpacerBlock(s));
-        if (textSiblings.length > 0 && hasRealContent) {
-          const group = doc.createElement('div');
-          group.className = `rich-text-wrap-group wrap-${wrapMode}`;
-
-          const textContainer = doc.createElement('div');
-          textContainer.className = 'rich-text-wrap-text';
-
-          parent.insertBefore(group, wrapper);
-          group.appendChild(wrapper);
-
-          textSiblings.forEach((sibling) => {
-            textContainer.appendChild(sibling);
-          });
-
-          group.appendChild(textContainer);
-        }
-      });
+      if (root) groupWrapImages(root);
 
       if (root) processedHtml = root.innerHTML;
     }
@@ -1521,19 +1479,7 @@ const RICH_TEXT_RENDERER_STYLES = `
             padding-bottom: 0.75rem !important;
           }
 
-          /* Spacing above wrap images / wrap groups from preceding content paragraphs */
-          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-.rich-text-renderer .has-following-wrap-image,
-.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-.blog-content .has-following-wrap-image {
-            margin-bottom: 1rem !important;
-          }
-
-          /* Desktop: transparent wrap grouping for 100% native float text wrap */
-
-}
+        }
 
         /* Responsive Mobile styles to stack wrapped images nicely */
         @media (max-width: 767px) {
@@ -1550,18 +1496,6 @@ const RICH_TEXT_RENDERER_STYLES = `
             margin-bottom: 0.5rem !important;
           }
 
-          .rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-.rich-text-renderer p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-.rich-text-renderer .has-following-wrap-image,
-.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ .image-wrapper),
-.blog-content p:not(.ql-whitespace-preserve):not(:has(> br:only-child)):has(+ [class*="image-wrap"]),
-.blog-content .has-following-wrap-image {
-            margin-bottom: 0.75rem !important;
-          }
-
-          /* Wrap text grouping: text first (order: 1), image second (order: 2) */
-
-/* Inside a wrap-group, image comes LAST (order:2) so margin-bottom must be 0 and order: 2 */
 
           /* Ảnh không wrap: tự động mở rộng 100% chiều rộng container trên mobile */
           .rich-text-renderer img:not([data-wrap]) {
