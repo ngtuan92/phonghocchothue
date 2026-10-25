@@ -2979,8 +2979,8 @@ const QuillWrapper = forwardRef(({
             next = next.nextElementSibling;
           }
 
-          // Use the same section boundaries as the public renderer. Blank lines
-          // remain desktop content and only receive mobile spacer metadata.
+          // Scan the full native float flow. Blank lines remain desktop content
+          // and only receive mobile spacer metadata.
           collectWrapTextSiblings(target).forEach((block) => {
             if (isWhitespaceSpacerBlock(block)) {
               block.classList.add('editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide');

@@ -35,17 +35,17 @@ function group(html) {
   return root;
 }
 
-test('Enter preserves paragraphs and spacers inside the same wrap section', () => {
+test('mobile wrap ends at the first spacer after text, preserving all author paragraphs', () => {
   const root = group(fixture());
-  assert.equal(root.querySelectorAll('.rich-text-wrap-text > p').length, 5);
+  assert.equal(root.querySelectorAll('.rich-text-wrap-text > p').length, 1);
   assert.equal(root.querySelectorAll('p').length, 6);
-  assert.equal(root.querySelector('.rich-text-wrap-group').nextElementSibling.tagName, 'H2');
+  assert.ok(isWhitespaceSpacerBlock(root.querySelector('.rich-text-wrap-group').nextElementSibling));
 });
 
 test('next image and section title remain outside the current wrap group', () => {
   for (const boundary of ['<div class="image-wrapper"><img></div>', '<hr>', '<p class="section">Title</p>']) {
     const doc = new JSDOM(`<div class="image-wrapper"></div><p>A</p><p><br></p>${boundary}<p>B</p>`).window.document;
-    const siblings = collectWrapTextSiblings(doc.querySelector('.image-wrapper'), el => el.classList.contains('section'));
+    const siblings = collectWrapTextSiblings(doc.querySelector('.image-wrapper'), { isSectionTitle: el => el.classList.contains('section') });
     assert.equal(siblings.length, 2);
   }
 });
@@ -61,14 +61,15 @@ test('shared spacer and inline style normalization protect real content and imag
   assert.equal(cleanImageInlineStyle('float:right!important;margin:20px; width:220px!important; border-radius:8px'), 'width:220px; border-radius:8px');
 });
 
-test('desktop Enter keeps text beside floats; mobile keeps text before image', async () => {
+for (const engine of [chromium, webkit]) {
+test(`${engine.name()}: desktop Enter keeps native flow; mobile only moves the wrapped section before image`, async () => {
   const source = readFileSync(new URL('../src/components/RichTextRenderer.tsx', import.meta.url), 'utf8');
   const css = source.match(/const RICH_TEXT_RENDERER_STYLES = `([\s\S]*?)`;/)?.[1];
   assert.ok(css, 'Use the actual renderer stylesheet');
   const globalCss = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8');
   const imageCss = readFileSync(new URL('../src/styles/richTextImages.css', import.meta.url), 'utf8');
   const adminCss = editorStyles();
-  const browser = await chromium.launch({ headless: true });
+  const browser = await engine.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
     for (const side of ['left', 'right']) {
@@ -84,7 +85,7 @@ test('desktop Enter keeps text beside floats; mobile keeps text before image', a
       assert.ok(withSpacer[1].height > 0, 'Author spacer occupies a visible line');
       const imageBottom = await page.locator('.rich-text-renderer .image-wrapper').evaluate(el => el.getBoundingClientRect().bottom);
       assert.ok((await positions())[2].top < imageBottom, 'Second paragraph still wraps beside image');
-      await page.locator('.rich-text-wrap-text > p').nth(1).evaluate(el => el.remove());
+      await page.locator('.rich-text-renderer p').nth(1).evaluate(el => el.remove());
       assert.ok((await positions())[1].top < withSpacer[2].top, 'Removing Enter moves the second paragraph upward');
       await page.setViewportSize({ width: 390, height: 900 });
       const adminMobileStyle = await imageStyle('.ql-editor .image-wrapper');
@@ -95,6 +96,9 @@ test('desktop Enter keeps text beside floats; mobile keeps text before image', a
       const imageTop = await page.locator('.rich-text-renderer .image-wrapper').evaluate(el => el.getBoundingClientRect().top);
       const textBottom = await page.locator('.rich-text-wrap-text').evaluate(el => el.getBoundingClientRect().bottom);
       assert.ok(imageTop >= textBottom, 'Mobile image follows wrapped text');
+      const mobileImageBottom = await page.locator('.rich-text-renderer .image-wrapper').evaluate(el => el.getBoundingClientRect().bottom);
+      const outsideTextTop = await page.locator('.rich-text-renderer p').nth(1).evaluate(el => el.getBoundingClientRect().top);
+      assert.ok(outsideTextTop >= mobileImageBottom, 'The next section stays AFTER this image, not before it');
       await page.setViewportSize({ width: 1200, height: 900 });
     }
   } finally {
@@ -102,6 +106,7 @@ test('desktop Enter keeps text beside floats; mobile keeps text before image', a
   }
 });
 
+}
 
 test('spacing markers survive grouping and are recomputed after image edits', () => {
   const root = group('<div class="image-wrapper image-wrap-right"><img></div><p>First text</p><p id="last">No pain no gain</p><div class="image-wrapper image-wrap-left"><img></div><p>Next text</p>');
@@ -166,3 +171,23 @@ for (const engine of [chromium, webkit]) {
     } finally { await browser.close(); }
   });
 }
+
+
+test('leading spacers stay with wrap text; separators leave the next section between images', () => {
+  for (const count of [1, 3]) {
+    const blank = '<p class="ql-whitespace-preserve"><br></p>';
+    const html = '<div class="image-wrapper image-wrap-right"><img></div>' + blank.repeat(count)
+      + '<p id="wrap-start">Wrapped introduction.</p><p id="wrap-end">Wrapped conclusion.</p>'
+      + blank.repeat(count) + '<p id="outside">A separate paragraph before the next image.</p>'
+      + '<div id="next-image" class="image-wrapper" data-wrap="none"><img></div><p>After the standalone image.</p>';
+    const root = group(html);
+    const wrap = root.querySelector('.rich-text-wrap-group');
+    assert.equal(wrap.querySelectorAll('p').length, count + 2);
+    assert.equal(wrap.querySelector('.rich-text-wrap-text').lastElementChild.id, 'wrap-end');
+    assert.equal(root.querySelector('#outside').parentElement, root);
+    assert.equal(root.querySelector('#outside').nextElementSibling.id, 'next-image');
+    assert.equal(root.querySelectorAll('p').length, count * 2 + 4, 'No blank paragraphs are deleted');
+    groupWrapImages(root);
+    assert.equal(root.querySelector('#outside').parentElement, root, 'Repeated normalization preserves the boundary');
+  }
+});

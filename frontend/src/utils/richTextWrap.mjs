@@ -1,12 +1,13 @@
 /**
- * Mobile grouping must not change desktop float flow. An empty paragraph is
- * author content, not a reliable signal that text has stopped wrapping.
+ * Scan native float content without deleting author-entered blank paragraphs.
+ * Mobile grouping can stop at a separator after text; desktop flow continues.
  * @param {Element} wrapper
- * @param {(element: Element) => boolean} isSectionTitle
+ * @param {{ isSectionTitle?: (element: Element) => boolean, stopAtSpacer?: boolean }} options
  * @returns {Element[]}
  */
-export function collectWrapTextSiblings(wrapper, isSectionTitle = isHeadingOrSectionTitle) {
+export function collectWrapTextSiblings(wrapper, { isSectionTitle = isHeadingOrSectionTitle, stopAtSpacer = false } = {}) {
   const siblings = [];
+  let hasText = false;
   let current = wrapper.nextElementSibling;
   while (current) {
     if (
@@ -17,7 +18,10 @@ export function collectWrapTextSiblings(wrapper, isSectionTitle = isHeadingOrSec
       /^(HR|H1|H2|H3|H4|H5|H6|TABLE|FIGURE|IFRAME)$/i.test(current.tagName) ||
       isSectionTitle(current)
     ) break;
+    const isSpacer = isWhitespaceSpacerBlock(current);
+    if (stopAtSpacer && hasText && isSpacer) break;
     siblings.push(current);
+    if (!isSpacer) hasText = true;
     current = current.nextElementSibling;
   }
   return siblings;
@@ -129,7 +133,9 @@ export function groupWrapImages(root) {
   const doc = root.ownerDocument;
   root.querySelectorAll('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right').forEach(wrapper => {
     if (wrapper.parentElement?.classList.contains('rich-text-wrap-group')) return;
-    const siblings = collectWrapTextSiblings(wrapper);
+    // Restore the mobile section boundary without removing its blank paragraphs
+    // or clearing the float on desktop. Leading spacers still belong to this group.
+    const siblings = collectWrapTextSiblings(wrapper, { stopAtSpacer: true });
     if (!siblings.some(element => !isWhitespaceSpacerBlock(element))) return;
     const group = doc.createElement('div');
     group.className = `rich-text-wrap-group wrap-${wrapper.classList.contains('image-wrap-left') ? 'left' : 'right'}`;
