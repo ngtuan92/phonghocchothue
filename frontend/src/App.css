@@ -1698,7 +1698,8 @@
   margin-bottom: 0 !important;
 }
 
-.rich-text-renderer *:last-child {
+/* Only trim the outer content edge, not paragraphs inside mobile wrap groups. */
+.rich-text-renderer > :last-child {
   margin-bottom: 0 !important;
 }
 

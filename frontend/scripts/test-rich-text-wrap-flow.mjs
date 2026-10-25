@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { chromium, webkit } from 'playwright';
 import ts from 'typescript';
-import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle, markParagraphsBeforeImages, groupWrapImages } from '../src/utils/richTextWrap.mjs';
+import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle, normalizeImageLayoutMarkers, groupWrapImages } from '../src/utils/richTextWrap.mjs';
 
 function editorStyles() {
   const source = readFileSync(new URL('../src/views/admin/QuillWrapper.jsx', import.meta.url), 'utf8');
@@ -117,7 +117,7 @@ test('spacing markers survive grouping and are recomputed after image edits', ()
   assert.equal(root.querySelectorAll('.rich-text-wrap-group').length, 2, 'Repeated normalization is idempotent');
   assert.ok(paragraph.classList.contains('has-following-wrap-image'));
   root.querySelector('.wrap-left').remove();
-  markParagraphsBeforeImages(root);
+  normalizeImageLayoutMarkers(root);
   assert.equal(paragraph.classList.contains('has-following-wrap-image'), false, 'Deleting image removes stale spacing');
   for (const count of [1, 3]) {
     const spaced = group(`<p id="before">Text</p>${'<p><br></p>'.repeat(count)}<div class="image-wrapper image-wrap-left"><img></div><p>Wrapped text</p>`);
@@ -139,7 +139,7 @@ for (const engine of [chromium, webkit]) {
         const image = direction => `<div class="image-wrapper image-wrap-${direction}" style="width:140px;height:60px"><img width="140" height="60"></div>`;
         const html = image(side) + '<p>' + 'Text beside the first image. '.repeat(35) + '</p><p id="last">No pain no gain. ' + 'Last paragraph before the next image. '.repeat(8) + '</p>' + image(side === 'left' ? 'right' : 'left') + '<p>Text beside the second image.</p>';
         const admin = new JSDOM(`<div>${html}</div>`).window.document.querySelector('div');
-        markParagraphsBeforeImages(admin);
+        normalizeImageLayoutMarkers(admin);
         await page.setContent(`<style>${globalCss}\n${css}\n${editorStyles()}\n${imageCss}\nbody{margin:0}.rich-text-renderer,.ql-editor{width:900px;font-size:17px;line-height:1.5}</style><div class="rich-text-renderer blog-content">${group(html).innerHTML}</div><div class="quill-wrapper-container is-blog-editor"><div class="ql-editor">${admin.innerHTML}</div></div>`);
         const metrics = selector => page.locator(selector).evaluate(root => {
           const paragraph = root.querySelector('#last');
@@ -190,4 +190,50 @@ test('leading spacers stay with wrap text; separators leave the next section bet
     groupWrapImages(root);
     assert.equal(root.querySelector('#outside').parentElement, root, 'Repeated normalization preserves the boundary');
   }
+});
+
+
+test('an explicit editor wrap exit ends the mobile group even without a blank line', () => {
+  const root = group('<div class="image-wrapper image-wrap-right"><img></div><p>Wrapped text</p><p class="editor-wrap-exit-content" id="exit">Outside wrap</p>');
+  assert.equal(root.querySelector('#exit').parentElement, root);
+});
+
+for (const engine of [chromium, webkit]) {
+  test(`${engine.name()}: saved wrap-exit markers have the same desktop meaning in admin and public content`, async () => {
+    const source = readFileSync(new URL('../src/components/RichTextRenderer.tsx', import.meta.url), 'utf8');
+    const css = source.match(/const RICH_TEXT_RENDERER_STYLES = `([\s\S]*?)`;/)[1];
+    const globalCss = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8');
+    const imageCss = readFileSync(new URL('../src/styles/richTextImages.css', import.meta.url), 'utf8');
+    const browser = await engine.launch();
+    try {
+      const page = await browser.newPage({ viewport: {width:1200,height:900} });
+      for (const side of ['left','right']) {
+        const html = `<div class="image-wrapper image-wrap-${side}" style="width:220px;height:330px"><img width="220" height="330"></div><p id="wrapped">A short wrapped paragraph.</p><p class="editor-wrap-trailing-spacer ql-whitespace-preserve ql-whitespace-spacer"><br></p><p class="editor-wrap-trailing-spacer ql-whitespace-preserve ql-whitespace-spacer"><br></p><p id="exit" class="editor-wrap-exit-content">This paragraph starts below the entire float.</p>`;
+        await page.setContent(`<style>${globalCss}\n${css}\n${editorStyles()}\n${imageCss}\n.rich-text-renderer,.ql-editor{width:900px;font-size:17px;line-height:1.6}</style><div class="rich-text-renderer blog-content">${group(html).innerHTML}</div><div class="quill-wrapper-container is-blog-editor"><div class="ql-editor">${html}</div></div>`);
+        const metrics = selector => page.locator(selector).evaluate(root => {
+          const image = root.querySelector('.image-wrapper').getBoundingClientRect();
+          const exit = root.querySelector('#exit');
+          const range = document.createRange();range.selectNodeContents(exit);
+          return { clear:getComputedStyle(exit).clear, gap:exit.getBoundingClientRect().top-image.bottom, firstLineWidth:range.getClientRects()[0].width, wrappedMargin:getComputedStyle(root.querySelector('#wrapped')).marginBottom, spacers:[...root.querySelectorAll('.editor-wrap-trailing-spacer')].map(el=>getComputedStyle(el).display) };
+        });
+        const admin=await metrics('.ql-editor');
+        const user=await metrics('.rich-text-renderer');
+        assert.equal(user.clear,'both');
+        assert.deepEqual(user.spacers,['none','none']);
+        assert.equal(user.wrappedMargin,admin.wrappedMargin,'Grouping must not erase the last wrapped paragraph margin');
+        assert.equal(user.gap,admin.gap);
+        assert.ok(user.gap>=16,'First line clears the image including its bottom margin');
+        assert.equal(user.firstLineWidth,admin.firstLineWidth);
+      }
+    } finally { await browser.close(); }
+  });
+}
+
+
+test('stale wrap spacer metadata cannot hide real text or media', () => {
+  const doc = new JSDOM('<div><p class="editor-wrap-trailing-spacer">Real text</p><p class="editor-wrap-trailing-spacer"><img></p><p class="editor-wrap-trailing-spacer"><br></p></div>').window.document;
+  const root = doc.querySelector('div');
+  normalizeImageLayoutMarkers(root);
+  const paragraphs = [...root.querySelectorAll('p')];
+  assert.deepEqual(paragraphs.map(el => el.classList.contains('editor-wrap-trailing-spacer')), [false, false, true]);
 });

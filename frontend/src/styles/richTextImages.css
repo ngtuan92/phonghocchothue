@@ -305,3 +305,20 @@
     border: none !important;
   }
 }
+
+/* Saved wrap-exit metadata has the same meaning in Quill and public content.
+   Ordinary Enter spacers stay visible on desktop; only tagged exit spacers hide. */
+:is(.quill-wrapper-container .ql-editor, .ql-editor, .rich-text-renderer) .editor-wrap-trailing-spacer.ql-whitespace-preserve {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  border: none !important;
+}
+:is(.ql-editor, .rich-text-renderer) .editor-wrap-exit-content {
+  clear: both !important;
+  margin-top: 0 !important;
+}

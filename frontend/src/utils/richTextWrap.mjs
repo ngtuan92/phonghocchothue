@@ -11,6 +11,7 @@ export function collectWrapTextSiblings(wrapper, { isSectionTitle = isHeadingOrS
   let current = wrapper.nextElementSibling;
   while (current) {
     if (
+      current.classList.contains('editor-wrap-exit-content') ||
       current.classList.contains('image-wrapper') ||
       current.classList.contains('rich-text-wrap-group') ||
       current.matches('img, video, iframe, audio, svg, canvas') ||
@@ -107,11 +108,16 @@ export function cleanImageInlineStyle(styleStr) {
     .join('; ');
 }
 
-/** Mark the actual paragraph, before mobile grouping changes sibling relationships.
+/** Normalize saved layout markers before mobile grouping changes sibling relationships.
  * Recompute on editor changes so moving/deleting an image never leaves stale spacing.
  * @param {Element} root
  */
-export function markParagraphsBeforeImages(root) {
+export function normalizeImageLayoutMarkers(root) {
+  // Legacy spacer metadata must never hide a paragraph that now contains text/media.
+  root.querySelectorAll('.editor-wrap-trailing-spacer').forEach(el => {
+    if (!isWhitespaceSpacerBlock(el)) el.classList.remove('editor-wrap-trailing-spacer');
+    else el.classList.add('ql-whitespace-preserve');
+  });
   root.querySelectorAll('.has-following-wrap-image').forEach(el => el.classList.remove('has-following-wrap-image'));
   root.querySelectorAll('.image-wrapper').forEach(image => {
     const block = image.parentElement?.classList.contains('rich-text-wrap-group') ? image.parentElement : image;
@@ -129,7 +135,7 @@ export function markParagraphsBeforeImages(root) {
  * @param {Element} root
  */
 export function groupWrapImages(root) {
-  markParagraphsBeforeImages(root);
+  normalizeImageLayoutMarkers(root);
   const doc = root.ownerDocument;
   root.querySelectorAll('.image-wrapper.image-wrap-left, .image-wrapper.image-wrap-right').forEach(wrapper => {
     if (wrapper.parentElement?.classList.contains('rich-text-wrap-group')) return;

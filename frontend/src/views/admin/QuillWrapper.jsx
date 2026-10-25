@@ -10,7 +10,7 @@ import {
   normalizeExcessiveLeadingWhitespaceAlignment,
   normalizeResponsiveLineHeightStyles,
 } from "@/utils/richTextControls";
-import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle, markParagraphsBeforeImages } from "@/utils/richTextWrap.mjs";
+import { collectWrapTextSiblings, isWhitespaceSpacerBlock, cleanImageInlineStyle, normalizeImageLayoutMarkers } from "@/utils/richTextWrap.mjs";
 import { normalizeVietnameseHtml } from "@/utils/vietnameseNormalizer";
 import {
   RICH_TEXT_DELTA_MIME,
@@ -2954,7 +2954,7 @@ const QuillWrapper = forwardRef(({
           el.classList.remove('ql-whitespace-preserve', 'editor-image-spacer-mobile-hide', 'image-spacer-mobile-hide', 'wrap-spacer-mobile-hide');
         }
       });
-      markParagraphsBeforeImages(editor);
+      normalizeImageLayoutMarkers(editor);
       editor.querySelectorAll('.image-wrapper, img').forEach((target) => {
         if (target.tagName === 'IMG' && target.closest('.image-wrapper')) return;
 
@@ -9489,22 +9489,6 @@ const QuillWrapper = forwardRef(({
           text-align: justify !important;
         }
 
-        /* Dong bo khoang cach ngay duoi wraptext giua Admin va User */
-        .ql-editor .editor-wrap-trailing-spacer,
-        .ql-editor p.editor-wrap-trailing-spacer {
-          display: none !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          height: 0 !important;
-          min-height: 0 !important;
-          line-height: 0 !important;
-          font-size: 0 !important;
-          border: none !important;
-        }
-        .ql-editor .editor-wrap-exit-content {
-          clear: both !important;
-          margin-top: 0 !important;
-        }
         .ql-editor p:has([style*="font-family: alex-brush"]),
         .ql-editor p:has([style*="font-family:alex-brush"]),
         .ql-editor p:has([style*="font-family: 'alex-brush'"]),
