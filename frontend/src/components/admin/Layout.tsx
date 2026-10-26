@@ -303,11 +303,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [currentRoute, setCurrentRoute] = React.useState("Dashboard");
 
   React.useEffect(() => {
+    const syncScrollbarWidth = () => {
+      const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+      const value = `${scrollbarWidth}px`;
+      if (document.documentElement.style.getPropertyValue('--admin-scrollbar-width') !== value) {
+        document.documentElement.style.setProperty('--admin-scrollbar-width', value);
+      }
+    };
     const handleResize = () => {
       window.innerWidth < 1200 ? setOpen(false) : setOpen(true);
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      document.documentElement.style.setProperty('--admin-scrollbar-width', scrollbarWidth + 'px');
+      syncScrollbarWidth();
     };
+    // Async editor content can introduce/remove a scrollbar without a window resize.
+    const observer = new ResizeObserver(syncScrollbarWidth);
+    observer.observe(document.documentElement);
+    observer.observe(document.body);
 
     if (typeof window !== "undefined") {
       handleResize();
@@ -315,6 +325,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return () => {
+      observer.disconnect();
       if (typeof window !== "undefined") {
         window.removeEventListener("resize", handleResize);
       }

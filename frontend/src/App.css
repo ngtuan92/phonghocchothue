@@ -289,7 +289,8 @@
   padding-top: 20px !important;
   padding-bottom: 16px !important;
   padding-left: var(--blog-editor-text-inset) !important;
-  padding-right: var(--blog-editor-text-inset) !important;
+  /* Public content hides its scrollbar; compensate only the space admin consumes. */
+  padding-right: max(0px, calc(var(--blog-editor-text-inset) - var(--admin-scrollbar-width, 0px))) !important;
   display: flow-root !important;
 }
 .quill-wrapper-container .ql-editor {
